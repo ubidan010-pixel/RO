@@ -110,7 +110,7 @@ void Font::getFontPathBaseLanguage(const char *fontFile,ITF_LANGUAGE _lanugage,S
             break;
         case ITF_LANGUAGE_TRADITIONALCHINESE:
             suffix="_tch.";
-        default: ;
+        default: break;
     }
     if (suffix!="")
     {
@@ -1542,20 +1542,21 @@ void Font::dependenciesFile(const String& _filename,DepCollection& _collection)
         rid.getPath()->getString(resFilename);
         _collection.add(resFilename);
     }
+    Path fullpath(_filename);
 
+    String path(fullpath.getDirectory());
+
+    String baseName;
+    fullpath.getBasenameWithoutExtension(baseName);
+
+    String langaugeSuffixes[] ={"_jap","_tch","_sch"};
+    for (String& langaugeSuffix : langaugeSuffixes)
     {
-        Path fullpath(_filename);
-
-        String path(fullpath.getDirectory());
-
-        String baseName;
-        fullpath.getBasenameWithoutExtension(baseName);
-
-        if (baseName.strstr(String("_jap").cStr()) == NULL)
+        if (baseName.strstr(langaugeSuffix.cStr()) == NULL)
         {
             String ext(fullpath.getExtension());
 
-            String fontFileLocal16 = path + baseName + "_jap." + ext;
+            String fontFileLocal16 = path + baseName + langaugeSuffix +"." + ext;
             _collection.add(fontFileLocal16);
         }
         if (baseName.strstr(String("_tch").cStr()) == NULL)
