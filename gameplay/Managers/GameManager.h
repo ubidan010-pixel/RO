@@ -870,7 +870,10 @@ namespace ITF
         //play bus mix for pause
         virtual void setPauseBusMix() {}
         virtual void stopPauseBusMix() {}
-
+    public :
+        typedef void (*CompletionCallback_t)();
+        CompletionCallback_t m_onGameSettingLoaded;
+        void setGameSettingLoadEvent(CompletionCallback_t callback) {m_onGameSettingLoaded = callback;};
     protected:
 
         enum GameOperation

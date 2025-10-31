@@ -74,7 +74,6 @@ private:
 #define ERROR_HANDLER ErrorHandler::getptr()
 
 #if defined (ITF_FINAL) || defined (ITF_DISABLE_LOG)
-    // Final/Disabled: keep logs active on PS5 and allow empty varargs safely
     #if defined(ITF_PS5) || defined(ITF_NINTENDO)
         #define LOG(_format, ...)                           ITF::ERROR_HANDLER->Log(_format, ## __VA_ARGS__)
         #define ITF_FATAL_ERROR(_format, ...)               ITF::ERROR_HANDLER->FatalError(_format, ## __VA_ARGS__)
