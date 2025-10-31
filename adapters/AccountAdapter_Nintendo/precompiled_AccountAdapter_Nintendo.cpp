@@ -1,0 +1,1 @@
+#include "precompiled_AccountAdapter_Nintendo.h"

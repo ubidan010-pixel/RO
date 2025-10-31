@@ -1,0 +1,8 @@
+#ifndef ITF_PRECOMPILED_ADAPTER_SAVEGAME_NINTENDO_H_
+#define ITF_PRECOMPILED_ADAPTER_SAVEGAME_NINTENDO_H_
+
+#include "core/enginecommon.h"
+#include "core/memory/memory.h"
+
+#endif // ITF_PRECOMPILED_ADAPTER_SAVEGAME_NINTENDO_H_
+

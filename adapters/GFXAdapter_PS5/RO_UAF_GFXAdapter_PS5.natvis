@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+  <Type Name="ITF::Gnmp::VRAMHandleLinks">
+    <Expand>
+        <Item Name="Chunk" Condition="prev == nullptr">(ITF::Gnmp::VRAMAllocator::ChunkEntry*)((char *)this - offsetof(ITF::Gnmp::VRAMAllocator::ChunkEntry, freeLink))</Item>
+        <LinkedListItems Condition="prev != nullptr">
+            <Size>4</Size>
+            <HeadPointer>this</HeadPointer>
+            <NextPointer>prev</NextPointer>
+            <ValueNode> 
+                prev
+            </ValueNode>
+        </LinkedListItems>
+    </Expand>
+  </Type>
+</AutoVisualizer>

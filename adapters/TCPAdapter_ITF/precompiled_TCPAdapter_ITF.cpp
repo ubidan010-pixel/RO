@@ -1,0 +1,1 @@
+#include "precompiled_TCPAdapter_ITF.h"

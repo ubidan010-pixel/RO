@@ -1,0 +1,60 @@
+#ifndef _ITF_RAY_AIBTFACTS_H_
+#define _ITF_RAY_AIBTFACTS_H_
+
+#ifndef _ITF_STRINGID_H_
+#include "core/StringID.h"
+#endif //_ITF_STRINGID_H_
+
+namespace ITF
+{
+
+// Tells us when to send the hit stim
+#define Ray_AIFact_order ITF_GET_STRINGID_CRC(Ray_AIFact_Order,359392041)
+#define Ray_AIFact_order_sender ITF_GET_STRINGID_CRC(Ray_AIFact_Order_Sender,3582791281)
+#define Ray_AIFact_friendSOS ITF_GET_STRINGID_CRC(Ray_AIFact_FriendSOS,4207381059)
+#define Ray_AIFact_darktoonified ITF_GET_STRINGID_CRC(Ray_AIFact_Darktoonified,1823343807)
+
+#define Ray_AIFact_gotoWaitForDanceOnStone ITF_GET_STRINGID_CRC(Ray_AIFact_GotoWaitForDanceOnStone,3324089364)
+#define Ray_AIFact_waitForDanceOnStone ITF_GET_STRINGID_CRC(Ray_AIFact_WaitForDanceOnStone,969584636)
+#define Ray_AIFact_danceOnStone ITF_GET_STRINGID_CRC(Ray_AIFact_DanceOnStone,308278690)
+
+#define Ray_AIFact_activateStone ITF_GET_STRINGID_CRC(Ray_AIFact_ActivateStone,624084219)
+#define Ray_AIFact_activateStoneTrigger ITF_GET_STRINGID_CRC(Ray_AIFact_ActivateStoneTrigger,925565665)
+#define Ray_AIFact_attackInProgress ITF_GET_STRINGID_CRC(Ray_AIFact_attackInProgress,3211539286)
+
+#define Ray_AIFact_currentWaypoint ITF_GET_STRINGID_CRC(Ray_AIFact_CurrentWaypoint,784861537)
+#define Ray_AIFact_targetWaypoint ITF_GET_STRINGID_CRC(Ray_AIFact_TargetWaypoint,3623067432)
+#define Ray_AIFact_waypointChanged ITF_GET_STRINGID_CRC(Ray_AIFact_WaypointChanged,551765810)
+#define Ray_AIFact_waypointReached ITF_GET_STRINGID_CRC(Ray_AIFact_WaypointReached,2852548635)
+#define Ray_AIFact_waypointLinkType ITF_GET_STRINGID_CRC(Ray_AIFact_CurrentWaypointLinkType,281077821)
+
+#define Ray_AIFact_teleportEvent ITF_GET_STRINGID_CRC(Ray_AIFact_TeleportEvent,2252537086)
+#define Ray_AIFact_usingTeleport ITF_GET_STRINGID_CRC(Ray_AIFact_UsingTeleport,3188556866)
+
+#define Ray_AIFact_faction ITF_GET_STRINGID_CRC(Ray_AIFact_faction,1925859321)
+
+#define Ray_AIFact_OnPedestalActor ITF_GET_STRINGID_CRC(Ray_AIFact_onPedestalActor,3300871946)
+
+#define Ray_AIFact_attackTarget ITF_GET_STRINGID_CRC(Ray_AIFact_AttackTarget,982656515)
+
+#define Ray_AIFact_hitReceived ITF_GET_STRINGID_CRC(Ray_AIFact_hitReceived,857466148)
+#define Ray_AIFact_hitReceivedChanged ITF_GET_STRINGID_CRC(Ray_AIFact_hitReceivedChanged,3119202197)
+#define Ray_AIFact_receivedHitInstigator ITF_GET_STRINGID_CRC(Ray_AIFact_receivedHitInstigator,3541402037)
+#define Ray_AIFact_receivedHitLevel ITF_GET_STRINGID_CRC(Ray_AIFact_receivedHitLevel,3822952486)
+#define Ray_AIFact_receivedHitFxPos ITF_GET_STRINGID_CRC(Ray_AIFact_receivedHitFxPos,3488603351)
+#define Ray_AIFact_receivedHitType ITF_GET_STRINGID_CRC(Ray_AIFact_receivedHitType,494649557)
+#define Ray_AIFact_receivedHitDir ITF_GET_STRINGID_CRC(Ray_AIFact_receivedHitDir,817274723)
+#define Ray_AIFact_receivedHitFeedbackAction ITF_GET_STRINGID_CRC(Ray_AIFact_receivedHitFeedbackACtion,1866288258)
+
+#define Ray_AIFact_triggerDeath ITF_GET_STRINGID_CRC(Ray_AIFact_triggerDeath,1216096214)
+
+#define Ray_AIFact_RunAway ITF_GET_STRINGID_CRC(Ray_AIFact_RunAway,2285446835)
+
+#define Ray_AIFact_PlayGreet ITF_GET_STRINGID_CRC(Ray_AIFact_PlayGreet,1588622681)
+
+#define Ray_AIFact_PlayDisappear ITF_GET_STRINGID_CRC(Ray_AIFact_PlayDisappear,4151116733)
+
+};
+
+#endif //_ITF_RAY_AIBTFACTS_H_
+

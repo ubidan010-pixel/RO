@@ -1,0 +1,1 @@
+#include "precompiled_Adapter_Savegame_CTR.h"

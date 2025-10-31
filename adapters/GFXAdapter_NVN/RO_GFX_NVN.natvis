@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+    <Type Name="ITF::NVNTexturePool::TexturePoolEntry">
+        <DisplayString Condition="texture != nullptr">tex = {texture->m_resName}</DisplayString>
+    </Type>
+    <Type Name="ITF::ShaderProgram">
+        <DisplayString>{m_loadedFileName}</DisplayString>
+    </Type>
+    <Type Name="ITF::NVN::VRAMHandleLinks">
+        <Expand>
+            <Item Name="Chunk" Condition="prev == nullptr">(ITF::NVN::VRAMAllocator::ChunkEntry*)((char *)&amp;next - 24)</Item>
+            <LinkedListItems Condition="prev != nullptr">
+                <Size>4</Size>
+                <HeadPointer>this</HeadPointer>
+                <NextPointer>prev</NextPointer>
+                <ValueNode>
+                    prev
+                </ValueNode>
+            </LinkedListItems>
+        </Expand>
+    </Type>
+
+</AutoVisualizer>

@@ -1,0 +1,59 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+  <Type Name="ITF::String">
+      <DisplayString Condition="m_szContent_ != nullptr">{m_szContent_,su}</DisplayString>
+      <DisplayString Condition="m_szContent_ == nullptr">L""</DisplayString>
+  </Type>
+  <Type Name="ITF::String8">
+    <DisplayString>{m_szContent_,s8}</DisplayString>
+  </Type>
+  <Type Name="ITF::StringID">
+    <DisplayString Condition="m_dictionaryIndex != 0xFFFFFFFF">{m_id} -&gt; {&amp;m_database-&gt;m_buffer[m_dictionaryIndex],s8}</DisplayString>
+    <DisplayString Condition="m_dictionaryIndex == 0xFFFFFFFF">{m_id}</DisplayString>
+  </Type>
+  <Type Name="ITF::ObjectRef">
+    <DisplayString>{ITF::TemplateSingleton&lt;ITF::IdServer&gt;::ms_instance-&gt;m_ThreadData[m_directValue &amp; 0xF].m_data.m_data[(m_directValue&gt;&gt;4)&amp;0xFFFFF].m_object}</DisplayString>
+    <Expand>
+      <Item Name="[object]">ITF::TemplateSingleton&lt;ITF::IdServer&gt;::ms_instance-&gt;m_ThreadData[m_directValue &amp; 0xF].m_data.m_data[(m_directValue&gt;&gt;4)&amp;0xFFFFF].m_object</Item>
+    </Expand>
+  </Type>
+  <Type Name="ITF::MapEntry">
+    <DisplayString>{m_content,s8}</DisplayString>
+  </Type>
+  <Type Name="ITF::Path">
+    <DisplayString Condition="m_dirEntry!=nullptr">{*m_dirEntry}{m_baseName,s8}</DisplayString>
+    <DisplayString Condition="m_dirEntry==nullptr">{m_baseName,s8}</DisplayString>
+  </Type>
+  <Type Name="ITF::SafeArray&lt;*&gt;">
+    <DisplayString>{{ size={m_size} }}</DisplayString>
+    <Expand>
+      <Item Name="[size]">m_size</Item>
+      <Item Name="[capacity]">m_capacity</Item>
+      <IndexListItems>
+        <Size>m_size</Size>
+        <ValueNode>m_data[$i]</ValueNode>
+      </IndexListItems>
+    </Expand>
+  </Type>
+  <Type Name="ITF::KeyArray&lt;*&gt;">
+    <DisplayString>{{ size={m_keys.m_size} }}</DisplayString>
+    <Expand>
+      <Item Name="[size]">m_keys.m_size</Item>
+      <Item Name="[capacity]">m_keys.m_capacity</Item>
+      <Item Name="[keys]">m_keys</Item>
+      <Item Name="[values]">m_array</Item>
+    </Expand>
+  </Type>
+  <Type Name="ITF::SacRBTree&lt;*,*,*,*,*,*&gt;">
+    <DisplayString>{{ size={m_count} }}</DisplayString>
+    <Expand>
+      <TreeItems>
+        <Size>m_count</Size>
+        <HeadPointer>m_tree.m_parent</HeadPointer>
+        <LeftPointer>m_left</LeftPointer>
+        <RightPointer>m_right</RightPointer>
+        <ValueNode>((ITF::SacRBTree&lt;$T1,$T2,$T3,$T4,$T5,$T6&gt;::TreeNode*)this)-&gt;m_element</ValueNode>
+      </TreeItems>
+    </Expand>
+  </Type>
+</AutoVisualizer>

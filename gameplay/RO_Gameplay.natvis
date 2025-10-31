@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+    <Type Name="ITF::FontCall">
+        <DisplayString Condition="*(ITF::TextInfo**)m_textTab!=nullptr">{(*(ITF::TextInfo**)m_textTab)->m_text}</DisplayString>
+        <DisplayString Condition="(*((ITF::TextInfo**)m_textTab+1))!=nullptr">{(*((ITF::TextInfo**)m_textTab+1))->m_text}</DisplayString>
+    </Type>
+</AutoVisualizer>

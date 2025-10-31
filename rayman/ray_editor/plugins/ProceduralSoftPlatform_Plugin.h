@@ -1,0 +1,68 @@
+#ifndef _ITF_PROCEDURALSOFTPLATFORM_PLUGIN_H_
+#define _ITF_PROCEDURALSOFTPLATFORM_PLUGIN_H_
+
+#ifndef _ITF_ACTOREDITOR_H_
+#include "tools/plugins/ActorEditor/ActorEditor.h"
+#endif //_ITF_ACTOREDITOR_H_
+
+namespace ITF
+{
+    class ProceduralSoftPlatformComponent; 
+
+    class ProceduralSoftPlatform_Plugin : public Interface_ActorEditorListener
+    {
+        static ProceduralSoftPlatform_Plugin* s_instance;
+
+    public:
+
+        static Interface_ActorEditorListener*   create();
+        virtual void                            destroy();
+
+
+        ProceduralSoftPlatform_Plugin();
+        virtual ~ProceduralSoftPlatform_Plugin();
+
+        virtual void    fillContextMenu( EditorContextMenu& _menu, Actor* _actor, ActorComponent* _component ) {}
+        virtual void    onContextMenuItemSelected( ContextMenuItem* _item, Actor* _actor, ActorComponent* _component ) {}
+        virtual void    fillAltContextMenu( EditorContextMenu& _menu ) {}
+        virtual void    onAltContextMenuItemSelected( ContextMenuItem* _item ) {}
+        virtual void    fillMainMenu( EditorContextMenu& _menu ) {}
+        virtual void    onMainMenuItemSelected( ContextMenuItem* _item ) {}
+
+        virtual bbool   onDeletePickingShape( PickingShape* _shape ) { return bfalse; }
+        virtual void    onSelected( Actor* _actor ) {}
+        virtual void    onObjectDuplicated( Actor* _actor, Actor* _actorSrc, ActorComponent* _component ) {}
+        virtual void    onObjectChanged( Actor* _actor, ActorComponent* _component ) {}
+        virtual void    onUpdate() {}
+        virtual void    onDraw() {}
+        virtual void    onUpdateSelectedActor( Actor* _actor, ActorComponent* _component ) {}
+
+        virtual void    fillEditorActiveList( ObjectRefList& _pickablesObjects, PickingShapeVector& _orderedShapes, Scene* _filterScene ) const {}
+        virtual bbool   needsInitPosPickingShape( Actor* _actor, ActorComponent* _component ) { return bfalse; }
+
+        virtual void    addComponentSpecificPickingShape( Actor* _actor, ActorComponent* _component );
+        virtual void    updateComponentSpecificPickingShape( Actor* _actor, PickingShape* _shape, PickingShapeVector& _activeShapes );
+        virtual void    addPickingShapeSpecificIcons( PickingShape* _shape, SafeArray<Editor_IconStock::EditorIconID>& _icons, f32& _iconSize );
+        virtual void    addComponentSpecificIcons( Actor* _actor, ActorComponent* _component, SafeArray<Editor_IconStock::EditorIconID>& _icons, f32& _iconSize ) {}
+
+        virtual bbool   onSetShapePosition( PickingShape* _shape, const Vec2d& _screenSpacePos );
+        virtual bbool   onOffsetShapePosition( PickingShape* _shape, const Vec3d& _deltaPos );
+        virtual void    onShapePosChanged(Actor* /*_pActor*/, ActorComponent* /*_pComp*/, PickingShape* /*_pShape*/, const Vec3d& /*_deltaPos*/) { }
+
+    private:
+
+        ProceduralSoftPlatformComponent* getComponent( PickingShape* _shape );
+
+        Actor*          getActor( PickingShape* _shape );
+        bbool           isSelected( PickingShape* _shape );
+        Vec3d           getWorldPosition( PickingShape_Disc* _disc, const Vec2d& _screenSpacePos );
+        Vec3d           getWorldPosition( PickingShape_Disc* _disc, const Vec3d& _deltaPos );
+
+        Vec3d           transformToLocal( ProceduralSoftPlatformComponent* _component, const Vec3d& _worldPos );
+        Vec3d           transformToWorld( ProceduralSoftPlatformComponent* _component, const Vec3d& _localPos );
+    };
+
+} // namespace ITF
+
+
+#endif // _ITF_PROCEDURALSOFTPLATFORM_PLUGIN_H_

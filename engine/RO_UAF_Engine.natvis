@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+  <Type Name="ITF::Pickable">
+    <DisplayString>{m_userFriendly,s8}</DisplayString>
+  </Type>
+  <Type Name="ITF::WorldUpdateElement">
+    <DisplayString>{m_obj}</DisplayString>
+  </Type>
+  <Type Name="ITF::SubSceneActor">
+    <DisplayString>{m_userFriendly,s8}, {m_scenePath}</DisplayString>
+  </Type>
+  <Type Name="ITF::Scene">
+    <DisplayString>{m_sUniqueName}</DisplayString>
+  </Type>
+  <Type Name="ITF::World">
+    <DisplayString>{m_uniqueName}</DisplayString>
+  </Type>
+  <Type Name="ITF::Resource">
+    <DisplayString Condition="m_path.m_dirEntry!=nullptr &amp;&amp; m_bPhysicalLoaded">loaded {m_path}</DisplayString>
+    <DisplayString Condition="m_path.m_dirEntry!=nullptr &amp;&amp; !m_bPhysicalLoaded">NOT loaded {m_path}</DisplayString>
+    <DisplayString Condition="m_path.m_dirEntry==nullptr &amp;&amp; m_bPhysicalLoaded">loaded</DisplayString>
+    <DisplayString Condition="m_path.m_dirEntry==nullptr &amp;&amp; !m_bPhysicalLoaded">NOT loaded</DisplayString>
+  </Type>
+  <Type Name="ITF::ResourceID">
+    <DisplayString Condition="m_resource!=nullptr">{*m_resource}</DisplayString>
+  </Type>
+  <Type Name="ITF::ResourceContainer::ContainerId">
+    <DisplayString>{ITF::TemplateSingleton&lt;ITF::ResourceManager&gt;::_instance-&gt;m_resourceContainersMap[*this]}</DisplayString>
+  </Type>
+  <Type Name="ITF::DepCollection::RawPath">
+      <DisplayString>{(wchar_t*)path}</DisplayString>
+  </Type>
+  <Type Name="ITF::ITF_shader">
+    <DisplayString>{m_name}</DisplayString>
+  </Type>    
+</AutoVisualizer>

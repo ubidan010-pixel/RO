@@ -1,0 +1,7 @@
+#ifndef _ITF_PRECOMPILED_ADAPTER_ONLINE_UBISERVICES_H_
+#define _ITF_PRECOMPILED_ADAPTER_ONLINE_UBISERVICES_H_
+
+#include "core/EngineCommon.h"
+#include "core/memory/memory.h"
+
+#endif //_ITF_PRECOMPILED_ADAPTER_ONLINE_UBISERVICES_H_

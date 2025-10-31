@@ -1,0 +1,24 @@
+#ifndef _VITASPECIFICCONSTANTS_
+#define _VITASPECIFICCONSTANTS_
+
+#define NB_FLUID_LEVELS (128 + 1)
+
+#define MAX_VERTEX_BY_MESH      1500
+#define MAX_INDEX_BY_ELEMENT    8192
+#define NB_ELEMENT_IN_VERTEX_BUFFER 16
+
+
+#define MESH_DEFAULT_HDIV           4
+#define MESH_DEFAULT_VDIV           128
+
+#define LAYER_0_CELL_SIZE           20.0f
+#define LAYER_0_MAX_HORIZ_CELLS     250
+#define LAYER_0_MAX_VERT_CELLS      250
+#define CELL_LAYERS_COUNT           4
+#define CELL_LAYERS_SCALE           4
+//#define USE_LOAD_RESOURCE_MAX_RANGE
+#define CELLLAYERSSETTINGS_TARGET   CellsLayersSettings::CellTgt_VITA
+
+#define RESOURCE_PHYSICAL_DEFAULTLIFETIME 600 //keep it for 10 secs assuming we are at 60fps
+
+#endif // _VITASPECIFICCONSTANTS_
