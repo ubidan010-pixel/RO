@@ -778,6 +778,27 @@ enum JoyAxis_t
 
         virtual void OnControllerConnected(u32 _padIndex) {}
         virtual void OnControllerDisconnected(u32 _padIndex) {}
+#ifdef ITF_SUPPORT_BOT_AUTO
+        void virtualSetAxis(u32 _axisIndex, f32 _value);
+        void updateVirtualInput(f32 _dt);
+
+        struct VirtualButtonState {
+            bbool active;
+            f32 holdTimer;
+            f32 holdDuration;
+        };
+
+        struct VirtualAxisState {
+            bbool active;
+            f32 targetValue;
+        };
+        void virtualPressButton(u32 _buttonIndex);
+        void virtualReleaseButton(u32 _buttonIndex);
+        VirtualButtonState m_virtualButtons[JOY_MAX_BUT];
+        VirtualAxisState m_virtualAxes[JOY_MAX_AXES];
+        bbool m_virtualKeysActive[KEY_COUNT];
+        f32 m_virtualKeyTimers[KEY_COUNT];
+#endif
     };
 
 #define INPUT_ADAPTER InputAdapter::getptr()

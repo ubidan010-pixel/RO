@@ -20,6 +20,18 @@
 #include "gameplay/components/misc/CheckpointComponent.h"
 #endif //_ITF_CHECKPOINTCOMPONENT_H_
 
+#ifndef _ITF_RAY_CHANGEPAGECOMPONENT_H_
+#include "rayman/gameplay/Components/Misc/Ray_ChangePageComponent.h"
+#endif //_ITF_RAY_CHANGEPAGECOMPONENT_H_
+
+#ifndef _ITF_TRIGGERCOMPONENT_H_
+#include "gameplay/Components/Trigger/TriggerComponent.h"
+#endif //_ITF_TRIGGERCOMPONENT_H_
+
+#ifndef _ITF_WORLDMANAGER_H_
+#include "engine/scene/worldManager.h"
+#endif //_ITF_WORLDMANAGER_H_
+
 #ifndef _ITF_LINKCOMPONENT_H_
 #include "gameplay/Components/Misc/LinkComponent.h"
 #endif //_ITF_LINKCOMPONENT_H_
@@ -418,7 +430,7 @@ namespace ITF
             {
                 m_consecutiveHitTimer = DIAMOND_HEART_CONSECUTIVE_HIT_WINDOW;
             }
-            
+
             m_consecutiveHits++;
             m_consecutiveHits = Min(m_consecutiveHits, DIAMOND_HEART_MAX_CONSECUTIVE_HITS + 1);
             if (m_consecutiveHits >= DIAMOND_HEART_MAX_CONSECUTIVE_HITS)
@@ -1177,6 +1189,9 @@ namespace ITF
           , m_preloadedPrologueReady(bfalse)
           , m_gameOptionPersistence(NULL)
           , m_trcHelper(NULL)
+#ifdef ITF_SUPPORT_BOT_AUTO
+          , m_botController(NULL)
+#endif // ITF_SUPPORT_BOT_AUTO
     {
         ITF_MemSet(m_lastPadType, U32_INVALID, sizeof(m_lastPadType));
 
@@ -3305,7 +3320,9 @@ namespace ITF
         // update onlineTracking manager
         m_onlineTrackingManager.update(_dt);
 #endif // ITF_SUPPORT_ONLINETRACKING
-
+#ifdef ITF_SUPPORT_BOT_AUTO
+        updateBotController(_dt);
+#endif // ITF_SUPPORT_BOT_AUTO
         if (!m_isInPause && _dt > 0.0f)
         {
             for (u32 i = 0; i < getMaxPlayerCount(); ++i)
@@ -5208,6 +5225,30 @@ namespace ITF
         m_trcHelper = newAlloc(mId_Singleton, Ray_TRCHelper());
         if (TRC_ADAPTER)
             TRC_ADAPTER->registerTRCHelper((TRCHelper*)(m_trcHelper));
+
+#ifdef ITF_SUPPORT_BOT_AUTO
+            m_botController = newAlloc(mId_Gameplay, BotController)(this);
+            m_botController->initialize();
+            if (m_botController)
+            {
+                auto stanceCallback = [](GameManager* gm, u32 playerIndex) -> u32
+                {
+                    Ray_GameManager* rayMgr = static_cast<Ray_GameManager*>(gm);
+                    return rayMgr ? rayMgr->getPlayerStance(playerIndex) : static_cast<u32>(STANCE_STAND);
+                };
+                m_botController->setStanceCallback(stanceCallback);
+
+                auto scanCallback = [](GameManager* gm, GameState* state)
+                {
+                    Ray_GameManager* rayMgr = static_cast<Ray_GameManager*>(gm);
+                    if (rayMgr)
+                    {
+                        rayMgr->updateTargetDistancesForBot(state);
+                    }
+                };
+                m_botController->setScanTargetsCallback(scanCallback);
+            }
+#endif // ITF_SUPPORT_BOT_AUTO
     }
 
     //////////////////////////////////////////////////////////////////////////
@@ -5237,6 +5278,10 @@ namespace ITF
 
         if (getLevelPath(getCurrentLevelName()) == _pScene->getPath())
             spawnMedal(getCurrentLevelName());
+
+#ifdef ITF_SUPPORT_BOT_AUTO
+        scanTargetsForBot();
+#endif
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -11699,7 +11744,7 @@ namespace ITF
     ///////////////////////////////////////////////////////////////////////////////////////////
     // OPTION MENU - DISPLAY OPTIONS
     ///////////////////////////////////////////////////////////////////////////////////////////
-    
+
     i32 Ray_GameManager::getResolutionIndex() const
     {
         return m_gameOptionManager.getListOptionIndex(OPTION_RESOLUTION);
@@ -12043,6 +12088,185 @@ namespace ITF
             RAY_GAMEMANAGER->applyMusicVolumeOption();
             RAY_GAMEMANAGER->applySFXVolumeOption();
         }
+        if (RAY_GAMEMANAGER->m_onGameSettingLoaded)
+        {
+            RAY_GAMEMANAGER->m_onGameSettingLoaded();
+            RAY_GAMEMANAGER->m_onGameSettingLoaded = NULL;
+        }
     }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#ifdef ITF_SUPPORT_BOT_AUTO
+    void Ray_GameManager::updateBotController(f32 dt)
+    {
+        if (m_botController && m_botController->isActive() && !m_isInPause)
+        {
+            m_botController->update(dt);
+        }
+        static bbool s_wasF9Pressed = bfalse;
+        bbool isF9Pressed = INPUT_ADAPTER->isKeyPressed(KEY_F9);
+
+        if (m_botController && isF9Pressed && !s_wasF9Pressed)
+        {
+            if (m_botController->getMode() == BotMode_Disabled)
+            {
+                m_botController->setMode(BotMode_Training);
+                LOG("[AI BOT] - enabled (Inference mode)");
+            }
+            else
+            {
+                m_botController->setMode(BotMode_Disabled);
+                LOG("[AI BOT] - disabled");
+            }
+        }
+        s_wasF9Pressed = isF9Pressed;
+    }
+
+    u32 Ray_GameManager::getPlayerStance(u32 playerIndex) const
+    {
+        Player* player = const_cast<Ray_GameManager*>(this)->getPlayer(playerIndex);
+        if (!player || !player->getActive())
+        {
+            return static_cast<u32>(STANCE_STAND);
+        }
+
+        Actor* playerActor = player->getActor();
+        if (!playerActor)
+        {
+            return static_cast<u32>(STANCE_STAND);
+        }
+
+        Ray_PlayerControllerComponent* controller = playerActor->GetComponent<Ray_PlayerControllerComponent>();
+        if (controller)
+        {
+            return static_cast<u32>(controller->getStance());
+        }
+
+        return static_cast<u32>(STANCE_STAND);
+    }
+
+    void Ray_GameManager::scanTargetsForBot()
+    {
+        m_allTargets.clear();
+
+        ObjectRef worldRef = getCurrentWorld();
+        if (!worldRef.isValid())
+            return;
+
+        World* currentWorld = (World*)GETOBJECT(worldRef);
+        if (!currentWorld)
+            return;
+
+        ITF_VECTOR<TargetInfo> checkpoints;
+        ITF_VECTOR<TargetInfo> changePages;
+
+        for (u32 sceneIndex = 0; sceneIndex < currentWorld->getSceneCount(); sceneIndex++)
+        {
+            Scene* scene = currentWorld->getSceneAt(sceneIndex);
+            if (!scene)
+                continue;
+
+            const PickableList& actors = scene->getActors();
+            for (u32 actorIndex = 0; actorIndex < actors.size(); actorIndex++)
+            {
+                Actor* actor = static_cast<Actor*>(actors[actorIndex]);
+                if (!actor)
+                    continue;
+
+                CheckpointComponent* checkpointComp = actor->GetComponent<CheckpointComponent>();
+                if (checkpointComp)
+                {
+                    TargetInfo info;
+                    info.position = actor->getPos();
+                    info.actorRef = actor->getRef();
+                    info.distance = F32_INFINITY;
+                    info.isCheckpoint = btrue;
+                    checkpoints.push_back(info);
+                    continue;
+                }
+
+                Ray_ChangePageComponent* changePageComp = actor->GetComponent<Ray_ChangePageComponent>();
+                if (changePageComp)
+                {
+                    TargetInfo info;
+                    info.position = actor->getPos();
+                    info.actorRef = actor->getRef();
+                    info.distance = F32_INFINITY;
+                    info.isCheckpoint = bfalse;
+                    changePages.push_back(info);
+                }
+            }
+        }
+
+        for (u32 i = 0; i < checkpoints.size(); i++)
+        {
+            m_allTargets.push_back(checkpoints[i]);
+        }
+        for (u32 i = 0; i < changePages.size(); i++)
+        {
+            m_allTargets.push_back(changePages[i]);
+        }
+
+        for (u32 i = 0; i < m_allTargets.size(); i++)
+        {
+            for (u32 j = i + 1; j < m_allTargets.size(); j++)
+            {
+                if (m_allTargets[i].position.m_x > m_allTargets[j].position.m_x)
+                {
+                    TargetInfo temp = m_allTargets[i];
+                    m_allTargets[i] = m_allTargets[j];
+                    m_allTargets[j] = temp;
+                }
+            }
+        }
+    }
+
+    void Ray_GameManager::updateTargetDistancesForBot(GameState* state)
+    {
+        if (!state)
+            return;
+
+        Player* player = getPlayer(0);
+        if (!player || !player->getActive())
+        {
+            state->nextTarget = TargetInfo();
+            return;
+        }
+
+        Actor* playerActor = player->getActor();
+        if (!playerActor)
+        {
+            state->nextTarget = TargetInfo();
+            return;
+        }
+
+        Vec3d playerPos = playerActor->getPos();
+        Actor* currentCheckpoint = getCurrentCheckpoint();
+        ObjectRef currentCheckpointRef = currentCheckpoint ? currentCheckpoint->getRef() : ObjectRef::InvalidRef;
+
+        state->nextTarget = TargetInfo();
+
+        for (u32 i = 0; i < m_allTargets.size(); i++)
+        {
+            if (m_allTargets[i].position.m_x <= playerPos.m_x)
+            {
+                continue;
+            }
+
+            if (m_allTargets[i].isCheckpoint && m_allTargets[i].actorRef == currentCheckpointRef)
+            {
+                continue;
+            }
+
+            Vec3d diff = m_allTargets[i].position - playerPos;
+            state->nextTarget = m_allTargets[i];
+            state->nextTarget.distance = diff.norm();
+            break;
+        }
+    }
+
+#endif
+
 
 } //namespace ITF

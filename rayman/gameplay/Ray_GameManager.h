@@ -5,6 +5,7 @@
 #include "gameplay/Managers/GameManager.h"
 #endif //_ITF_GAMEMANAGER_H_
 
+
 #ifndef _ITF_RAY_GAMEPLAYTYPES_H_
 #include "rayman/gameplay/Ray_GameplayTypes.h"
 #endif //_ITF_RAY_GAMEPLAYTYPES_H_
@@ -64,6 +65,15 @@
 #ifndef ITF_MOVIEPLAYER_H_
 #include "engine/video/MoviePlayer.h"
 #endif //ITF_MOVIEPLAYER_H_
+
+#ifdef ITF_SUPPORT_BOT_AUTO
+#ifndef _RAY_BOTCONTROLLER_H_
+#include "gameplay/AI/PlayerBot/BotController.h"
+#endif //_RAY_BOTCONTROLLER_H_
+#ifndef _RAY_PERCEPTIONMODULE_H_
+#include "gameplay/AI/PlayerBot/PerceptionModule.h"
+#endif //_RAY_PERCEPTIONMODULE_H_
+#endif // ITF_SUPPORT_BOT_AUTO
 
 namespace ITF
 {
@@ -1781,6 +1791,18 @@ namespace ITF
 
 		ITF_INLINE								bbool getIsPlayingFrescoVideo() const { return m_isPlayingFrescoVideo; }
 		ITF_INLINE								void setIsPlayingFrescoVideo(bbool _val) { m_isPlayingFrescoVideo = _val; }
+
+#ifdef ITF_SUPPORT_BOT_AUTO
+        ITF_INLINE BotController* getBotController() { return m_botController; }
+        ITF_INLINE const BotController* getBotController() const { return m_botController; }
+        void updateBotController(f32 dt);
+        void setBotMode(BotMode mode);
+        BotMode getBotMode() const;
+        bbool isBotActive() const;
+        virtual u32 getPlayerStance(u32 playerIndex) const;
+        void scanTargetsForBot();
+        void updateTargetDistancesForBot(struct GameState* state);
+#endif // ITF_SUPPORT_BOT_AUTO
     private:
         // Save/Load callbacks
         static void     onSaveOptionsComplete(Ray_GameOptionPersistence::Result result);
@@ -2011,7 +2033,11 @@ namespace ITF
 
         ObjectRef                   m_preloadedPrologueWorld;
         bbool                       m_preloadedPrologueReady;
-		bbool							m_isPlayingFrescoVideo;
+		bbool						m_isPlayingFrescoVideo;
+#ifdef ITF_SUPPORT_BOT_AUTO
+        BotController*              m_botController;
+        ITF_VECTOR<TargetInfo>      m_allTargets;
+#endif // ITF_SUPPORT_BOT_AUTO
     };
 
 #define RAY_REWARD_MANAGER      RAY_GAMEMANAGER->getRewardManager()
