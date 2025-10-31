@@ -74,41 +74,48 @@ private:
 #define ERROR_HANDLER ErrorHandler::getptr()
 
 #if defined (ITF_FINAL) || defined (ITF_DISABLE_LOG)
-#if defined(ITF_WII)
-#define LOG(...) {}
-#define ITF_FATAL_ERROR(...) {}
-#define ITF_ERROR(...) {}
-#define ITF_ERROR_SHOW(_showMessage, ...) {}
-#define LOG_COOKER(_format, ...)   {}
-#else
-#define LOG(_format, ...)  {}
-#define ITF_FATAL_ERROR(_format, ...) {}
-#define ITF_ERROR(_format, ...) {}
-#define ITF_ERROR_SHOW(_showMessage, _format, ...) {}
-#define LOG_COOKER(_format, ...)           {}
-#endif // !defined(ITF_WII)
+    // Final/Disabled: keep logs active on PS5 and allow empty varargs safely
+    #if defined(ITF_PS5) || defined(ITF_NINTENDO)
+        #define LOG(_format, ...)                           ITF::ERROR_HANDLER->Log(_format, ## __VA_ARGS__)
+        #define ITF_FATAL_ERROR(_format, ...)               ITF::ERROR_HANDLER->FatalError(_format, ## __VA_ARGS__)
+        #define ITF_ERROR(_format, ...)                     ITF::ERROR_HANDLER->Error(true, _format, ## __VA_ARGS__)
+        #define ITF_ERROR_SHOW(_showMessage, _format, ...)  ITF::ERROR_HANDLER->Error(_showMessage, _format, ## __VA_ARGS__)
+        #define LOG_COOKER(_format, ...)                    /* not applicable on PS5 */
+    #elif defined(ITF_WII)
+        #define LOG(...) {}
+        #define ITF_FATAL_ERROR(...) {}
+        #define ITF_ERROR(...) {}
+        #define ITF_ERROR_SHOW(_showMessage, ...) {}
+        #define LOG_COOKER(_format, ...)   {}
+    #else
+        #define LOG(_format, ...)  {}
+        #define ITF_FATAL_ERROR(_format, ...) {}
+        #define ITF_ERROR(_format, ...) {}
+        #define ITF_ERROR_SHOW(_showMessage, _format, ...) {}
+        #define LOG_COOKER(_format, ...)           {}
+    #endif // platform selection in Final/Disabled
 #else // defined(ITF_FINAL)
 #if	defined(ITF_PS3) || defined(ITF_VITA) || defined(ITF_PS5) || defined(ITF_NINTENDO)
-#define LOG(_format, ...)                           ITF::ERROR_HANDLER->Log( _format, ##  __VA_ARGS__)
-#define ITF_FATAL_ERROR(_format, ...)               ITF::ERROR_HANDLER->FatalError(_format,## __VA_ARGS__)
-#define ITF_ERROR(_format, ...)                     ITF::ERROR_HANDLER->Error(true, _format,## __VA_ARGS__)
-#define ITF_ERROR_SHOW(_showMessage, _format, ...)  ITF::ERROR_HANDLER->Error(_showMessage, _format, ## __VA_ARGS__)
+    #define LOG(_format, ...)                           ITF::ERROR_HANDLER->Log( _format, ## __VA_ARGS__)
+    #define ITF_FATAL_ERROR(_format, ...)               ITF::ERROR_HANDLER->FatalError(_format, ## __VA_ARGS__)
+    #define ITF_ERROR(_format, ...)                     ITF::ERROR_HANDLER->Error(true, _format, ## __VA_ARGS__)
+    #define ITF_ERROR_SHOW(_showMessage, _format, ...)  ITF::ERROR_HANDLER->Error(_showMessage, _format, ## __VA_ARGS__)
 #elif defined(ITF_IPAD) || defined(ITF_CTR)
-#define LOG(_format, ...)                           ITF::ERROR_HANDLER->Log(_format, ##  __VA_ARGS__)
-#define ITF_FATAL_ERROR(_format, ...)               ITF::ERROR_HANDLER->FatalError(_format,## __VA_ARGS__)
-#define ITF_ERROR(_format, ...)                     ITF::ERROR_HANDLER->Error(true, _format,## __VA_ARGS__)
-#define ITF_ERROR_SHOW(_showMessage, _format, ...)  ITF::ERROR_HANDLER->Error(_showMessage, _format, ## __VA_ARGS__)
+    #define LOG(_format, ...)                           ITF::ERROR_HANDLER->Log(_format, ## __VA_ARGS__)
+    #define ITF_FATAL_ERROR(_format, ...)               ITF::ERROR_HANDLER->FatalError(_format, ## __VA_ARGS__)
+    #define ITF_ERROR(_format, ...)                     ITF::ERROR_HANDLER->Error(true, _format, ## __VA_ARGS__)
+    #define ITF_ERROR_SHOW(_showMessage, _format, ...)  ITF::ERROR_HANDLER->Error(_showMessage, _format, ## __VA_ARGS__)
 #elif defined(ITF_WII)
 #define LOG(...)                           			ITF::ERROR_HANDLER->Log(__VA_ARGS__)
 #define ITF_FATAL_ERROR(...)               			ITF::ERROR_HANDLER->FatalError(__VA_ARGS__)
 #define ITF_ERROR(...)                     			ITF::ERROR_HANDLER->Error(true, __VA_ARGS__ )
 #define ITF_ERROR_SHOW(_showMessage, ...)  			ITF::ERROR_HANDLER->Error(_showMessage, __VA_ARGS__)
 #else
-#define LOG(_format, ...)                           ITF::ERROR_HANDLER->Log(_format, __VA_ARGS__)
-#define ITF_FATAL_ERROR(_format, ...)               ITF::ERROR_HANDLER->FatalError(_format, __VA_ARGS__)
-#define ITF_ERROR(_format, ...)                     ITF::ERROR_HANDLER->Error(true, _format, __VA_ARGS__)
-#define ITF_ERROR_SHOW(_showMessage, _format, ...)  ITF::ERROR_HANDLER->Error(_showMessage, _format, __VA_ARGS__)
-#define LOG_COOKER(_format, ...)                    ITF::ERROR_HANDLER->LogCooker(_format, __VA_ARGS__)
+    #define LOG(_format, ...)                           ITF::ERROR_HANDLER->Log(_format, ## __VA_ARGS__)
+    #define ITF_FATAL_ERROR(_format, ...)               ITF::ERROR_HANDLER->FatalError(_format, ## __VA_ARGS__)
+    #define ITF_ERROR(_format, ...)                     ITF::ERROR_HANDLER->Error(true, _format, ## __VA_ARGS__)
+    #define ITF_ERROR_SHOW(_showMessage, _format, ...)  ITF::ERROR_HANDLER->Error(_showMessage, _format, ## __VA_ARGS__)
+    #define LOG_COOKER(_format, ...)                    ITF::ERROR_HANDLER->LogCooker(_format, ## __VA_ARGS__)
 #endif //defined(ITF_PS3) || defined(ITF_IPAD)
 #endif //ITF_FINAL
 } //namespace ITF
