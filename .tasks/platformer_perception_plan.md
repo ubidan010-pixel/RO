@@ -20,8 +20,8 @@ Deliverables
 - (Optional) Telemetry hooks to persist new fields.
 
 Implementation Checklist
-- [ ] Data model
-  - [ ] Add `TerrainSensors` struct in `gameplay/AI/PlayerBot/PerceptionModule.h` with fields:
+- [x] Data model
+  - [x] Add `TerrainSensors` struct in `gameplay/AI/PlayerBot/PerceptionModule.h` with fields:
     - `groundAheadDist{near,mid,far}` (f32), `hasGroundAhead{near,mid,far}` (bool)
     - `gapDepth` (f32), `frontWall` (bool), `frontWallHeight` (f32)
     - `slopeAhead` (f32), `ledgeAbove` (bool)
@@ -29,37 +29,37 @@ Implementation Checklist
     - `hazardAhead` (bool), `hazardDist` (f32), `hazardType` (u32/tag)
     - `groundedFrames` (u32), `airborneFrames` (u32)
     - `coyoteTimeRemaining` (f32)
-  - [ ] Extend `GameState` to include `TerrainSensors sensors`.
+  - [x] Extend `GameState` to include `TerrainSensors sensors`.
 
-- [ ] Raycast probes (environment sensing)
-  - [ ] Use `PhysWorld::rayCastEnvironment` to measure ground-ahead at multiple X offsets (e.g., 0.5m, 1.5m, 3.0m from feet) and return hit distance and normal.
-  - [ ] Compute `hasGroundAhead*`, `groundAheadDist*`, and infer `gapDepth` when no hit in a vertical window.
-  - [ ] Forward horizontal ray from torso to detect `frontWall` and estimate `frontWallHeight` via vertical sweep.
-  - [ ] Estimate `slopeAhead` from ground normal at near probe.
+- [x] Raycast probes (environment sensing)
+  - [x] Use `PhysWorld::rayCastEnvironment` to measure ground-ahead at multiple X offsets (near/mid/far) and compute hit distance.
+  - [x] Compute `hasGroundAhead*`, `groundAheadDist*`, and infer `gapDepth` when no hit in a vertical window.
+  - [x] Detect `frontWall` via forward probes with edge orientation + step-height threshold; report refined `frontWallHeight`.
+  - [x] Estimate `slopeAhead` (approx via dy/dx from two nearby ground samples).
 
-- [ ] Moving platform detection
-  - [ ] When grounded, identify contact body as platform; infer `movingPlatformBelow` and `movingPlatformVel` from actor/phys component if available.
+- [x] Moving platform detection
+  - [x] When grounded, identify contact body as platform; infer `movingPlatformBelow` and `movingPlatformVel` from actor/phys component if available.
 
-- [ ] Hazard sensing
-  - [ ] Define hazard classification: spikes, fire, lightning, saw, lava/water, etc. (component/tag list).
-  - [ ] Probe forward arc (few rays) to set `hazardAhead`, `hazardDist`, `hazardType` using filters/tags.
+- [x] Hazard sensing
+  - [x] Define hazard classification using game material danger levels (spikes/fire/etc.).
+  - [x] Probe forward arc (few rays) to set `hazardAhead`, `hazardDist`, `hazardType` using filters/tags.
 
 - [ ] Affordances
   - [ ] Expose booleans: `canHang`, `canClimb`, `canHelico` based on stance, proximity to hangable edges/walls, and ability rules.
   - [ ] Add ledge detection (`ledgeAbove`) via short upward ray near a front wall.
 
-- [ ] Grounding and coyote-time
-  - [ ] Track `groundedFrames`/`airborneFrames` counters every update.
-  - [ ] Implement configurable `coyoteTime` window; update `coyoteTimeRemaining` when leaving ground.
-  - [ ] Add config values (probe offsets, coyote time) as PerceptionModule members (or a small config struct) with sensible defaults.
+- [x] Grounding and coyote-time
+  - [x] Track `groundedFrames`/`airborneFrames` counters every update.
+  - [x] Implement configurable `coyoteTime` window; update `coyoteTimeRemaining` when leaving ground.
+  - [x] Add config values (probe offsets, coyote time) as PerceptionModule members (or a small config struct) with sensible defaults.
 
-- [ ] Integration
-  - [ ] Populate `GameState.sensors` in `PerceptionModule::update` (new `extractTerrainSensors()` helper).
-  - [ ] Keep current callbacks (`stance`, `scanTargets`) intact.
+- [x] Integration
+  - [x] Populate `GameState.sensors` in `PerceptionModule::update` (new `extractTerrainSensors()` helper).
+  - [x] Keep current callbacks (`stance`, `scanTargets`) intact.
   - [ ] Ensure no behavior regressions when bot disabled.
 
-- [ ] Debug overlay
-  - [ ] Extend existing overlay (`PerceptionModule::debugDraw`) to show key fields: groundAhead*, frontWall, gapDepth, hazardAhead/type/dist, movingPlatform, coyote.
+- [x] Debug overlay
+  - [x] Extend existing overlay (`PerceptionModule::debugDraw`) to show key fields: groundAhead*, frontWall, gapDepth, platform, hazard, coyote.
 
 - [ ] Optional: Telemetry
   - [ ] If a logger exists (or later), include new sensor fields in per-tick records for training/analysis.
@@ -79,5 +79,4 @@ Ownership
 - Review: Physics/Gameplay Integrators
 
 Status
-- Not started
-
+- In progress
