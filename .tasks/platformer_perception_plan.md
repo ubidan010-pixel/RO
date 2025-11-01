@@ -1,0 +1,83 @@
+# P0 — Platformer Perception Expansion (Platformer Bot)
+
+Context: Perception for platforming is minimal. Missing sensors for ground-ahead, edges/gaps, walls, moving platforms, hazards, affordances (hang/climb/helico), grounded time, and coyote-time.
+
+Goal
+- Provide robust perception signals so AI can make reliable jump/route decisions and avoid hazards, enabling better heuristics now and data collection later.
+
+Scope
+- Update `PerceptionModule` and `GameState` to compute and expose richer terrain/affordance signals.
+- Keep changes contained to gameplay AI perception; no core physics refactor.
+
+Out of Scope
+- Advanced learning/training pipeline (logging is optional integration).
+- Full navigation graph or pathfinding.
+
+Deliverables
+- Extended `GameState` with terrain/affordance fields.
+- `PerceptionModule` raycast-based probes for ground-ahead, wall, gap; moving platform and hazard sensing; grounded timers and coyote-time tracking.
+- Debug overlay for new sensors.
+- (Optional) Telemetry hooks to persist new fields.
+
+Implementation Checklist
+- [ ] Data model
+  - [ ] Add `TerrainSensors` struct in `gameplay/AI/PlayerBot/PerceptionModule.h` with fields:
+    - `groundAheadDist{near,mid,far}` (f32), `hasGroundAhead{near,mid,far}` (bool)
+    - `gapDepth` (f32), `frontWall` (bool), `frontWallHeight` (f32)
+    - `slopeAhead` (f32), `ledgeAbove` (bool)
+    - `movingPlatformBelow` (bool), `movingPlatformVel` (Vec2d)
+    - `hazardAhead` (bool), `hazardDist` (f32), `hazardType` (u32/tag)
+    - `groundedFrames` (u32), `airborneFrames` (u32)
+    - `coyoteTimeRemaining` (f32)
+  - [ ] Extend `GameState` to include `TerrainSensors sensors`.
+
+- [ ] Raycast probes (environment sensing)
+  - [ ] Use `PhysWorld::rayCastEnvironment` to measure ground-ahead at multiple X offsets (e.g., 0.5m, 1.5m, 3.0m from feet) and return hit distance and normal.
+  - [ ] Compute `hasGroundAhead*`, `groundAheadDist*`, and infer `gapDepth` when no hit in a vertical window.
+  - [ ] Forward horizontal ray from torso to detect `frontWall` and estimate `frontWallHeight` via vertical sweep.
+  - [ ] Estimate `slopeAhead` from ground normal at near probe.
+
+- [ ] Moving platform detection
+  - [ ] When grounded, identify contact body as platform; infer `movingPlatformBelow` and `movingPlatformVel` from actor/phys component if available.
+
+- [ ] Hazard sensing
+  - [ ] Define hazard classification: spikes, fire, lightning, saw, lava/water, etc. (component/tag list).
+  - [ ] Probe forward arc (few rays) to set `hazardAhead`, `hazardDist`, `hazardType` using filters/tags.
+
+- [ ] Affordances
+  - [ ] Expose booleans: `canHang`, `canClimb`, `canHelico` based on stance, proximity to hangable edges/walls, and ability rules.
+  - [ ] Add ledge detection (`ledgeAbove`) via short upward ray near a front wall.
+
+- [ ] Grounding and coyote-time
+  - [ ] Track `groundedFrames`/`airborneFrames` counters every update.
+  - [ ] Implement configurable `coyoteTime` window; update `coyoteTimeRemaining` when leaving ground.
+  - [ ] Add config values (probe offsets, coyote time) as PerceptionModule members (or a small config struct) with sensible defaults.
+
+- [ ] Integration
+  - [ ] Populate `GameState.sensors` in `PerceptionModule::update` (new `extractTerrainSensors()` helper).
+  - [ ] Keep current callbacks (`stance`, `scanTargets`) intact.
+  - [ ] Ensure no behavior regressions when bot disabled.
+
+- [ ] Debug overlay
+  - [ ] Extend existing overlay (`PerceptionModule::debugDraw`) to show key fields: groundAhead*, frontWall, gapDepth, hazardAhead/type/dist, movingPlatform, coyote.
+
+- [ ] Optional: Telemetry
+  - [ ] If a logger exists (or later), include new sensor fields in per-tick records for training/analysis.
+
+Acceptance Criteria
+- [ ] Overlay displays all new sensor values correctly while moving through a level.
+- [ ] Bot heuristics (even simple) can avoid walking off obvious gaps and can decide to jump over front walls using these signals.
+- [ ] No crashes or significant frame-time regressions in levels with many colliders.
+
+Dependencies / Notes
+- Use `engine/physics/PhysWorld::rayCastEnvironment` for probes; confirm proper collision filters for ground vs. hazards.
+- Hazard classification will rely on existing components/tags (e.g., spikes, fire/lighting patches, water). Start with a minimal set and expand as needed.
+- Keep sensor sampling lightweight (3–5 rays/frame typical). Consider caching or spacing far probe cadence if needed.
+
+Ownership
+- Primary: Gameplay/AI Platformer
+- Review: Physics/Gameplay Integrators
+
+Status
+- Not started
+
