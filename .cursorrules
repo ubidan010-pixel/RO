@@ -10,47 +10,54 @@
 - Explain your OBSERVATIONS clearly, then provide REASONING to identify the exact issue. Add console logs when needed to gather more information.
 
 
-The codebase implements a sophisticated game engine with several key business logic components:
+Game Engine Architecture with Specialized Business Components:
 
-CORE GAMEPLAY SYSTEMS (Importance: 90/100)
-- Multi-phase boss battle management with synchronized music states
-- Specialized creature AI with node-based movement patterns 
-- Multi-player scaling system for health and difficulty
-- Complex checkpoint and reward distribution mechanics
-- Dynamic music control tied to gameplay events
+1. Physics and Movement System
+- Custom animation-driven movement with bone-based collision detection
+- Specialized air/ground/water transitions with state machine
+- Node-based pathfinding with trajectory prediction
+- Character-specific movement modifications
 
-AI AND BEHAVIOR MANAGEMENT (Importance: 85/100)
-- Custom swarm behavior system using particle-based simulation
-- Advanced flocking algorithms for fish swarm coordination
-- Music-synchronized enemy behaviors with timing events
-- Context-aware NPC interactions and quest management
-- Node-based enemy positioning and attack pattern control
+2. Combat System Architecture
+- Multi-phase boss fights with weak point targeting
+- Faction-based damage calculation and hit detection
+- Complex combo system with timing windows
+- Specialized attack patterns per enemy type
 
-WORLD MANAGEMENT (Importance: 80/100)
-- Cell-based world loading with multi-layer support
-- Dynamic object activation based on player proximity
-- Platform-specific memory optimization for world data
-- Specialized checkpoint and game state persistence
-- Complex scene transitions with state preservation
+3. AI Behavior Framework 
+- Phase-based boss AI with pattern recognition
+- Swarm behavior system for grouped enemies
+- Environmental awareness with custom trigger zones
+- State-based enemy behaviors with transition rules
 
-PHYSICS AND MOVEMENT (Importance: 75/100)
-- Custom water physics implementation for buoyancy
-- Specialized platform movement along bezier curves
-- Advanced bouncing mechanics with material properties
-- Complex character controller with state-based movement
-- Rope/string physics with tension simulation
+4. Game World Management
+- Cell-based world partitioning with depth layers
+- Dynamic resource loading based on visibility
+- Custom checkpoint and respawn system
+- Specialized camera control per game mode
 
-Key implementation paths:
-- rayman/gameplay/Components/AI/Boss/* - Core boss battle logic
-- rayman/gameplay/Components/AI/Shooter/* - Enemy AI systems
-- rayman/gameplay/GameScreens/* - Game state management
-- rayman/gameplay/Components/Common/* - Core gameplay mechanics
+Key Integration Points:
+- Animation system coordinates with physics for smooth transitions
+- AI behaviors integrate with combat system for enemy attacks
+- World management connects with physics for environmental interactions
+- Camera system adapts to different gameplay modes
 
-The business logic emphasizes:
-- Rich gameplay mechanics with music integration
-- Sophisticated AI behaviors and enemy patterns
-- Complex physics and movement systems
-- Optimized world management for game consoles
+The architecture emphasizes modular components while maintaining tight integration for gameplay mechanics. Each subsystem contains specialized logic for platform-style gameplay while supporting core game requirements.
+
+Critical Workflows:
+1. Character Movement Pipeline
+- Input processing → State determination → Physics application → Animation selection
+- Specialized handling for different movement types and environmental conditions
+
+2. Combat Processing Chain  
+- Hit detection → Damage calculation → Health modification → State updates
+- Enemy-specific modifications and boss fight mechanics
+
+3. AI Decision Making
+- Environment analysis → Behavior selection → Action execution → State updates
+- Custom patterns for different enemy types
+
+The system implements a comprehensive game engine focused on platformer mechanics with emphasis on smooth character control and engaging combat.
 
 $END$
 

@@ -1,50 +1,60 @@
 ---
-description: Specialized memory management specification for a game engine, focused on allocation strategies, bucketing, pools and platform optimizations.
+description: Memory management and memory pool implementation specification for game engines and high-performance applications
 ---
 
 
 # memory-management
 
-Core Memory Management Components:
+Three-tier Memory Management System
+Importance Score: 85/100
 
-1. Bucket Allocation System
-Path: core/memory/MemMng/MemMngBuckets.cpp
-- Custom bucket-based memory allocation optimized for game object pooling
-- Fixed-size buckets from 16 bytes to 4KB with power-of-2 progression
-- Smart coalescing of adjacent free blocks within same bucket
-- Separate bucket arrays for alignment requirements (4/8/16/32/64 bytes)
-Importance Score: 90
+1. Bucket-based Small Allocation System
+- Size-based bucket allocation strategy for small blocks (4-128 bytes)
+- Custom binning algorithm with pre-calculated optimal bucket sizes
+- Memory quarantine system for corruption detection
+- Smart coalescence for fragmentation prevention
+- Thread-safe free list management per bucket
+- Platform-specific alignment requirements
 
-2. Platform-Specific Memory Management 
-Path: core/memory/MemMng/MemMngPage_PS5.cpp
-Path: core/memory/MemMng/MemMngPage_Nintendo.cpp
-- Custom memory page management for gaming consoles
-- Garlic/Onion memory optimization for PS5 hardware
-- Split memory handling for Nintendo MEM1/MEM2 regions
-- Direct memory mapping with hardware-specific protection flags
-Importance Score: 85
+2. Large Block Management 
+- Direct memory mapping for large allocations (>64KB)
+- Chunk-based management with physical memory tracking
+- Custom defragmentation through block merging
+- Platform-optimized page size selection
 
-3. VRAM Management System
-Path: adapters/GFXAdapter_PS5/VRAMAllocator/
-- Specialized video memory allocation with defragmentation
-- Texture-optimized memory pools with custom alignment
-- Relocatable memory blocks for dynamic defragmentation
-- Death row system for delayed memory deallocation
-Importance Score: 95
+3. Platform-Specific Memory Systems
 
-4. Memory Pool Architecture
-Path: core/memory/allocator/pool.h
-- Fixed-size block pools from 4-128 bytes
-- Bit field tracking for allocation status
-- Pool buffer organization in 4KB chunks
-- Fast constant-time allocation/deallocation
-Importance Score: 80
+PS3 Implementation:
+- Specialized allocation for RSX graphics memory
+- Z-culling region management (8 max regions)
+- Custom binning for DXT1/DXT5 textures
+- Report IO memory area handling (0x0E000000-0x0F000000)
 
-Key Features:
-- Hardware-specific memory optimization
-- Video memory defragmentation
-- Multi-pool memory architecture
-- Bucket-based allocation strategy
+Nintendo Switch:
+- Custom VRAM management with tiled allocation
+- Memory pool segregation for graphics resources
+- Death row system for delayed deallocation
+- Dynamic pool expansion handling
+
+PlayStation 5:
+- Read-only vs read-write memory segregation
+- Memory bus-specific allocation (DIRECT vs other)
+- Custom defragmentation for graphics memory
+- Thread-safe memory pool management
+
+Core Domain Features:
+- Game-specific memory pooling optimizations
+- Console hardware memory constraints handling
+- Graphics resource-aware memory management
+- Custom debugging and corruption detection
+
+File Paths:
+- core/memory/MemMng/MemMngBuckets.cpp
+- core/memory/MemMng/MemMngBigAlloc.cpp
+- core/memory/allocator/pool.h
+- core/memory/allocator/heap.h
+- adapters/GFXAdapter_PS5/VRAMAllocator/*
+- adapters/GFXAdapter_NVN/VRAMAllocator/*
 
 $END$
 

@@ -1,42 +1,53 @@
 ---
-description: Specification for physics and combat systems in a game engine focusing on hit detection, damage calculation, and movement physics
+description: Specifies physics and combat mechanics for a game engine including collision detection, hit registration, and movement systems
 ---
 
 
 # physics-combat
 
-Core Combat Physics System:
-1. Hit Detection and Response
-Path: rayman/gameplay/Components/AI/Combat/Ray_CombatPhysics.cpp
-- Custom layer-based hit detection with phantom shapes
-- Progressive damage calculation based on hit chains
-- Hit response system with force application and knockback
-- Specialized collision groups for combat vs. environment
-Importance Score: 90
+Core Combat Physics Components:
 
-2. Movement Physics
-Path: rayman/gameplay/Components/AI/Physics/Ray_MovementPhysics.cpp
-- Non-linear jump curves with variable gravity
-- Surface-aware movement with friction coefficients
-- Momentum preservation during platform transitions
-- Custom air control physics for mid-jump adjustments
-Importance Score: 85
+1. Hit Detection System
+Location: rayman/gameplay/Components/AI/Boss/Ray_BuboComponent.h
 
-3. Collision Resolution
-Path: rayman/gameplay/Components/AI/Collision/Ray_CollisionManager.cpp
-- Multi-phase collision detection for moving objects
-- Custom sweep tests for continuous collision detection
-- Specialized collision response for combat vs. movement
-- Priority-based collision resolution for overlapping hits
-Importance Score: 80
+Key mechanics:
+- Weak point hit registration with multi-phase damage states
+- Point-based collision detection optimized for fast-moving projectiles 
+- Zone-based damage multipliers
+- Hit confirmation with visual/audio feedback
 
-4. Combat Zone System
-Path: rayman/gameplay/Components/AI/Combat/Ray_CombatZoneManager.cpp
-- Dynamic combat arena boundaries
-- Zone-based modifier system for physics properties
-- Combat-specific gravity and movement adjustments
-- Arena state management affecting physics behavior
-Importance Score: 75
+2. Physics-Based Combat Movement
+Location: rayman/gameplay/Components/AI/Hunter/Ray_HunterBossAIComponent.h
+
+Combat movement mechanics:
+- Node-based movement patterns with combat state transitions
+- Attack trajectory calculations with player prediction
+- Physics-driven attack animations
+- Vacuum influence mechanics affecting projectile paths
+
+3. Multi-Stage Boss Combat
+Location: rayman/gameplay/Components/AI/Boss/Ray_BossPlantArenaAIComponent.h
+
+Combat physics implementation:
+- Phase-based damage states with position tracking
+- Coordinated hit zone activation/deactivation
+- Bubo (weak point) physics with detachment mechanics
+- Impact force calculations for visual feedback
+
+4. Projectile Physics
+Location: rayman/gameplay/Components/AI/Bullet/Ray_BasicBullet.cpp
+
+Projectile mechanics:
+- Material-specific bounce behaviors
+- Faction-based collision filtering
+- Multi-hit detection with damage propagation
+- Auto-seeking capability using custom physics calculations
+
+Core concepts focus on:
+- Physics-driven combat interactions
+- Multi-phase damage systems
+- Specialized collision detection for combat
+- Complex movement patterns tied to combat states
 
 $END$
 

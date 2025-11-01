@@ -1,59 +1,53 @@
 ---
-description: Specification for analyzing and documenting AI behavior systems, state machines, and movement algorithms in game engines
+description: Documents behavior tree AI system including node types, decision making patterns, and combat behaviors
 ---
 
 
 # ai-behavior-system
 
-Core Behavior Tree System:
-- Node-based AI decision making with specialized node types (Sequence, Selector, Decorator)
-- Blackboard data sharing between tree nodes for coordinated decision making
-- Custom state machine integration for behavior transitions
-- Event-driven behavior interruption system
+Core AI Behavior Tree System:
 
-Movement and Positioning:
-- Path finding using navigation nodes with movement type constraints (walk, jump, wall-run)
-- Node-based positioning with bone attachments and relative transforms
-- Complex spline-based movement along bezier curves
-- Multi-layer collision detection with terrain adaptation
+1. Node-Based Movement System (rayman/gameplay/Components/AI/Hunter/Ray_HunterBossAIComponent.h)
+- Position-based movement patterns with multi-phase transitions
+- Health-based phase progression 
+- Player detection and targeting algorithms
+- State switching between hole attack and normal attack modes
 
-Combat Behaviors:
-- Multi-phase attack patterns with timing windows
-- Faction-based targeting and aggression system
-- Hit chain management with combo validation
-- Range-based engagement rules with positioning requirements
+2. Bird Boss Combat Logic (rayman/gameplay/Components/AI/Boss/Ray_BossBirdAIComponent.h)
+- Egg spawning pattern generation and timing
+- Bird minion deployment sequencing
+- Phase-based difficulty progression
+- Tail interaction mechanics with player
 
-Boss Battle Logic:
-- Phase-based progression with synchronized music states
-- Dynamic difficulty scaling based on player count
-- Specialized attack patterns tied to boss phases
-- Vulnerability window management and damage states
+3. Plant Arena Boss AI (rayman/gameplay/Components/AI/Boss/Ray_BossPlantArenaAIComponent.h)
+- Phase progression system
+- Bubo (weak point) position management
+- Music state transitions per phase
+- Cinematic sequence triggers
 
-Key Components:
+4. Behavioral Tree Actions (gameplay/AI/Actions/)
+- Custom movement actions with physics integration
+- Ballistics system for projectile attacks
+- Bounce mechanics with surface interaction
+- Bezier curve-based movement patterns
 
-1. Boss Battle Management System (Importance: 85)
-Path: rayman/gameplay/Components/AI/Boss/Ray_BossBirdAIComponent.cpp
-- Controls multi-phase boss behaviors
-- Manages reward spawning based on phase completion
-- Coordinates music synchronization with battle states
+5. Decision Making System (gameplay/AI/BTs/)
+- Priority-based decision trees
+- Conditional behavior switching
+- Environmental awareness nodes
+- Combat engagement logic
 
-2. Hunter Boss AI (Importance: 80)
-Path: rayman/gameplay/Components/AI/Shooter/Ray_HunterBossAIComponent.cpp
-- Implements node-based positioning system
-- Controls attack patterns and vulnerability states
-- Manages player detection and targeting
+The system implements a sophisticated AI framework focused on:
+- Complex boss fight mechanics
+- Multi-phase combat behaviors
+- Environmental interaction patterns
+- Dynamic difficulty progression
 
-3. Fish Swarm AI (Importance: 90)
-Path: rayman/gameplay/AI/Behaviors/FishSwarm/Ray_FishSwarmAIComponent.cpp
-- Advanced flocking behavior with player interaction
-- Multi-layered depth management
-- Dynamic speed adjustment based on player proximity
-
-4. Enemy Ground Movement (Importance: 85)
-Path: rayman/gameplay/AI/Behaviors/Ground/Ray_AIGroundAttackBehavior.cpp
-- Complex terrain navigation with slope detection
-- Attack radius and targeting system
-- State transitions between roam/attack/retreat
+Notable implementations:
+- Node-based movement with phase transitions
+- Weak point management system
+- Music-state synchronized behaviors
+- Multi-actor coordination system
 
 $END$
 

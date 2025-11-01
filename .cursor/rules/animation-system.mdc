@@ -1,5 +1,5 @@
 ---
-description: Specification for analyzing animation systems including skeletal animation, blending algorithms, state transitions, and optimization
+description: Documentation for analyzing the skeletal animation system, blending, transitions and texture optimization components in game engines
 ---
 
 
@@ -7,47 +7,53 @@ description: Specification for analyzing animation systems including skeletal an
 
 Core Animation Components:
 
-1. Animation Blend Tree System (Importance: 95)
-Files: blendTree/AnimTree/AnimTree.cpp, blendTree/AnimTree/AnimTreeNode*.cpp
+1. Skeletal Animation System
+Path: engine/animation/AnimationBones.cpp
 
-- Node-based blend tree with specialized animation mixing
-- Complex state machine controlling animation transitions and blending
-- Custom spring-damper system for procedural animation smoothing
-- Event-driven animation synchronization with game states
+Key functionality:
+- 2D skeletal animation implementation with hierarchical bone transformations
+- Custom bone influence weighting for smooth deformations
+- Advanced animation blending with configurable transition curves
+- Specialized patch-based rendering optimization
+Importance Score: 90
 
-2. Skeletal Animation Processing (Importance: 90)
-Files: engine/animation/AnimationBones.cpp, engine/animation/AnimationSkeleton.cpp
+2. Animation Blending Framework 
+Path: engine/blendTree/BlendTreeNodeBlendBranches.h
 
-- Bone hierarchy management with transform inheritance 
-- Specialized 2D skeletal animation optimized for sprite-based characters
-- Custom bone influence system for mesh deformation
-- Runtime skeleton retargeting and pose adjustment
+Implements:
+- Weighted multi-state animation blending
+- Custom interpolation between animation branches based on parameters
+- Smooth state transitions using procedural weight calculations
+- Spring-based animation smoothing with configurable stiffness/damping
+Importance Score: 85
 
-3. Animation State Machine (Importance: 85)
-Files: engine/animation/Animation.cpp, engine/animation/AnimationTrack.cpp
+3. Animation State Machine
+Path: engine/animation/AnimationState.cpp
 
-- Multi-layered state machine with priority-based blending
-- Metronome-synchronized animation playback system
-- Template-based animation composition for reusable sequences
-- Complex transition rules with interrupt handling
+Features:
+- Complex state transitions with event triggers
+- Metronome-based timing synchronization for rhythmic animations
+- Cross-fade management between animation sequences
+- Custom animation event system for gameplay synchronization
+Importance Score: 80
 
-4. Texture Animation Optimization (Importance: 80)
-Files: tools/plugins/CookerPlugin/AnimTexPacker/
+4. Texture Animation System
+Path: engine/animation/AnimationPatches.cpp
 
-- Advanced texture atlas generation for animated sprites
-- Bone-aware texture packing algorithms
-- Template-based patch management for memory optimization
-- Intelligent UV mapping for animation efficiency
+Implements:
+- Optimized texture patch system for 2D skeletal animations
+- Dynamic patch generation and management based on bone influence
+- Custom Z-ordering for correct patch rendering
+- Memory-efficient animation texture streaming
+Importance Score: 85
 
-Key Systems:
+Notable Domain Features:
+- Bone-driven texture deformation system
+- Metronome-synchronized animation timing
+- Event-driven state transitions
+- Memory-optimized patch rendering
 
-- Spring-based procedural animation smoothing
-- Metronome-synchronized animation playback
-- Priority-based animation layer blending
-- Bone-driven texture optimization
-- Template-based animation composition
-
-The animation system focuses heavily on efficient 2D skeletal animation with sophisticated blending capabilities and texture optimization. Core emphasis is on smooth transitions, memory efficiency, and precise timing control through metronome synchronization.
+The system provides a comprehensive 2D animation framework with specialized handling of skeletal animations, state management, and texture optimization. Core focus is on memory efficiency and smooth transitions while maintaining precise timing control for gameplay mechanics.
 
 $END$
 
