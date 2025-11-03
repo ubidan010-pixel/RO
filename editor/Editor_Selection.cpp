@@ -757,6 +757,14 @@ namespace ITF
         if(!m_bUnselectOrDuplicate && !m_bMayDuplicateSelectedAfterDrag)
             return;
 
+        const bbool bMultiSelectionOrDuplicationKeyPressed = INPUT_ADAPTER->isKeyPressed(MULTI_SELECTION_KEY) || INPUT_ADAPTER->isKeyPressed(MULTI_DUPLICATION_KEY);
+        if(!bMultiSelectionOrDuplicationKeyPressed)
+        {
+            m_bUnselectOrDuplicate = bfalse;
+            m_bMayDuplicateSelectedAfterDrag = bfalse;
+            return;
+        }
+
         if(!isDragMinDistReached(MIN_MOUSE_MOVE_PIXEL_SQR_COPY))
             return;
 
