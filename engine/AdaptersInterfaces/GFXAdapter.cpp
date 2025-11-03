@@ -3234,7 +3234,6 @@ const char *GFXAdapter::computeSafeFrame(Vec2d &_margin, Vec2d &_safeSize)
 #ifndef ITF_CONSOLE_FINAL
 void GFXAdapter::drawSafeFrame()
 {
-    return;
     if(CONFIG && CONFIG->m_noSafeFrame)
         return;
 
