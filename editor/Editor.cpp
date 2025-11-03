@@ -276,13 +276,9 @@ Editor::Editor()
     m_lastCameraRotationFrame =  (u32)-1;
     m_hoveredFriseOrActorProjectedZ = 1.f;
     m_bRequireHoveredActorOrFriseDetection = false;
-    m_resetCameraRotation = bfalse;
+    m_resetCameraRotation = bfalse; 
     m_bMayDuplicateSelectedAfterDrag = bfalse;
     m_hide2d = 0;
-    
-    // Initialize double-click detection variables
-    m_lastClickTime = 0.0f;
-    m_justDoubleClicked = bfalse;
 
     setUnderMouseRealPickingShape(NULL);
     setPickingShapeOfObjectUnderMouse(NULL);

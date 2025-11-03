@@ -757,13 +757,6 @@ namespace ITF
         if(!m_bUnselectOrDuplicate && !m_bMayDuplicateSelectedAfterDrag)
             return;
 
-        // Prevent duplication if we just had a double-click
-        if(m_justDoubleClicked)
-        {
-            m_justDoubleClicked = bfalse;
-            return;
-        }
-
         if(!isDragMinDistReached(MIN_MOUSE_MOVE_PIXEL_SQR_COPY))
             return;
 
