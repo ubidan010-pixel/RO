@@ -201,12 +201,15 @@ namespace ITF
                     {
                         if(underMouseIsInSelection)
                         {
-                            LOG_OLIV("[Editor] At this time we don't know if the user wants to unselect a pickable or duplicate the current selection");
+                            if(!m_bDragAfterDuplicate)
+                            {
+                                LOG_OLIV("[Editor] At this time we don't know if the user wants to unselect a pickable or duplicate the current selection");
 
-                            // Update picking info in case of duplication
-                            updateSelectionPickingInfos();
+                                // Update picking info in case of duplication
+                                updateSelectionPickingInfos();
 
-                            m_bUnselectOrDuplicate = btrue;
+                                m_bUnselectOrDuplicate = btrue;
+                            }
                         }
                         else
                         {
@@ -282,6 +285,21 @@ namespace ITF
     ///Left button release
     void Editor::handleLeftMB_Release(bbool _bMultiSelectionOrDuplicationKeyPressed)
     {
+        // Check for double-click detection
+        const f32 currentTime = ELAPSEDTIME;
+        const f32 doubleClickThreshold = 0.3f; // 300ms threshold for double-click
+        
+        // Detect double-click by checking time between clicks
+        if (currentTime - m_lastClickTime < doubleClickThreshold)
+        {
+            m_justDoubleClicked = btrue;
+        }
+        else
+        {
+            m_justDoubleClicked = bfalse;
+        }
+        m_lastClickTime = currentTime;
+
         //dispatch to pickable shapes
         switch(getState())
         {

@@ -83,7 +83,7 @@ class SubSceneComponent;
 #define EDITOR_SMOOTH_KEY                   KEY_LSHIFT
 #define MULTI_DUPLICATION_KEY               KEY_LCTRL
 #define MIN_MOUSE_MOVE_PIXEL_SQR_DRAG       1.0f
-#define MIN_MOUSE_MOVE_PIXEL_SQR_COPY       25.0f
+#define MIN_MOUSE_MOVE_PIXEL_SQR_COPY       100.0f
 #define MIN_MOUSE_MOVE_PIXEL_SQR_ROTATE     25.0f
 
 
@@ -739,6 +739,10 @@ private:
     bbool                       m_bRequireHoveredActorOrFriseDetection;
     bbool                       m_resetCameraRotation;
     bbool                       m_bMayDuplicateSelectedAfterDrag;
+    
+    // Double-click detection to prevent unwanted duplication
+    f32                         m_lastClickTime;
+    bbool                       m_justDoubleClicked;
 
     // Contextual menu
     void                        showContextMenu(bbool _onOff, ObjectRef _forceTarget = ITF_INVALID_OBJREF, bbool _keepPos = bfalse);
