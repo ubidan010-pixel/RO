@@ -13,10 +13,12 @@
 #include "engine/physics/PhysBody.h"
 #include "engine/physics/PhysWorld.h"
 #include "engine/physics/PhysTypes.h"
+#include "engine/physics/PhysShapes.h"
 #include "engine/scene/world.h"
 #include "engine/actors/actor.h"
 #include "gameplay/AI/Utils/AIUtils.h"
 #include "rayman/gameplay/Ray_GameMaterial.h"
+#include "gameplay/GameplayEvents.h"
 
 namespace ITF
 {
@@ -455,7 +457,7 @@ namespace ITF
         Vec2d bestPlatformPos(0.0f, 0.0f);
         bbool bestPlatformPosValid = bfalse;
         ObjectRef bestPlatformRef = ITF_INVALID_OBJREF;
-        const f32 minPlatformVelSq = 1e-4f;
+        const f32 minPlatformVelSq = 0.01f;
 
         if (m_currentState.isGrounded)
         {
@@ -486,41 +488,61 @@ namespace ITF
                         candidatePos = poly->get2DPos();
                         candidatePosValid = btrue;
 
-                        PhysBody* body = poly->m_physBody;
-                        if (body)
+                        if (poly->m_physShape && deltaTime > 0.0f)
                         {
-                            candidateVel = body->getSpeed();
-                            if (!body->isStatic() && candidateVel.sqrnorm() > minPlatformVelSq)
+                            PhysShapeMovingPolyline* movingShape = poly->m_physShape->DynamicCast<PhysShapeMovingPolyline>(ITF_GET_STRINGID_CRC(PhysShapeMovingPolyline,309826108));
+                            if (movingShape && movingShape->hasMoved())
                             {
-                                candidateMoving = btrue;
+                                const PolyLine* prevPoly = movingShape->getPreviousPolyline();
+                                if (prevPoly && edge && contact.m_edgeIndex < poly->getPosCount())
+                                {
+                                    Vec2d currentEdgePos = edge->getPos();
+                                    Vec2d prevEdgePos = prevPoly->getPosAt(contact.m_edgeIndex);
+                                    Vec2d deltaPos = currentEdgePos - prevEdgePos;
+                                    candidateVel = deltaPos / deltaTime;
+                                    if (candidateVel.sqrnorm() > minPlatformVelSq)
+                                    {
+                                        candidateMoving = btrue;
+                                    }
+                                }
                             }
                         }
-                    }
 
-                    if (!candidateMoving || !candidatePosValid)
-                    {
-                        BaseObject* collidableObj = candidateRef.isValid() ? GETOBJECT(candidateRef) : nullptr;
-                        if (collidableObj)
+                        if (!candidateMoving)
                         {
-                            PhysBody* body = collidableObj->DynamicCast<PhysBody>(ITF_GET_STRINGID_CRC(PhysBody,1110232516));
+                            PhysBody* body = poly->m_physBody;
                             if (body)
                             {
                                 candidateVel = body->getSpeed();
-                                candidatePos = body->getPos();
-                                candidatePosValid = btrue;
                                 if (!body->isStatic() && candidateVel.sqrnorm() > minPlatformVelSq)
                                 {
                                     candidateMoving = btrue;
                                 }
                             }
+                        }
+                    }
 
-                            if (!candidatePosValid)
+                    if (!candidateMoving)
+                    {
+                        BaseObject* collidableObj = candidateRef.isValid() ? GETOBJECT(candidateRef) : nullptr;
+                        if (collidableObj)
+                        {
+                            Actor* platformActor = collidableObj->DynamicCast<Actor>(ITF_GET_STRINGID_CRC(Actor,2546623115));
+                            if (platformActor)
                             {
-                                Actor* platformActor = collidableObj->DynamicCast<Actor>(ITF_GET_STRINGID_CRC(Actor,2546623115));
-                                if (platformActor)
+                                if (!candidatePosValid)
                                 {
                                     candidatePos = platformActor->get2DPos();
                                     candidatePosValid = btrue;
+                                }
+
+                                EventQueryPhysicsData physicsQuery;
+                                platformActor->onEvent(&physicsQuery);
+                                Vec2d querySpeed = physicsQuery.getWorldSpeed();
+                                if (querySpeed.sqrnorm() > minPlatformVelSq)
+                                {
+                                    candidateVel = querySpeed;
+                                    candidateMoving = btrue;
                                 }
                             }
                         }
