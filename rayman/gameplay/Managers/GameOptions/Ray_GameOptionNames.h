@@ -114,7 +114,7 @@ static const ITF::u32 LINEID_VIBRATION_ON = 4294967295;
 #define RUN_LABEL                                    ITF_GET_STRINGID_CRC(run_label,1777549370)
 #define VIBRATION_LABEL                              ITF_GET_STRINGID_CRC(vibration_label,2117878705)
 #define INTENSITY_LABEL                              ITF_GET_STRINGID_CRC(intensity_label,1510300201)
-#define MASTER_LABEL                                 ITF_GET_STRINGID_CRC(master_label,3437403484)
+#define MASTER_LABEL                                 ITF_GET_STRINGID_CRC(master_label,3707726357)
 #define MUSIC_LABEL                                  ITF_GET_STRINGID_CRC(music_label,244164885)
 #define SFX_LABEL                                    ITF_GET_STRINGID_CRC(sfx_label,3437403483)
 #define WINDOW_LABEL                                 ITF_GET_STRINGID_CRC(window_label,4139731100)

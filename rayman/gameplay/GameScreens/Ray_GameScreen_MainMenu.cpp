@@ -1162,11 +1162,11 @@ namespace ITF
                 const f64 currentTime = SYSTEM_ADAPTER->getEpochSeconds();
                 const f64 lastPlayTime = (f64)lastPlayTimeFloat;
                 f64 deltaSeconds = currentTime - lastPlayTime;
-                if (deltaSeconds < 0.0) deltaSeconds = 0.0; 
+                if (deltaSeconds < 0.0) deltaSeconds = 0.0;
 
                 const u32 secondsPerMinute = 60u;
-                const u32 secondsPerHour = 60u * secondsPerMinute;    
-                const u32 secondsPerDay = 24u * secondsPerHour;          
+                const u32 secondsPerHour = 60u * secondsPerMinute;
+                const u32 secondsPerDay = 24u * secondsPerHour;
 
                 const u32 days = (u32)(deltaSeconds / (f64)secondsPerDay);
                 f64 remainder = deltaSeconds - (f64)days * (f64)secondsPerDay;
@@ -1174,7 +1174,7 @@ namespace ITF
                 remainder -= (f64)hours * (f64)secondsPerHour;
                 const u32 minutes = (u32)(remainder / (f64)secondsPerMinute);
                 remainder -= (f64)minutes * (f64)secondsPerMinute;
-                const u32 seconds = (u32)(remainder + 0.5); 
+                const u32 seconds = (u32)(remainder + 0.5);
 
                 LOG("[MainMenu] Press Start - Last played %u days, %u hours, %u minutes, %u seconds ago (lastPlayTime: %.2f, currentTime: %.2f)",
                     days, hours, minutes, seconds, lastPlayTime, currentTime);
@@ -1202,6 +1202,7 @@ namespace ITF
         const StringID id = _UIComponent->getID();
         const StringID pressStart = ITF_GET_STRINGID_CRC(PRESSSTART, 3883472400);
         const StringID pressOptions = ITF_GET_STRINGID_CRC(Options, 3527952213);
+        const StringID pressControlsRemapping = ITF_GET_STRINGID_CRC(controls, 1174371653);
         const StringID quitGame = ITF_GET_STRINGID_CRC(QUITGAME,4257843919);
         const StringID pressUbiconnect = ITF_GET_STRINGID_CRC(ubiconnect_button, 3233676773);
         if(m_state==State_Exited || m_state==State_ShowingMainMenu_Load_WaitLoaded || m_state==State_ShowingMainMenu_NewGame_PlayingVideo || m_state==State_PressingStart)
@@ -1226,6 +1227,10 @@ namespace ITF
         else if (id == pressOptions)
         {
             m_optionMenuHelper.activateForOptionMenu(this);
+        }
+        else if (id == pressControlsRemapping)
+        {
+            m_controlsRemappingMenuHelper.activateForControlsRemappingMenu(this);
         }
         else if (id == pressUbiconnect)
         {
