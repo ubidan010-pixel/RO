@@ -160,6 +160,17 @@ namespace ITF
 
         Vec2d cursorRelativePosVec(cursorRelativePos, cursorRelativePosY);
         cursorComponent->setRelativePos(cursorRelativePosVec);
+
+        if (m_sliderCursorSelectedActor)
+        {
+            UIComponent* selectedCursorComponent = m_sliderCursorSelectedActor->GetComponent<UIComponent>();
+            if (selectedCursorComponent)
+            {
+                f32 selectedCursorRelativePosY = selectedCursorComponent->getRelativePosY();
+                Vec2d selectedCursorRelativePosVec(cursorRelativePos, selectedCursorRelativePosY);
+                selectedCursorComponent->setRelativePos(selectedCursorRelativePosVec);
+            }
+        }
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
