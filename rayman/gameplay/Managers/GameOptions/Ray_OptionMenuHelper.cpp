@@ -12,6 +12,22 @@
 #include "gameplay/components/UI/UIMenu.h"
 #endif
 
+#ifndef _ITF_UILISTOPTIONCOMPONENT_H_
+#include "gameplay/components/UI/UIListOptionComponent.h"
+#endif
+
+#ifndef _ITF_UIFLOATOPTIONCOMPONENT_H_
+#include "gameplay/components/UI/UIFloatOptionComponent.h"
+#endif
+
+#ifndef _ITF_UITOGGLEOPTIONCOMPONENT_H_
+#include "gameplay/components/UI/UIToggleOptionComponent.h"
+#endif
+
+#ifndef _ITF_UIMENUITEMTEXT_H_
+#include "gameplay/components/UI/UIMenuItemText.h"
+#endif
+
 namespace ITF
 {
     Ray_OptionMenuHelper::Ray_OptionMenuHelper()
@@ -93,6 +109,8 @@ namespace ITF
 
         m_menuState = MenuState_Navigate;
         m_currentEditingOption = StringID::Invalid;
+
+        loadOptionsFromSaveFile();
     }
 
     void Ray_OptionMenuHelper::enterEditMode(const StringID& optionId)
@@ -136,5 +154,111 @@ namespace ITF
 
     void Ray_OptionMenuHelper::ensureValidSelection() const
     {
+    }
+
+    StringID Ray_OptionMenuHelper::getOptionIdFromFriendlyName(const String8& friendlyName) const
+    {
+        if (friendlyName == "resolution_option")
+            return OPTION_RESOLUTION;
+        else if (friendlyName == "window_option")
+            return OPTION_WINDOWED;
+        else if (friendlyName == "language_option")
+            return OPTION_LANGUAGE;
+        else if (friendlyName == "start_with_heart_option")
+            return OPTION_START_WITH_HEART;
+        else if (friendlyName == "run_button_option")
+            return OPTION_RUN_BUTTON;
+        else if (friendlyName == "murfy_assist_option")
+            return OPTION_MURFY_ASSIST;
+        else if (friendlyName == "vibration_option")
+            return OPTION_VIBRATIONS;
+        else if (friendlyName == "master_volume_option")
+            return OPTION_MASTER_VOLUME;
+        else if (friendlyName == "sfx_volume_option")
+            return OPTION_SFX_VOLUME;
+        else if (friendlyName == "intensity_option")
+            return OPTION_INTENSITY;
+
+        return StringID::Invalid;
+    }
+
+    void Ray_OptionMenuHelper::loadOptionsFromSaveFile()
+    {
+        if (!m_menu || !RAY_GAMEMANAGER)
+            return;
+
+        Ray_GameOptionManager& optionManager = RAY_GAMEMANAGER->getGameOptionManager();
+
+        const ObjectRefList& componentsList = m_menu->getUIComponentsList();
+        for (u32 i = 0; i < componentsList.size(); ++i)
+        {
+            UIComponent* comp = UIMenuManager::getUIComponent(componentsList[i]);
+            if (!comp)
+                continue;
+
+            Actor* actor = comp->GetActor();
+            if (!actor)
+                continue;
+
+            String8 friendlyName = actor->getUserFriendly();
+            if (friendlyName.isEmpty())
+                continue;
+
+            StringID optionId = getOptionIdFromFriendlyName(friendlyName);
+            if (!optionId.isValid())
+                continue;
+
+            UIListOptionComponent* listOption = comp->DynamicCast<UIListOptionComponent>(ITF_GET_STRINGID_CRC(UIListOptionComponent, 3621365669));
+            if (listOption)
+            {
+                i32 currentIndex = optionManager.getListOptionIndex(optionId, -1);
+                if (currentIndex >= 0)
+                {
+                    Actor* valueActor = listOption->getValueActor();
+                    if (valueActor)
+                    {
+                        UIComponent* valueComp = valueActor->GetComponent<UIComponent>();
+                        if (valueComp)
+                        {
+                            const char* displayName = "";
+                            if (optionId == OPTION_RESOLUTION)
+                                displayName = RAY_GAMEMANAGER->getResolutionDisplayName(currentIndex);
+                            else if (optionId == OPTION_LANGUAGE)
+                                displayName = RAY_GAMEMANAGER->getLanguageDisplayName(currentIndex);
+                            else if (optionId == OPTION_START_WITH_HEART)
+                                displayName = RAY_GAMEMANAGER->getStartWithHeartDisplayName(currentIndex);
+                            else if (optionId == OPTION_RUN_BUTTON)
+                                displayName = RAY_GAMEMANAGER->getRunButtonDisplayName(currentIndex);
+                            else if (optionId == OPTION_VIBRATIONS)
+                                displayName = RAY_GAMEMANAGER->getVibrationDisplayName(currentIndex);
+
+                            if (displayName && displayName[0] != '\0')
+                            {
+                                valueComp->forceContent(displayName);
+                            }
+                        }
+                    }
+                }
+                continue;
+            }
+
+            UIFloatOptionComponent* floatOption = comp->DynamicCast<UIFloatOptionComponent>(ITF_GET_STRINGID_CRC(UIFloatOptionComponent, 226609316));
+            if (floatOption)
+            {
+                f32 currentValue = optionManager.getFloatOption(optionId, -1.0f);
+                if (currentValue >= 0.0f)
+                {
+                    floatOption->setValue(currentValue, btrue);
+                }
+                continue;
+            }
+
+            UIToggleOptionComponent* toggleOption = comp->DynamicCast<UIToggleOptionComponent>(ITF_GET_STRINGID_CRC(UIToggleOptionComponent, 3689192266));
+            if (toggleOption)
+            {
+                bbool currentValue = optionManager.getBoolOption(optionId, bfalse);
+                toggleOption->setValue(currentValue);
+            }
+        }
     }
 }

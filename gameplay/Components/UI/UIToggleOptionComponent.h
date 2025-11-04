@@ -39,6 +39,8 @@ namespace ITF
         ITF_INLINE Actor*       getLabelActor() const { return m_labelActor; }
         ITF_INLINE Actor*       getCheckboxOnActor() const { return m_checkboxOnActor; }
         ITF_INLINE Actor*       getCheckboxOffActor() const { return m_checkboxOffActor; }
+        
+        void                    setValue(bbool value);
 
     protected:
         ITF_INLINE const class UIToggleOptionComponent_Template* getTemplate() const;

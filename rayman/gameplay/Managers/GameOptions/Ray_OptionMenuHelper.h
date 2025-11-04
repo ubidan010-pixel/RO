@@ -10,6 +10,10 @@
 #include "rayman/gameplay/Managers/GameOptions/Ray_GameOptionNames.h"
 #endif
 
+#ifndef _ITF_RAY_GAMEMANAGER_H_
+#include "rayman/gameplay/Ray_GameManager.h"
+#endif
+
 namespace ITF
 {
     class UIComponent;
@@ -53,6 +57,9 @@ namespace ITF
         void setUIVisibilitySelectable(const StringID& id, bbool visible, bbool selectable) const;
         void setVisibilityFor(std::initializer_list<StringID> ids, bbool visible, bbool selectable) const;
         void ensureValidSelection() const;
+        
+        void loadOptionsFromSaveFile();
+        StringID getOptionIdFromFriendlyName(const String8& friendlyName) const;
 
         MenuItemActionListener* m_mainListener;
         UIMenu*    m_menu;

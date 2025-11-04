@@ -236,6 +236,26 @@ namespace ITF
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
+    void UIToggleOptionComponent::setValue(bbool value)
+    {
+        if (m_checkboxOnActor)
+        {
+            if (value)
+                m_checkboxOnActor->enable();
+            else
+                m_checkboxOnActor->disable();
+        }
+        
+        if (m_checkboxOffActor)
+        {
+            if (!value)
+                m_checkboxOffActor->enable();
+            else
+                m_checkboxOffActor->disable();
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
     IMPLEMENT_OBJECT_RTTI(UIToggleOptionComponent_Template)
     BEGIN_SERIALIZATION_CHILD(UIToggleOptionComponent_Template)
     END_SERIALIZATION()
