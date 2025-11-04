@@ -304,36 +304,16 @@ namespace ITF
     void UIListOptionComponent::hideAllArrows()
     {
         if (m_leftArrowActor)
-        {
-            Vec2d scale = m_leftArrowActor->getScale();
-            scale.m_x = 0.0f;
-            scale.m_y = 0.0f;
-            m_leftArrowActor->setScale(scale);
-        }
+            m_leftArrowActor->disable();
 
         if (m_leftArrowHighlightActor)
-        {
-            Vec2d scale = m_leftArrowHighlightActor->getScale();
-            scale.m_x = 0.0f;
-            scale.m_y = 0.0f;
-            m_leftArrowHighlightActor->setScale(scale);
-        }
+            m_leftArrowHighlightActor->disable();
 
         if (m_rightArrowActor)
-        {
-            Vec2d scale = m_rightArrowActor->getScale();
-            scale.m_x = 0.0f;
-            scale.m_y = 0.0f;
-            m_rightArrowActor->setScale(scale);
-        }
+            m_rightArrowActor->disable();
 
         if (m_rightArrowHighlightActor)
-        {
-            Vec2d scale = m_rightArrowHighlightActor->getScale();
-            scale.m_x = 0.0f;
-            scale.m_y = 0.0f;
-            m_rightArrowHighlightActor->setScale(scale);
-        }
+            m_rightArrowHighlightActor->disable();
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
