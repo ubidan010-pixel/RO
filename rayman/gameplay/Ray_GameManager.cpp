@@ -11644,14 +11644,24 @@ namespace ITF
         m_gameOptionManager.registerIntListOption(OPTION_VIBRATIONS, vibrationModes, VibrationMode_On); // Default: On
     }
 
+    void Ray_GameManager::registerMasterVolumeOption()
+    {
+        m_gameOptionManager.registerFloatOption(OPTION_MASTER_VOLUME, 1.0f, 0.0f, 1.0f); // Default: Full volume
+    }
+
     void Ray_GameManager::registerMusicVolumeOption()
     {
-        m_gameOptionManager.registerFloatOption(OPTION_MUSIC_VOLUME, 0.0f, 0.0f, 1.0f); // Default: Muted
+        m_gameOptionManager.registerFloatOption(OPTION_MUSIC_VOLUME, 1.0f, 0.0f, 1.0f); // Default: Full volume
     }
 
     void Ray_GameManager::registerSFXVolumeOption()
     {
-        m_gameOptionManager.registerFloatOption(OPTION_SFX_VOLUME, 0.0f, 0.0f, 1.0f); // Default: Muted
+        m_gameOptionManager.registerFloatOption(OPTION_SFX_VOLUME, 1.0f, 0.0f, 1.0f); // Default: Full volume
+    }
+
+    void Ray_GameManager::registerIntensityOption()
+    {
+        m_gameOptionManager.registerFloatOption(OPTION_INTENSITY, 1.0f, 0.0f, 1.0f); // Default: Full intensity
     }
 
     void Ray_GameManager::registerLastPlayTime()
@@ -11669,8 +11679,10 @@ namespace ITF
         registerRunButtonOption();
         registerMurfyAssistOption();
         registerVibrationOption();
+        registerMasterVolumeOption();
         registerMusicVolumeOption();
         registerSFXVolumeOption();
+        registerIntensityOption();
         registerLastPlayTime();
     }
 
@@ -11941,9 +11953,21 @@ namespace ITF
     // OPTION MENU - SOUND OPTIONS
     ///////////////////////////////////////////////////////////////////////////////////////////
 
+    f32 Ray_GameManager::getMasterVolume() const
+    {
+        return m_gameOptionManager.getFloatOption(OPTION_MASTER_VOLUME, 1.0f);
+    }
+
+    void Ray_GameManager::setMasterVolume(f32 volume)
+    {
+        volume = std::max(volume, 0.0f);
+        volume = std::min(volume, 1.0f);
+        m_gameOptionManager.setFloatOption(OPTION_MASTER_VOLUME, volume);
+    }
+
     f32 Ray_GameManager::getMusicVolume() const
     {
-        return m_gameOptionManager.getFloatOption(OPTION_MUSIC_VOLUME);
+        return m_gameOptionManager.getFloatOption(OPTION_MUSIC_VOLUME, 1.0f);
     }
 
     void Ray_GameManager::setMusicVolume(f32 volume)
@@ -11955,7 +11979,7 @@ namespace ITF
 
     f32 Ray_GameManager::getSFXVolume() const
     {
-        return m_gameOptionManager.getFloatOption(OPTION_SFX_VOLUME);
+        return m_gameOptionManager.getFloatOption(OPTION_SFX_VOLUME, 1.0f);
     }
 
     void Ray_GameManager::setSFXVolume(f32 volume)
@@ -11963,6 +11987,18 @@ namespace ITF
         volume = std::max(volume, 0.0f);
         volume = std::min(volume, 1.0f);
         m_gameOptionManager.setFloatOption(OPTION_SFX_VOLUME, volume);
+    }
+
+    f32 Ray_GameManager::getIntensity() const
+    {
+        return m_gameOptionManager.getFloatOption(OPTION_INTENSITY, 1.0f);
+    }
+
+    void Ray_GameManager::setIntensity(f32 intensity)
+    {
+        intensity = std::max(intensity, 0.0f);
+        intensity = std::min(intensity, 1.0f);
+        m_gameOptionManager.setFloatOption(OPTION_INTENSITY, intensity);
     }
 
     void Ray_GameManager::applyDisplayOptions()
@@ -12008,6 +12044,14 @@ namespace ITF
         // INPUT_ADAPTER->setVibrationEnabled(vibrations);
     }
 
+    void Ray_GameManager::applyMasterVolumeOption()
+    {
+        f32 masterVol = getMasterVolume();
+        LOG("[OptionMenu] Master Volume: %.2f (%.0f%%)", masterVol, masterVol * 100.0f);
+        // TODO: Apply master volume to audio system when needed
+        // SOUND_ADAPTER->setMasterVolume(masterVol);
+    }
+
     void Ray_GameManager::applyMusicVolumeOption()
     {
         f32 musicVol = getMusicVolume();
@@ -12022,6 +12066,13 @@ namespace ITF
         LOG("[OptionMenu] SFX Volume: %.2f (%.0f%%)", sfxVol, sfxVol * 100.0f);
         // TODO: Apply to SOUND_ADAPTER when needed
         // SOUND_ADAPTER->setSFXVolume(sfxVol);
+    }
+
+    void Ray_GameManager::applyIntensityOption()
+    {
+        f32 intensity = getIntensity();
+        LOG("[OptionMenu] Intensity: %.2f (%.0f%%)", intensity, intensity * 100.0f);
+        // TODO: Apply intensity to game systems when needed
     }
 
 
@@ -12077,8 +12128,10 @@ namespace ITF
             RAY_GAMEMANAGER->applyRunButtonOption();
             RAY_GAMEMANAGER->applyMurfyAssistOption();
             RAY_GAMEMANAGER->applyVibrationOption();
+            RAY_GAMEMANAGER->applyMasterVolumeOption();
             RAY_GAMEMANAGER->applyMusicVolumeOption();
             RAY_GAMEMANAGER->applySFXVolumeOption();
+            RAY_GAMEMANAGER->applyIntensityOption();
         }
         else if (result == Ray_GameOptionPersistence::Result_LoadFailed)
         {

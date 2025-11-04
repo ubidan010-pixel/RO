@@ -1767,12 +1767,17 @@ namespace ITF
         //==========================================================================
         // Option Menu - Sound Options
         //==========================================================================
+        f32             getMasterVolume() const;
+        void            setMasterVolume(f32 volume);
+
         f32             getMusicVolume() const;
         void            setMusicVolume(f32 volume);
 
         f32             getSFXVolume() const;
         void            setSFXVolume(f32 volume);
 
+        f32             getIntensity() const;
+        void            setIntensity(f32 intensity);
 
         //==========================================================================
         // Save/Load Options
