@@ -1,5 +1,7 @@
 #include "precompiled_gameplay.h"
 
+#include "rayman/gameplay/Managers/GameOptions/Ray_GameOptionNames.h"
+
 #ifndef _ITF_UIGAMEOPTIONCOMPONENT_H_
 #include "gameplay/components/UI/UIGameOptionComponent.h"
 #endif //_ITF_UIGAMEOPTIONCOMPONENT_H_
@@ -20,6 +22,14 @@
 #include "engine/actors/actorcomponent.h"
 #endif //_ITF_ACTORCOMPONENT_H_
 
+#ifndef _ITF_UIMENU_H_
+#include "gameplay/components/UI/UIMenu.h"
+#endif //_ITF_UIMENU_H_
+
+#ifndef _ITF_UIMENUMANAGER_H_
+#include "engine/actors/managers/UIMenuManager.h"
+#endif //_ITF_UIMENUMANAGER_H_
+
 namespace ITF
 {
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -27,6 +37,7 @@ namespace ITF
     BEGIN_SERIALIZATION_CHILD(UIGameOptionComponent)
         BEGIN_CONDITION_BLOCK(ESerializeGroup_DataEditable)
             SERIALIZE_MEMBER("labelPath", m_labelPath);
+            SERIALIZE_MEMBER("subMenuTextId", m_subMenuTextId);
         END_CONDITION_BLOCK()
     END_SERIALIZATION()
 
@@ -35,6 +46,8 @@ namespace ITF
     : Super()
     , m_labelActor(NULL)
     , m_labelColorsApplied(bfalse)
+    , m_subMenuTextId(StringID::Invalid)
+    , m_wasSelected(bfalse)
     {
     }
 
@@ -49,6 +62,8 @@ namespace ITF
     {
         m_labelActor = NULL;
         m_labelColorsApplied = bfalse;
+        m_subMenuTextId = StringID::Invalid;
+        m_wasSelected = bfalse;
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -151,11 +166,12 @@ namespace ITF
     void UIGameOptionComponent::Update(f32 _deltaTime)
     {
         Super::Update(_deltaTime);
-        
+
         if (!m_labelColorsApplied)
             applyLabelColors();
-        
+
         updateLabelColor();
+        updateSubMenuTextColor();
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -204,6 +220,39 @@ namespace ITF
     void UIGameOptionComponent::onAction(const StringID & action)
     {
         Super::onAction(action);
+    }
+
+    void UIGameOptionComponent::updateSubMenuTextColor()
+    {
+        if (m_subMenuTextId == StringID::Invalid || !UI_MENUMANAGER)
+            return;
+
+        UIMenu* menu = UI_MENUMANAGER->getMenu(OPTION_MENU_NAME);
+        if (!menu)
+            return;
+
+        UIComponent* subMenuComp = menu->getUIComponentByID(m_subMenuTextId);
+        if (!subMenuComp)
+            return;
+
+        const bbool isSelected = getIsSelected();
+        if (isSelected == m_wasSelected)
+            return;
+
+        m_wasSelected = isSelected;
+
+        const Color whiteColor = Color::white();
+        const Color yellowColor = Color(0xffffc47c);
+
+        subMenuComp->m_hasColorOverride = btrue;
+        if (isSelected)
+        {
+            subMenuComp->m_overrideTextColor = whiteColor;
+        }
+        else
+        {
+            subMenuComp->m_overrideTextColor = yellowColor;
+        }
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////

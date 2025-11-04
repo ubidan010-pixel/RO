@@ -67,9 +67,4 @@ namespace ITF
 #define OPTION_SFX_VOLUME               ITF_GET_STRINGID_CRC(SFXVolume,410342323)
 #define LAST_PLAY_TIME                  ITF_GET_STRINGID_CRC(LastPlayTime,1448759483)
 
-#define DISPLAY_OPTION_TEXT                          ITF_GET_STRINGID_CRC(display_option_text,1293830620)
-#define ACCESSIBILITY_TEXT                           ITF_GET_STRINGID_CRC(accessibility_text,3712526628)
-#define SOUND_OPTION_TEXT                            ITF_GET_STRINGID_CRC(sound_option_text,574868985)
-
-
 #endif //_ITF_RAY_GAMEOPTIONNAMES_H_
