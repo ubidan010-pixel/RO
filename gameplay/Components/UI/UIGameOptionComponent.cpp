@@ -37,7 +37,7 @@ namespace ITF
     BEGIN_SERIALIZATION_CHILD(UIGameOptionComponent)
         BEGIN_CONDITION_BLOCK(ESerializeGroup_DataEditable)
             SERIALIZE_MEMBER("labelPath", m_labelPath);
-            SERIALIZE_MEMBER("subMenuTextId", m_subMenuTextId);
+            SERIALIZE_MEMBER("subMenuTextId", m_subMenuTextIdPath);
         END_CONDITION_BLOCK()
     END_SERIALIZATION()
 
@@ -46,8 +46,8 @@ namespace ITF
     : Super()
     , m_labelActor(NULL)
     , m_labelColorsApplied(bfalse)
-    , m_subMenuTextId(StringID::Invalid)
-    , m_wasSelected(bfalse)
+    , m_subMenuActor(NULL)
+    , m_subMenuComponent(NULL)
     {
     }
 
@@ -62,8 +62,8 @@ namespace ITF
     {
         m_labelActor = NULL;
         m_labelColorsApplied = bfalse;
-        m_subMenuTextId = StringID::Invalid;
-        m_wasSelected = bfalse;
+        m_subMenuActor = NULL;
+        m_subMenuComponent = NULL;
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -160,6 +160,7 @@ namespace ITF
     {
         Super::onActorLoaded(_hotReload);
         resolveLabelActor();
+        resolveSubMenuActor();
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -222,37 +223,56 @@ namespace ITF
         Super::onAction(action);
     }
 
+    void UIGameOptionComponent::resolveSubMenuActor()
+    {
+        m_subMenuActor = NULL;
+        m_subMenuComponent = NULL;
+
+        if (m_subMenuTextIdPath.isEmpty())
+            return;
+
+        ObjectPath subMenuPath;
+        ITF_STDSTRING pathStr = m_subMenuTextIdPath.cStr();
+        subMenuPath.fromString(pathStr);
+
+        if (!subMenuPath.isValid())
+            return;
+
+        Pickable* pickable = NULL;
+        if (subMenuPath.getIsAbsolute())
+        {
+            pickable = SceneObjectPathUtils::getObjectFromAbsolutePath(subMenuPath);
+        }
+        else
+        {
+            pickable = SceneObjectPathUtils::getObjectFromRelativePath(m_actor, subMenuPath);
+        }
+
+        if (pickable)
+        {
+            m_subMenuActor = pickable->DynamicCast<Actor>(ITF_GET_STRINGID_CRC(Actor, 2546623115));
+            if (m_subMenuActor)
+            {
+                m_subMenuComponent = m_subMenuActor->GetComponent<UIComponent>();
+            }
+        }
+    }
+
     void UIGameOptionComponent::updateSubMenuTextColor()
     {
-        if (m_subMenuTextId == StringID::Invalid || !UI_MENUMANAGER)
+        if (!m_subMenuComponent || !UI_MENUMANAGER)
             return;
 
         UIMenu* menu = UI_MENUMANAGER->getMenu(OPTION_MENU_NAME);
         if (!menu)
             return;
 
-        UIComponent* subMenuComp = menu->getUIComponentByID(m_subMenuTextId);
-        if (!subMenuComp)
-            return;
+        const bbool isSelected = (menu->getUIComponentSelected() == this);
+        static const Color whiteColor = Color::white();
+        static const Color yellowColor = Color(0xffffc47c);
 
-        const bbool isSelected = getIsSelected();
-        if (isSelected == m_wasSelected)
-            return;
-
-        m_wasSelected = isSelected;
-
-        const Color whiteColor = Color::white();
-        const Color yellowColor = Color(0xffffc47c);
-
-        subMenuComp->m_hasColorOverride = btrue;
-        if (isSelected)
-        {
-            subMenuComp->m_overrideTextColor = whiteColor;
-        }
-        else
-        {
-            subMenuComp->m_overrideTextColor = yellowColor;
-        }
+        m_subMenuComponent->m_hasColorOverride = btrue;
+        m_subMenuComponent->m_overrideTextColor = isSelected ? whiteColor : yellowColor;
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////

@@ -37,7 +37,6 @@ namespace ITF
         virtual     void        onAction            (const StringID & action);
 
         ITF_INLINE Actor*       getLabelActor() const { return m_labelActor; }
-        ITF_INLINE StringID     getSubMenuTextId() const { return m_subMenuTextId; }
 
     protected:
         ITF_INLINE const class UIGameOptionComponent_Template* getTemplate() const;
@@ -48,12 +47,14 @@ namespace ITF
     private:
         void                    clear();
         void                    resolveLabelActor();
+        void                    resolveSubMenuActor();
 
         String8                 m_labelPath;
         Actor*                  m_labelActor;
         bbool                   m_labelColorsApplied;
-        StringID                m_subMenuTextId;
-        bbool                   m_wasSelected;
+        String8                 m_subMenuTextIdPath;
+        Actor*                  m_subMenuActor;
+        UIComponent*            m_subMenuComponent;
     };
 
     class UIGameOptionComponent_Template : public UIComponent_Template
