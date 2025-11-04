@@ -220,6 +220,13 @@ namespace ITF
     {
         Super::onActorLoaded(_hotReload);
         resolveSliderActors();
+        
+        if (m_sliderBackgroundStartActor)
+            m_sliderBackgroundStartActor->disableDraw(btrue);
+        
+        if (m_sliderBackgroundEndActor)
+            m_sliderBackgroundEndActor->disableDraw(btrue);
+        
         switchToNormalActors();
         updateSliderVisuals();
     }
