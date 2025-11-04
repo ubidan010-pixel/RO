@@ -129,6 +129,15 @@ namespace ITF
         
         if (!m_labelColorsApplied)
             applyLabelColors();
+        
+        if (m_labelActor)
+        {
+            UIComponent* labelComponent = m_labelActor->GetComponent<UIComponent>();
+            if (labelComponent)
+            {
+                labelComponent->setIsSelected(getIsSelected());
+            }
+        }
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////

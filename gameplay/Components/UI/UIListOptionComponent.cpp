@@ -39,6 +39,7 @@ namespace ITF
     , m_leftArrowHighlightActor(NULL)
     , m_rightArrowActor(NULL)
     , m_rightArrowHighlightActor(NULL)
+    , m_wasSelected(bfalse)
     {
     }
 
@@ -76,6 +77,8 @@ namespace ITF
         
         if (!m_valueColorsApplied)
             applyValueColors();
+        
+        updateSelectionState();
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -314,6 +317,54 @@ namespace ITF
 
         if (m_rightArrowHighlightActor)
             m_rightArrowHighlightActor->disable();
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    void UIListOptionComponent::showArrows()
+    {
+        if (m_leftArrowActor)
+            m_leftArrowActor->enable();
+
+        if (m_rightArrowActor)
+            m_rightArrowActor->enable();
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    void UIListOptionComponent::updateSelectionState()
+    {
+        const bbool isSelected = getIsSelected();
+        
+        if (isSelected != m_wasSelected)
+        {
+            if (isSelected)
+            {
+                showArrows();
+                
+                if (m_valueActor)
+                {
+                    UIComponent* valueComponent = m_valueActor->GetComponent<UIComponent>();
+                    if (valueComponent)
+                    {
+                        valueComponent->setIsSelected(btrue);
+                    }
+                }
+            }
+            else
+            {
+                hideAllArrows();
+                
+                if (m_valueActor)
+                {
+                    UIComponent* valueComponent = m_valueActor->GetComponent<UIComponent>();
+                    if (valueComponent)
+                    {
+                        valueComponent->setIsSelected(bfalse);
+                    }
+                }
+            }
+            
+            m_wasSelected = isSelected;
+        }
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////

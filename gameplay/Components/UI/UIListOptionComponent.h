@@ -45,6 +45,8 @@ namespace ITF
         void                    resolveLeftArrow();
         void                    resolveRightArrow();
         void                    hideAllArrows();
+        void                    showArrows();
+        void                    updateSelectionState();
 
         String8                 m_valuePath;
         Actor*                  m_valueActor;
@@ -58,6 +60,7 @@ namespace ITF
         Actor*                  m_rightArrowActor;
         String8                 m_rightArrowHighlightPath;
         Actor*                  m_rightArrowHighlightActor;
+        bbool                   m_wasSelected;
     };
 
     class UIListOptionComponent_Template : public UIGameOptionComponent_Template

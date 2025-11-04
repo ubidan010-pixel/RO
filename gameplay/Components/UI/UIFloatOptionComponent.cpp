@@ -55,6 +55,7 @@ namespace ITF
     , m_originalCursorScale(1.0f, 1.0f)
     , m_originalCursorSelectedScale(1.0f, 1.0f)
     , m_value(0.5f)
+    , m_wasSelected(bfalse)
     {
     }
 
@@ -244,6 +245,7 @@ namespace ITF
         Super::Update(_deltaTime);
         updateSliderFromMouse();
         updateSliderVisuals();
+        updateSelectionState();
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -282,29 +284,47 @@ namespace ITF
     void UIFloatOptionComponent::onRollover()
     {
         Super::onRollover();
-        switchToSelectedActors();
-
-        if (m_sliderCursorSelectedActor)
-        {
-            class TextureGraphicComponent2D* selectedCursorGraph = m_sliderCursorSelectedActor->GetComponent<TextureGraphicComponent2D>();
-            if (selectedCursorGraph)
-            {
-                m_sliderCursorSelectedActor->setScale(m_originalCursorSelectedScale * getTemplate()->getScaleOnSelected());
-                selectedCursorGraph->setDrawColor(getTemplate()->getColorOnSelected().getAsU32());
-            }
-        }
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     void UIFloatOptionComponent::onRollout()
     {
         Super::onRollout();
-        switchToNormalActors();
+    }
 
-        if (m_sliderCursorActor && m_cursorGraphComponent)
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    void UIFloatOptionComponent::updateSelectionState()
+    {
+        const bbool isSelected = getIsSelected();
+        
+        if (isSelected != m_wasSelected)
         {
-            m_sliderCursorActor->setScale(m_originalCursorScale);
-            m_cursorGraphComponent->setDrawColor(COLOR_WHITE);
+            if (isSelected)
+            {
+                switchToSelectedActors();
+                
+                if (m_sliderCursorSelectedActor)
+                {
+                    class TextureGraphicComponent2D* selectedCursorGraph = m_sliderCursorSelectedActor->GetComponent<TextureGraphicComponent2D>();
+                    if (selectedCursorGraph)
+                    {
+                        m_sliderCursorSelectedActor->setScale(m_originalCursorSelectedScale * getTemplate()->getScaleOnSelected());
+                        selectedCursorGraph->setDrawColor(getTemplate()->getColorOnSelected().getAsU32());
+                    }
+                }
+            }
+            else
+            {
+                switchToNormalActors();
+                
+                if (m_sliderCursorActor && m_cursorGraphComponent)
+                {
+                    m_sliderCursorActor->setScale(m_originalCursorScale);
+                    m_cursorGraphComponent->setDrawColor(COLOR_WHITE);
+                }
+            }
+            
+            m_wasSelected = isSelected;
         }
     }
 

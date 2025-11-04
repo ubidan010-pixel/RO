@@ -56,6 +56,7 @@ namespace ITF
         void                    updateSliderFromMouse();
         void                    switchToNormalActors();
         void                    switchToSelectedActors();
+        void                    updateSelectionState();
 
         String8                 m_sliderBackgroundStartPath;
         Actor*                  m_sliderBackgroundStartActor;
@@ -73,6 +74,7 @@ namespace ITF
         Vec2d                   m_originalCursorScale;
         Vec2d                   m_originalCursorSelectedScale;
         f32                     m_value;
+        bbool                   m_wasSelected;
     };
 
     class UIFloatOptionComponent_Template : public UIGameOptionComponent_Template
