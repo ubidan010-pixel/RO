@@ -379,6 +379,14 @@
 #include "gameplay/components/UI/UISliderComponent.h"
 #endif //_ITF_UISLIDERCOMPONENT_H_
 
+#ifndef _ITF_UIGAMEOPTIONCOMPONENT_H_
+#include "gameplay/components/UI/UIGameOptionComponent.h"
+#endif //_ITF_UIGAMEOPTIONCOMPONENT_H_
+
+#ifndef _ITF_UILISTOPTIONCOMPONENT_H_
+#include "gameplay/components/UI/UIListOptionComponent.h"
+#endif //_ITF_UILISTOPTIONCOMPONENT_H_
+
 #ifndef _ITF_SIMPLETEXTCOMPONENT_H_
 #include "gameplay/components/UI/SimpleTextComponent.h"
 #endif //_ITF_SIMPLETEXTCOMPONENT_H_
@@ -1022,6 +1030,8 @@ namespace ITF
         actorComponentsFactory->RegisterObject<SimpleTextComponent>(ITF_GET_STRINGID_CRC(SimpleTextComponent,2170710125));
         actorComponentsFactory->RegisterObject<TutorialTextComponent>(ITF_GET_STRINGID_CRC(TutorialTextComponent,2460478030));
         actorComponentsFactory->RegisterObject<InGameTextComponent>(ITF_GET_STRINGID_CRC(InGameTextComponent,3492037591));
+        actorComponentsFactory->RegisterObject<UIGameOptionComponent>(ITF_GET_STRINGID_CRC(UIGameOptionComponent,3059104641));
+        actorComponentsFactory->RegisterObject<UIListOptionComponent>(ITF_GET_STRINGID_CRC(UIListOptionComponent,3621365669));
     }
 
     /********* TEMPLATE COMPONENTS ***********/
@@ -1036,6 +1046,8 @@ namespace ITF
         templatesFactory->RegisterObject<UIMenuItemText_Template>(ITF_GET_STRINGID_CRC(UIMenuItemText_Template,3322807307));
         templatesFactory->RegisterObject<UIMenuPageComponent_Template>(ITF_GET_STRINGID_CRC(UIMenuPageComponent_Template,4026707220));
         templatesFactory->RegisterObject<UIMenuItemComponent_Template>(ITF_GET_STRINGID_CRC(UIMenuItemComponent_Template,780160883));
+        templatesFactory->RegisterObject<UIGameOptionComponent_Template>(ITF_GET_STRINGID_CRC(UIGameOptionComponent_Template,1914604504));
+        templatesFactory->RegisterObject<UIListOptionComponent_Template>(ITF_GET_STRINGID_CRC(UIListOptionComponent_Template,1371529000));
         templatesFactory->RegisterObject<GraphicComponent_Template>(ITF_GET_STRINGID_CRC(GraphicComponent_Template,1900486610));
         templatesFactory->RegisterObject<TextureGraphicComponent_Template>(ITF_GET_STRINGID_CRC(TextureGraphicComponent_Template,2628666149));
         templatesFactory->RegisterObject<StandeeComponent_Template>(ITF_GET_STRINGID_CRC(StandeeComponent_Template,170543165));

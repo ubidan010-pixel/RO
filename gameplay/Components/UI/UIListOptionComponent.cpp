@@ -1,0 +1,105 @@
+#include "precompiled_gameplay.h"
+
+#ifndef _ITF_UILISTOPTIONCOMPONENT_H_
+#include "gameplay/components/UI/UIListOptionComponent.h"
+#endif //_ITF_UILISTOPTIONCOMPONENT_H_
+
+namespace ITF
+{
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    IMPLEMENT_OBJECT_RTTI(UIListOptionComponent)
+    BEGIN_SERIALIZATION_CHILD(UIListOptionComponent)
+    END_SERIALIZATION()
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    UIListOptionComponent::UIListOptionComponent()
+    : Super()
+    {
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    UIListOptionComponent::~UIListOptionComponent()
+    {
+        clear();
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    void UIListOptionComponent::clear()
+    {
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    void UIListOptionComponent::onActorLoaded(Pickable::HotReloadType _hotReload)
+    {
+        Super::onActorLoaded(_hotReload);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    void UIListOptionComponent::Update(f32 _deltaTime)
+    {
+        Super::Update(_deltaTime);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    void UIListOptionComponent::onActorClearComponents()
+    {
+        Super::onActorClearComponents();
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    void UIListOptionComponent::onBecomeActive()
+    {
+        Super::onBecomeActive();
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    void UIListOptionComponent::onBecomeInactive()
+    {
+        Super::onBecomeInactive();
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    void UIListOptionComponent::onPressed()
+    {
+        Super::onPressed();
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    void UIListOptionComponent::onReleased()
+    {
+        Super::onReleased();
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    void UIListOptionComponent::onRollover()
+    {
+        Super::onRollover();
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    void UIListOptionComponent::onRollout()
+    {
+        Super::onRollout();
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    void UIListOptionComponent::onAction(const StringID & action)
+    {
+        Super::onAction(action);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    IMPLEMENT_OBJECT_RTTI(UIListOptionComponent_Template)
+    BEGIN_SERIALIZATION_CHILD(UIListOptionComponent_Template)
+    END_SERIALIZATION()
+
+    UIListOptionComponent_Template::UIListOptionComponent_Template()
+    : Super()
+    {
+    }
+
+    UIListOptionComponent_Template::~UIListOptionComponent_Template()
+    {
+    }
+}
+
