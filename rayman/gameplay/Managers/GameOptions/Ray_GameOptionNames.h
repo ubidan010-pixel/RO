@@ -57,6 +57,7 @@ namespace ITF
 
 #define OPTION_MUSIC_VOLUME             ITF_GET_STRINGID_CRC(MusicVolume,2854727058)
 #define OPTION_SFX_VOLUME               ITF_GET_STRINGID_CRC(SFXVolume,410342323)
+#define LAST_PLAY_TIME                  ITF_GET_STRINGID_CRC(LastPlayTime,1448759483)
 
 // LINE ID
 static const ITF::u32 LINEID_HEART_NONE = 4294967295;
@@ -69,10 +70,6 @@ static const ITF::u32 LINEID_RUN_TOGGLE = 4294967295;
 
 static const ITF::u32 LINEID_VIBRATION_OFF = 4294967295;
 static const ITF::u32 LINEID_VIBRATION_ON = 4294967295;
-
-// Option Menu UI Component IDs - Tab Buttons
-#define OPTIONMENU_TAB_GENERAL                      ITF_GET_STRINGID_CRC(general_button,4192561365)
-#define OPTIONMENU_TAB_CONTROLS                     ITF_GET_STRINGID_CRC(controls_button,1841911868)
 
 // Option Menu UI Component IDs - Normal Arrows
 #define OPTIONMENU_LEFT_ARROW_LANGUAGE              ITF_GET_STRINGID_CRC(left_arrow_language,2347641254)
@@ -100,7 +97,7 @@ static const ITF::u32 LINEID_VIBRATION_ON = 4294967295;
 #define OPTIONMENU_RIGHT_ARROW_VIBRATION_HOVER      ITF_GET_STRINGID_CRC(right_arrow_vibration_hover,2552987418)
 #define OPTIONMENU_RIGHT_ARROW_RUN_BUTTON_HOVER     ITF_GET_STRINGID_CRC(right_arrow_run_button_hover,1193638931)
 
-// Option Menu UI Component IDs - Backgrounds and Titles (General tab)
+// Option Menu UI Component IDs - Backgrounds and Titles
 #define OPTIONMENU_BACKGROUND                        ITF_GET_STRINGID_CRC(background,2090311284)
 #define OPTION_BACKGROUND                            ITF_GET_STRINGID_CRC(option_background,3199356166)
 #define ACCESSIBILITY_BACKGROUND                     ITF_GET_STRINGID_CRC(accessibility_background,2105765664)
@@ -110,20 +107,17 @@ static const ITF::u32 LINEID_VIBRATION_ON = 4294967295;
 #define ACCESSIBILITY_TEXT                           ITF_GET_STRINGID_CRC(accessibility_text,3712526628)
 #define SOUND_OPTION_TEXT                            ITF_GET_STRINGID_CRC(sound_option_text,574868985)
 
-// Option Menu UI Component IDs - Option Labels (General tab)
+// Option Menu UI Component IDs - Option Labels
 #define RESOLUTION_LABEL                             ITF_GET_STRINGID_CRC(resolution_label,3234668118)
 #define LANGUAGE_LABEL                               ITF_GET_STRINGID_CRC(language_label,1407013127)
 #define HEARTS_LABEL                                 ITF_GET_STRINGID_CRC(hearts_label,2023820601)
 #define RUN_LABEL                                    ITF_GET_STRINGID_CRC(run_label,1777549370)
 #define VIBRATION_LABEL                              ITF_GET_STRINGID_CRC(vibration_label,2117878705)
 #define INTENSITY_LABEL                              ITF_GET_STRINGID_CRC(intensity_label,1510300201)
+#define MASTER_LABEL                                 ITF_GET_STRINGID_CRC(master_label,3437403484)
 #define MUSIC_LABEL                                  ITF_GET_STRINGID_CRC(music_label,244164885)
 #define SFX_LABEL                                    ITF_GET_STRINGID_CRC(sfx_label,3437403483)
 #define WINDOW_LABEL                                 ITF_GET_STRINGID_CRC(window_label,4139731100)
-
-// Option Menu UI Component IDs - Option Slot Backgrounds
-#define OPTION_BACKGROUND_LANGUAGE                    ITF_GET_STRINGID_CRC(option_background_language,428689951)
-#define OPTION_BACKGROUND_RESOLUTION                  ITF_GET_STRINGID_CRC(option_background_resolution,2667593404)
 
 // Option Menu UI Component IDs - Window checkbox
 #define OPTIONMENU_CHECKBOX_WINDOW_OFF                ITF_GET_STRINGID_CRC(checkbox_window_off,3734255018)

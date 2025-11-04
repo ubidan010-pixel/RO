@@ -77,9 +77,7 @@ namespace ITF
 
     Ray_OptionMenuHelper::Ray_OptionMenuHelper()
         : m_mainListener(nullptr)
-          ,
-          m_menu(nullptr)
-          , m_currentTab(OptionTab_General)
+          , m_menu(nullptr)
           , m_isActive(bfalse)
           , m_hasSnapshot(bfalse)
           , m_snapshotResolutionIndex(0)
@@ -115,13 +113,13 @@ namespace ITF
             }
         }
 
-        updateTabVisuals();
         UpdateResolutionText();
         UpdateLanguageText();
         UpdateStartWithHeartText();
         UpdateVibrationText();
         UpdateRunButtonText();
         UpdateWindowCheckboxVisual();
+        UpdateArrowVisibilityByCount();
         ensureValidSelection();
 
         if (RAY_GAMEMANAGER)
@@ -142,7 +140,6 @@ namespace ITF
 
         const StringID id = component->getID();
 
-        if (handleTabSwitch(id)) return;
         if (handleResetToDefault(id)) return;
         if (handleAccept(id)) return;
         if (handleCancel(id)) return;
@@ -241,63 +238,6 @@ namespace ITF
             setTextByLineId(c.labelId, c.display(next), c.lineId(next));
             return;
         }
-    }
-
-    bbool Ray_OptionMenuHelper::handleTabSwitch(const StringID& id)
-    {
-        if (id == OPTIONMENU_TAB_GENERAL)
-        {
-            switchToTab(OptionTab_General);
-            return btrue;
-        }
-        if (id == OPTIONMENU_TAB_CONTROLS)
-        {
-            switchToTab(OptionTab_Controls);
-            return btrue;
-        }
-        return bfalse;
-    }
-
-    bbool Ray_OptionMenuHelper::handleStartWithHeart(const StringID& id)
-    {
-        auto* gm = RAY_GAMEMANAGER;
-        if (!gm) return bfalse;
-        if (id == OPTIONMENU_LEFT_ARROW_START_WITH_HEART || id == OPTIONMENU_LEFT_ARROW_START_WITH_HEART_HOVER)
-        {
-            const i32 next = CycleIndex(gm->getStartWithHeartIndex(), START_WITH_HEART_CHOICES, -1);
-            gm->setStartWithHeartIndex(next);
-            UpdateStartWithHeartText();
-            return btrue;
-        }
-        if (id == OPTIONMENU_RIGHT_ARROW_START_WITH_HEART || id == OPTIONMENU_RIGHT_ARROW_START_WITH_HEART_HOVER)
-        {
-            const i32 next = CycleIndex(gm->getStartWithHeartIndex(), START_WITH_HEART_CHOICES, +1);
-            gm->setStartWithHeartIndex(next);
-            UpdateStartWithHeartText();
-            return btrue;
-        }
-        return bfalse;
-    }
-
-    bbool Ray_OptionMenuHelper::handleRunButton(const StringID& id)
-    {
-        auto* gm = RAY_GAMEMANAGER;
-        if (!gm) return bfalse;
-        if (id == OPTIONMENU_LEFT_ARROW_RUN_BUTTON || id == OPTIONMENU_LEFT_ARROW_RUN_BUTTON_HOVER)
-        {
-            const i32 next = CycleIndex(gm->getRunButtonMode(), RUN_BUTTON_CHOICES, -1);
-            gm->setRunButtonMode(next);
-            UpdateRunButtonText();
-            return btrue;
-        }
-        if (id == OPTIONMENU_RIGHT_ARROW_RUN_BUTTON || id == OPTIONMENU_RIGHT_ARROW_RUN_BUTTON_HOVER)
-        {
-            const i32 next = CycleIndex(gm->getRunButtonMode(), RUN_BUTTON_CHOICES, +1);
-            gm->setRunButtonMode(next);
-            UpdateRunButtonText();
-            return btrue;
-        }
-        return bfalse;
     }
 
     bbool Ray_OptionMenuHelper::handleResetToDefault(const StringID& id)
@@ -403,50 +343,6 @@ namespace ITF
         }
     }
 
-    void Ray_OptionMenuHelper::switchToTab(EOptionTab tab)
-    {
-        if (m_currentTab == tab) return;
-        m_currentTab = tab;
-        updateTabVisuals();
-    }
-
-    void Ray_OptionMenuHelper::updateTabVisuals() const
-    {
-        if (!m_menu) return;
-
-        UIComponent* generalTab = m_menu->getUIComponentByID(OPTIONMENU_TAB_GENERAL);
-        UIComponent* controlsTab = m_menu->getUIComponentByID(OPTIONMENU_TAB_CONTROLS);
-        if (!generalTab || !controlsTab) return;
-
-        Actor* generalActor = generalTab->GetActor();
-        Actor* controlsActor = controlsTab->GetActor();
-        if (!generalActor || !controlsActor) return;
-
-        auto* generalTexture = static_cast<TextureGraphicComponent2D*>(
-            generalActor->getComponentFromStaticClassCRC(TextureGraphicComponent2D::GetClassCRCStatic())
-        );
-        auto* controlsTexture = static_cast<TextureGraphicComponent2D*>(
-            controlsActor->getComponentFromStaticClassCRC(TextureGraphicComponent2D::GetClassCRCStatic())
-        );
-        if (!generalTexture || !controlsTexture) return;
-
-        constexpr u32 ACTIVE_COLOR = 0xFFFFFFFF;
-        constexpr u32 INACTIVE_COLOR = 0xFFA0A0A0;
-
-        const bool isGeneralActive = (m_currentTab == OptionTab_General);
-        generalTexture->setDrawColor(isGeneralActive ? ACTIVE_COLOR : INACTIVE_COLOR);
-        controlsTexture->setDrawColor(isGeneralActive ? INACTIVE_COLOR : ACTIVE_COLOR);
-        setGeneralItemsVisible(isGeneralActive ? btrue : bfalse);
-        setUIVisibilitySelectable(OPTIONMENU_ACCEPT_BUTTON, btrue, btrue, bfalse);
-        setUIVisibilitySelectable(OPTIONMENU_CANCEL_BUTTON, btrue, btrue, bfalse);
-        if (isGeneralActive)
-        {
-            UpdateWindowCheckboxVisual();
-            UpdateArrowVisibilityByCount();
-        }
-        ensureValidSelection();
-    }
-
     void Ray_OptionMenuHelper::UpdateArrowVisibilityByCount() const
     {
         auto hideArrowsIfSingle = [this](const StringID& optionId,
@@ -517,48 +413,6 @@ namespace ITF
         for (const auto& id : ids)
         {
             setUIVisibilitySelectable(id, visible, selectable);
-        }
-    }
-
-    void Ray_OptionMenuHelper::setGeneralItemsVisible(bbool visible) const
-    {
-        if (!m_menu) return;
-
-        // Non-selectable visuals: backgrounds, section titles, slot backgrounds, value texts, static labels
-        setVisibilityFor({
-                             OPTIONMENU_BACKGROUND, OPTION_BACKGROUND, ACCESSIBILITY_BACKGROUND, SOUND_BACKGROUND,
-                             DISPLAY_OPTION_TEXT, ACCESSIBILITY_TEXT, SOUND_OPTION_TEXT,
-                             OPTION_BACKGROUND_RESOLUTION, OPTION_BACKGROUND_LANGUAGE,
-                             RESOLUTION_TEXT, LANGUAGE_TEXT, START_WITH_HEART, VIBRATION_TEXT, RUN_BUTTON_NAME,
-                             RESOLUTION_LABEL, LANGUAGE_LABEL, HEARTS_LABEL, RUN_LABEL, VIBRATION_LABEL,
-                             INTENSITY_LABEL, MUSIC_LABEL, SFX_LABEL, WINDOW_LABEL
-                         }, visible, bfalse);
-
-        // Selectable controls: arrows and action buttons
-        setVisibilityFor({
-                             OPTIONMENU_LEFT_ARROW_RESOLUTION, OPTIONMENU_LEFT_ARROW_LANGUAGE,
-                             OPTIONMENU_LEFT_ARROW_START_WITH_HEART, OPTIONMENU_LEFT_ARROW_VIBRATION,
-                             OPTIONMENU_LEFT_ARROW_RUN_BUTTON,
-                             OPTIONMENU_RIGHT_ARROW_RESOLUTION, OPTIONMENU_RIGHT_ARROW_LANGUAGE,
-                             OPTIONMENU_RIGHT_ARROW_START_WITH_HEART, OPTIONMENU_RIGHT_ARROW_VIBRATION,
-                             OPTIONMENU_RIGHT_ARROW_RUN_BUTTON,
-                             OPTIONMENU_RESET_TO_DEFAULT_BUTTON,
-                             OPTIONMENU_CHECKBOX_WINDOW_OFF, OPTIONMENU_CHECKBOX_WINDOW_ON
-                         },
-                         visible, btrue);
-        if (!visible)
-        {
-            setUIVisibility(OPTIONMENU_LEFT_ARROW_LANGUAGE_HOVER, bfalse);
-            setUIVisibility(OPTIONMENU_LEFT_ARROW_RESOLUTION_HOVER, bfalse);
-            setUIVisibility(OPTIONMENU_LEFT_ARROW_START_WITH_HEART_HOVER, bfalse);
-            setUIVisibility(OPTIONMENU_LEFT_ARROW_VIBRATION_HOVER, bfalse);
-            setUIVisibility(OPTIONMENU_LEFT_ARROW_RUN_BUTTON_HOVER, bfalse);
-
-            setUIVisibility(OPTIONMENU_RIGHT_ARROW_RESOLUTION_HOVER, bfalse);
-            setUIVisibility(OPTIONMENU_RIGHT_ARROW_LANGUAGE_HOVER, bfalse);
-            setUIVisibility(OPTIONMENU_RIGHT_ARROW_START_WITH_HEART_HOVER, bfalse);
-            setUIVisibility(OPTIONMENU_RIGHT_ARROW_VIBRATION_HOVER, bfalse);
-            setUIVisibility(OPTIONMENU_RIGHT_ARROW_RUN_BUTTON_HOVER, bfalse);
         }
     }
 

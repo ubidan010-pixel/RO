@@ -17,12 +17,6 @@ namespace ITF
     class Ray_OptionMenuHelper : public UIMenuManager::MenuItemActionListener
     {
     public:
-        enum EOptionTab
-        {
-            OptionTab_General = 0,
-            OptionTab_Controls = 1
-        };
-
         Ray_OptionMenuHelper();
         virtual ~Ray_OptionMenuHelper();
         void activateForOptionMenu(MenuItemActionListener* mainListener);
@@ -33,19 +27,15 @@ namespace ITF
         void UpdateMenuOnSelectionChange(UIComponent* uiComponent, bbool isSelected) override;
 
     private:
-        bbool handleTabSwitch(const StringID& id);
         static bbool handleStartWithHeart(const StringID& id);
         static bbool handleRunButton(const StringID& id);
         static bbool handleResetToDefault(const StringID& id);
         bbool handleAccept(const StringID& id);
         bbool handleCancel(const StringID& id);
 
-        void switchToTab(EOptionTab tab);
-        void updateTabVisuals() const;
         void swapUIComponentActivation(const StringID& idToDisable,
                                        const StringID& idToEnable,
                                        bbool changeMenuSelection) const;
-        void setGeneralItemsVisible(bbool visible) const;
         void setUIVisibilitySelectable(const StringID& id, bbool visible, bbool selectable, bbool changeMenuSelection = bfalse) const;
         void setUIVisibility(const StringID& id, bbool visible, bbool changeMenuSelection = bfalse) const;
         static void setTextByLineId(const StringID& itemId, const char* friendly, u32 lineId);
@@ -63,7 +53,6 @@ namespace ITF
         MenuItemActionListener* m_mainListener;
         UIMenu*    m_menu;
         const char* m_menuBaseName = OPTION_MENU_NAME;
-        EOptionTab m_currentTab;
         bbool      m_isActive;
 
         bbool m_hasSnapshot;
