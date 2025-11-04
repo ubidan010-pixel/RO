@@ -306,17 +306,12 @@ namespace ITF
         {
         case Pressed:
             m_keys[_key] = btrue;
-
-            // Disable dbl press detection on keyboard
-            /*
-            if(ELLASPEDTIME - m_keysReleaseTime[_key] < fDoublePressMaxDuration)
-            {
-                _status = Double_Press;
-                m_keysReleaseTime[_key] = ELLASPEDTIME - fDoublePressMaxDuration - MTH_EPSILON;
-            }
-            */
+            if (_key == 289)
+                LOG("NT - %d: ", _status);
             break;
         case Released:
+            if (_key == 289)
+                LOG("NT - %d: ", _status);
             m_keys[_key] = bfalse;
             m_keysReleaseTime[_key] = ELAPSEDTIME;
             break;
