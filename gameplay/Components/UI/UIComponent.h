@@ -26,12 +26,15 @@ namespace ITF
     class XMLFile;
     class UITextBox;
     class AnimLightComponent;
+    class UIGameOptionComponent;
 
     static const f32 UI2D_WidthRef = 1280.0f;
     static const f32 UI2D_HeightRef = 720.0f;
 
     class UIComponent : public ActorComponent
     {
+        friend class UIGameOptionComponent;
+        
         DECLARE_OBJECT_CHILD_RTTI(UIComponent, ActorComponent,2232305413);
 
     public:
@@ -119,8 +122,8 @@ namespace ITF
         ObjectRef               m_UIref;
 
         // Percentage of the screen
-        f32                     m_relativePosX; 
-        f32                     m_relativePosY; 
+        f32                     m_relativePosX;
+        f32                     m_relativePosY;
         f32                     m_screenPourcentX;
         f32                     m_screenPourcentY;
 
@@ -157,20 +160,28 @@ namespace ITF
 
         enum UIAlign
         {
-            align_free, 
+            align_free,
             align_centerX,
             align_centerY,
             align_centerXY
         };
-        u32                     m_align; 
+        u32                     m_align;
 
         bbool                   m_useRuntimeDepthRank;
         bbool                   m_isPressed;
         i32                     m_runtimeDepthRank;
+
+        bbool                   m_hasColorOverride;
+        Color                   m_overrideTextColor;
+        Color                   m_overrideTextColorHighlighted;
+        Color                   m_overrideTextColorInactive;
+
     };
 
     class UIComponent_Template : public TemplateActorComponent
     {
+        friend class UIGameOptionComponent;
+
         DECLARE_OBJECT_CHILD_RTTI(UIComponent_Template, TemplateActorComponent,1440308778);
         DECLARE_SERIALIZE();
         DECLARE_ACTORCOMPONENT_TEMPLATE(UIComponent);
@@ -182,7 +193,7 @@ namespace ITF
 
         const Path&             getFontName() const { return m_fontName; }
         f32                     getInitialFontHeight() const { return m_initialFontHeight; }
-        f32                     getFontHeightSelected() const { return m_FontHeightSelected; }        
+        f32                     getFontHeightSelected() const { return m_FontHeightSelected; }
         const Color&            getTextColor() const { return m_textColor; }
         const Color&            getTextShadowColor() const { return m_textShadowColor; }
         const f32               getLineSpacingFactor() const { return m_lineSpacingFactor; }

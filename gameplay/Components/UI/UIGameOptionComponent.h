@@ -44,9 +44,11 @@ namespace ITF
     private:
         void                    clear();
         void                    resolveLabelActor();
+        void                    applyLabelColors();
 
         String8                 m_labelPath;
         Actor*                  m_labelActor;
+        bbool                   m_labelColorsApplied;
     };
 
     class UIGameOptionComponent_Template : public UIComponent_Template

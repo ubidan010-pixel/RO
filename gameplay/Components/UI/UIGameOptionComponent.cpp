@@ -12,6 +12,14 @@
 #include "core/ObjectPath.h"
 #endif //_ITF_OBJECTPATH_H_
 
+#ifndef _ITF_UICOMPONENT_H_
+#include "gameplay/components/UI/UIComponent.h"
+#endif //_ITF_UICOMPONENT_H_
+
+#ifndef _ITF_ACTORCOMPONENT_H_
+#include "engine/actors/actorcomponent.h"
+#endif //_ITF_ACTORCOMPONENT_H_
+
 namespace ITF
 {
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -26,6 +34,7 @@ namespace ITF
     UIGameOptionComponent::UIGameOptionComponent()
     : Super()
     , m_labelActor(NULL)
+    , m_labelColorsApplied(bfalse)
     {
     }
 
@@ -39,6 +48,36 @@ namespace ITF
     void UIGameOptionComponent::clear()
     {
         m_labelActor = NULL;
+        m_labelColorsApplied = bfalse;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    void UIGameOptionComponent::applyLabelColors()
+    {
+        if (m_labelColorsApplied || !m_labelActor || m_labelPath.isEmpty())
+            return;
+
+        if (m_labelActor->getUserFriendly() != m_labelPath)
+            return;
+
+        UIComponent* labelComponent = m_labelActor->GetComponent<UIComponent>();
+        if (!labelComponent)
+            return;
+
+        const UIComponent_Template* optionTemplate = static_cast<const UIComponent_Template*>(m_template);
+        if (!optionTemplate)
+            return;
+
+        const Color& optionTextColor = optionTemplate->getTextColor();
+        if (optionTextColor.getAsU32() == 0x00000000)
+            return;
+
+        labelComponent->m_hasColorOverride = btrue;
+        labelComponent->m_overrideTextColor = optionTextColor;
+        labelComponent->m_overrideTextColorHighlighted = optionTemplate->getTextColorHighlighted();
+        labelComponent->m_overrideTextColorInactive = optionTemplate->getTextColorInactive();
+
+        m_labelColorsApplied = btrue;
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -87,6 +126,9 @@ namespace ITF
     void UIGameOptionComponent::Update(f32 _deltaTime)
     {
         Super::Update(_deltaTime);
+        
+        if (!m_labelColorsApplied)
+            applyLabelColors();
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -139,7 +181,7 @@ namespace ITF
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     IMPLEMENT_OBJECT_RTTI(UIGameOptionComponent_Template)
-    BEGIN_SERIALIZATION(UIGameOptionComponent_Template)
+    BEGIN_SERIALIZATION_CHILD(UIGameOptionComponent_Template)
     END_SERIALIZATION()
 
     UIGameOptionComponent_Template::UIGameOptionComponent_Template()

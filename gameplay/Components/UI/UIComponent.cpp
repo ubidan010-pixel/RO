@@ -91,12 +91,16 @@ namespace ITF
     , m_animLightComponent(NULL)
     , m_align(align_free)
     , m_bDefaultSelectedByInstance(bfalse)
-    , m_useRuntimeDepthRank(bfalse)
-    , m_runtimeDepthRank(0)
-    , m_isPressed(bfalse)
-    , m_forceSelected(bfalse)
-    , m_animSizeRef(Vec2d::Zero)
-    {  
+        , m_useRuntimeDepthRank(bfalse)
+        , m_runtimeDepthRank(0)
+        , m_isPressed(bfalse)
+        , m_forceSelected(bfalse)
+        , m_animSizeRef(Vec2d::Zero)
+        , m_hasColorOverride(bfalse)
+        , m_overrideTextColor(Color::white())
+        , m_overrideTextColorHighlighted(Color::yellow())
+        , m_overrideTextColorInactive(Color::black())
+    {
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -293,11 +297,21 @@ namespace ITF
     u32 UIComponent::getColor() const
     {
         u32 pU32TextColor;
-        if (m_bSelected)
-            pU32TextColor = getTemplate()->getTextColorHighlighted().getAsU32();
+        
+        if (m_hasColorOverride)
+        {
+            if (m_bSelected)
+                pU32TextColor = m_overrideTextColorHighlighted.getAsU32();
+            else if (m_isActive)
+                pU32TextColor = m_overrideTextColor.getAsU32();
+            else
+                pU32TextColor = m_overrideTextColorInactive.getAsU32();
+        }
         else
         {
-            if (m_isActive)
+            if (m_bSelected)
+                pU32TextColor = getTemplate()->getTextColorHighlighted().getAsU32();
+            else if (m_isActive)
                 pU32TextColor = getTemplate()->getTextColor().getAsU32();
             else
                 pU32TextColor = getTemplate()->getTextColorInactive().getAsU32();
