@@ -1850,16 +1850,20 @@ namespace ITF
         void            registerRunButtonOption();
         void            registerMurfyAssistOption();
         void            registerVibrationOption();
+        void            registerMasterVolumeOption();
         void            registerMusicVolumeOption();
         void            registerSFXVolumeOption();
+        void            registerIntensityOption();
         void            registerLastPlayTime();
         void            applyLanguageOption();
         void            applyStartWithHeartOption();
         void            applyVibrationOption();
         void            applyRunButtonOption();
         void            applyMurfyAssistOption();
+        void            applyMasterVolumeOption();
         void            applyMusicVolumeOption();
         void            applySFXVolumeOption();
+        void            applyIntensityOption();
 
         Scene*          getSceneForPersistentActor(Actor *_obj) const;
 
