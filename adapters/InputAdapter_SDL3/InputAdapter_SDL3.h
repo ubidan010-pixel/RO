@@ -105,6 +105,10 @@ namespace ITF
 
         void UpdatePads() override;
         ControllerType GetControllerType(InputValue& value) override;
+        
+        void setFocus() override;
+        void unsetFocus() override;
+        
     private:
         SDLInput m_sdlInput;
     };

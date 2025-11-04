@@ -549,6 +549,39 @@ namespace ITF
         m_sdlInput.m_gamepads[_numPad].setVibration(0.0f, 0.0f, 0.0);
     }
 
+    void InputAdapter_SDL3::setFocus()
+    {
+        InputAdapter::setFocus();
+    }
+
+    void InputAdapter_SDL3::unsetFocus()
+    {
+        InputAdapter::unsetFocus();
+    
+        for (i32 i = 0; i < KEY_COUNT; i++)
+        {
+            if(isKeyPressed(i))
+            {
+                onKey(i, Released);
+            }
+        }
+        
+        if(isMousePressed(MB_Left))
+        {
+            onMouseButton(MB_Left, Released);
+        }
+        
+        if(isMousePressed(MB_Right))
+        {
+            onMouseButton(MB_Right, Released);
+        }
+        
+        if(isMousePressed(MB_Middle))
+        {
+            onMouseButton(MB_Middle, Released);
+        }
+    }
+
     const char* InputAdapter_SDL3::GetControllerTypeName(u32 padIndex) const
     {
         if (padIndex >= JOY_MAX_COUNT) return "Unknown";
