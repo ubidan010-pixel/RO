@@ -42,6 +42,7 @@ namespace ITF
         void                    clear();
         void                    resolveValueActor();
         void                    applyValueColors();
+        void                    updateValueColor();
         void                    resolveLeftArrow();
         void                    resolveRightArrow();
         void                    hideAllArrows();

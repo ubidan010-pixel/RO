@@ -81,6 +81,31 @@ namespace ITF
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
+    void UIGameOptionComponent::updateLabelColor()
+    {
+        if (!m_labelActor || !m_labelColorsApplied)
+            return;
+
+        UIComponent* labelComponent = m_labelActor->GetComponent<UIComponent>();
+        if (!labelComponent || !labelComponent->m_hasColorOverride)
+            return;
+
+        const bbool isSelected = getIsSelected();
+        if (isSelected)
+        {
+            labelComponent->m_overrideTextColor = labelComponent->m_overrideTextColorHighlighted;
+        }
+        else
+        {
+            const UIComponent_Template* optionTemplate = static_cast<const UIComponent_Template*>(m_template);
+            if (optionTemplate)
+            {
+                labelComponent->m_overrideTextColor = optionTemplate->getTextColor();
+            }
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
     void UIGameOptionComponent::resolveLabelActor()
     {
         m_labelActor = NULL;
@@ -130,14 +155,7 @@ namespace ITF
         if (!m_labelColorsApplied)
             applyLabelColors();
         
-        if (m_labelActor)
-        {
-            UIComponent* labelComponent = m_labelActor->GetComponent<UIComponent>();
-            if (labelComponent)
-            {
-                labelComponent->setIsSelected(getIsSelected());
-            }
-        }
+        updateLabelColor();
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////

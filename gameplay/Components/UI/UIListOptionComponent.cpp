@@ -78,6 +78,7 @@ namespace ITF
         if (!m_valueColorsApplied)
             applyValueColors();
         
+        updateValueColor();
         updateSelectionState();
     }
 
@@ -156,6 +157,31 @@ namespace ITF
         valueComponent->m_overrideTextColorInactive = optionTemplate->getTextColorInactive();
 
         m_valueColorsApplied = btrue;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    void UIListOptionComponent::updateValueColor()
+    {
+        if (!m_valueActor || !m_valueColorsApplied)
+            return;
+
+        UIComponent* valueComponent = m_valueActor->GetComponent<UIComponent>();
+        if (!valueComponent || !valueComponent->m_hasColorOverride)
+            return;
+
+        const bbool isSelected = getIsSelected();
+        if (isSelected)
+        {
+            valueComponent->m_overrideTextColor = valueComponent->m_overrideTextColorHighlighted;
+        }
+        else
+        {
+            const UIComponent_Template* optionTemplate = static_cast<const UIComponent_Template*>(m_template);
+            if (optionTemplate)
+            {
+                valueComponent->m_overrideTextColor = optionTemplate->getTextColor();
+            }
+        }
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -339,28 +365,10 @@ namespace ITF
             if (isSelected)
             {
                 showArrows();
-                
-                if (m_valueActor)
-                {
-                    UIComponent* valueComponent = m_valueActor->GetComponent<UIComponent>();
-                    if (valueComponent)
-                    {
-                        valueComponent->setIsSelected(btrue);
-                    }
-                }
             }
             else
             {
                 hideAllArrows();
-                
-                if (m_valueActor)
-                {
-                    UIComponent* valueComponent = m_valueActor->GetComponent<UIComponent>();
-                    if (valueComponent)
-                    {
-                        valueComponent->setIsSelected(bfalse);
-                    }
-                }
             }
             
             m_wasSelected = isSelected;

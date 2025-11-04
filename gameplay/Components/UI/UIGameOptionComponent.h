@@ -41,6 +41,7 @@ namespace ITF
     protected:
         ITF_INLINE const class UIGameOptionComponent_Template* getTemplate() const;
         void                    applyLabelColors();
+        void                    updateLabelColor();
 
     private:
         void                    clear();
