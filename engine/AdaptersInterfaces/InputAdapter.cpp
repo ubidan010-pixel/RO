@@ -306,12 +306,17 @@ namespace ITF
         {
         case Pressed:
             m_keys[_key] = btrue;
-            if (_key == 289)
-                LOG("NT - %d: ", _status);
+
+            // Disable dbl press detection on keyboard
+            /*
+            if(ELLASPEDTIME - m_keysReleaseTime[_key] < fDoublePressMaxDuration)
+            {
+                _status = Double_Press;
+                m_keysReleaseTime[_key] = ELLASPEDTIME - fDoublePressMaxDuration - MTH_EPSILON;
+            }
+            */
             break;
         case Released:
-            if (_key == 289)
-                LOG("NT - %d: ", _status);
             m_keys[_key] = bfalse;
             m_keysReleaseTime[_key] = ELAPSEDTIME;
             break;
@@ -683,6 +688,7 @@ namespace
         {
             INPUT_ADAPTER->onKey(KEY_RALT, (ITF::InputAdapter::PressStatus)bRAlt);
         }
+
         /// Set Keys.
         INPUT_ADAPTER->onKey(TranslateVirtualKey(nChar), status);
     }

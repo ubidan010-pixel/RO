@@ -106,14 +106,14 @@ const UVSubdiv  GFXAdapter::bufferTypes[] = {
 #ifdef ITF_WII
 	{ 2, 2},
     { 2, 2},
-    { 4, 1},
+    { 4, 1}, 
 #else
     { 2, 2},
     { 4, 4},
-    { 8, 2},
+    { 8, 2}, 
 #endif
-    { MESH_DEFAULT_HDIV, MESH_DEFAULT_VDIV } ,
-    { MESH_DEFAULT_VDIV , MESH_DEFAULT_HDIV}
+    { MESH_DEFAULT_HDIV, MESH_DEFAULT_VDIV } , 
+    { MESH_DEFAULT_VDIV , MESH_DEFAULT_HDIV} 
 };
 const u32       GFXAdapter::bufferTypesNb = sizeof(GFXAdapter::bufferTypes)/sizeof(UVSubdiv);
 
@@ -269,17 +269,17 @@ void GFXAdapter::computeRenderMatrix()
     M44_mul4x4Out((Matrix44*)&mg_WorldViewProj, (const Matrix44*)&WorldView, (const Matrix44*)&mg_Proj);
 
     //----
-
+    
     M44_mul4x4Out((Matrix44*)&mg_ViewProj,      (const Matrix44*)&mg_View,   (const Matrix44*)&mg_Proj);
-    M44_matrixInverse(mg_ViewProj_Inv.fa16, mg_ViewProj.fa16);
+    M44_matrixInverse(mg_ViewProj_Inv.fa16, mg_ViewProj.fa16); 
 
     //----
-
+    
     GMatrix44 viewNoT = mg_View;
     viewNoT._m41 = viewNoT._m42 = viewNoT._m43 = 0.f;
-
+    
     M44_mul4x4Out((Matrix44*)&mg_ViewNoTProj,   (const Matrix44*)&viewNoT,   (const Matrix44*)&mg_Proj);
-    M44_matrixInverse(mg_ViewNoTProj_Inv.fa16, mg_ViewNoTProj.fa16);
+    M44_matrixInverse(mg_ViewNoTProj_Inv.fa16, mg_ViewNoTProj.fa16); 
 #endif // ITF_GFX_PLATFORM_COMMON_FUNCTIONS
 }
 
@@ -312,7 +312,7 @@ void GFXAdapter::destroyFonts()
 
 }
 
-void GFXAdapter::setThreadUsageScreenCapture(u32 _uThreadUsage,bbool _bStepByStep)
+void GFXAdapter::setThreadUsageScreenCapture(u32 _uThreadUsage,bbool _bStepByStep)  
 {
 #ifdef ITF_SUPPORT_VIDEOCAPTURE
     if (!m_videoCapture)
@@ -331,7 +331,7 @@ void GFXAdapter::destroy()
     SF_DEL_ARRAY(m_internalIdxBufferTab);
     SF_DEL_ARRAY(m_internalVtxBufferTab);
 }
-
+   
 void   GFXAdapter::destroyResources()
 {
     SF_DEL(m_RenderTargetManager);
@@ -349,9 +349,9 @@ void GFXAdapter::setResolution(u32 _screenWidth, u32 _screenHeight)
     {
         m_screenWidth = _screenWidth;
         m_screenHeight = _screenHeight;
-#ifndef ITF_WII
+#ifndef ITF_WII        
         resetDevice(0);
-#endif // ITF_WII
+#endif // ITF_WII        
     }
     else
     {
@@ -367,7 +367,7 @@ void GFXAdapter::setResolution(u32 _screenWidth, u32 _screenHeight)
 //----------------------------------------------------------------------------//
 
 Texture* GFXAdapter::loadTexture(   const char* _path, u32 _alpha   )
-{
+{    
     const ResourceID& id = RESOURCE_MANAGER->newResourceIDFromFile(Resource::ResourceType_Texture, Path(_path));
     Texture* texture = (Texture*)id.getResource();
     loadTexture(texture, _path, _alpha);
@@ -452,13 +452,13 @@ void GFXAdapter::fillTriangleList(const DBGLine& l)
     Vec3d p13d(l.p1.m_x, l.p1.m_y, l.z);
     Vec3d p23d(l.p2.m_x, l.p2.m_y, l.z);
 
- /*
+ /*   
     bbool clipP1 = isPointBehindCamera(p13d);
     bbool clipP2 = isPointBehindCamera(p23d);
 
     if (clipP1 && clipP2)
         return;
-
+ 
     if (clipP1)
         clipLineToCam(p13d, p23d);
     else if (clipP2)
@@ -627,10 +627,10 @@ void GFXAdapter::drawDBGPrimitives()
                 it++;
         }
     }
-
+    
     {
         m_DBGTriangleList.reserve((m_DBGLines.size()+m_DBGLinesDuration.size())*6);
-
+     
         for (u32 it = 0; it < m_DBGLines.size();it++)
         {
             fillTriangleList(m_DBGLines[it]);
@@ -663,10 +663,10 @@ void GFXAdapter::drawDBGPrimitives()
         }
 
         m_DBGLines.clear();
-
+        
     }
 
-
+    
     {
         for (u32 it = 0; it < m_DBGTriangles.size();)
         {
@@ -693,13 +693,13 @@ void GFXAdapter::drawDBGPrimitives()
                 it++;
         }
     }
-
+ 
 
 #ifndef ITF_WII
     if (!isDeviceLost())
 #endif // ITF_WII
-    {
-
+    { 
+ 
         i32 listSize = m_DBGTriangleList.size();
         i32 startPos = 0;
         i32 currentSize = listSize;
@@ -729,7 +729,7 @@ void GFXAdapter::drawDBGPrimitives()
 
                 getVertexBufferManager().LockVertexBuffer(meshLines.m_vtxBuffer, (void **) &pdata);
                 VertexPC    *write = pdata;
-
+              
                 ITF_MemcpyWriteCombined(write,&m_DBGTriangleList[startPos],sizeof(VertexPC)*currentSize);
 
                 getVertexBufferManager().UnlockVertexBuffer(meshLines.m_vtxBuffer);
@@ -746,7 +746,7 @@ void GFXAdapter::drawDBGPrimitives()
                 m_VertexBufferManager.removeVertexBuffer(meshLines.m_vtxBuffer);
         }
     }
-
+       
     m_DBGTriangleList.clear();
 #endif // ITF_DEBUG_LEVEL > 0
 }
@@ -771,7 +771,7 @@ void GFXAdapter::drawPolyLine(const PolyLine* _pl)
             drawArrow(thisData.getPos(), nextData.getPos(), 1, 1, 1, 0.2f);
 /*
             const Vec2d& n = thisData.m_normalizedVector.getPerpendicular() * 4.f;
-            Vec2d center = thisData.m_pos + thisData.m_vector * 0.5;
+            Vec2d center = thisData.m_pos + thisData.m_vector * 0.5; 
             drawLine(center, center + n, 1, 0, 0 , 1.f);*/
         }
     }
@@ -971,9 +971,9 @@ void GFXAdapter::drawDBGQuad (   const Vec2d& _pos, f32 _width, f32 _height, con
         f32 c,s;
         f32_CosSin(_angle, &c, &s);
         Vec2d HorizAxis(c, -s);
-
+        
         HorizAxis *= 0.5f;
-
+            
         Vec2d vertAxis = HorizAxis.getPerpendicular();
 
         HorizAxis *= _width;
@@ -1040,7 +1040,7 @@ void GFXAdapter::drawDBGLine(const Vec2d& _p1, const Vec2d& _p2, float _r, float
             m_DBGLinesDuration.push_back(l);
         else
             m_DBGLines.push_back(l);
-
+       
 
     #else
         drawLine(_p1, _p2, _r, _g, _b, _size, _alpha);
@@ -1114,14 +1114,14 @@ void GFXAdapter::drawTriangles(const Triangle& _triangle, const Texture* _txt)
     {
         const ITF_VECTOR<u32>&  idx = *_triangle.m_indexes;
 
-        for (u32 i=_triangle.index; i<_triangle.index +_triangle.taille; i+=3)
+        for (u32 i=_triangle.index; i<_triangle.index +_triangle.taille; i+=3)   
             drawTriangle(v[idx[i]], v[idx[i+2]], v[idx[i+1]], _txt);
 
         return;
     }
 
     //  without tab index
-    for (u32 i=_triangle.index; i<_triangle.index+_triangle.taille; i+=3)
+    for (u32 i=_triangle.index; i<_triangle.index+_triangle.taille; i+=3)     
         drawTriangle(v[i], v[i+2], v[i+1], _txt);
 }
 
@@ -1136,7 +1136,7 @@ void GFXAdapter::drawStrip(const Strip& _strip, const Texture* _txt)
     {
         const ITF_VECTOR<u32>&  idx = *_strip.m_indexes;
 
-        for (u32 i=_strip.index; i<_strip.index+_strip.taille -2; i+=2)
+        for (u32 i=_strip.index; i<_strip.index+_strip.taille -2; i+=2)   
         {
             //ITF_ASSERT(i+3 < (int)v.size());
 //             if (i+3 < (int)v.size())
@@ -1149,7 +1149,7 @@ void GFXAdapter::drawStrip(const Strip& _strip, const Texture* _txt)
     }
 
         //  without tab index
-    for (u32 i=_strip.index; i<_strip.index+_strip.taille -2; i+=2)
+    for (u32 i=_strip.index; i<_strip.index+_strip.taille -2; i+=2)   
     {
         //ITF_ASSERT(i+3 < (int)v.size());
 //         if (i+3 < (int)v.size())
@@ -1182,7 +1182,7 @@ void GFXAdapter::drawFan(const Fan& _fan, const Texture* _txt)
 //             return;
 
 
-        for (u32 i=_fan.index +1; i<_fan.index +_fan.taille -1; i++)
+        for (u32 i=_fan.index +1; i<_fan.index +_fan.taille -1; i++)  
         {
 /*            if(_fan.index < 0)
                 _asm int 3;
@@ -1204,7 +1204,7 @@ void GFXAdapter::drawFan(const Fan& _fan, const Texture* _txt)
 //         return;
 
         //  without tab index
-    for (u32 i=_fan.index +1; i<_fan.index +_fan.taille -1; i++)
+    for (u32 i=_fan.index +1; i<_fan.index +_fan.taille -1; i++)   
         drawTriangle(v[_fan.index], v[i+1], v[i], _txt);
 
 }
@@ -1229,7 +1229,7 @@ void GFXAdapter::cancelAllTasks()
 void GFXAdapter::drawPrimitives()
 {
     //m_groupMeshManager->draw();
-#ifdef AFTERFXLIST
+#ifdef AFTERFXLIST    
     //transfer afterfxlist to renderlist
     u32 nFx = m_AfterFxZlist.getNumberEntry();
     if (nFx)
@@ -1247,21 +1247,21 @@ void GFXAdapter::drawPrimitives()
             if (!(afx->isRenderInTarget() == 2 && !GFX_ADAPTER->isUseInternalRT()))
 				m_RenderZlist.AddPrimitiveInZList((void*)afx, GFX_ITF_AFTERFX, NULL, afx->getZRender(),ObjectRef::InvalidRef);
 		}
-
+   
         m_AfterFxZlist.ZList_reset();
     }
 #endif
     if (isUseInternalRT())
     {
         prepareInternalRT();
-
+        
         if (m_RenderZlistRTarget.getNumberEntry())
         {
             m_RenderZlistRTarget.sort();
             drawZlistPrimitives(&m_RenderZlistRTarget);
             m_RenderZlistRTarget.ZList_reset();
         }
-
+            
         endInternalRT();
     }
 
@@ -1303,7 +1303,7 @@ void GFXAdapter::drawPrimitives2d( PrimitivesContainer2d* _container2d )
             M44_setMatrixTranslation(&matrix, position.m_x, position.m_y, position.m_z);
             // scale by negative, because y ortho view inversed.
             matrix.mulScale(Vec3d(prim.Scale.m_x, -prim.Scale.m_y, 1.f));
-
+            
             ITF_Mesh& mesh  = *prim.mesh;
             mesh.setMatrix((GMatrix44&)matrix);
 
@@ -1374,7 +1374,7 @@ void GFXAdapter::drawPrimitives2d( PrimitivesContainer2d* _container2d )
                 width = drawTextInternalAppend(fontcall,lastPosWidth);//sum the appends
             }
 
-            lastPosWidth.m_x += width;
+            lastPosWidth.m_x += width;            
         }
 
 
@@ -1421,13 +1421,13 @@ void GFXAdapter::drawPrimitives2d( PrimitivesContainer2d* _container2d )
         }
 
 #ifndef ITF_FINAL
-        if (isShowAfterFx()/* && allowRendering*/)
+        if (isShowAfterFx()/* && allowRendering*/)             
 #endif // ITF_FINAL
         {
 			for (u32 AFXId = 0; AFXId < _container2d[count].AfterfxList.size(); AFXId++)
 			{
 				const PrimAFXInfo& priomInfo = _container2d[count].AfterfxList[AFXId];
-
+                
 				AFTERFX* afx = priomInfo.afx;
                 bbool nobackbuffercopy = bfalse;
                 if (afx->getType() == AFX_Fade || afx->getType() == AFX_BorderBright)
@@ -1458,7 +1458,7 @@ void GFXAdapter::addPrimitive2d(Vec2d _Pos, Vec2d _scale, int _prio, PRIMITIVETY
 {
     if (_prio >= (int)m_PriorityCount2d)
         _prio   = m_PriorityCount2d-1;
-
+    
     if (_prio<0)
         _prio   = 0;
 
@@ -1475,7 +1475,7 @@ void GFXAdapter::addPrimitive2d(Vec2d _Pos, Vec2d _scale, int _prio, PRIMITIVETY
             {
                 ITF_VECTOR<PrimMeshInfo>* ptr = &m_container2d[_prio].MeshList;
                 ptr->push_back(prim);
-            }
+            } 
             else
             {
                 ITF_VECTOR<PrimMeshInfo>* ptr = &m_container2dSubScreen[_prio].MeshList;
@@ -1495,14 +1495,14 @@ void GFXAdapter::addPrimitive2d(Vec2d _Pos, Vec2d _scale, int _prio, PRIMITIVETY
             {
                 ITF_VECTOR<PrimAnimMeshInfo>* ptr = &m_container2d[_prio].AnimSceneList;
                 ptr->push_back(prim);
-            }
+            } 
             else
             {
                 ITF_VECTOR<PrimAnimMeshInfo>* ptr = &m_container2dSubScreen[_prio].AnimSceneList;
                 ptr->push_back(prim);
             }
          }
-         break;
+         break;              
 
         case GFX_ITF_TRAIL:
         {
@@ -1513,7 +1513,7 @@ void GFXAdapter::addPrimitive2d(Vec2d _Pos, Vec2d _scale, int _prio, PRIMITIVETY
             {
                 ITF_VECTOR<PrimTrailInfo>* ptr = &m_container2d[_prio].TrailList;
                 ptr->push_back(prim);
-            }
+            } 
             else
             {
                 ITF_VECTOR<PrimTrailInfo>* ptr = &m_container2dSubScreen[_prio].TrailList;
@@ -1529,14 +1529,14 @@ void GFXAdapter::addPrimitive2d(Vec2d _Pos, Vec2d _scale, int _prio, PRIMITIVETY
             {
                 ITF_VECTOR<FontCall>* ptr = &m_container2d[_prio].FontsCallList;
                 ptr->push_back(*_font);
-            }
+            } 
             else
             {
                 ITF_VECTOR<FontCall>* ptr = &m_container2dSubScreen[_prio].FontsCallList;
                 ptr->push_back(*_font);
             }
          }
-         break;
+         break;  
 
         case GFX_QUADS:
         {
@@ -1545,7 +1545,7 @@ void GFXAdapter::addPrimitive2d(Vec2d _Pos, Vec2d _scale, int _prio, PRIMITIVETY
             {
                 ITF_VECTOR<Quad2DInfo>* ptr = &m_container2d[_prio].Quad2DInfoList;
                 ptr->push_back(*_texInfo);
-            }
+            } 
             else
             {
                 ITF_VECTOR<Quad2DInfo>* ptr = &m_container2dSubScreen[_prio].Quad2DInfoList;
@@ -1560,12 +1560,12 @@ void GFXAdapter::addPrimitive2d(Vec2d _Pos, Vec2d _scale, int _prio, PRIMITIVETY
 
             PrimAFXInfo prim;
 			prim.afx = _afx;
-
+			
 			if (_UpScreen)
             {
                 ITF_VECTOR<PrimAFXInfo>* ptr = &m_container2d[_prio].AfterfxList;
                 ptr->push_back(prim);
-            }
+            } 
             else
             {
                 ITF_VECTOR<PrimAFXInfo>* ptr = &m_container2dSubScreen[_prio].AfterfxList;
@@ -1591,7 +1591,7 @@ void GFXAdapter::computeUVAnim(GFX_UVANIM* _uvanim)
     {
         // get last post from matrix.
         Vec3d tr = Vec3d(_uvanim->m_UVMat._m41, _uvanim->m_UVMat._m42, 0.f);
-
+        
         if (!isGFXPaused())
         {
             tr.m_x += LOGICDT * _uvanim->m_speedTrans.m_x;
@@ -1843,7 +1843,7 @@ void    GFXAdapter::cleanFontCache()
     {
         Font* pFont = RESOURCE_MANAGER->getFont(m_Fonts[index]);
         if (pFont)
-            pFont->cleanFontCache();
+            pFont->cleanFontCache();       
     }
 }
 
@@ -1921,7 +1921,7 @@ u32 GFXAdapter::loadFont(const Path& name)
             if (m_Fonts[i] == fontId) return i;
         }
     }
-
+    
     // Font not loaded or not in font list
     fontId = RESOURCE_MANAGER->newResourceIDFromFile(Resource::ResourceType_Font,name);
     RESOURCE_MANAGER->addUserToResourcePhysicalData(fontId);
@@ -1947,7 +1947,7 @@ void GFXAdapter::toggleRaster()
         }
     }
 
-    m_showRasters = !m_showRasters;
+    m_showRasters = !m_showRasters; 
 #endif //RASTER_ENABLED
 };
 #endif //!ITF_FINAL
@@ -2080,7 +2080,7 @@ void Patch32Data::CopyToMesh()
     void *pdata;
 
     GFX_ADAPTER->getVertexBufferManager().LockVertexBuffer(mesh->m_vtxBufferBuffered[currentBuffer],&pdata);
-
+    
     switch(vertexFormat)
     {
     case VertexFormat_PCT:
@@ -2112,7 +2112,7 @@ void * Patch32Data::LockVBuff()
     void *pdata;
     GFX_ADAPTER->getVertexBufferManager().LockVertexBuffer(mesh->m_vtxBuffer,&pdata);
     return pdata;
-#endif // VBMANAGER_USE_DYNAMICRING_VB
+#endif // VBMANAGER_USE_DYNAMICRING_VB    
 }
 
 void Patch32Data::UnlockVBuff()
@@ -2121,7 +2121,7 @@ void Patch32Data::UnlockVBuff()
     GFX_ADAPTER->getVertexBufferManager().UnlockVertexBuffer(mesh->m_vtxBufferBuffered[mesh->m_userBuffer]);
 #else
     GFX_ADAPTER->getVertexBufferManager().UnlockVertexBufferUsage(mesh->m_vtxBuffer, vertexCount * mesh->m_vtxBuffer->m_structVertexSize);
-#endif // VBMANAGER_USE_DYNAMICRING_VB
+#endif // VBMANAGER_USE_DYNAMICRING_VB    
 }
 #endif // PATCH32_WORKINGBUFF
 
@@ -2179,7 +2179,7 @@ void ITF_Mesh::initStaticIndexMesh(int _vertexFormat, ITF_IndexBuffer *_staticIn
 #else
             m_vtxBuffer = GFX_ADAPTER->createVertexBuffer(_bufferSize,
                 VertexFormat_PTa, sizeof(VertexPT),1, VB_T_MESH);
-#endif // VBMANAGER_USE_DYNAMICRING_VB
+#endif // VBMANAGER_USE_DYNAMICRING_VB        
         m_type = meshType_PTa;
         break;
     }
@@ -2232,7 +2232,7 @@ void ITF_Mesh::initDynamicIndexedMesh(int _vertexFormat, ITF_IndexBuffer *_stati
 #else
         m_vtxBuffer = GFX_ADAPTER->createVertexBuffer(_bufferSize,
             VertexFormat_PTa, sizeof(VertexPT),1, VB_T_MESH);
-#endif // VBMANAGER_USE_DYNAMICRING_VB
+#endif // VBMANAGER_USE_DYNAMICRING_VB        
         m_type = meshType_PTa;
         break;
     }
@@ -2348,7 +2348,7 @@ ITF_VertexBuffer* GFXAdapter::createInternalVB(u32 _hdiv, u32 _vdiv)
 {
     ITF_VertexBuffer* internalVtxBuffer = createVertexBuffer(  ((_hdiv + 1)*(_vdiv + 1))*NB_ELEMENT_IN_VERTEX_BUFFER,
     VertexFormat_PT, sizeof(VertexPT),bfalse, VB_T_INTERNAL);
-
+    
     VertexPT    *pdata;
     internalVtxBuffer->Lock((void **) &pdata);
     VertexPT    * __restrict write = pdata;
@@ -2470,7 +2470,7 @@ ITF_IndexBuffer* GFXAdapter::needSpriteIndexBuffer(u32 _numberIndex)
         FillSpriteIndexBuffer(m_internalSpritesIndexBuffer, _numberIndex / 6);
         return m_internalSpritesIndexBuffer;
     }
-
+    
     /// Resize.
     if ( _numberIndex > m_spriteIndexBufferSize )
     {
@@ -2478,9 +2478,9 @@ ITF_IndexBuffer* GFXAdapter::needSpriteIndexBuffer(u32 _numberIndex)
         releaseIndexBuffer(m_internalSpritesIndexBuffer);
         /// recreate with good size.
         m_internalSpritesIndexBuffer->createIndexBuffer(  _numberIndex, bfalse);
-
+        
         m_spriteIndexBufferSize = _numberIndex;
-
+    
         FillSpriteIndexBuffer(m_internalSpritesIndexBuffer, _numberIndex / 6);
     }
 
@@ -2506,7 +2506,7 @@ void  GFXAdapter::cancelScreenCapture()
 void GFX_Zlist::AddPrimitiveInZList(void* _pPrimitive, PRIMITIVETYPE _type, Texture* _texture, f32 _depth,const ObjectRef& _ref)
 {
     f32 zordering = _depth;
-
+    
     // reject same AFX:
     if (_type == GFX_ITF_AFTERFX)
     {
@@ -2550,7 +2550,7 @@ ZList_Node* GFX_Zlist::ZList_AddNode(f32 _zordering)
     m_reorderingTable[m_NumberEntry] = pNewNode;
 
     pNewNode->m_depth = _zordering;
-
+    
     m_NumberEntry++;
 
     return pNewNode;
@@ -2575,7 +2575,7 @@ ZList_Node* GFX_Zlist::ZList_find(PRIMITIVETYPE _type)
         if (node->pPrimitiveInfo.m_type == _type)
             return node;
     }
-
+    
     return NULL;
 }
 
@@ -2647,7 +2647,7 @@ void GFXAdapter::drawZlistPrimitives(GFX_Zlist* _zlist)
 {
     Vec3d lastPosWidth;
     f32 width = 0.0f;
-
+	
 	ZList_Node* pCurNode = NULL;
 #ifndef ITF_FINAL
 #ifdef ITF_WINDOWS
@@ -2658,7 +2658,7 @@ void GFXAdapter::drawZlistPrimitives(GFX_Zlist* _zlist)
 #endif // ITF_FINAL
 
     for (u32 i = 0; i < _zlist->getNumberEntry(); i++)
-    {
+    {   
         pCurNode = _zlist->getOrderNodeAt(i);
 
         PROFILER_DRAWGPU(pCurNode->m_ref);
@@ -2699,7 +2699,7 @@ void GFXAdapter::drawZlistPrimitives(GFX_Zlist* _zlist)
             }
             setGlobalColor(Color::white());
             setFogColor(Color::zero());
-        }
+        } 
         break;
         case GFX_ITF_ANIMSCENE:
         {
@@ -2746,7 +2746,7 @@ void GFXAdapter::drawZlistPrimitives(GFX_Zlist* _zlist)
                 if (afx->getType() == AFX_Glow)
                     nobackbuffercopy = btrue;
 #endif // defined(ITF_PS3) || defined(ITF_WII)
-
+                
                 prepareAfterFx(nobackbuffercopy);
                 AFTERFX_drawOne(afx);
                 endAfterfx(nobackbuffercopy, (GFX_BLENDMODE)afx->getCustomVal());
@@ -2755,7 +2755,7 @@ void GFXAdapter::drawZlistPrimitives(GFX_Zlist* _zlist)
 
         case GFX_ITF_AFTERFXGROUP:
 #ifndef ITF_FINAL
-            if (isShowAfterFx() && allowRendering)
+            if (isShowAfterFx() && allowRendering)             
 #endif // ITF_FINAL
             {
                 AFX_Group* group = (AFX_Group*)pCurNode->pPrimitiveInfo.mp_Primitive;
@@ -2852,7 +2852,7 @@ void GFXAdapter::addPrimitiveInZList(void* _pPrimitive, PRIMITIVETYPE _type, Tex
     if (_type == GFX_ITF_AFTERFX)
         m_AfterFxZlist.AddPrimitiveInZList(_pPrimitive, _type, _texture, _depth,_ref);
     else
-#endif
+#endif    
     {
         if (_target && isUseInternalRT())
             m_RenderZlistRTarget.AddPrimitiveInZList(_pPrimitive, _type, _texture, _depth,_ref);
@@ -2967,7 +2967,7 @@ void GFXAdapter::AFTERFX_borderBright(f32 _factor, f32 _attenuation, Color _colo
     // |     /   |
     // |    /    |
     // |   /     |
-    // v2/v5 --- v4
+    // v2/v5 --- v4 
     i32 vcount = 0;
     f32 Wb = 0.0f;
     u32 countX = div;
@@ -3012,7 +3012,7 @@ void GFXAdapter::AFTERFX_borderBright(f32 _factor, f32 _attenuation, Color _colo
 
             vertex[vcount+2].setData(Vec3d(Wb, Hb+Hi, 0.f), color);
 			vertex[vcount+5].setData(Vec3d(Wb, Hb+Hi, 0.f), color);
-
+            
             //----
 
             X = (Wb + Wi - Wby2) * twoByW;
@@ -3128,9 +3128,9 @@ void GFXAdapter::setGfxMatAlphaFade(const GFX_MATERIAL& _gfxMat)
 	/// compute pos in range 0 -> 1
 	f32 d = dmax - dmin;
 	f32 d1 = dist - dmin;
-
+	
     coeff =  1.f - ((d - d1)/d);
-
+	   
 	switch(type)
 	{
     case GFX_MaterialParams::AlphaFade_Distance:

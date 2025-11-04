@@ -177,21 +177,26 @@ namespace ITF
             bool bLShift = false;
             bool bRShift = false;
 
+            const bool bExtendedKey = (lParam & 0x01000000) != 0;
+
             if (wParam == VK_CONTROL)
             {
-                bLCtrl = (GetAsyncKeyState(VK_LCONTROL) & 0x8000) ? true : false;
-                bRCtrl = (GetAsyncKeyState(VK_RCONTROL) & 0x8000)  ? true : false;
+                if (bExtendedKey)
+                    bRCtrl = true;
+                else
+                    bLCtrl = true;
             }
-            if (wParam == VK_SHIFT)
+            else if (wParam == VK_SHIFT)
             {
                 bLShift = (GetAsyncKeyState(VK_LSHIFT) & 0x8000) ? true : false;
                 bRShift = (GetAsyncKeyState(VK_RSHIFT) & 0x8000) ? true : false;
             }
-
-            if (wParam == VK_MENU) /// ALT.
+            else if (wParam == VK_MENU)
             {
-                bLAlt = (GetAsyncKeyState(VK_LMENU) & 0x8000) ? true : false;
-                bRAlt = (GetAsyncKeyState(VK_RMENU) & 0x8000) ? true : false;
+                if (bExtendedKey)
+                    bRAlt = true;
+                else
+                    bLAlt = true;
 
                 forward = bfalse;
             }
