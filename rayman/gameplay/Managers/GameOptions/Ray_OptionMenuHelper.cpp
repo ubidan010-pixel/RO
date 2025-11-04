@@ -174,6 +174,8 @@ namespace ITF
             return OPTION_VIBRATIONS;
         else if (friendlyName == "master_volume_option")
             return OPTION_MASTER_VOLUME;
+        else if (friendlyName == "music_volume_option")
+            return OPTION_MUSIC_VOLUME;
         else if (friendlyName == "sfx_volume_option")
             return OPTION_SFX_VOLUME;
         else if (friendlyName == "intensity_option")
