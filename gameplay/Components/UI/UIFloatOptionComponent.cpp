@@ -52,6 +52,8 @@ namespace ITF
     , m_sliderCursorSelectedActor(NULL)
     , m_cursorGraphComponent(NULL)
     , m_isSliding(bfalse)
+    , m_originalCursorScale(1.0f, 1.0f)
+    , m_originalCursorSelectedScale(1.0f, 1.0f)
     , m_value(0.5f)
     {
     }
@@ -124,6 +126,11 @@ namespace ITF
             {
                 m_originalCursorScale = m_sliderCursorActor->getScale();
             }
+        }
+
+        if (m_sliderCursorSelectedActor)
+        {
+            m_originalCursorSelectedScale = m_sliderCursorSelectedActor->getScale();
         }
     }
 
@@ -219,6 +226,7 @@ namespace ITF
     void UIFloatOptionComponent::onActorLoaded(Pickable::HotReloadType _hotReload)
     {
         Super::onActorLoaded(_hotReload);
+        applyLabelColors();
         resolveSliderActors();
         
         if (m_sliderBackgroundStartActor)
@@ -277,10 +285,14 @@ namespace ITF
         Super::onRollover();
         switchToSelectedActors();
 
-        if (m_sliderCursorActor && m_cursorGraphComponent)
+        if (m_sliderCursorSelectedActor)
         {
-            m_sliderCursorActor->setScale(m_originalCursorScale * getTemplate()->getScaleOnSelected());
-            m_cursorGraphComponent->setDrawColor(getTemplate()->getColorOnSelected().getAsU32());
+            class TextureGraphicComponent2D* selectedCursorGraph = m_sliderCursorSelectedActor->GetComponent<TextureGraphicComponent2D>();
+            if (selectedCursorGraph)
+            {
+                m_sliderCursorSelectedActor->setScale(m_originalCursorSelectedScale * getTemplate()->getScaleOnSelected());
+                selectedCursorGraph->setDrawColor(getTemplate()->getColorOnSelected().getAsU32());
+            }
         }
     }
 

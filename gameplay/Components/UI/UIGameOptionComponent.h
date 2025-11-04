@@ -40,11 +40,11 @@ namespace ITF
 
     protected:
         ITF_INLINE const class UIGameOptionComponent_Template* getTemplate() const;
+        void                    applyLabelColors();
 
     private:
         void                    clear();
         void                    resolveLabelActor();
-        void                    applyLabelColors();
 
         String8                 m_labelPath;
         Actor*                  m_labelActor;

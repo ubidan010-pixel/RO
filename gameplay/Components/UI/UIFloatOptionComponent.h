@@ -71,6 +71,7 @@ namespace ITF
         class TextureGraphicComponent2D* m_cursorGraphComponent;
         bbool                   m_isSliding;
         Vec2d                   m_originalCursorScale;
+        Vec2d                   m_originalCursorSelectedScale;
         f32                     m_value;
     };
 
