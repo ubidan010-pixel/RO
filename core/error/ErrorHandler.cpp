@@ -218,8 +218,8 @@ void ErrorHandler::Log(const char* _szFormat, ...)
             ::fprintf(stderr, "%s\n", localBuffer);
             ::fflush(stderr);
         #elif defined(ITF_NINTENDO)
-            ::fprintf(stderr, "%s\n", localBuffer);
-            ::fflush(stderr);
+            // ::fprintf(stderr, "%s\n", localBuffer);
+            // ::fflush(stderr);
             NN_LOG("%s\n", localBuffer);
             std::cout << localBuffer << '\n';
             std::cout.flush();
