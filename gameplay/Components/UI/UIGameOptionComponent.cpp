@@ -260,19 +260,37 @@ namespace ITF
 
     void UIGameOptionComponent::updateSubMenuTextColor()
     {
-        if (!m_subMenuComponent || !UI_MENUMANAGER)
+        if (!m_subMenuComponent || m_subMenuTextIdPath.isEmpty() || !UI_MENUMANAGER)
             return;
 
         UIMenu* menu = UI_MENUMANAGER->getMenu(OPTION_MENU_NAME);
         if (!menu)
             return;
 
-        const bbool isSelected = (menu->getUIComponentSelected() == this);
+        bbool hasSelectedOptionInSubMenu = bfalse;
+        const ObjectRefList& componentsList = menu->getUIComponentsList();
+        for (u32 i = 0; i < componentsList.size(); ++i)
+        {
+            UIComponent* comp = UIMenuManager::getUIComponent(componentsList[i]);
+            if (!comp)
+                continue;
+
+            UIGameOptionComponent* optionComp = comp->DynamicCast<UIGameOptionComponent>(ITF_GET_STRINGID_CRC(UIGameOptionComponent, 3059104641));
+            if (!optionComp)
+                continue;
+
+            if (optionComp->getSubMenuTextIdPath() == m_subMenuTextIdPath && optionComp->getIsSelected())
+            {
+                hasSelectedOptionInSubMenu = btrue;
+                break;
+            }
+        }
+
         static const Color whiteColor = Color::white();
         static const Color yellowColor = Color(0xffffc47c);
 
         m_subMenuComponent->m_hasColorOverride = btrue;
-        m_subMenuComponent->m_overrideTextColor = isSelected ? whiteColor : yellowColor;
+        m_subMenuComponent->m_overrideTextColor = hasSelectedOptionInSubMenu ? whiteColor : yellowColor;
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
