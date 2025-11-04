@@ -42,10 +42,22 @@ namespace ITF
         void                    clear();
         void                    resolveValueActor();
         void                    applyValueColors();
+        void                    resolveLeftArrow();
+        void                    resolveRightArrow();
+        void                    hideAllArrows();
 
         String8                 m_valuePath;
         Actor*                  m_valueActor;
         bbool                   m_valueColorsApplied;
+
+        String8                 m_leftArrowPath;
+        Actor*                  m_leftArrowActor;
+        String8                 m_leftArrowHighlightPath;
+        Actor*                  m_leftArrowHighlightActor;
+        String8                 m_rightArrowPath;
+        Actor*                  m_rightArrowActor;
+        String8                 m_rightArrowHighlightPath;
+        Actor*                  m_rightArrowHighlightActor;
     };
 
     class UIListOptionComponent_Template : public UIGameOptionComponent_Template

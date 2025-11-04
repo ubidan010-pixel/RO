@@ -23,6 +23,10 @@ namespace ITF
     BEGIN_SERIALIZATION_CHILD(UIListOptionComponent)
         BEGIN_CONDITION_BLOCK(ESerializeGroup_DataEditable)
             SERIALIZE_MEMBER("valuePath", m_valuePath);
+            SERIALIZE_MEMBER("leftArrowPath", m_leftArrowPath);
+            SERIALIZE_MEMBER("leftArrowHighlightPath", m_leftArrowHighlightPath);
+            SERIALIZE_MEMBER("rightArrowPath", m_rightArrowPath);
+            SERIALIZE_MEMBER("rightArrowHighlightPath", m_rightArrowHighlightPath);
         END_CONDITION_BLOCK()
     END_SERIALIZATION()
 
@@ -31,6 +35,10 @@ namespace ITF
     : Super()
     , m_valueActor(NULL)
     , m_valueColorsApplied(bfalse)
+    , m_leftArrowActor(NULL)
+    , m_leftArrowHighlightActor(NULL)
+    , m_rightArrowActor(NULL)
+    , m_rightArrowHighlightActor(NULL)
     {
     }
 
@@ -45,6 +53,10 @@ namespace ITF
     {
         m_valueActor = NULL;
         m_valueColorsApplied = bfalse;
+        m_leftArrowActor = NULL;
+        m_leftArrowHighlightActor = NULL;
+        m_rightArrowActor = NULL;
+        m_rightArrowHighlightActor = NULL;
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -52,6 +64,9 @@ namespace ITF
     {
         Super::onActorLoaded(_hotReload);
         resolveValueActor();
+        resolveLeftArrow();
+        resolveRightArrow();
+        hideAllArrows();
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -168,6 +183,156 @@ namespace ITF
         if (pickable)
         {
             m_valueActor = pickable->DynamicCast<Actor>(ITF_GET_STRINGID_CRC(Actor, 2546623115));
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    void UIListOptionComponent::resolveLeftArrow()
+    {
+        m_leftArrowActor = NULL;
+        m_leftArrowHighlightActor = NULL;
+
+        if (!m_leftArrowPath.isEmpty())
+        {
+            ObjectPath leftArrowPath;
+            ITF_STDSTRING pathStr = m_leftArrowPath.cStr();
+            leftArrowPath.fromString(pathStr);
+
+            if (leftArrowPath.isValid())
+            {
+                Pickable* pickable = NULL;
+                if (leftArrowPath.getIsAbsolute())
+                {
+                    pickable = SceneObjectPathUtils::getObjectFromAbsolutePath(leftArrowPath);
+                }
+                else
+                {
+                    pickable = SceneObjectPathUtils::getObjectFromRelativePath(m_actor, leftArrowPath);
+                }
+
+                if (pickable)
+                {
+                    m_leftArrowActor = pickable->DynamicCast<Actor>(ITF_GET_STRINGID_CRC(Actor, 2546623115));
+                }
+            }
+        }
+
+        if (!m_leftArrowHighlightPath.isEmpty())
+        {
+            ObjectPath leftArrowHighlightPath;
+            ITF_STDSTRING pathStr = m_leftArrowHighlightPath.cStr();
+            leftArrowHighlightPath.fromString(pathStr);
+
+            if (leftArrowHighlightPath.isValid())
+            {
+                Pickable* pickable = NULL;
+                if (leftArrowHighlightPath.getIsAbsolute())
+                {
+                    pickable = SceneObjectPathUtils::getObjectFromAbsolutePath(leftArrowHighlightPath);
+                }
+                else
+                {
+                    pickable = SceneObjectPathUtils::getObjectFromRelativePath(m_actor, leftArrowHighlightPath);
+                }
+
+                if (pickable)
+                {
+                    m_leftArrowHighlightActor = pickable->DynamicCast<Actor>(ITF_GET_STRINGID_CRC(Actor, 2546623115));
+                }
+            }
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    void UIListOptionComponent::resolveRightArrow()
+    {
+        m_rightArrowActor = NULL;
+        m_rightArrowHighlightActor = NULL;
+
+        if (!m_rightArrowPath.isEmpty())
+        {
+            ObjectPath rightArrowPath;
+            ITF_STDSTRING pathStr = m_rightArrowPath.cStr();
+            rightArrowPath.fromString(pathStr);
+
+            if (rightArrowPath.isValid())
+            {
+                Pickable* pickable = NULL;
+                if (rightArrowPath.getIsAbsolute())
+                {
+                    pickable = SceneObjectPathUtils::getObjectFromAbsolutePath(rightArrowPath);
+                }
+                else
+                {
+                    pickable = SceneObjectPathUtils::getObjectFromRelativePath(m_actor, rightArrowPath);
+                }
+
+                if (pickable)
+                {
+                    m_rightArrowActor = pickable->DynamicCast<Actor>(ITF_GET_STRINGID_CRC(Actor, 2546623115));
+                }
+            }
+        }
+
+        if (!m_rightArrowHighlightPath.isEmpty())
+        {
+            ObjectPath rightArrowHighlightPath;
+            ITF_STDSTRING pathStr = m_rightArrowHighlightPath.cStr();
+            rightArrowHighlightPath.fromString(pathStr);
+
+            if (rightArrowHighlightPath.isValid())
+            {
+                Pickable* pickable = NULL;
+                if (rightArrowHighlightPath.getIsAbsolute())
+                {
+                    pickable = SceneObjectPathUtils::getObjectFromAbsolutePath(rightArrowHighlightPath);
+                }
+                else
+                {
+                    pickable = SceneObjectPathUtils::getObjectFromRelativePath(m_actor, rightArrowHighlightPath);
+                }
+
+                if (pickable)
+                {
+                    m_rightArrowHighlightActor = pickable->DynamicCast<Actor>(ITF_GET_STRINGID_CRC(Actor, 2546623115));
+                }
+            }
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    void UIListOptionComponent::hideAllArrows()
+    {
+        if (m_leftArrowActor)
+        {
+            Vec2d scale = m_leftArrowActor->getScale();
+            scale.m_x = 0.0f;
+            scale.m_y = 0.0f;
+            m_leftArrowActor->setScale(scale);
+        }
+
+        if (m_leftArrowHighlightActor)
+        {
+            Vec2d scale = m_leftArrowHighlightActor->getScale();
+            scale.m_x = 0.0f;
+            scale.m_y = 0.0f;
+            m_leftArrowHighlightActor->setScale(scale);
+        }
+
+        if (m_rightArrowActor)
+        {
+            Vec2d scale = m_rightArrowActor->getScale();
+            scale.m_x = 0.0f;
+            scale.m_y = 0.0f;
+            m_rightArrowActor->setScale(scale);
+        }
+
+        if (m_rightArrowHighlightActor)
+        {
+            Vec2d scale = m_rightArrowHighlightActor->getScale();
+            scale.m_x = 0.0f;
+            scale.m_y = 0.0f;
+            m_rightArrowHighlightActor->setScale(scale);
         }
     }
 
