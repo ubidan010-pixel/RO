@@ -391,6 +391,10 @@
 #include "gameplay/components/UI/UIToggleOptionComponent.h"
 #endif //_ITF_UITOGGLEOPTIONCOMPONENT_H_
 
+#ifndef _ITF_UIFLOATOPTIONCOMPONENT_H_
+#include "gameplay/components/UI/UIFloatOptionComponent.h"
+#endif //_ITF_UIFLOATOPTIONCOMPONENT_H_
+
 #ifndef _ITF_SIMPLETEXTCOMPONENT_H_
 #include "gameplay/components/UI/SimpleTextComponent.h"
 #endif //_ITF_SIMPLETEXTCOMPONENT_H_
@@ -1037,6 +1041,7 @@ namespace ITF
         actorComponentsFactory->RegisterObject<UIGameOptionComponent>(ITF_GET_STRINGID_CRC(UIGameOptionComponent,3059104641));
         actorComponentsFactory->RegisterObject<UIListOptionComponent>(ITF_GET_STRINGID_CRC(UIListOptionComponent,3621365669));
         actorComponentsFactory->RegisterObject<UIToggleOptionComponent>(ITF_GET_STRINGID_CRC(UIToggleOptionComponent,3689192266));
+        actorComponentsFactory->RegisterObject<UIFloatOptionComponent>(ITF_GET_STRINGID_CRC(UIFloatOptionComponent,226609316));
     }
 
     /********* TEMPLATE COMPONENTS ***********/
@@ -1054,6 +1059,7 @@ namespace ITF
         templatesFactory->RegisterObject<UIGameOptionComponent_Template>(ITF_GET_STRINGID_CRC(UIGameOptionComponent_Template,1914604504));
         templatesFactory->RegisterObject<UIListOptionComponent_Template>(ITF_GET_STRINGID_CRC(UIListOptionComponent_Template,1371529000));
         templatesFactory->RegisterObject<UIToggleOptionComponent_Template>(ITF_GET_STRINGID_CRC(UIToggleOptionComponent_Template,3491665612));
+        templatesFactory->RegisterObject<UIFloatOptionComponent_Template>(ITF_GET_STRINGID_CRC(UIFloatOptionComponent_Template,443628752));
         templatesFactory->RegisterObject<GraphicComponent_Template>(ITF_GET_STRINGID_CRC(GraphicComponent_Template,1900486610));
         templatesFactory->RegisterObject<TextureGraphicComponent_Template>(ITF_GET_STRINGID_CRC(TextureGraphicComponent_Template,2628666149));
         templatesFactory->RegisterObject<StandeeComponent_Template>(ITF_GET_STRINGID_CRC(StandeeComponent_Template,170543165));
