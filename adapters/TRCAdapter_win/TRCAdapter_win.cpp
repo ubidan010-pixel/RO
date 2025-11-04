@@ -25,7 +25,7 @@
 namespace ITF
 {
     String buildText(u32 lineID, EContextIconType iconType = ContextIconType_Invalid)
-    {        
+    {
         static String workingStr;
         LocalisationId id;
 
@@ -48,8 +48,8 @@ namespace ITF
 
         switch(errorContext)
         {
-        case Pad_DisconnectingDuringTitleScreen:            
-            message = "A pad is required to play Rayman Origins.";            
+        case Pad_DisconnectingDuringTitleScreen:
+            message = "A pad is required to play Rayman Origins.";
             pTRCMessage = new TRCMessage_OneButtonWithCB(
                 new TRCMessage_Callback_WaitforPadState(TRCMessage_Callback_WaitforPadState::connected, 0));
             pTRCMessage->SetForceOverPauseMenu();
@@ -57,15 +57,15 @@ namespace ITF
         case Pad_DisconnectingDuringMenu:
         case Pad_DisconnectingDuringGameplay:
             ITF_ASSERT(_u32_customParam != U32_INVALID);
-            message = "Communications with the Pad have been interrupted.";            
+            message = "Communications with the Pad have been interrupted.";
             pTRCMessage = new TRCMessage_OneButtonWithCB(
-                new TRCMessage_Callback_WaitforPadState(TRCMessage_Callback_WaitforPadState::connected, _u32_customParam));                
-             
+                new TRCMessage_Callback_WaitforPadState(TRCMessage_Callback_WaitforPadState::connected, _u32_customParam));
+
             pTRCMessage->SetForceOverPauseMenu();
             pTRCMessage->changeDisplayPriority(TRCMessage_Base::High);
             if(errorContext==Pad_DisconnectingDuringGameplay && _u32_customParam != GAMEMANAGER->getMainIndexPlayer())
             {
-                ((TRCMessage_OneButtonWithCB*)pTRCMessage)->setButton(buildText(4164, ContextIconType_Select), input_actionID_Back);      
+                ((TRCMessage_OneButtonWithCB*)pTRCMessage)->setButton(buildText(4164, ContextIconType_Select), input_actionID_Back);
             }
             pTRCMessage->setActivePlayer(_u32_customParam);
             break;
@@ -84,7 +84,7 @@ namespace ITF
             pTRCMessage = newAlloc(mId_System, TRCMessage_TwoButton(errorContext));
             message = "You will loose all your current progression if you start a new game. Do you want to continue?";
             ((TRCMessage_TwoButton*)pTRCMessage)->setLeftButton("Continue (A)", input_actionID_Valid);
-            ((TRCMessage_TwoButton*)pTRCMessage)->setRightButton("Cancel (B)", input_actionID_Back);            
+            ((TRCMessage_TwoButton*)pTRCMessage)->setRightButton("Cancel (B)", input_actionID_Back);
             break;
         case Sav_SaveAndExit:
             pTRCMessage = newAlloc(mId_System, TRCMessage_TwoButton(errorContext));
@@ -101,17 +101,16 @@ namespace ITF
             ((TRCMessage_TwoButton*)pTRCMessage)->setLeftButton(buildText(4064, ContextIconType_Invalid), input_actionID_Valid); // continue
             message = buildText(4087);
             break;
-        //case Sav_WarningBoot:
-        //    pTRCMessage = newAlloc(mId_System, TRCMessage_NoButtonTimer(4.0, errorContext));
-        //    message.setTextFormat("%s\n\n%s", buildText(4009).cStr(), buildText(4137).cStr());
-        //    //4137  = achievement warning
+        case Sav_WarningBoot:
+            pTRCMessage = newAlloc(mId_System, TRCMessage_NoButtonTimer(4.0, errorContext));
+            message = buildText(4009);
+            break;
 
-        //    break;
         case Sav_ErrorDuringLoad:
             pTRCMessage = new TRCMessage_OneButton(errorContext);
             message = buildText(4017);
 
-            ((TRCMessage_OneButton*)pTRCMessage)->setButton(buildText(4061, ContextIconType_Invalid), input_actionID_Valid);    
+            ((TRCMessage_OneButton*)pTRCMessage)->setButton(buildText(4061, ContextIconType_Invalid), input_actionID_Valid);
             break;
         }
 

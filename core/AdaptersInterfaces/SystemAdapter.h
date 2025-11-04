@@ -142,6 +142,7 @@ public:
     virtual String  userName()const = 0;
     virtual String  dateTime() const = 0;
     virtual void    getTime(Time & /*_time*/) const {ITF_ASSERT(0);};
+    virtual f64     getEpochSeconds() const;
     virtual f64     getEllaspedFromStart (  ) {ITF_ASSERT(0); return 0.;}
 
     ///////////////////////////////////////////////////////////////////////////////////////////

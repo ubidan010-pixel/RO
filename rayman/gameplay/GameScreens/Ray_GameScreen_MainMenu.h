@@ -107,7 +107,7 @@ namespace ITF
 
         void setState(State _state);
 
-        
+
         void updatePlayerIndex();
 
         //Enter/update/leave for each state
@@ -162,18 +162,21 @@ namespace ITF
         //storage enumeration
         void startSavegameCheckOnAnyDevice();
         void setCanShowLoadGame(bbool _show, u32 _slot = 0);
-        
+
         static void completedEnumOnEveryDeviceCallback();
         static void storageDeviceChangedCallback();
 
         static void onCloseTRCMessage(const StringID & answer, TRCMessage_Base * pMessage, void* params);
+
+        bbool shouldShowWarningBootPopup();
+        void updateLastPlayTime();
 
         static bbool m_firstLoading;
         //
         State m_state;
         static Ray_GameScreen_MainMenu *s_this;
         u32 m_playerIndex;
-        
+
         bbool m_storageDeviceChanged;
         SafeArray<bbool> m_showLoadMenuEntry;
         u32 m_currentSlotSelected;
@@ -186,6 +189,7 @@ namespace ITF
         f64 m_timeToWaitBeforeStartScreen;
         f64 m_timeStartingToWait;
         u32 m_waitingFrameForTRCMsg;
+        bbool m_pendingShowPCMenu;
 #ifdef ITF_SUPPORT_NETWORKSERVICES
         NetworkServices::User* m_validUser;
 #endif //ITF_SUPPORT_NETWORKSERVICES

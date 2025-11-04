@@ -86,6 +86,10 @@
 #include "rayman/gameplay/Ray_GameplayEvents.h"
 #endif //_ITF_RAY_GAMEPLAYEVENTS_H_
 
+#ifndef _ITF_RAY_GAMEOPTIONNAMES_H_
+#include "rayman/gameplay/Managers/GameOptions/Ray_GameOptionNames.h"
+#endif //_ITF_RAY_GAMEOPTIONNAMES_H_
+
 #define TITLEMENU_FRIENDLY          "menutitlescreen"
 #define MAINMENU_FRIENDLY           "menuPlaywii" //menuPlay
 #define PCMENU_FRIENDLY             "menuStartPC"
@@ -93,6 +97,7 @@
 #define MAX_SLOTS                   3
 #define LOADERROR_FRIENDLY          "menuMainCantLoad"
 #define FRAME_TO_WAIT_TRCMSG        4
+#define DAYS_TO_SHOW_WARNING_BOOT   10
 #ifdef ITF_WII
 #define TIMETOWAIT_TITLESCREEN      3
 #define STARTMENU_FRIENDLY          "menuStart_WII"
@@ -120,6 +125,7 @@ namespace ITF
 {
     IMPLEMENT_OBJECT_RTTI(Ray_GameScreen_MainMenu)
 
+
     bbool Ray_GameScreen_MainMenu::m_firstLoading = btrue;
     Ray_GameScreen_MainMenu *Ray_GameScreen_MainMenu::s_this = NULL;
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -136,7 +142,8 @@ namespace ITF
         m_timeToWaitBeforeStartScreen(0.0),
         m_timeStartingToWait(0.0),
         m_wasPreloaded (bfalse),
-        m_waitingFrameForTRCMsg(0)
+        m_waitingFrameForTRCMsg(0),
+        m_pendingShowPCMenu(bfalse)
 
 #ifdef ITF_SUPPORT_NETWORKSERVICES
         ,m_validUser(NULL)
@@ -456,7 +463,7 @@ namespace ITF
         UI_MENUMANAGER->hideMenu(GAMEINTERFACE->getTitleScreenMenuPriority());
         // UI_MENUMANAGER->showMenuPage(GAMEINTERFACE->getGameMenuPriority(), MAINMENU_FRIENDLY, btrue, this);
         UI_MENUMANAGER->disableMenu(MAINMENU_FRIENDLY);
-        UI_MENUMANAGER->showMenuPage(GAMEINTERFACE->getGameMenuPriority(), PCMENU_FRIENDLY, btrue, this);
+        m_pendingShowPCMenu = btrue;
     }
     ///////////////////////////////////////////////////////////////////////////////////////////
     void Ray_GameScreen_MainMenu::update_ShowingMainMenu_Load_StartLoading()
@@ -649,13 +656,22 @@ namespace ITF
 
         if(!TRC_ADAPTER || !TRC_ADAPTER->isDisplayingError())
         {
-            if(TRC_ADAPTER && !TRC_ADAPTER->isWarningBootMessageDisplayed() && SAVEGAME_ADAPTER->IsSaveProcessEnable())
+            bbool warningBootShown = bfalse;
+            if(TRC_ADAPTER && !TRC_ADAPTER->isWarningBootMessageDisplayed() && SAVEGAME_ADAPTER->IsSaveProcessEnable() && shouldShowWarningBootPopup())
             {
                 TRC_ADAPTER->addMessage(TRCManagerAdapter::Sav_WarningBoot);
                 TRC_ADAPTER->setWarningBootMessageIsDisplayed();
+                warningBootShown = btrue;
             }
 
             activeBlackScreen(bfalse);
+            if(m_pendingShowPCMenu && !warningBootShown)
+            {
+                UI_MENUMANAGER->showMenuPage(GAMEINTERFACE->getGameMenuPriority(), PCMENU_FRIENDLY, btrue, this);
+                m_pendingShowPCMenu = bfalse;
+                updateLastPlayTime();
+                RAY_GAMEMANAGER->saveGameOptions();
+            }
 
             // If the save system is disable, do not check save slot
             fillSaveGameSlots(bfalse);
@@ -682,6 +698,18 @@ namespace ITF
         {
             UIComponent* pUIComponent = pUIMenu->getUIComponentSelected();
             if(pUIComponent) currentButtonID = pUIComponent->getID();
+        }
+
+        if(pMessage->getContexte() == TRCManagerAdapter::Sav_WarningBoot)
+        {
+            if(pThis->m_pendingShowPCMenu)
+            {
+                UI_MENUMANAGER->showMenuPage(GAMEINTERFACE->getGameMenuPriority(), PCMENU_FRIENDLY, btrue, pThis);
+                pThis->m_pendingShowPCMenu = bfalse;
+                pThis->updateLastPlayTime();
+                RAY_GAMEMANAGER->saveGameOptions();
+            }
+            return;
         }
 
         if(!currentButtonID.isValid())
@@ -1122,6 +1150,38 @@ namespace ITF
         NETWORKSERVICES->getUserFromControllerIndex(getPlayerIndex(), m_validUser);
 #endif // ITF_SUPPORT_NETWORKSERVICES
 
+        if(RAY_GAMEMANAGER)
+        {
+            f32 lastPlayTimeFloat = RAY_GAMEMANAGER->getGameOptionManager().getFloatOption(LAST_PLAY_TIME, 0.0f);
+            if(lastPlayTimeFloat == 0.0f)
+            {
+                LOG("[MainMenu] Press Start - First time playing (lastPlayTime = 0.0)");
+            }
+            else
+            {
+                const f64 currentTime = SYSTEM_ADAPTER->getEpochSeconds();
+                const f64 lastPlayTime = (f64)lastPlayTimeFloat;
+                f64 deltaSeconds = currentTime - lastPlayTime;
+                if (deltaSeconds < 0.0) deltaSeconds = 0.0; 
+
+                const u32 secondsPerMinute = 60u;
+                const u32 secondsPerHour = 60u * secondsPerMinute;    
+                const u32 secondsPerDay = 24u * secondsPerHour;          
+
+                const u32 days = (u32)(deltaSeconds / (f64)secondsPerDay);
+                f64 remainder = deltaSeconds - (f64)days * (f64)secondsPerDay;
+                const u32 hours = (u32)(remainder / (f64)secondsPerHour);
+                remainder -= (f64)hours * (f64)secondsPerHour;
+                const u32 minutes = (u32)(remainder / (f64)secondsPerMinute);
+                remainder -= (f64)minutes * (f64)secondsPerMinute;
+                const u32 seconds = (u32)(remainder + 0.5); 
+
+                LOG("[MainMenu] Press Start - Last played %u days, %u hours, %u minutes, %u seconds ago (lastPlayTime: %.2f, currentTime: %.2f)",
+                    days, hours, minutes, seconds, lastPlayTime, currentTime);
+            }
+            // Defer updating last play time until after potential warning popup
+        }
+
         SAVEGAME_ADAPTER->preLoad(getPlayerIndex(), 1, 1);
         if(TRC_ADAPTER)
             TRC_ADAPTER->resetLastErrorContext();
@@ -1143,7 +1203,7 @@ namespace ITF
         const StringID pressStart = ITF_GET_STRINGID_CRC(PRESSSTART, 3883472400);
         const StringID pressOptions = ITF_GET_STRINGID_CRC(Options, 3527952213);
         const StringID quitGame = ITF_GET_STRINGID_CRC(QUITGAME,4257843919);
-        const StringID pressUbiconnect = ITF_GET_STRINGID_CRC(UBICONNECT, 251637958);
+        const StringID pressUbiconnect = ITF_GET_STRINGID_CRC(ubiconnect_button, 3233676773);
         if(m_state==State_Exited || m_state==State_ShowingMainMenu_Load_WaitLoaded || m_state==State_ShowingMainMenu_NewGame_PlayingVideo || m_state==State_PressingStart)
             return;
 
@@ -1392,5 +1452,26 @@ namespace ITF
         return btrue;
     }
 
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    bbool Ray_GameScreen_MainMenu::shouldShowWarningBootPopup()
+    {
+        if(!RAY_GAMEMANAGER)
+            return btrue;
+        f32 lastPlayTimeFloat = RAY_GAMEMANAGER->getGameOptionManager().getFloatOption(LAST_PLAY_TIME, 0.0f);
+        if(lastPlayTimeFloat == 0.0f)
+            return btrue;
+        f64 currentTime = SYSTEM_ADAPTER->getEpochSeconds();
+        f64 lastPlayTime = (f64)lastPlayTimeFloat;
+        f64 daysSinceLastPlay = (currentTime - lastPlayTime) / (24.0 * 60.0 * 60.0);
+        return (daysSinceLastPlay >= DAYS_TO_SHOW_WARNING_BOOT);
+    }
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    void Ray_GameScreen_MainMenu::updateLastPlayTime()
+    {
+        if(!RAY_GAMEMANAGER)
+            return;
+        f64 currentTime = SYSTEM_ADAPTER->getEpochSeconds();
+        RAY_GAMEMANAGER->getGameOptionManager().setFloatOption(LAST_PLAY_TIME, (f32)currentTime);
+    }
     ///////////////////////////////////////////////////////////////////////////////////////////
 }

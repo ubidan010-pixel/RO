@@ -1847,6 +1847,7 @@ namespace ITF
         void            registerVibrationOption();
         void            registerMusicVolumeOption();
         void            registerSFXVolumeOption();
+        void            registerLastPlayTime();
         void            applyLanguageOption();
         void            applyStartWithHeartOption();
         void            applyVibrationOption();

@@ -68,6 +68,11 @@
 
 namespace ITF
 {
+    namespace
+    {
+        static const StringID kMenuStartID("menustartpc");
+        static const StringID kUbiConnectID("ubiconnect_button");
+    }
     ///////////////////////////////////////////////////////////////////////////////////////////
 #ifdef ITF_SUPPORT_CHEAT
     class DebugMenuSwapPlayer : public DebugMenuEntry
@@ -155,6 +160,7 @@ namespace ITF
         , m_canExecuteMenuItemAction(bfalse)
         , m_inGammaSettingsMenu(bfalse)
         , m_listenerRegistered(bfalse)
+        , m_menuStartLastMainSelectionID(StringID::Invalid)
         , m_soundPlayerComponent(NULL)
 #if defined(ITF_WINDOWS) && (defined(ITF_FINAL) || ITF_ENABLE_EDITOR_KEYBOARD)
 		, m_mouseLocked(false)
@@ -260,8 +266,32 @@ namespace ITF
             if (m_inDBGMenu)
                 applyGamePadButtonDBGMenu (i,buts,pos);
 #endif // ITF_SUPPORT_CHEAT
-        }
     }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+void UIMenuManager::applySelectionChange(UIMenu* menu, UIComponent* oldSel, UIComponent* newSel)
+{
+    MenuItemActionListener* listener = getCurrentMenuActionListener();
+    if (oldSel)
+    {
+        oldSel->setIsSelected(bfalse);
+        oldSel->onRollout();
+        if (listener) listener->UpdateMenuOnSelectionChange(oldSel, false);
+    }
+
+    if (newSel)
+    {
+        newSel->setIsSelected(btrue);
+        newSel->onRollover();
+        if (listener) listener->UpdateMenuOnSelectionChange(newSel, true);
+    }
+
+    if (menu)
+    {
+        rememberMainSelectionForMenuStart(oldSel, newSel, menu);
+    }
+}
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     bbool UIMenuManager::executeMenuPageAction(const StringID &_action, const StringID &_inputAction)
@@ -838,6 +868,9 @@ namespace ITF
                 UIComponent* pUIComponentSelected = pMenu->getUIComponentSelected();
                 if (pUIComponentSelected)
                 {
+                    if (handleMenuStartHorizontalNavigation(pMenu, pUIComponentSelected, joyX, joyY))
+                        return;
+
                     f32 angleJoy = atan2f(joyY, joyX);
                     ObjectRef refComponentSelected = pUIComponentSelected->getUIref();
                     ObjectRef refNextComponentSelected = findUIComponentToSelect(UIComponentsList,pUIComponentSelected,angleJoy);
@@ -852,20 +885,7 @@ namespace ITF
 
                     UIComponent* oldSel = getUIComponent(refComponentSelected);
                     UIComponent* newSel = getUIComponent(refNextComponentSelected);
-                    MenuItemActionListener* listener = getCurrentMenuActionListener();
-                    if (oldSel)
-                    {
-                        oldSel->setIsSelected(bfalse);
-                        oldSel->onRollout();
-                        if (listener) listener->UpdateMenuOnSelectionChange(oldSel, false);
-                    }
-
-                    if (newSel)
-                    {
-                        newSel->setIsSelected(btrue);
-                        newSel->onRollover();
-                        if (listener) listener->UpdateMenuOnSelectionChange(newSel, true);
-                    }
+                    applySelectionChange(pMenu, oldSel, newSel);
 
                 }
             }
@@ -1071,6 +1091,12 @@ namespace ITF
             sendActionToSoundPlayer(_menuID, STRINGID_ACTION_MENU_CLOSE, StringID::Invalid);
         }
 
+        {
+            if (_menuID == kMenuStartID)
+            {
+                onMenuStartVisibilityChanged(pMenu, _isVisible);
+            }
+        }
 
         ITF_ASSERT_MSG(wasFound, "Menu was not found");
     }
@@ -1765,6 +1791,87 @@ namespace ITF
         if( m_soundPlayerComponent )
         {
             m_soundPlayerComponent->stopAllSounds();
+        }
+    }
+
+    void UIMenuManager::rememberMainSelectionForMenuStart(UIComponent* oldSel, UIComponent* newSel, UIMenu* menu)
+    {
+        if (!menu || menu->getMenuID() != kMenuStartID)
+            return;
+
+        if (newSel && newSel->getID() == kUbiConnectID)
+        {
+            if (oldSel && oldSel->getID() != kUbiConnectID)
+            {
+                m_menuStartLastMainSelectionID = oldSel->getID();
+            }
+        }
+        else if (newSel && newSel->getID() != kUbiConnectID)
+        {
+            m_menuStartLastMainSelectionID = newSel->getID();
+        }
+    }
+
+    bbool UIMenuManager::handleMenuStartHorizontalNavigation(UIMenu* menu, UIComponent* selected, f32 joyX, f32 joyY)
+    {
+        if (!menu || menu->getMenuID() != kMenuStartID || !selected)
+            return bfalse;
+
+        const f32 absJoyX = f32_Abs(joyX);
+        const f32 absJoyY = f32_Abs(joyY);
+        const StringID currentComponentId = selected->getID();
+
+        // Move left into Ubisoft Connect
+        if (joyX < 0.0f && absJoyX >= absJoyY && currentComponentId != kUbiConnectID)
+        {
+            UIComponent* ubisoftComponent = menu->getUIComponentByID(kUbiConnectID);
+            if (ubisoftComponent && ubisoftComponent->getActive() && ubisoftComponent->getCanBeSelected())
+            {
+                applySelectionChange(menu, selected, ubisoftComponent);
+                return btrue;
+            }
+        }
+        // Move right back to previous main selection
+        else if (joyX > 0.0f && absJoyX >= absJoyY && currentComponentId == kUbiConnectID)
+        {
+            UIComponent* targetComponent = NULL;
+            if (m_menuStartLastMainSelectionID.isValid())
+            {
+                targetComponent = menu->getUIComponentByID(m_menuStartLastMainSelectionID);
+                if (!(targetComponent && targetComponent->getActive() && targetComponent->getCanBeSelected()))
+                {
+                    targetComponent = NULL;
+                }
+            }
+            if (targetComponent)
+            {
+                applySelectionChange(menu, selected, targetComponent);
+                return btrue;
+            }
+        }
+
+        return bfalse;
+    }
+
+    void UIMenuManager::onMenuStartVisibilityChanged(UIMenu* pMenu, bbool isVisible)
+    {
+        if (!pMenu)
+        {
+            m_menuStartLastMainSelectionID = StringID::Invalid;
+            return;
+        }
+
+        if (isVisible)
+        {
+            UIComponent* selectedComponent = pMenu->getUIComponentSelected();
+            if (selectedComponent && selectedComponent->getID() != kUbiConnectID)
+                m_menuStartLastMainSelectionID = selectedComponent->getID();
+            else
+                m_menuStartLastMainSelectionID = StringID::Invalid;
+        }
+        else
+        {
+            m_menuStartLastMainSelectionID = StringID::Invalid;
         }
     }
 }

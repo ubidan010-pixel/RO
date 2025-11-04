@@ -249,8 +249,13 @@ namespace ITF
         void                        setMenuListener(const StringID& menuID, MenuItemActionListener* listener);
 
         static UIComponent*         getUIComponent          (ObjectRef _ref);
+        void                        applySelectionChange    (UIMenu* menu, UIComponent* oldSel, UIComponent* newSel);
         UIComponent*                getUIComponentFromFriendly(const StringID& menuID, const String8& friendlyToFind);
         UIComponent*                getUIComponentFromID(const StringID& menuID, const StringID& IDToFind);
+    private:
+        void                        rememberMainSelectionForMenuStart(UIComponent* oldSel, UIComponent* newSel, UIMenu* menu);
+        bbool                       handleMenuStartHorizontalNavigation(UIMenu* menu, UIComponent* selected, f32 joyX, f32 joyY);
+        void                        onMenuStartVisibilityChanged(UIMenu* pMenu, bbool isVisible);
     protected:
 #ifdef ITF_SUPPORT_CHEAT
         void                        updateDBGMenuStatus     ();
@@ -367,6 +372,7 @@ namespace ITF
 
         bbool                       m_inGammaSettingsMenu;// temp E3
         bbool                       m_listenerRegistered;
+        StringID                    m_menuStartLastMainSelectionID;
 
         UIMenuSoundComponent*       m_soundPlayerComponent;
 

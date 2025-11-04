@@ -11,6 +11,7 @@
 #if defined(ITF_WINDOWS)
 #include <shellapi.h>
 #endif
+#include <time.h>
 
 namespace ITF
 {
@@ -114,6 +115,24 @@ namespace ITF
             ITF_ERROR("Can't open the file : %ls because there is no association for this extension", normFullPath.cStr());
         }
 #endif // ITF_WINDOWS
+    }
+
+    f64 SystemAdapter::getEpochSeconds() const
+    {
+        Time now{};
+        getTime(now);
+        struct tm tmv;
+        tmv.tm_year = (int)now.m_year - 1900;
+        tmv.tm_mon  = (int)now.m_month - 1;
+        tmv.tm_mday = (int)now.m_day;
+        tmv.tm_hour = (int)now.m_hour;
+        tmv.tm_min  = (int)now.m_minute;
+        tmv.tm_sec  = (int)now.m_second;
+        tmv.tm_isdst = -1;
+        time_t tt = mktime(&tmv);
+        if (tt == (time_t)-1)
+            return 0.0;
+        return (f64)tt;
     }
 
     FullScreenDialog_ProtectScope::FullScreenDialog_ProtectScope()

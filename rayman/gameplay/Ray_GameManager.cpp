@@ -11654,6 +11654,11 @@ namespace ITF
         m_gameOptionManager.registerFloatOption(OPTION_SFX_VOLUME, 0.0f, 0.0f, 1.0f); // Default: Muted
     }
 
+    void Ray_GameManager::registerLastPlayTime()
+    {
+        m_gameOptionManager.registerFloatOption(LAST_PLAY_TIME, 0.0f, 0.0f, FLT_MAX);
+    }
+
     void Ray_GameManager::registerAllGameOptions()
     {
         m_gameOptionManager.init();
@@ -11666,6 +11671,7 @@ namespace ITF
         registerVibrationOption();
         registerMusicVolumeOption();
         registerSFXVolumeOption();
+        registerLastPlayTime();
     }
 
     EHealthModifier Ray_GameManager::getHealthModifier() const
