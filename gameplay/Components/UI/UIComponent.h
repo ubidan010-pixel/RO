@@ -34,7 +34,7 @@ namespace ITF
     class UIComponent : public ActorComponent
     {
         friend class UIGameOptionComponent;
-        
+
         DECLARE_OBJECT_CHILD_RTTI(UIComponent, ActorComponent,2232305413);
 
     public:
@@ -109,7 +109,10 @@ namespace ITF
         /// Warning: only works if a UITextBox Component is found
         virtual void            get2DBoundingBox(Vec2d& boxMinPosition, Vec2d&  boxMaxPosition);
 		void					get2DBoundingBox(AABB& bb);
-
+        bbool                   m_hasColorOverride;
+        Color                   m_overrideTextColor;
+        Color                   m_overrideTextColorHighlighted;
+        Color                   m_overrideTextColorInactive;
     protected:
 
         void                    updateRelativeAABB();
@@ -170,11 +173,6 @@ namespace ITF
         bbool                   m_useRuntimeDepthRank;
         bbool                   m_isPressed;
         i32                     m_runtimeDepthRank;
-
-        bbool                   m_hasColorOverride;
-        Color                   m_overrideTextColor;
-        Color                   m_overrideTextColorHighlighted;
-        Color                   m_overrideTextColorInactive;
 
     };
 

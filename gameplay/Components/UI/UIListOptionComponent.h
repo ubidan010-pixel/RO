@@ -33,11 +33,19 @@ namespace ITF
         virtual     void        onRollout           ();
         virtual     void        onAction            (const StringID & action);
 
+        ITF_INLINE Actor*       getValueActor() const { return m_valueActor; }
+
     protected:
         ITF_INLINE const class UIListOptionComponent_Template* getTemplate() const;
 
     private:
         void                    clear();
+        void                    resolveValueActor();
+        void                    applyValueColors();
+
+        String8                 m_valuePath;
+        Actor*                  m_valueActor;
+        bbool                   m_valueColorsApplied;
     };
 
     class UIListOptionComponent_Template : public UIGameOptionComponent_Template
