@@ -159,7 +159,6 @@ namespace ITF
 
         Vec2d cursorRelativePosVec(cursorRelativePos, cursorRelativePosY);
         cursorComponent->setRelativePos(cursorRelativePosVec);
-        m_relativePosX = cursorRelativePos;
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
