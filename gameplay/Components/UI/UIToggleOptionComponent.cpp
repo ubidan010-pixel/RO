@@ -23,6 +23,8 @@ namespace ITF
     BEGIN_SERIALIZATION_CHILD(UIToggleOptionComponent)
         BEGIN_CONDITION_BLOCK(ESerializeGroup_DataEditable)
             SERIALIZE_MEMBER("labelPath", m_labelPath);
+            SERIALIZE_MEMBER("checkboxOnPath", m_checkboxOnPath);
+            SERIALIZE_MEMBER("checkboxOffPath", m_checkboxOffPath);
         END_CONDITION_BLOCK()
     END_SERIALIZATION()
 
@@ -31,6 +33,8 @@ namespace ITF
     : Super()
     , m_labelActor(NULL)
     , m_labelColorsApplied(bfalse)
+    , m_checkboxOnActor(NULL)
+    , m_checkboxOffActor(NULL)
     {
     }
 
@@ -45,6 +49,8 @@ namespace ITF
     {
         m_labelActor = NULL;
         m_labelColorsApplied = bfalse;
+        m_checkboxOnActor = NULL;
+        m_checkboxOffActor = NULL;
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -108,10 +114,68 @@ namespace ITF
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
+    void UIToggleOptionComponent::resolveCheckboxActors()
+    {
+        m_checkboxOnActor = NULL;
+        m_checkboxOffActor = NULL;
+
+        if (!m_checkboxOnPath.isEmpty())
+        {
+            ObjectPath checkboxOnPath;
+            ITF_STDSTRING pathStr = m_checkboxOnPath.cStr();
+            checkboxOnPath.fromString(pathStr);
+
+            if (checkboxOnPath.isValid())
+            {
+                Pickable* pickable = NULL;
+                if (checkboxOnPath.getIsAbsolute())
+                {
+                    pickable = SceneObjectPathUtils::getObjectFromAbsolutePath(checkboxOnPath);
+                }
+                else
+                {
+                    pickable = SceneObjectPathUtils::getObjectFromRelativePath(m_actor, checkboxOnPath);
+                }
+
+                if (pickable)
+                {
+                    m_checkboxOnActor = pickable->DynamicCast<Actor>(ITF_GET_STRINGID_CRC(Actor, 2546623115));
+                }
+            }
+        }
+
+        if (!m_checkboxOffPath.isEmpty())
+        {
+            ObjectPath checkboxOffPath;
+            ITF_STDSTRING pathStr = m_checkboxOffPath.cStr();
+            checkboxOffPath.fromString(pathStr);
+
+            if (checkboxOffPath.isValid())
+            {
+                Pickable* pickable = NULL;
+                if (checkboxOffPath.getIsAbsolute())
+                {
+                    pickable = SceneObjectPathUtils::getObjectFromAbsolutePath(checkboxOffPath);
+                }
+                else
+                {
+                    pickable = SceneObjectPathUtils::getObjectFromRelativePath(m_actor, checkboxOffPath);
+                }
+
+                if (pickable)
+                {
+                    m_checkboxOffActor = pickable->DynamicCast<Actor>(ITF_GET_STRINGID_CRC(Actor, 2546623115));
+                }
+            }
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
     void UIToggleOptionComponent::onActorLoaded(Pickable::HotReloadType _hotReload)
     {
         Super::onActorLoaded(_hotReload);
         resolveLabelActor();
+        resolveCheckboxActors();
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////

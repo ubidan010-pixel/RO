@@ -37,6 +37,8 @@ namespace ITF
         virtual     void        onAction            (const StringID & action);
 
         ITF_INLINE Actor*       getLabelActor() const { return m_labelActor; }
+        ITF_INLINE Actor*       getCheckboxOnActor() const { return m_checkboxOnActor; }
+        ITF_INLINE Actor*       getCheckboxOffActor() const { return m_checkboxOffActor; }
 
     protected:
         ITF_INLINE const class UIToggleOptionComponent_Template* getTemplate() const;
@@ -45,10 +47,16 @@ namespace ITF
         void                    clear();
         void                    resolveLabelActor();
         void                    applyLabelColors();
+        void                    resolveCheckboxActors();
 
         String8                 m_labelPath;
         Actor*                  m_labelActor;
         bbool                   m_labelColorsApplied;
+
+        String8                 m_checkboxOnPath;
+        Actor*                  m_checkboxOnActor;
+        String8                 m_checkboxOffPath;
+        Actor*                  m_checkboxOffActor;
     };
 
     class UIToggleOptionComponent_Template : public UIComponent_Template
