@@ -60,8 +60,12 @@ public:
     /// stop rumble, one pad
     void stopRumble(u32 _numPad);
 
+    void setIntensityMultiplier(f32 multiplier);
+    ITF_INLINE f32 getIntensityMultiplier() const { return m_intensityMultiplier; }
+
 private:
     ITF_VECTOR<PadRumble> m_rumbles;
+    f32 m_intensityMultiplier;
 };
 
 //------------------------------------------------------------------------------

@@ -1779,6 +1779,11 @@ namespace ITF
         f32             getIntensity() const;
         void            setIntensity(f32 intensity);
 
+        void            applyMasterVolumeOption();
+        void            applyMusicVolumeOption();
+        void            applySFXVolumeOption();
+        void            applyIntensityOption();
+
         //==========================================================================
         // Save/Load Options
         //==========================================================================
@@ -1860,10 +1865,6 @@ namespace ITF
         void            applyVibrationOption();
         void            applyRunButtonOption();
         void            applyMurfyAssistOption();
-        void            applyMasterVolumeOption();
-        void            applyMusicVolumeOption();
-        void            applySFXVolumeOption();
-        void            applyIntensityOption();
 
         Scene*          getSceneForPersistentActor(Actor *_obj) const;
 

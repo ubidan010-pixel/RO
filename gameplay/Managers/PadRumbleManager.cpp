@@ -22,6 +22,8 @@
 
 #ifndef _ITF_ALIASMANAGER_H_
 #include "engine/aliasmanager/aliasmanager.h"
+
+#include <algorithm>
 #endif //_ITF_ALIASMANAGER_H_
 
 
@@ -47,6 +49,7 @@ PadRumble::PadRumble()
 
 //------------------------------------------------------------------------------
 PadRumbleManager::PadRumbleManager()
+    : m_intensityMultiplier(1.0f)
 {
 }
 
@@ -136,11 +139,14 @@ void PadRumbleManager::startRumble(const StringID& _name, u32 _numPad)
     }
 
     // start rumble on given pad
+    const f32 baseIntensity = it->getIntensity();
+    const f32 scaledIntensity = std::max(0.0f, std::min(1.0f, baseIntensity * m_intensityMultiplier));
+
     INPUT_ADAPTER->startRumble(
         _numPad,
         it->getDuration(),
-        it->getIntensity(),
-        it->getIntensity()
+        scaledIntensity,
+        scaledIntensity
         );
 }
 
@@ -156,6 +162,12 @@ void PadRumbleManager::stopRumble(u32 _numPad)
 
     // stop rumble on given pad
     INPUT_ADAPTER->stopRumble(_numPad);
+}
+
+//------------------------------------------------------------------------------
+void PadRumbleManager::setIntensityMultiplier(f32 multiplier)
+{
+    m_intensityMultiplier = std::max(0.0f, std::min(1.0f, multiplier));
 }
 
 //------------------------------------------------------------------------------

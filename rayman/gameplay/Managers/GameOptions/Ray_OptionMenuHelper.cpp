@@ -266,6 +266,10 @@ namespace ITF
         RAY_GAMEMANAGER->setIntensity(intensity);
 
         RAY_GAMEMANAGER->applyDisplayOptions();
+        RAY_GAMEMANAGER->applyMasterVolumeOption();
+        RAY_GAMEMANAGER->applyMusicVolumeOption();
+        RAY_GAMEMANAGER->applySFXVolumeOption();
+        RAY_GAMEMANAGER->applyIntensityOption();
         refreshAllOptionVisuals();
 
         return btrue;
@@ -725,18 +729,22 @@ namespace ITF
         if (optionId == OPTION_MASTER_VOLUME)
         {
             RAY_GAMEMANAGER->setMasterVolume(newValue);
+            RAY_GAMEMANAGER->applyMasterVolumeOption();
         }
         else if (optionId == OPTION_MUSIC_VOLUME)
         {
             RAY_GAMEMANAGER->setMusicVolume(newValue);
+            RAY_GAMEMANAGER->applyMusicVolumeOption();
         }
         else if (optionId == OPTION_SFX_VOLUME)
         {
             RAY_GAMEMANAGER->setSFXVolume(newValue);
+            RAY_GAMEMANAGER->applySFXVolumeOption();
         }
         else if (optionId == OPTION_INTENSITY)
         {
             RAY_GAMEMANAGER->setIntensity(newValue);
+            RAY_GAMEMANAGER->applyIntensityOption();
         }
         else
         {
@@ -1130,6 +1138,10 @@ namespace ITF
         RAY_GAMEMANAGER->setSFXVolume(m_snapshotSFXVolume);
         RAY_GAMEMANAGER->setIntensity(m_snapshotIntensity);
         RAY_GAMEMANAGER->applyDisplayOptions();
+        RAY_GAMEMANAGER->applyMasterVolumeOption();
+        RAY_GAMEMANAGER->applyMusicVolumeOption();
+        RAY_GAMEMANAGER->applySFXVolumeOption();
+        RAY_GAMEMANAGER->applyIntensityOption();
     }
 
     void Ray_OptionMenuHelper::updateTimer()

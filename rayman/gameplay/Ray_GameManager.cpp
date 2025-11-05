@@ -36,6 +36,10 @@
 #include "gameplay/Components/Misc/LinkComponent.h"
 #endif //_ITF_LINKCOMPONENT_H_
 
+#ifndef _ITF_PADRUMBLEMANAGER_H_
+#include "gameplay/managers/PadRumbleManager.h"
+#endif //_ITF_PADRUMBLEMANAGER_H_
+
 #ifndef _ITF_AABBPREFETCH_COMPONENT_H_
 #include "gameplay/components/misc/AABBPrefetchComponent.h"
 #endif //_ITF_AABBPREFETCH_COMPONENT_H_
@@ -12082,7 +12086,10 @@ namespace ITF
     {
         f32 intensity = getIntensity();
         LOG("[OptionMenu] Intensity: %.2f (%.0f%%)", intensity, intensity * 100.0f);
-        // TODO: Apply intensity to game systems when needed
+        if (PADRUMBLEMANAGER)
+        {
+            PADRUMBLEMANAGER->setIntensityMultiplier(intensity);
+        }
     }
 
 
