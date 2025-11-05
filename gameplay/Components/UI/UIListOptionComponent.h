@@ -9,7 +9,7 @@ namespace ITF
 {
     class UIListOptionComponent : public UIGameOptionComponent
     {
-        DECLARE_OBJECT_CHILD_RTTI(UIListOptionComponent, UIGameOptionComponent, 3621365669);
+        DECLARE_OBJECT_CHILD_RTTI(UIListOptionComponent, UIGameOptionComponent, 3621365669)
 
     public:
         DECLARE_SERIALIZE()
@@ -67,9 +67,9 @@ namespace ITF
 
     class UIListOptionComponent_Template : public UIGameOptionComponent_Template
     {
-        DECLARE_OBJECT_CHILD_RTTI(UIListOptionComponent_Template, UIGameOptionComponent_Template, 1371529000);
-        DECLARE_SERIALIZE();
-        DECLARE_ACTORCOMPONENT_TEMPLATE(UIListOptionComponent);
+        DECLARE_OBJECT_CHILD_RTTI(UIListOptionComponent_Template, UIGameOptionComponent_Template, 1371529000)
+        DECLARE_SERIALIZE()
+        DECLARE_ACTORCOMPONENT_TEMPLATE(UIListOptionComponent)
 
     public:
         UIListOptionComponent_Template();

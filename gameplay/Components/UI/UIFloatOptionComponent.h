@@ -79,9 +79,9 @@ namespace ITF
 
     class UIFloatOptionComponent_Template : public UIGameOptionComponent_Template
     {
-        DECLARE_OBJECT_CHILD_RTTI(UIFloatOptionComponent_Template, UIGameOptionComponent_Template, 443628752);
-        DECLARE_SERIALIZE();
-        DECLARE_ACTORCOMPONENT_TEMPLATE(UIFloatOptionComponent);
+        DECLARE_OBJECT_CHILD_RTTI(UIFloatOptionComponent_Template, UIGameOptionComponent_Template, 443628752)
+        DECLARE_SERIALIZE()
+        DECLARE_ACTORCOMPONENT_TEMPLATE(UIFloatOptionComponent)
 
     public:
         UIFloatOptionComponent_Template();
