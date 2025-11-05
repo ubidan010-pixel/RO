@@ -2,6 +2,8 @@
 #define _ITF_RAY_OPTIONMENUHELPER_H_
 
 #include <initializer_list>
+#include <vector>
+#include <utility>
 #ifndef _ITF_UIMENUMANAGER_H_
 #include "engine/actors/managers/UIMenuManager.h"
 #endif //_ITF_UIMENUMANAGER_H_
@@ -78,6 +80,7 @@ namespace ITF
         EMenuState m_menuState;
         StringID   m_currentEditingOption;
         UIComponent* m_currentEditingComponent;
+        std::vector<std::pair<UIComponent*, bbool>> m_previousSelectionStates;
     };
 }
 

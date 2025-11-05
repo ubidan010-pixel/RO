@@ -48,7 +48,7 @@ namespace ITF
         Actor*                  m_labelActor;
 
     private:
-        void                    clear();
+        virtual void                    clear();
         void                    resolveLabelActor();
         void                    resolveSubMenuActor();
 

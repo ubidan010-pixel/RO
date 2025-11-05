@@ -220,6 +220,7 @@ namespace ITF
         m_menuState = MenuState_Navigate;
         m_currentEditingOption = StringID::Invalid;
         m_currentEditingComponent = nullptr;
+        m_previousSelectionStates.clear();
 
         const ObjectRefList& componentsList = m_menu->getUIComponentsList();
         for (u32 i = 0; i < componentsList.size(); ++i)
@@ -251,9 +252,38 @@ namespace ITF
         m_menuState = MenuState_EditOption;
         m_currentEditingOption = optionId;
         m_currentEditingComponent = component;
+        m_previousSelectionStates.clear();
 
-        UIListOptionComponent* listOption = component->DynamicCast<UIListOptionComponent>(ITF_GET_STRINGID_CRC(UIListOptionComponent, 3621365669));
-        if (listOption)
+        if (m_menu)
+        {
+            const ObjectRefList& componentsList = m_menu->getUIComponentsList();
+            for (u32 i = 0; i < componentsList.size(); ++i)
+            {
+                UIComponent* comp = UIMenuManager::getUIComponent(componentsList[i]);
+                if (!comp)
+                    continue;
+
+                bbool originalSelectable = comp->getCanBeSelected();
+
+                if (comp == component)
+                {
+                    if (!originalSelectable)
+                    {
+                        m_previousSelectionStates.emplace_back(comp, originalSelectable);
+                        comp->setCanBeSelected(btrue);
+                    }
+                    continue;
+                }
+
+                if (originalSelectable)
+                {
+                    m_previousSelectionStates.emplace_back(comp, originalSelectable);
+                    comp->setCanBeSelected(bfalse);
+                }
+            }
+        }
+
+        if (UIListOptionComponent* listOption = component->DynamicCast<UIListOptionComponent>(ITF_GET_STRINGID_CRC(UIListOptionComponent, 3621365669)))
         {
             listOption->setEditingMode(btrue);
         }
@@ -272,6 +302,14 @@ namespace ITF
                 listOption->setEditingMode(bfalse);
             }
         }
+
+        for (auto& entry : m_previousSelectionStates)
+        {
+            if (!entry.first)
+                continue;
+            entry.first->setCanBeSelected(entry.second);
+        }
+        m_previousSelectionStates.clear();
 
         m_menuState = MenuState_Navigate;
         m_currentEditingOption = StringID::Invalid;
