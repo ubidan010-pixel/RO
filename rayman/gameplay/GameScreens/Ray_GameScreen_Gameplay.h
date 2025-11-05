@@ -21,6 +21,10 @@
 #include "rayman/gameplay/Managers/GameOptions/Ray_OptionMenuHelper.h"
 #endif //_ITF_RAY_OPTIONMENUHELPER_H_
 
+#ifndef _ITF_RAY_CONTROLSREMAPPINGMENUHELPER_H_
+#include "rayman/gameplay/Managers/GameOptions/Ray_ControlsRemappingMenuHelper.h"
+#endif //_ITF_RAY_CONTROLSREMAPPINGMENUHELPER_H_
+
 namespace ITF
 {
     //////////////////////////////////////////////////////////////////////////
@@ -92,6 +96,7 @@ namespace ITF
 
         bbool   m_wasPreloaded;
         Ray_OptionMenuHelper m_optionMenuHelper;
+        Ray_ControlsRemappingMenuHelper m_controlsRemappingMenuHelper;
     };
 }
 

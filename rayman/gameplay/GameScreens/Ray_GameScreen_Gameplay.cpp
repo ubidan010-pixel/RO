@@ -612,6 +612,10 @@ namespace ITF
         {
             m_optionMenuHelper.activateForOptionMenu(this);
         }
+        else if (id == ITF_GET_STRINGID_CRC(Controls, 4106834972))
+        {
+            m_controlsRemappingMenuHelper.activateForControlsRemappingMenu(this);
+        }
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
