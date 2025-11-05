@@ -28,6 +28,10 @@
 #include "gameplay/components/UI/UIMenu.h"
 #endif //_ITF_UIMENU_H_
 
+#ifndef _ITF_RAY_OPTIONMENUHELPER_H_
+#include "rayman/gameplay/Managers/GameOptions/Ray_OptionMenuHelper.h"
+#endif //_ITF_RAY_OPTIONMENUHELPER_H_
+
 #include <algorithm>
 
 namespace ITF
@@ -340,6 +344,9 @@ namespace ITF
     {
         Super::onAction(action);
 
+        if (Ray_OptionMenuHelper::handleExternalEditingInput(this, action))
+            return;
+
         if (!m_isSliding)
             return;
 
@@ -388,4 +395,5 @@ namespace ITF
     {
     }
 }
+
 

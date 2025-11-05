@@ -71,6 +71,7 @@ namespace ITF
         void adjustFloatOption(UIFloatOptionComponent* floatComponent, const StringID& optionId, i32 direction);
         void updateListOptionDisplay(UIListOptionComponent* listComponent, const StringID& optionId, i32 index) const;
         void applyOptionChange(const StringID& optionId) const;
+        bbool processEditingInput(UIComponent* component, const StringID& action);
 
         MenuItemActionListener* m_mainListener;
         UIMenu*    m_menu;
@@ -81,6 +82,15 @@ namespace ITF
         StringID   m_currentEditingOption;
         UIComponent* m_currentEditingComponent;
         std::vector<std::pair<UIComponent*, bbool>> m_previousSelectionStates;
+
+        static Ray_OptionMenuHelper* s_activeHelper;
+
+    public:
+        static Ray_OptionMenuHelper* getActiveHelper() { return s_activeHelper; }
+        static bbool handleExternalEditingInput(UIComponent* component, const StringID& action)
+        {
+            return s_activeHelper ? s_activeHelper->processEditingInput(component, action) : bfalse;
+        }
     };
 }
 

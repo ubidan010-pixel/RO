@@ -16,6 +16,10 @@
 #include "gameplay/components/UI/UIComponent.h"
 #endif //_ITF_UICOMPONENT_H_
 
+#ifndef _ITF_RAY_OPTIONMENUHELPER_H_
+#include "rayman/gameplay/Managers/GameOptions/Ray_OptionMenuHelper.h"
+#endif //_ITF_RAY_OPTIONMENUHELPER_H_
+
 namespace ITF
 {
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -132,6 +136,11 @@ namespace ITF
     void UIListOptionComponent::onAction(const StringID & action)
     {
         Super::onAction(action);
+
+        if (m_isEditing)
+        {
+            Ray_OptionMenuHelper::handleExternalEditingInput(this, action);
+        }
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////

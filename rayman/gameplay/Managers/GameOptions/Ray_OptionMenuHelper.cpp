@@ -41,6 +41,7 @@
 
 namespace ITF
 {
+    Ray_OptionMenuHelper* Ray_OptionMenuHelper::s_activeHelper = nullptr;
     Ray_OptionMenuHelper::Ray_OptionMenuHelper()
         : m_mainListener(nullptr)
           , m_menu(nullptr)
@@ -60,6 +61,7 @@ namespace ITF
             return;
 
         m_isActive = btrue;
+        s_activeHelper = this;
         m_mainListener = mainListener;
         UI_MENUMANAGER->setMenuListener(OPTION_MENU_NAME, this);
         m_menu = UI_MENUMANAGER->getMenu(OPTION_MENU_NAME);
@@ -119,12 +121,6 @@ namespace ITF
         if (!isEditing())
             return bfalse;
 
-        if (action == input_actionID_Back)
-        {
-            exitEditMode();
-            return btrue;
-        }
-
         // Lock navigation while editing.
         if (action == input_actionID_Up || action == input_actionID_Down ||
             action == input_actionID_UpHold || action == input_actionID_DownHold)
@@ -132,39 +128,7 @@ namespace ITF
             return btrue;
         }
 
-        if (component != m_currentEditingComponent)
-            return bfalse;
-
-        if (action == input_actionID_Left || action == input_actionID_LeftHold)
-        {
-            if (UIListOptionComponent* listOption = component->DynamicCast<UIListOptionComponent>(ITF_GET_STRINGID_CRC(UIListOptionComponent, 3621365669)))
-            {
-                adjustListOption(listOption, m_currentEditingOption, -1);
-                return btrue;
-            }
-
-            if (UIFloatOptionComponent* floatOption = component->DynamicCast<UIFloatOptionComponent>(ITF_GET_STRINGID_CRC(UIFloatOptionComponent, 226609316)))
-            {
-                adjustFloatOption(floatOption, m_currentEditingOption, -1);
-                return btrue;
-            }
-        }
-        else if (action == input_actionID_Right || action == input_actionID_RightHold)
-        {
-            if (UIListOptionComponent* listOption = component->DynamicCast<UIListOptionComponent>(ITF_GET_STRINGID_CRC(UIListOptionComponent, 3621365669)))
-            {
-                adjustListOption(listOption, m_currentEditingOption, 1);
-                return btrue;
-            }
-
-            if (UIFloatOptionComponent* floatOption = component->DynamicCast<UIFloatOptionComponent>(ITF_GET_STRINGID_CRC(UIFloatOptionComponent, 226609316)))
-            {
-                adjustFloatOption(floatOption, m_currentEditingOption, 1);
-                return btrue;
-            }
-        }
-
-        return bfalse;
+        return processEditingInput(component, action);
     }
 
     void Ray_OptionMenuHelper::UpdateMenuOnSelectionChange(UIComponent* uiComponent, bbool isSelected)
@@ -211,6 +175,8 @@ namespace ITF
             UI_MENUMANAGER->showPreviousMenu();
             UI_MENUMANAGER->setMenuListener(UI_MENUMANAGER->getCurrentMenuID(), m_mainListener);
         }
+        if (s_activeHelper == this)
+            s_activeHelper = nullptr;
     }
 
     void Ray_OptionMenuHelper::initializeMenuState()
@@ -670,5 +636,48 @@ namespace ITF
         {
             RAY_GAMEMANAGER->applyDisplayOptions();
         }
+    }
+
+    bbool Ray_OptionMenuHelper::processEditingInput(UIComponent* component, const StringID& action)
+    {
+        if (!component || component != m_currentEditingComponent || !isEditing())
+            return bfalse;
+
+        if (action == input_actionID_Back)
+        {
+            exitEditMode();
+            return btrue;
+        }
+
+        if (action == input_actionID_Left || action == input_actionID_LeftHold)
+        {
+            if (UIListOptionComponent* listOption = component->DynamicCast<UIListOptionComponent>(ITF_GET_STRINGID_CRC(UIListOptionComponent, 3621365669)))
+            {
+                adjustListOption(listOption, m_currentEditingOption, -1);
+                return btrue;
+            }
+
+            if (UIFloatOptionComponent* floatOption = component->DynamicCast<UIFloatOptionComponent>(ITF_GET_STRINGID_CRC(UIFloatOptionComponent, 226609316)))
+            {
+                adjustFloatOption(floatOption, m_currentEditingOption, -1);
+                return btrue;
+            }
+        }
+        else if (action == input_actionID_Right || action == input_actionID_RightHold)
+        {
+            if (UIListOptionComponent* listOption = component->DynamicCast<UIListOptionComponent>(ITF_GET_STRINGID_CRC(UIListOptionComponent, 3621365669)))
+            {
+                adjustListOption(listOption, m_currentEditingOption, 1);
+                return btrue;
+            }
+
+            if (UIFloatOptionComponent* floatOption = component->DynamicCast<UIFloatOptionComponent>(ITF_GET_STRINGID_CRC(UIFloatOptionComponent, 226609316)))
+            {
+                adjustFloatOption(floatOption, m_currentEditingOption, 1);
+                return btrue;
+            }
+        }
+
+        return bfalse;
     }
 }
