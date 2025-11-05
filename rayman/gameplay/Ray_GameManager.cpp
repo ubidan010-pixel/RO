@@ -11963,6 +11963,9 @@ namespace ITF
         volume = std::max(volume, 0.0f);
         volume = std::min(volume, 1.0f);
         m_gameOptionManager.setFloatOption(OPTION_MASTER_VOLUME, volume);
+        Adapter_AudioMiddleware *audioAdapter = Adapter_AudioMiddleware::getptr();
+        if (audioAdapter)
+            audioAdapter->setMasterVolume(Volume(volume, false));
     }
 
     f32 Ray_GameManager::getMusicVolume() const
@@ -11975,6 +11978,11 @@ namespace ITF
         volume = std::max(volume, 0.0f);
         volume = std::min(volume, 1.0f);
         m_gameOptionManager.setFloatOption(OPTION_MUSIC_VOLUME, volume);
+        Adapter_AudioMiddleware *audioAdapter = Adapter_AudioMiddleware::getptr();
+        if (audioAdapter)
+        {
+            audioAdapter->setBusVolume(SOUND_BUS_MUSIC, Volume(volume, false), 0.0f);
+        }
     }
 
     f32 Ray_GameManager::getSFXVolume() const
@@ -11987,6 +11995,11 @@ namespace ITF
         volume = std::max(volume, 0.0f);
         volume = std::min(volume, 1.0f);
         m_gameOptionManager.setFloatOption(OPTION_SFX_VOLUME, volume);
+        Adapter_AudioMiddleware *audioAdapter = Adapter_AudioMiddleware::getptr();
+        if (audioAdapter)
+        {
+            audioAdapter->setBusVolume(StringID("SFX"), Volume(volume, false), 0.0f);
+        }
     }
 
     f32 Ray_GameManager::getIntensity() const
