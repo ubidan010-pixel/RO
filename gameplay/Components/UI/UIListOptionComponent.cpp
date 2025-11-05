@@ -39,6 +39,7 @@ namespace ITF
     , m_leftArrowHighlightActor(NULL)
     , m_rightArrowActor(NULL)
     , m_rightArrowHighlightActor(NULL)
+    , m_isEditing(bfalse)
     {
     }
 
@@ -57,6 +58,7 @@ namespace ITF
         m_leftArrowHighlightActor = NULL;
         m_rightArrowActor = NULL;
         m_rightArrowHighlightActor = NULL;
+        m_isEditing = bfalse;
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -106,6 +108,7 @@ namespace ITF
     void UIListOptionComponent::onPressed()
     {
         Super::onPressed();
+        setEditingMode(!m_isEditing);
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -369,14 +372,27 @@ namespace ITF
 
         applyValueColor(isSelected);
 
-        if (isSelected)
-        {
+        if (!isSelected && m_isEditing)
+            m_isEditing = bfalse;
+
+        if (m_isEditing && isSelected)
             showArrows();
-        }
         else
-        {
             hideAllArrows();
-        }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    void UIListOptionComponent::setEditingMode(bbool editing)
+    {
+        if (m_isEditing == editing)
+            return;
+
+        m_isEditing = editing;
+
+        if (m_isEditing && getIsSelected())
+            showArrows();
+        else
+            hideAllArrows();
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////

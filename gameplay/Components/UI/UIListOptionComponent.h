@@ -34,6 +34,7 @@ namespace ITF
         virtual     void        onAction            (const StringID & action);
 
         ITF_INLINE Actor*       getValueActor() const { return m_valueActor; }
+        void                    setEditingMode(bbool editing);
 
     protected:
         ITF_INLINE const class UIListOptionComponent_Template* getTemplate() const;
@@ -61,6 +62,7 @@ namespace ITF
         Actor*                  m_rightArrowActor;
         String8                 m_rightArrowHighlightPath;
         Actor*                  m_rightArrowHighlightActor;
+        bbool                   m_isEditing;
     };
 
     class UIListOptionComponent_Template : public UIGameOptionComponent_Template
