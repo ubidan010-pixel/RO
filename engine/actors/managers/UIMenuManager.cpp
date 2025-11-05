@@ -8,6 +8,10 @@
 #include "gameplay/components/UI/UIComponent.h"
 #endif //_ITF_UICOMPONENT_H_
 
+#ifndef _ITF_UIGAMEOPTIONCOMPONENT_H_
+#include "gameplay/components/UI/UIGameOptionComponent.h"
+#endif //_ITF_UIGAMEOPTIONCOMPONENT_H_
+
 #ifndef _ITF_GFX_ADAPTER_H_
 #include "engine/AdaptersInterfaces/GFXAdapter.h"
 #endif //_ITF_GFX_ADAPTER_H_
@@ -276,8 +280,9 @@ namespace ITF
             if (m_inDBGMenu)
                 applyGamePadButtonDBGMenu (i,buts,pos);
 #endif // ITF_SUPPORT_CHEAT
+        }
+
     }
-}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 void UIMenuManager::applySelectionChange(UIMenu* menu, UIComponent* oldSel, UIComponent* newSel)
@@ -1569,19 +1574,70 @@ void UIMenuManager::applySelectionChange(UIMenu* menu, UIComponent* oldSel, UICo
         const Vec3d mousePos(static_cast<float>(x), static_cast<float>(y), 0.f);
         ObjectRefList components = pMenu->getUIComponentsList();
         i32 size = components.size();
-        for (int i = 0; i < size; ++i)
+        
+        UIComponent* bestComponent = nullptr;
+        f32 bestZ = -999999.0f;
+        
+        for (int i = size - 1; i >= 0; --i)
         {
             UIComponent* comp = getUIComponent(components[i]);
             if (comp && comp->getActive() && comp->getCanBeSelected())
             {
-                comp->get2DBoundingBox(bb);
+                Actor* actor = comp->GetActor();
+                if (!actor)
+                    continue;
+                
+                bbool isOptionComponent = comp->IsClassCRC(UIGameOptionComponent::GetClassCRCStatic());
+                
+                if (isOptionComponent)
+                {
+                    AABB actorAABB = actor->getRelativeAABB();
+                    if (actorAABB.isValid())
+                    {
+                        Vec3d actorPos = actor->getPos();
+                        Vec2d min(actorPos.m_x + actorAABB.getMin().m_x, actorPos.m_y + actorAABB.getMin().m_y);
+                        Vec2d max(actorPos.m_x + actorAABB.getMax().m_x, actorPos.m_y + actorAABB.getMax().m_y);
+                        bb = AABB(Vec3d(min.m_x, min.m_y, 0.f), Vec3d(max.m_x, max.m_y, 0.f));
+                    }
+                    else
+                    {
+                        comp->get2DBoundingBox(bb);
+                    }
+                    
+                    if (bb.isValid())
+                    {
+                        const Vec2d& min = bb.getMin();
+                        const Vec2d& max = bb.getMax();
+                        f32 width = max.m_x - min.m_x;
+                        f32 height = max.m_y - min.m_y;
+                        
+                        const f32 MAX_REASONABLE_WIDTH = 800.0f;
+                        const f32 MAX_REASONABLE_HEIGHT = 100.0f;
+                        
+                        if (width > MAX_REASONABLE_WIDTH || height > MAX_REASONABLE_HEIGHT)
+                        {
+                            continue;
+                        }
+                    }
+                }
+                else
+                {
+                    comp->get2DBoundingBox(bb);
+                }
+                
                 if (bb.isValid() && bb.contains(Vec3d(mousePos)))
                 {
-                    return comp;
+                    Vec3d pos = actor->getBoundLocalPos();
+                    if (pos.m_z > bestZ)
+                    {
+                        bestZ = pos.m_z;
+                        bestComponent = comp;
+                    }
                 }
             }
         }
-        return NULL;
+        
+        return bestComponent;
     }
 
     bbool UIMenuManager::IsCurrentMenuVerticalScrolling() const
