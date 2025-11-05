@@ -41,6 +41,7 @@ namespace ITF
 
         f32         getValue() const { return m_value; }
         void        setValue(f32 val, bbool updatePosition = btrue);
+        f32         getCursorSpeed() const;
 
         ITF_INLINE Actor*       getSliderBackgroundStartActor() const { return m_sliderBackgroundStartActor; }
         ITF_INLINE Actor*       getSliderBackgroundEndActor() const { return m_sliderBackgroundEndActor; }
@@ -101,6 +102,11 @@ namespace ITF
         return static_cast<const UIFloatOptionComponent_Template*>(m_template);
     }
 
+    ITF_INLINE f32 UIFloatOptionComponent::getCursorSpeed() const
+    {
+        const UIFloatOptionComponent_Template* tpl = getTemplate();
+        return tpl ? tpl->getSpeedCursor() : 0.0f;
+    }
+
 }
 #endif // _ITF_UIFLOATOPTIONCOMPONENT_H_
-

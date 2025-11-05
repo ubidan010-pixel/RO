@@ -108,7 +108,6 @@ namespace ITF
     void UIListOptionComponent::onPressed()
     {
         Super::onPressed();
-        setEditingMode(!m_isEditing);
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////

@@ -18,6 +18,9 @@ namespace ITF
 {
     class UIComponent;
     class UIMenu;
+    class UIListOptionComponent;
+    class UIFloatOptionComponent;
+    class UIToggleOptionComponent;
     class Ray_OptionMenuHelper : public UIMenuManager::MenuItemActionListener
     {
     public:
@@ -43,11 +46,12 @@ namespace ITF
         void closeAndReturn();
 
         void initializeMenuState();
-        void enterEditMode(const StringID& optionId);
+        void enterEditMode(UIComponent* component, const StringID& optionId);
         void exitEditMode();
         bbool isNavigating() const { return m_menuState == MenuState_Navigate; }
         bbool isEditing() const { return m_menuState == MenuState_EditOption; }
-        bbool isOptionEditable(const StringID& optionId) const;
+        bbool isOptionEditable(UIComponent* component) const;
+        StringID getOptionIdForComponent(UIComponent* component) const;
         
         void hideAllArrows();
         void showArrowsForOption(const StringID& optionId);
@@ -60,6 +64,11 @@ namespace ITF
         
         void loadOptionsFromSaveFile();
         StringID getOptionIdFromFriendlyName(const String8& friendlyName) const;
+        void toggleOption(UIToggleOptionComponent* toggleComponent, const StringID& optionId);
+        void adjustListOption(UIListOptionComponent* listComponent, const StringID& optionId, i32 direction);
+        void adjustFloatOption(UIFloatOptionComponent* floatComponent, const StringID& optionId, i32 direction);
+        void updateListOptionDisplay(UIListOptionComponent* listComponent, const StringID& optionId, i32 index) const;
+        void applyOptionChange(const StringID& optionId) const;
 
         MenuItemActionListener* m_mainListener;
         UIMenu*    m_menu;
@@ -68,6 +77,7 @@ namespace ITF
 
         EMenuState m_menuState;
         StringID   m_currentEditingOption;
+        UIComponent* m_currentEditingComponent;
     };
 }
 
