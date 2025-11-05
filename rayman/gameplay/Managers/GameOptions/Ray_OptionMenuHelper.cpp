@@ -55,20 +55,20 @@ namespace ITF
 
         static const OptionNavigationEntry s_optionNavigationEntries[] =
         {
-            { "resolution_option",        nullptr,                  "window_option",          nullptr,                    "start_with_heart_option" },
-            { "window_option",            "resolution_option",       "language_option",        nullptr,                    "run_button_option" },
-            { "language_option",          "window_option",           "master_volume_option",   nullptr,                    "vibration_option" },
-            { "master_volume_option",     "language_option",         "music_volume_option",    nullptr,                    "reset_to_default_button" },
-            { "music_volume_option",      "master_volume_option",    "sfx_volume_option",      nullptr,                    "reset_to_default_button" },
-            { "sfx_volume_option",        "music_volume_option",     "accept_button",          nullptr,                    "ubisoftconnect_button" },
-            { "accept_button",            "sfx_volume_option",       nullptr,                  nullptr,                    "cancel_button" },
-            { "cancel_button",            "ubisoftconnect_button",   nullptr,                  "accept_button",            nullptr },
-            { "reset_to_default_button",  "intensity_option",        "ubisoftconnect_button",  "music_volume_option",      "cancel_button" },
-            { "ubisoftconnect_button",    "reset_to_default_button", "cancel_button",          "sfx_volume_option",        "cancel_button" },
-            { "start_with_heart_option",  nullptr,                  "run_button_option",      "resolution_option",        nullptr },
-            { "run_button_option",        "start_with_heart_option", "vibration_option",       "window_option",            nullptr },
-            { "vibration_option",         "run_button_option",       "intensity_option",       "language_option",          nullptr },
-            { "intensity_option",         "vibration_option",        "reset_to_default_button","language_option",          nullptr },
+            { "resolution_option",        "accept_button",           "window_option",          "start_with_heart_option",  "start_with_heart_option" },
+            { "window_option",            "resolution_option",       "language_option",        "run_button_option",        "run_button_option" },
+            { "language_option",          "window_option",           "master_volume_option",   "vibration_option",         "vibration_option" },
+            { "master_volume_option",     "language_option",         "music_volume_option",    "intensity_option",         "intensity_option" },
+            { "music_volume_option",      "master_volume_option",    "sfx_volume_option",      "reset_to_default_button",  "reset_to_default_button" },
+            { "sfx_volume_option",        "music_volume_option",     "accept_button",          "ubisoftconnect_button",    "ubisoftconnect_button" },
+            { "accept_button",            "sfx_volume_option",       "resolution_option",      "cancel_button",            "cancel_button" },
+            { "cancel_button",            "ubisoftconnect_button",   "start_with_heart_option","accept_button",            "accept_button" },
+            { "reset_to_default_button",  "intensity_option",        "ubisoftconnect_button",  "music_volume_option",      "music_volume_option" },
+            { "ubisoftconnect_button",    "reset_to_default_button", "cancel_button",          "sfx_volume_option",        "sfx_volume_option" },
+            { "start_with_heart_option",  "cancel_button",           "run_button_option",      "resolution_option",        "resolution_option" },
+            { "run_button_option",        "start_with_heart_option", "vibration_option",       "window_option",            "window_option" },
+            { "vibration_option",         "run_button_option",       "intensity_option",       "language_option",          "language_option" },
+            { "intensity_option",         "vibration_option",        "reset_to_default_button","master_volume_option",     "master_volume_option" },
         };
 
         static const size_t s_optionNavigationEntryCount = sizeof(s_optionNavigationEntries) / sizeof(s_optionNavigationEntries[0]);

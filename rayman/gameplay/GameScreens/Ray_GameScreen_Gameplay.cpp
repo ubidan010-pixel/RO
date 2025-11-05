@@ -612,10 +612,6 @@ namespace ITF
         {
             m_optionMenuHelper.activateForOptionMenu(this);
         }
-        else if (id == ITF_GET_STRINGID_CRC(UBICONNECT, 251637958))
-        {
-            LOG("[UBICONNECT] - Ray_GameScreen_Gameplay: Ubisoft Connect button pressed");
-        }
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
