@@ -48,6 +48,8 @@ namespace ITF
     , m_labelColorsApplied(bfalse)
     , m_subMenuActor(NULL)
     , m_subMenuComponent(NULL)
+    , m_selectionInitialized(bfalse)
+    , m_wasSelected(bfalse)
     {
     }
 
@@ -64,6 +66,8 @@ namespace ITF
         m_labelColorsApplied = bfalse;
         m_subMenuActor = NULL;
         m_subMenuComponent = NULL;
+        m_selectionInitialized = bfalse;
+        m_wasSelected = bfalse;
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -96,7 +100,7 @@ namespace ITF
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
-    void UIGameOptionComponent::updateLabelColor()
+    void UIGameOptionComponent::applyLabelColor(bbool isSelected)
     {
         if (!m_labelActor || !m_labelColorsApplied)
             return;
@@ -105,7 +109,6 @@ namespace ITF
         if (!labelComponent || !labelComponent->m_hasColorOverride)
             return;
 
-        const bbool isSelected = getIsSelected();
         if (isSelected)
         {
             labelComponent->m_overrideTextColor = labelComponent->m_overrideTextColorHighlighted;
@@ -168,11 +171,31 @@ namespace ITF
     {
         Super::Update(_deltaTime);
 
+        const bbool isSelected = getIsSelected();
+        const bbool labelColorsAppliedPreviously = m_labelColorsApplied;
+
         if (!m_labelColorsApplied)
             applyLabelColors();
 
-        updateLabelColor();
+        if (!labelColorsAppliedPreviously && m_labelColorsApplied)
+        {
+            applyLabelColor(isSelected);
+        }
+
+        if (!m_selectionInitialized || isSelected != m_wasSelected)
+        {
+            applyLabelColor(isSelected);
+            handleSelectionChanged(isSelected);
+            m_wasSelected = isSelected;
+            m_selectionInitialized = btrue;
+        }
+
         updateSubMenuTextColor();
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    void UIGameOptionComponent::handleSelectionChanged(bbool /*isSelected*/)
+    {
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -267,22 +290,14 @@ namespace ITF
         if (!menu)
             return;
 
-        bbool hasSelectedOptionInSubMenu = bfalse;
-        const ObjectRefList& componentsList = menu->getUIComponentsList();
-        for (u32 i = 0; i < componentsList.size(); ++i)
+        bbool highlight = bfalse;
+        UIComponent* selectedComponent = menu->getUIComponentSelected();
+        if (selectedComponent)
         {
-            UIComponent* comp = UIMenuManager::getUIComponent(componentsList[i]);
-            if (!comp)
-                continue;
-
-            UIGameOptionComponent* optionComp = comp->DynamicCast<UIGameOptionComponent>(ITF_GET_STRINGID_CRC(UIGameOptionComponent, 3059104641));
-            if (!optionComp)
-                continue;
-
-            if (optionComp->getSubMenuTextIdPath() == m_subMenuTextIdPath && optionComp->getIsSelected())
+            UIGameOptionComponent* selectedOption = selectedComponent->DynamicCast<UIGameOptionComponent>(ITF_GET_STRINGID_CRC(UIGameOptionComponent, 3059104641));
+            if (selectedOption && selectedOption->getSubMenuTextIdPath() == m_subMenuTextIdPath)
             {
-                hasSelectedOptionInSubMenu = btrue;
-                break;
+                highlight = btrue;
             }
         }
 
@@ -290,7 +305,7 @@ namespace ITF
         static const Color yellowColor = Color(0xffffc47c);
 
         m_subMenuComponent->m_hasColorOverride = btrue;
-        m_subMenuComponent->m_overrideTextColor = hasSelectedOptionInSubMenu ? whiteColor : yellowColor;
+        m_subMenuComponent->m_overrideTextColor = highlight ? whiteColor : yellowColor;
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////

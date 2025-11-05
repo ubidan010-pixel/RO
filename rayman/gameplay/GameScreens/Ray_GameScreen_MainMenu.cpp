@@ -143,7 +143,9 @@ namespace ITF
         m_timeStartingToWait(0.0),
         m_wasPreloaded (bfalse),
         m_waitingFrameForTRCMsg(0),
-        m_pendingShowPCMenu(bfalse)
+        m_pendingShowPCMenu(bfalse),
+        m_pendingSaveOptions(bfalse),
+        m_framesToDelaySaveOptions(0)
 
 #ifdef ITF_SUPPORT_NETWORKSERVICES
         ,m_validUser(NULL)
@@ -565,6 +567,21 @@ namespace ITF
             setState(State_ShowingMainMenu_SaveLoad_Root);
             return;
         }
+        if(m_pendingSaveOptions)
+        {
+            if(m_framesToDelaySaveOptions > 0)
+            {
+                m_framesToDelaySaveOptions--;
+            }
+            else
+            {
+                if(!SAVEGAME_ADAPTER->hasPendingOperation() && !GAMEMANAGER->isSaveNotificationDisplayed())
+                {
+                    RAY_GAMEMANAGER->saveGameOptions();
+                    m_pendingSaveOptions = bfalse;
+                }
+            }
+        }
 
         // Check if something occurs
         // SAVEGAME_ADAPTER->checkForSaveStateValidity(getPlayerIndex());
@@ -670,7 +687,10 @@ namespace ITF
                 UI_MENUMANAGER->showMenuPage(GAMEINTERFACE->getGameMenuPriority(), PCMENU_FRIENDLY, btrue, this);
                 m_pendingShowPCMenu = bfalse;
                 updateLastPlayTime();
-                RAY_GAMEMANAGER->saveGameOptions();
+                // Delay save options to avoid lag during scene loading
+                // Save will happen after map is loaded or after a few frames
+                m_pendingSaveOptions = btrue;
+                m_framesToDelaySaveOptions = 3; // Wait 3 frames for menu to stabilize
             }
 
             // If the save system is disable, do not check save slot
@@ -707,7 +727,9 @@ namespace ITF
                 UI_MENUMANAGER->showMenuPage(GAMEINTERFACE->getGameMenuPriority(), PCMENU_FRIENDLY, btrue, pThis);
                 pThis->m_pendingShowPCMenu = bfalse;
                 pThis->updateLastPlayTime();
-                RAY_GAMEMANAGER->saveGameOptions();
+                // Delay save options to avoid lag during scene loading
+                pThis->m_pendingSaveOptions = btrue;
+                pThis->m_framesToDelaySaveOptions = 3;
             }
             return;
         }
@@ -1432,6 +1454,16 @@ namespace ITF
             //    if ( pScene && pScene->getMusicTheme() != StringID::Invalid )
             //        RAY_GAMEMANAGER->setMusicTheme(pScene->getMusicTheme());
             //}
+        }
+
+        // Save options after map is loaded to avoid lag during scene loading
+        if(m_pendingSaveOptions)
+        {
+            if(!SAVEGAME_ADAPTER->hasPendingOperation() && !GAMEMANAGER->isSaveNotificationDisplayed())
+            {
+                RAY_GAMEMANAGER->saveGameOptions();
+                m_pendingSaveOptions = bfalse;
+            }
         }
 
     }

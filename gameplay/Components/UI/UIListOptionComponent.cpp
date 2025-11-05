@@ -39,7 +39,6 @@ namespace ITF
     , m_leftArrowHighlightActor(NULL)
     , m_rightArrowActor(NULL)
     , m_rightArrowHighlightActor(NULL)
-    , m_wasSelected(bfalse)
     {
     }
 
@@ -74,12 +73,15 @@ namespace ITF
     void UIListOptionComponent::Update(f32 _deltaTime)
     {
         Super::Update(_deltaTime);
-        
+
+        const bbool valueColorsAppliedPreviously = m_valueColorsApplied;
         if (!m_valueColorsApplied)
             applyValueColors();
-        
-        updateValueColor();
-        updateSelectionState();
+
+        if (!valueColorsAppliedPreviously && m_valueColorsApplied)
+        {
+            applyValueColor(getIsSelected());
+        }
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -160,7 +162,7 @@ namespace ITF
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
-    void UIListOptionComponent::updateValueColor()
+    void UIListOptionComponent::applyValueColor(bbool isSelected)
     {
         if (!m_valueActor || !m_valueColorsApplied)
             return;
@@ -169,7 +171,6 @@ namespace ITF
         if (!valueComponent || !valueComponent->m_hasColorOverride)
             return;
 
-        const bbool isSelected = getIsSelected();
         if (isSelected)
         {
             valueComponent->m_overrideTextColor = valueComponent->m_overrideTextColorHighlighted;
@@ -362,22 +363,19 @@ namespace ITF
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
-    void UIListOptionComponent::updateSelectionState()
+    void UIListOptionComponent::handleSelectionChanged(bbool isSelected)
     {
-        const bbool isSelected = getIsSelected();
-        
-        if (isSelected != m_wasSelected)
+        Super::handleSelectionChanged(isSelected);
+
+        applyValueColor(isSelected);
+
+        if (isSelected)
         {
-            if (isSelected)
-            {
-                showArrows();
-            }
-            else
-            {
-                hideAllArrows();
-            }
-            
-            m_wasSelected = isSelected;
+            showArrows();
+        }
+        else
+        {
+            hideAllArrows();
         }
     }
 

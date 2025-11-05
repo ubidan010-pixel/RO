@@ -55,7 +55,6 @@ namespace ITF
     , m_originalCursorScale(1.0f, 1.0f)
     , m_originalCursorSelectedScale(1.0f, 1.0f)
     , m_value(0.5f)
-    , m_wasSelected(bfalse)
     {
     }
 
@@ -234,6 +233,37 @@ namespace ITF
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
+    void UIFloatOptionComponent::handleSelectionChanged(bbool isSelected)
+    {
+        Super::handleSelectionChanged(isSelected);
+
+        if (isSelected)
+        {
+            switchToSelectedActors();
+
+            if (m_sliderCursorSelectedActor)
+            {
+                class TextureGraphicComponent2D* selectedCursorGraph = m_sliderCursorSelectedActor->GetComponent<TextureGraphicComponent2D>();
+                if (selectedCursorGraph)
+                {
+                    m_sliderCursorSelectedActor->setScale(m_originalCursorSelectedScale * getTemplate()->getScaleOnSelected());
+                    selectedCursorGraph->setDrawColor(getTemplate()->getColorOnSelected().getAsU32());
+                }
+            }
+        }
+        else
+        {
+            switchToNormalActors();
+
+            if (m_sliderCursorActor && m_cursorGraphComponent)
+            {
+                m_sliderCursorActor->setScale(m_originalCursorScale);
+                m_cursorGraphComponent->setDrawColor(COLOR_WHITE);
+            }
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
     void UIFloatOptionComponent::onActorLoaded(Pickable::HotReloadType _hotReload)
     {
         Super::onActorLoaded(_hotReload);
@@ -256,7 +286,6 @@ namespace ITF
         Super::Update(_deltaTime);
         updateSliderFromMouse();
         updateSliderVisuals();
-        updateSelectionState();
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -304,41 +333,6 @@ namespace ITF
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
-    void UIFloatOptionComponent::updateSelectionState()
-    {
-        const bbool isSelected = getIsSelected();
-        
-        if (isSelected != m_wasSelected)
-        {
-            if (isSelected)
-            {
-                switchToSelectedActors();
-                
-                if (m_sliderCursorSelectedActor)
-                {
-                    class TextureGraphicComponent2D* selectedCursorGraph = m_sliderCursorSelectedActor->GetComponent<TextureGraphicComponent2D>();
-                    if (selectedCursorGraph)
-                    {
-                        m_sliderCursorSelectedActor->setScale(m_originalCursorSelectedScale * getTemplate()->getScaleOnSelected());
-                        selectedCursorGraph->setDrawColor(getTemplate()->getColorOnSelected().getAsU32());
-                    }
-                }
-            }
-            else
-            {
-                switchToNormalActors();
-                
-                if (m_sliderCursorActor && m_cursorGraphComponent)
-                {
-                    m_sliderCursorActor->setScale(m_originalCursorScale);
-                    m_cursorGraphComponent->setDrawColor(COLOR_WHITE);
-                }
-            }
-            
-            m_wasSelected = isSelected;
-        }
-    }
-
     ///////////////////////////////////////////////////////////////////////////////////////////
     void UIFloatOptionComponent::onAction(const StringID & action)
     {

@@ -42,8 +42,9 @@ namespace ITF
     protected:
         ITF_INLINE const class UIGameOptionComponent_Template* getTemplate() const;
         void                    applyLabelColors();
-        void                    updateLabelColor();
+        void                    applyLabelColor(bbool isSelected);
         void                    updateSubMenuTextColor();
+        virtual void            handleSelectionChanged(bbool isSelected);
         Actor*                  m_labelActor;
 
     private:
@@ -56,6 +57,8 @@ namespace ITF
         String8                 m_subMenuTextIdPath;
         Actor*                  m_subMenuActor;
         UIComponent*            m_subMenuComponent;
+        bbool                   m_selectionInitialized;
+        bbool                   m_wasSelected;
     };
 
     class UIGameOptionComponent_Template : public UIComponent_Template
@@ -79,4 +82,3 @@ namespace ITF
 
 }
 #endif // _ITF_UIGAMEOPTIONCOMPONENT_H_
-

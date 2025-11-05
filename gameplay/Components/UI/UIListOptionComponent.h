@@ -37,17 +37,17 @@ namespace ITF
 
     protected:
         ITF_INLINE const class UIListOptionComponent_Template* getTemplate() const;
+        virtual void            handleSelectionChanged(bbool isSelected) override;
 
     private:
         void                    clear();
         void                    resolveValueActor();
         void                    applyValueColors();
-        void                    updateValueColor();
+        void                    applyValueColor(bbool isSelected);
         void                    resolveLeftArrow();
         void                    resolveRightArrow();
         void                    hideAllArrows();
         void                    showArrows();
-        void                    updateSelectionState();
 
         String8                 m_valuePath;
         Actor*                  m_valueActor;
@@ -61,7 +61,6 @@ namespace ITF
         Actor*                  m_rightArrowActor;
         String8                 m_rightArrowHighlightPath;
         Actor*                  m_rightArrowHighlightActor;
-        bbool                   m_wasSelected;
     };
 
     class UIListOptionComponent_Template : public UIGameOptionComponent_Template
