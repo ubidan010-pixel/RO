@@ -44,6 +44,10 @@
 #include "rayman/gameplay/Ray_GameManager.h"
 #endif //_ITF_RAY_GAMEMANAGER_H_
 
+#ifndef _ITF_RAY_OPTIONMENUHELPER_H_
+#include "rayman/gameplay/Managers/GameOptions/Ray_OptionMenuHelper.h"
+#endif //_ITF_RAY_OPTIONMENUHELPER_H_
+
 #ifndef _ITF_CONFIG_H_
 #include "core/Config.h"
 #endif //_ITF_CONFIG_H_
@@ -233,6 +237,12 @@ namespace ITF
         if(GFX_ADAPTER->getfPs())
             m_timerDBGMenu += 1.f / GFX_ADAPTER->getfPs();
 #endif // ITF_SUPPORT_CHEAT
+
+        Ray_OptionMenuHelper* optionHelper = Ray_OptionMenuHelper::getActiveHelper();
+        if (optionHelper && optionHelper->isActive())
+        {
+            optionHelper->updateTimer();
+        }
 
         if (m_inMenu)
         {

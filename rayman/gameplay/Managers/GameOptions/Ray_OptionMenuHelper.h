@@ -40,6 +40,7 @@ namespace ITF
         StringID onMenuPageAction(UIMenu* _menu, const StringID& _action, const StringID& _defaultAction) override;
         bbool onMenuItemOtherAction(UIComponent* _UIComponent, const StringID& _action) override;
         void UpdateMenuOnSelectionChange(UIComponent* uiComponent, bbool isSelected) override;
+        void updateTimer();
 
     private:
         bbool handleResetToDefault(const StringID& id);
@@ -82,6 +83,11 @@ namespace ITF
         StringID   m_currentEditingOption;
         UIComponent* m_currentEditingComponent;
         std::vector<std::pair<UIComponent*, bbool>> m_previousSelectionStates;
+
+        f32 m_timer;
+        f32 m_timeout;
+        f32 m_timeoutJustPressed;
+        bbool m_firstPressed;
 
         static Ray_OptionMenuHelper* s_activeHelper;
 

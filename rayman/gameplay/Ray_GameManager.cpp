@@ -12018,7 +12018,7 @@ namespace ITF
     {
     }
 
-    void Ray_GameManager::applyLanguageOption()
+    void Ray_GameManager::applyapplyLanguageOption()
     {
         ITF_LANGUAGE language = static_cast<ITF_LANGUAGE>(m_gameOptionManager.getIntListOptionValue(OPTION_LANGUAGE));
         if (LOCALISATIONMANAGER && LOCALISATIONMANAGER->getCurrentLanguage() != language)

@@ -49,6 +49,10 @@ namespace ITF
           , m_menuState(MenuState_Navigate)
           , m_currentEditingOption(StringID::Invalid)
           , m_currentEditingComponent(nullptr)
+          , m_timer(0.0f)
+          , m_timeout(0.2f)
+          , m_timeoutJustPressed(0.3f)
+          , m_firstPressed(btrue)
     {
     }
 
@@ -280,6 +284,8 @@ namespace ITF
         m_menuState = MenuState_Navigate;
         m_currentEditingOption = StringID::Invalid;
         m_currentEditingComponent = nullptr;
+        m_timer = 0.0f;
+        m_firstPressed = btrue;
     }
 
     bbool Ray_OptionMenuHelper::isOptionEditable(UIComponent* component) const
@@ -638,6 +644,14 @@ namespace ITF
         }
     }
 
+    void Ray_OptionMenuHelper::updateTimer()
+    {
+        if (isEditing())
+        {
+            m_timer += LOGICDT;
+        }
+    }
+
     bbool Ray_OptionMenuHelper::processEditingInput(UIComponent* component, const StringID& action)
     {
         if (!component || component != m_currentEditingComponent || !isEditing())
@@ -649,8 +663,12 @@ namespace ITF
             return btrue;
         }
 
-        if (action == input_actionID_Left || action == input_actionID_LeftHold)
+        // Use of the D-pad: the button is just pressed -> go left or right
+        if (action == input_actionID_Left)
         {
+            m_timer = 0.0f;
+            m_firstPressed = btrue;
+
             if (UIListOptionComponent* listOption = component->DynamicCast<UIListOptionComponent>(ITF_GET_STRINGID_CRC(UIListOptionComponent, 3621365669)))
             {
                 adjustListOption(listOption, m_currentEditingOption, -1);
@@ -663,8 +681,11 @@ namespace ITF
                 return btrue;
             }
         }
-        else if (action == input_actionID_Right || action == input_actionID_RightHold)
+        else if (action == input_actionID_Right)
         {
+            m_timer = 0.0f;
+            m_firstPressed = btrue;
+
             if (UIListOptionComponent* listOption = component->DynamicCast<UIListOptionComponent>(ITF_GET_STRINGID_CRC(UIListOptionComponent, 3621365669)))
             {
                 adjustListOption(listOption, m_currentEditingOption, 1);
@@ -675,6 +696,56 @@ namespace ITF
             {
                 adjustFloatOption(floatOption, m_currentEditingOption, 1);
                 return btrue;
+            }
+        }
+
+        // Use of the D-pad: the button is pressed -> scroll left or right
+        else if (m_timer > m_timeout && action == input_actionID_LeftHold)
+        {
+            if (m_firstPressed && m_timer > m_timeoutJustPressed)
+            {
+                m_timer = 0.0f;
+                m_firstPressed = bfalse;
+            }
+            if (!m_firstPressed)
+            {
+                m_timer = 0.0f;
+
+                if (UIListOptionComponent* listOption = component->DynamicCast<UIListOptionComponent>(ITF_GET_STRINGID_CRC(UIListOptionComponent, 3621365669)))
+                {
+                    adjustListOption(listOption, m_currentEditingOption, -1);
+                    return btrue;
+                }
+
+                if (UIFloatOptionComponent* floatOption = component->DynamicCast<UIFloatOptionComponent>(ITF_GET_STRINGID_CRC(UIFloatOptionComponent, 226609316)))
+                {
+                    adjustFloatOption(floatOption, m_currentEditingOption, -1);
+                    return btrue;
+                }
+            }
+        }
+        else if (m_timer > m_timeout && action == input_actionID_RightHold)
+        {
+            if (m_firstPressed && m_timer > m_timeoutJustPressed)
+            {
+                m_timer = 0.0f;
+                m_firstPressed = bfalse;
+            }
+            if (!m_firstPressed)
+            {
+                m_timer = 0.0f;
+
+                if (UIListOptionComponent* listOption = component->DynamicCast<UIListOptionComponent>(ITF_GET_STRINGID_CRC(UIListOptionComponent, 3621365669)))
+                {
+                    adjustListOption(listOption, m_currentEditingOption, 1);
+                    return btrue;
+                }
+
+                if (UIFloatOptionComponent* floatOption = component->DynamicCast<UIFloatOptionComponent>(ITF_GET_STRINGID_CRC(UIFloatOptionComponent, 226609316)))
+                {
+                    adjustFloatOption(floatOption, m_currentEditingOption, 1);
+                    return btrue;
+                }
             }
         }
 
