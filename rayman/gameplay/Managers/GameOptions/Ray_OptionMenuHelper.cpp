@@ -53,6 +53,18 @@ namespace ITF
           , m_timeout(Ray_OptionMenuHelperConstants::INPUT_REPEAT_TIMEOUT)
           , m_timeoutJustPressed(Ray_OptionMenuHelperConstants::INPUT_INITIAL_DELAY)
           , m_firstPressed(btrue)
+          , m_hasSnapshot(bfalse)
+          , m_snapshotResolutionIndex(-1)
+          , m_snapshotWindowed(bfalse)
+          , m_snapshotLanguageIndex(-1)
+          , m_snapshotStartWithHeartIndex(-1)
+          , m_snapshotRunButtonMode(-1)
+          , m_snapshotMurfyAssist(bfalse)
+          , m_snapshotVibrationMode(-1)
+          , m_snapshotMasterVolume(0.0f)
+          , m_snapshotMusicVolume(0.0f)
+          , m_snapshotSFXVolume(0.0f)
+          , m_snapshotIntensity(0.0f)
     {
     }
 
@@ -79,6 +91,25 @@ namespace ITF
     {
         if (!component)
             return;
+
+        const StringID componentId = component->getID();
+        if (componentId.isValid())
+        {
+            if (componentId == OPTIONMENU_RESET_TO_DEFAULT_BUTTON ||
+                componentId == OPTIONMENU_ACCEPT_BUTTON ||
+                componentId == OPTIONMENU_CANCEL_BUTTON)
+            {
+                if (isEditing())
+                {
+                    exitEditMode();
+                }
+            }
+
+            if (handleResetToDefault(componentId) || handleAccept(componentId) || handleCancel(componentId))
+            {
+                return;
+            }
+        }
 
         // If we were editing, pressing confirm on the edited component exits edit mode.
         if (isEditing())
@@ -157,23 +188,102 @@ namespace ITF
 
     bbool Ray_OptionMenuHelper::handleResetToDefault(const StringID& id)
     {
-        return bfalse;
+        if (id != OPTIONMENU_RESET_TO_DEFAULT_BUTTON)
+            return bfalse;
+
+        if (!RAY_GAMEMANAGER)
+            return btrue;
+
+        Ray_GameOptionManager& optionManager = RAY_GAMEMANAGER->getGameOptionManager();
+
+        optionManager.resetOption(OPTION_RESOLUTION);
+        optionManager.resetOption(OPTION_WINDOWED);
+        optionManager.resetOption(OPTION_LANGUAGE);
+        optionManager.resetOption(OPTION_START_WITH_HEART);
+        optionManager.resetOption(OPTION_RUN_BUTTON);
+        optionManager.resetOption(OPTION_MURFY_ASSIST);
+        optionManager.resetOption(OPTION_VIBRATIONS);
+        optionManager.resetOption(OPTION_MASTER_VOLUME);
+        optionManager.resetOption(OPTION_MUSIC_VOLUME);
+        optionManager.resetOption(OPTION_SFX_VOLUME);
+        optionManager.resetOption(OPTION_INTENSITY);
+
+        const i32 resolutionIndex = optionManager.getListOptionIndex(OPTION_RESOLUTION, RAY_GAMEMANAGER->getResolutionIndex());
+        const bbool windowed = optionManager.getBoolOption(OPTION_WINDOWED, RAY_GAMEMANAGER->isWindowed());
+        const i32 languageIndex = optionManager.getListOptionIndex(OPTION_LANGUAGE, RAY_GAMEMANAGER->getLanguageIndex());
+        const i32 startWithHeartIndex = optionManager.getListOptionIndex(OPTION_START_WITH_HEART, RAY_GAMEMANAGER->getStartWithHeartIndex());
+        const i32 runButtonMode = optionManager.getListOptionIndex(OPTION_RUN_BUTTON, RAY_GAMEMANAGER->getRunButtonMode());
+        const bbool murfyAssist = optionManager.getBoolOption(OPTION_MURFY_ASSIST, RAY_GAMEMANAGER->isMurfyAssistEnabled());
+        const i32 vibrationMode = optionManager.getListOptionIndex(OPTION_VIBRATIONS, RAY_GAMEMANAGER->getVibrationMode());
+        const f32 masterVolume = optionManager.getFloatOption(OPTION_MASTER_VOLUME, RAY_GAMEMANAGER->getMasterVolume());
+        const f32 musicVolume = optionManager.getFloatOption(OPTION_MUSIC_VOLUME, RAY_GAMEMANAGER->getMusicVolume());
+        const f32 sfxVolume = optionManager.getFloatOption(OPTION_SFX_VOLUME, RAY_GAMEMANAGER->getSFXVolume());
+        const f32 intensity = optionManager.getFloatOption(OPTION_INTENSITY, RAY_GAMEMANAGER->getIntensity());
+
+        RAY_GAMEMANAGER->setResolutionIndex(resolutionIndex);
+        RAY_GAMEMANAGER->setWindowed(windowed);
+        RAY_GAMEMANAGER->setLanguageIndex(languageIndex);
+        RAY_GAMEMANAGER->setStartWithHeartIndex(startWithHeartIndex);
+        RAY_GAMEMANAGER->setRunButtonMode(runButtonMode);
+        RAY_GAMEMANAGER->setMurfyAssist(murfyAssist);
+        RAY_GAMEMANAGER->setVibrationMode(vibrationMode);
+        RAY_GAMEMANAGER->setMasterVolume(masterVolume);
+        RAY_GAMEMANAGER->setMusicVolume(musicVolume);
+        RAY_GAMEMANAGER->setSFXVolume(sfxVolume);
+        RAY_GAMEMANAGER->setIntensity(intensity);
+
+        RAY_GAMEMANAGER->applyDisplayOptions();
+        refreshAllOptionVisuals();
+
+        return btrue;
     }
 
     bbool Ray_OptionMenuHelper::handleAccept(const StringID& id)
     {
-        return bfalse;
+        if (id != OPTIONMENU_ACCEPT_BUTTON)
+            return bfalse;
+
+        if (RAY_GAMEMANAGER)
+        {
+            RAY_GAMEMANAGER->applyDisplayOptions();
+            RAY_GAMEMANAGER->saveGameOptions();
+        }
+
+        closeAndReturn();
+        return btrue;
     }
 
     bbool Ray_OptionMenuHelper::handleCancel(const StringID& id)
     {
-        return bfalse;
+        if (id != OPTIONMENU_CANCEL_BUTTON)
+            return bfalse;
+
+        if (RAY_GAMEMANAGER && m_hasSnapshot)
+        {
+            restoreSnapshot();
+            refreshAllOptionVisuals();
+        }
+        else
+        {
+            refreshAllOptionVisuals();
+        }
+
+        closeAndReturn();
+        return btrue;
     }
 
     void Ray_OptionMenuHelper::closeAndReturn()
     {
+        exitEditMode();
         m_isActive = bfalse;
         m_menu = nullptr;
+        m_menuState = MenuState_Navigate;
+        m_currentEditingOption = StringID::Invalid;
+        m_currentEditingComponent = nullptr;
+        m_previousSelectionStates.clear();
+        m_timer = 0.0f;
+        m_firstPressed = btrue;
+        m_hasSnapshot = bfalse;
         if (UI_MENUMANAGER)
         {
             UI_MENUMANAGER->showPreviousMenu();
@@ -207,6 +317,7 @@ namespace ITF
         }
 
         loadOptionsFromSaveFile();
+        captureSnapshot();
     }
 
     void Ray_OptionMenuHelper::enterEditMode(UIComponent* component, const StringID& optionId)
@@ -644,6 +755,252 @@ namespace ITF
         {
             RAY_GAMEMANAGER->applyDisplayOptions();
         }
+    }
+
+    UIComponent* Ray_OptionMenuHelper::findOptionComponent(const StringID& optionId) const
+    {
+        if (!m_menu || !optionId.isValid())
+            return nullptr;
+
+        const ObjectRefList& componentsList = m_menu->getUIComponentsList();
+        for (u32 i = 0; i < componentsList.size(); ++i)
+        {
+            UIComponent* comp = UIMenuManager::getUIComponent(componentsList[i]);
+            if (!comp)
+                continue;
+
+            if (getOptionIdForComponent(comp) == optionId)
+                return comp;
+        }
+
+        return nullptr;
+    }
+
+    UIListOptionComponent* Ray_OptionMenuHelper::findListOptionComponent(const StringID& optionId) const
+    {
+        UIComponent* component = findOptionComponent(optionId);
+        if (!component)
+            return nullptr;
+
+        return component->DynamicCast<UIListOptionComponent>(ITF_GET_STRINGID_CRC(UIListOptionComponent, 3621365669));
+    }
+
+    UIToggleOptionComponent* Ray_OptionMenuHelper::findToggleOptionComponent(const StringID& optionId) const
+    {
+        UIComponent* component = findOptionComponent(optionId);
+        if (!component)
+            return nullptr;
+
+        return component->DynamicCast<UIToggleOptionComponent>(ITF_GET_STRINGID_CRC(UIToggleOptionComponent, 3689192266));
+    }
+
+    UIFloatOptionComponent* Ray_OptionMenuHelper::findFloatOptionComponent(const StringID& optionId) const
+    {
+        UIComponent* component = findOptionComponent(optionId);
+        if (!component)
+            return nullptr;
+
+        return component->DynamicCast<UIFloatOptionComponent>(ITF_GET_STRINGID_CRC(UIFloatOptionComponent, 226609316));
+    }
+
+    void Ray_OptionMenuHelper::UpdateResolutionText()
+    {
+        if (!RAY_GAMEMANAGER)
+            return;
+
+        if (UIListOptionComponent* listComponent = findListOptionComponent(OPTION_RESOLUTION))
+        {
+            const i32 index = RAY_GAMEMANAGER->getResolutionIndex();
+            if (index >= 0)
+            {
+                updateListOptionDisplay(listComponent, OPTION_RESOLUTION, index);
+            }
+        }
+    }
+
+    void Ray_OptionMenuHelper::UpdateLanguageText()
+    {
+        if (!RAY_GAMEMANAGER)
+            return;
+
+        if (UIListOptionComponent* listComponent = findListOptionComponent(OPTION_LANGUAGE))
+        {
+            const i32 index = RAY_GAMEMANAGER->getLanguageIndex();
+            if (index >= 0)
+            {
+                updateListOptionDisplay(listComponent, OPTION_LANGUAGE, index);
+            }
+        }
+    }
+
+    void Ray_OptionMenuHelper::UpdateStartWithHeartText()
+    {
+        if (!RAY_GAMEMANAGER)
+            return;
+
+        if (UIListOptionComponent* listComponent = findListOptionComponent(OPTION_START_WITH_HEART))
+        {
+            const i32 index = RAY_GAMEMANAGER->getStartWithHeartIndex();
+            if (index >= 0)
+            {
+                updateListOptionDisplay(listComponent, OPTION_START_WITH_HEART, index);
+            }
+        }
+    }
+
+    void Ray_OptionMenuHelper::UpdateRunButtonText()
+    {
+        if (!RAY_GAMEMANAGER)
+            return;
+
+        if (UIListOptionComponent* listComponent = findListOptionComponent(OPTION_RUN_BUTTON))
+        {
+            const i32 index = RAY_GAMEMANAGER->getRunButtonMode();
+            if (index >= 0)
+            {
+                updateListOptionDisplay(listComponent, OPTION_RUN_BUTTON, index);
+            }
+        }
+    }
+
+    void Ray_OptionMenuHelper::UpdateVibrationText()
+    {
+        if (!RAY_GAMEMANAGER)
+            return;
+
+        if (UIListOptionComponent* listComponent = findListOptionComponent(OPTION_VIBRATIONS))
+        {
+            const i32 index = RAY_GAMEMANAGER->getVibrationMode();
+            if (index >= 0)
+            {
+                updateListOptionDisplay(listComponent, OPTION_VIBRATIONS, index);
+            }
+        }
+    }
+
+    void Ray_OptionMenuHelper::UpdateMurfyAssistToggle()
+    {
+        if (!RAY_GAMEMANAGER)
+            return;
+
+        if (UIToggleOptionComponent* toggleComponent = findToggleOptionComponent(OPTION_MURFY_ASSIST))
+        {
+            toggleComponent->setValue(RAY_GAMEMANAGER->isMurfyAssistEnabled());
+        }
+    }
+
+    void Ray_OptionMenuHelper::UpdateWindowCheckboxVisual()
+    {
+        if (!RAY_GAMEMANAGER)
+            return;
+
+        if (UIToggleOptionComponent* toggleComponent = findToggleOptionComponent(OPTION_WINDOWED))
+        {
+            toggleComponent->setValue(RAY_GAMEMANAGER->isWindowed());
+        }
+    }
+
+    void Ray_OptionMenuHelper::UpdateMasterVolumeSlider()
+    {
+        if (!RAY_GAMEMANAGER)
+            return;
+
+        if (UIFloatOptionComponent* floatComponent = findFloatOptionComponent(OPTION_MASTER_VOLUME))
+        {
+            floatComponent->setValue(RAY_GAMEMANAGER->getMasterVolume(), btrue);
+        }
+    }
+
+    void Ray_OptionMenuHelper::UpdateMusicVolumeSlider()
+    {
+        if (!RAY_GAMEMANAGER)
+            return;
+
+        if (UIFloatOptionComponent* floatComponent = findFloatOptionComponent(OPTION_MUSIC_VOLUME))
+        {
+            floatComponent->setValue(RAY_GAMEMANAGER->getMusicVolume(), btrue);
+        }
+    }
+
+    void Ray_OptionMenuHelper::UpdateSFXVolumeSlider()
+    {
+        if (!RAY_GAMEMANAGER)
+            return;
+
+        if (UIFloatOptionComponent* floatComponent = findFloatOptionComponent(OPTION_SFX_VOLUME))
+        {
+            floatComponent->setValue(RAY_GAMEMANAGER->getSFXVolume(), btrue);
+        }
+    }
+
+    void Ray_OptionMenuHelper::UpdateIntensitySlider()
+    {
+        if (!RAY_GAMEMANAGER)
+            return;
+
+        if (UIFloatOptionComponent* floatComponent = findFloatOptionComponent(OPTION_INTENSITY))
+        {
+            floatComponent->setValue(RAY_GAMEMANAGER->getIntensity(), btrue);
+        }
+    }
+
+    void Ray_OptionMenuHelper::refreshAllOptionVisuals()
+    {
+        if (!m_menu)
+            return;
+
+        UpdateResolutionText();
+        UpdateLanguageText();
+        UpdateStartWithHeartText();
+        UpdateRunButtonText();
+        UpdateVibrationText();
+        UpdateMurfyAssistToggle();
+        UpdateWindowCheckboxVisual();
+        UpdateMasterVolumeSlider();
+        UpdateMusicVolumeSlider();
+        UpdateSFXVolumeSlider();
+        UpdateIntensitySlider();
+    }
+
+    void Ray_OptionMenuHelper::captureSnapshot()
+    {
+        if (!RAY_GAMEMANAGER)
+        {
+            m_hasSnapshot = bfalse;
+            return;
+        }
+
+        m_snapshotResolutionIndex = RAY_GAMEMANAGER->getResolutionIndex();
+        m_snapshotWindowed = RAY_GAMEMANAGER->isWindowed();
+        m_snapshotLanguageIndex = RAY_GAMEMANAGER->getLanguageIndex();
+        m_snapshotStartWithHeartIndex = RAY_GAMEMANAGER->getStartWithHeartIndex();
+        m_snapshotRunButtonMode = RAY_GAMEMANAGER->getRunButtonMode();
+        m_snapshotMurfyAssist = RAY_GAMEMANAGER->isMurfyAssistEnabled();
+        m_snapshotVibrationMode = RAY_GAMEMANAGER->getVibrationMode();
+        m_snapshotMasterVolume = RAY_GAMEMANAGER->getMasterVolume();
+        m_snapshotMusicVolume = RAY_GAMEMANAGER->getMusicVolume();
+        m_snapshotSFXVolume = RAY_GAMEMANAGER->getSFXVolume();
+        m_snapshotIntensity = RAY_GAMEMANAGER->getIntensity();
+        m_hasSnapshot = btrue;
+    }
+
+    void Ray_OptionMenuHelper::restoreSnapshot()
+    {
+        if (!RAY_GAMEMANAGER || !m_hasSnapshot)
+            return;
+
+        RAY_GAMEMANAGER->setResolutionIndex(m_snapshotResolutionIndex);
+        RAY_GAMEMANAGER->setWindowed(m_snapshotWindowed);
+        RAY_GAMEMANAGER->setLanguageIndex(m_snapshotLanguageIndex);
+        RAY_GAMEMANAGER->setStartWithHeartIndex(m_snapshotStartWithHeartIndex);
+        RAY_GAMEMANAGER->setRunButtonMode(m_snapshotRunButtonMode);
+        RAY_GAMEMANAGER->setMurfyAssist(m_snapshotMurfyAssist);
+        RAY_GAMEMANAGER->setVibrationMode(m_snapshotVibrationMode);
+        RAY_GAMEMANAGER->setMasterVolume(m_snapshotMasterVolume);
+        RAY_GAMEMANAGER->setMusicVolume(m_snapshotMusicVolume);
+        RAY_GAMEMANAGER->setSFXVolume(m_snapshotSFXVolume);
+        RAY_GAMEMANAGER->setIntensity(m_snapshotIntensity);
+        RAY_GAMEMANAGER->applyDisplayOptions();
     }
 
     void Ray_OptionMenuHelper::updateTimer()

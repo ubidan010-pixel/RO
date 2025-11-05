@@ -83,6 +83,24 @@ namespace ITF
         void updateListOptionDisplay(UIListOptionComponent* listComponent, const StringID& optionId, i32 index) const;
         void applyOptionChange(const StringID& optionId) const;
         bbool processEditingInput(UIComponent* component, const StringID& action);
+        void captureSnapshot();
+        void restoreSnapshot();
+        void refreshAllOptionVisuals();
+        void UpdateResolutionText();
+        void UpdateLanguageText();
+        void UpdateStartWithHeartText();
+        void UpdateRunButtonText();
+        void UpdateVibrationText();
+        void UpdateMurfyAssistToggle();
+        void UpdateWindowCheckboxVisual();
+        void UpdateMasterVolumeSlider();
+        void UpdateMusicVolumeSlider();
+        void UpdateSFXVolumeSlider();
+        void UpdateIntensitySlider();
+        UIComponent* findOptionComponent(const StringID& optionId) const;
+        UIListOptionComponent* findListOptionComponent(const StringID& optionId) const;
+        UIToggleOptionComponent* findToggleOptionComponent(const StringID& optionId) const;
+        UIFloatOptionComponent* findFloatOptionComponent(const StringID& optionId) const;
 
         MenuItemActionListener* m_mainListener;
         UIMenu*    m_menu;
@@ -98,6 +116,18 @@ namespace ITF
         f32 m_timeout;
         f32 m_timeoutJustPressed;
         bbool m_firstPressed;
+        bbool m_hasSnapshot;
+        i32 m_snapshotResolutionIndex;
+        bbool m_snapshotWindowed;
+        i32 m_snapshotLanguageIndex;
+        i32 m_snapshotStartWithHeartIndex;
+        i32 m_snapshotRunButtonMode;
+        bbool m_snapshotMurfyAssist;
+        i32 m_snapshotVibrationMode;
+        f32 m_snapshotMasterVolume;
+        f32 m_snapshotMusicVolume;
+        f32 m_snapshotSFXVolume;
+        f32 m_snapshotIntensity;
 
         static Ray_OptionMenuHelper* s_activeHelper;
 
