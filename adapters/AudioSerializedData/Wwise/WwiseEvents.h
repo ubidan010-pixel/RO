@@ -1,7 +1,6 @@
 #ifndef __WWISEEVENTS_H__
 #define __WWISEEVENTS_H__
 
-#include "core/Color.h" //todoisap
 #include "engine/events/Events.h"
 
 

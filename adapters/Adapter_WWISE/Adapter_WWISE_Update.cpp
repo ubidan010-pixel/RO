@@ -242,33 +242,46 @@ namespace	ITF
 
 
 
-#if !defined(ITF_FINAL)
+#if !defined(ITF_FINAL) && defined(ITF_WINDOWS)
 		if(m_isInDebugMode)
 		{
 			updateFailedBank();
 			const f32 screenWidth = (f32)GFX_ADAPTER->getScreenWidth();
 			u32 size = m_loadedBank.size()+1+ m_failedBank.size()+1;
 			f32 y =GFX_ADAPTER->getScreenHeight()-(15.f *(size+1))-75.0f;
-			char buf[256];
+			char buf[512];
 			f32 R = 0.9f;
 			f32 G = 0.9f;
 			f32 B = 0.9f;
 			SPRINTF_S(buf, sizeof(buf), "Audio Bank loaded :");
-            f32 width;
-            //, height;
-// 			if (!GFX_ADAPTER->drawDBGTextSize( buf, width, height)) //todoisap
- 			{
- 				width = 200;
-			//	height = 15;
- 			
- 			}
+            f32 width = 200;
+
 			f32 x = screenWidth - 75.0f - width;
 			GFX_ADAPTER->drawDBGText(buf, x, y, R, G, B);
 			y += 15.0f;
 			for(LoadedBankMap::const_iterator it = m_loadedBank.begin(), itEnd = m_loadedBank.end(); it != itEnd; ++it)
 			{
 				const Path	&path = it->first;
+                const BankLoaderList &loaderlist = it->second;
 				SPRINTF_S(buf, sizeof(buf), "%s", path.getBasename());
+                char loader[512];
+                char buff[256];
+                for (auto& iter : loaderlist)
+                {
+                    if (iter.BankType == BankLoader::SOUND_CONFIG)
+                        SPRINTF_S(buff, sizeof(buff), " (SoundConfig)");
+                    else if (iter.BankType == BankLoader::SOUND_COMPONENT)
+                    {
+                        const Path& tplPath = iter.ref.soundComponentTemplate->getActorTemplate()->getFile();
+                        SPRINTF_S(buff, sizeof(buff), " (SoundComponent %s)", tplPath.getBasename());
+
+                    }
+                    else
+                        SPRINTF_S(buff, sizeof(buff), " (unknown)");
+
+                    strcat(loader, buff);
+                }
+                strcat(buf, buff);
 				GFX_ADAPTER->drawDBGText(buf, x, y, R, G, B);
 				y += 15.0f;
 

@@ -25,6 +25,7 @@ class SoundManager;
 class EventManager;
 class TRCManagerAdapter;
 class OnlineTrackingAdapter;
+class OnlineAdapter;
 class RewardAdapter;
 class RewardManager;
 
@@ -119,6 +120,9 @@ private:
 #ifdef ITF_SUPPORT_ONLINETRACKING
 			OnlineTrackingAdapter*	m_OnlineTrackingAdapter;
 #endif // ITF_SUPPORT_ONLINETRACKING
+#ifdef ITF_SUPPORT_UBISERVICES
+            OnlineAdapter*          m_OnlineAdapter;
+#endif // ITF_SUPPORT_UBISERVICES
             RewardAdapter*          m_RewardAdapter;
             RewardManager*          m_RewardManager;
 
@@ -302,6 +306,10 @@ public:
 			ITF_INLINE   void                   setOnlineTrackingAdapter( OnlineTrackingAdapter* _OnlineTrackingAdapter)                      { m_OnlineTrackingAdapter = _OnlineTrackingAdapter;}
 			ITF_INLINE   OnlineTrackingAdapter*	getOnlineTrackingAdapter(                          )      { return m_OnlineTrackingAdapter;}
 #endif // ITF_SUPPORT_ONLINETRACKING
+#ifdef ITF_SUPPORT_UBISERVICES
+            ITF_INLINE   void                   setOnlineAdapter (   OnlineAdapter* _OnlineAdapter) { m_OnlineAdapter = _OnlineAdapter; }
+            ITF_INLINE   OnlineAdapter*         getOnlineAdapter() { return m_OnlineAdapter; }
+#endif // ITF_SUPPORT_UBISERVICES
             ITF_INLINE   void                   setRewardAdapter (   RewardAdapter* _adapter  ){ m_RewardAdapter = _adapter; }
             ITF_INLINE   RewardAdapter*         getRewardAdapter (                           )   {return m_RewardAdapter; }
             ITF_INLINE   void                   setRewardManager (   RewardManager* _adapter  ){ m_RewardManager = _adapter; }

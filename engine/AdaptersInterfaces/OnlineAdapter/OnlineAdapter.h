@@ -3,6 +3,8 @@
 
 #include "core/templateSingleton.h"
 #include "core/Macros.h"
+#include "core/container/extendedVector.h"
+#include "core/String8.h"
 
 namespace ITF
 {

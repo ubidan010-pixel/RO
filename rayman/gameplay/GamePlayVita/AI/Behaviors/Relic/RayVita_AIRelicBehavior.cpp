@@ -206,10 +206,10 @@ namespace ITF
 		}
 #endif
 
-		if (m_state < State_BeingTaken && isNearMainPlayer())
-		{
-			setState(State_BeingTaken);
-		}
+		//if (m_state < State_BeingTaken && isNearMainPlayer())
+		//{
+		//	setState(State_BeingTaken);
+		//}
 
         //Update the states. 
         switch (m_state)

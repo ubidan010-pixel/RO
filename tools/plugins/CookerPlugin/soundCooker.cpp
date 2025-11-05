@@ -819,6 +819,10 @@ namespace ITF
             {
                 pSoundConfiguration->setFormat("PCM");
             }
+            else if (_szPlatform == "XBOXSERIES")
+            {
+                pSoundConfiguration->setFormat("PCM");
+            }
             else
             {
                 ITF_ASSERT(0);

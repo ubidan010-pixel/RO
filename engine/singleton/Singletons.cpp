@@ -219,6 +219,10 @@
 #include "engine/AdaptersInterfaces/OnlineTrackingAdapter.h"
 #endif //_ITF_ONLINETRACKINGADAPTER_H
 
+#ifndef _ITF_ONLINEADAPTER_H_
+#include "engine/AdaptersInterfaces/OnlineAdapter/OnlineAdapter.h"
+#endif //_ITF_ONLINEADAPTER_H_
+
 #ifndef _ITF_LOGICDATABASE_H_
 #include "engine/logicdatabase/logicdatabase.h"
 #endif //_ITF_LOGICDATABASE_H_
@@ -383,6 +387,11 @@ Singletons::Singletons()
 #ifdef ITF_SUPPORT_ONLINETRACKING
 	m_OnlineTrackingAdapter	= nullptr;
 #endif // ITF_SUPPORT_ONLINETRACKING
+
+#ifdef ITF_SUPPORT_UBISERVICES
+    m_OnlineAdapter = nullptr;
+#endif // ITF_SUPPORT_UBISERVICES
+
     m_Adapter_Savegame   = nullptr;
     m_MusicManager      = nullptr;
 
@@ -564,6 +573,10 @@ Singletons::~Singletons()
     ITF_ASSERT(!m_UPlayService);
 #endif // ITF_UPLAYPC
 
+#ifdef ITF_SUPPORT_UBISERVICES
+    ITF_ASSERT(!m_OnlineAdapter);
+#endif // ITF_SUPPORT_UBISERVICES
+
     ITF_ASSERT(!m_BundleManager);
 
 #ifdef ITF_SUPPORT_EDITOR
@@ -677,6 +690,9 @@ void Singletons::destroy(bbool _fastExit)
 #ifdef ITF_SUPPORT_ONLINETRACKING
 	SF_DEL(m_OnlineTrackingAdapter);
 #endif // ITF_SUPPORT_ONLINETRACKING
+#ifdef ITF_SUPPORT_UBISERVICES
+    SF_DEL(m_OnlineAdapter);
+#endif // ITF_SUPPORT_UBISERVICES
 #ifdef ITF_SUPPORT_NETWORKSERVICES
     SF_DEL(m_NetworkServices);
 #endif // ITF_SUPPORT_NETWORKSERVICES

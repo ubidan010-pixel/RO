@@ -36,6 +36,8 @@
 
 #include "engine/zinput/Nintendo/ZPad_Nintendo.h"
 
+#include "engine/zinput/XBoxSeries/ZPad_XBoxSeries.h"
+
 // ---------------------------------------------------------------
 
 namespace ITF
@@ -270,7 +272,15 @@ namespace ITF
     {
 #ifdef ITF_NINTENDO
         FOR_MAXPAD m_devices.push_back(new (MemoryId::mId_System) ZPad_Nintendo(pad));
-#endif //ITF_PS5
+#endif //ITF_NINTENDO
+    }
+
+    void ZInputManager::addXBoxSeries_device(u32 maxPAD)
+    {
+#ifdef ITF_XBOX_SERIES
+        FOR_MAXPAD m_devices.push_back(new (MemoryId::mId_System) ZPad_XBoxSeries(pad));
+#endif //ITF_XBOX_SERIES
+
     }
 
     void ZInputManager::RemoveListener( IInputListener* _listener )

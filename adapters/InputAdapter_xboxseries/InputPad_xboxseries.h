@@ -4,15 +4,18 @@
 
 #include <GameInput.h>
 #include <array>
+#include <wrl/client.h>
 
 namespace ITF
 {
+    using Microsoft::WRL::ComPtr;
+
     class InputPad_GameInput
     {
     public:
 
-        explicit InputPad_GameInput(IGameInputDevice& _gameInputDevice);
-        InputPad_GameInput(const InputPad_GameInput& _gameInputDevice) = delete;
+        explicit InputPad_GameInput(ComPtr<IGameInputDevice> _gameInputDevice);
+        InputPad_GameInput(const InputPad_GameInput&) = delete;
         InputPad_GameInput(InputPad_GameInput&& _gameInputDevice);
         ~InputPad_GameInput();
 
@@ -21,7 +24,7 @@ namespace ITF
 
         void update(const GameInputGamepadState& state);
 
-        IGameInputDevice* getDevice() const { return m_gameInputDevice; }
+        IGameInputDevice* getDevice() const { return m_gameInputDevice.Get(); }
 
         InputAdapter::PadType getType() const;
         const char* getTypeName() const;
@@ -45,7 +48,7 @@ namespace ITF
         bool isVibrating() const { return (m_vibrationEndTime > 0.0); }
 
         f64 m_vibrationEndTime = 0.0;
-        IGameInputDevice* m_gameInputDevice = nullptr;
+        ComPtr<IGameInputDevice> m_gameInputDevice{};
         std::array<f32, JOY_MAX_AXES> m_axes{};
         std::array<InputAdapter::PressStatus, JOY_MAX_BUT> m_buttons{};
     };

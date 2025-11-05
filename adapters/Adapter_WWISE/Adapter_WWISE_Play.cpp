@@ -7,7 +7,9 @@
 #include "engine/events/Events.h"
 #include "core/serializer/ZSerializerObjectBinary.h"
 #include "adapters/Adapter_WWISE/Helper/WWISE_AkGameObject.h"
+#ifdef ITF_WINDOWS
 //#define TRACE_ALL_PLAY_STOP
+#endif
 
 namespace	ITF
 {

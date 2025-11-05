@@ -1,7 +1,6 @@
 #include "precompiled_InputAdapter_xboxseries.h"
 
 #include "adapters/InputAdapter_xboxseries/InputPadsHandler_xboxseries.h"
-
 #include "core/utility.h"
 #include <algorithm>
 
@@ -23,14 +22,14 @@ namespace ITF
         if (previousConnectedStatus > currentConnectedStatus)
         {
             ScopeLockMutex locker(m_padsHandler->m_mutexOnRemoveList);  
-            m_padsHandler->m_removeDevices.push_back(device);
+            m_padsHandler->m_removeDevices.emplace_back(device);
         }
     }
 
-    InputPadsHandler_GameInput::InputPadsHandler_GameInput(IGameInput& _gameInput)
-        : m_gameInput(_gameInput)
+    InputPadsHandler_GameInput::InputPadsHandler_GameInput(ComPtr<IGameInput> _gameInput)
+        : m_gameInput(std::move(_gameInput))
     {
-        ITF_VERIFY_HR_CALL(m_gameInput.RegisterDeviceCallback(
+        ITF_VERIFY_HR_CALL(m_gameInput->RegisterDeviceCallback(
             nullptr,
             GameInputKindGamepad,
             GameInputDeviceConnected,
@@ -46,7 +45,7 @@ namespace ITF
 
         if (m_deviceToken!=0)
         {
-            ITF_VERIFY(m_gameInput.UnregisterCallback(m_deviceToken, UINT64_MAX));
+            ITF_VERIFY(m_gameInput->UnregisterCallback(m_deviceToken, UINT64_MAX));
         }
         m_pads.clear();
         m_deviceToken = 0;
@@ -58,7 +57,7 @@ namespace ITF
         ScopeLockMutex locker(m_mutexOnRemoveList);
         while (!m_removeDevices.empty())
         {
-            removePad(*m_removeDevices.back());
+            removePad(std::move(m_removeDevices.back()));
             m_removeDevices.pop_back();
         }
     }
@@ -67,22 +66,21 @@ namespace ITF
     {
         updateRemovePads();
 
-        IGameInputReading* reading = nullptr;
+        ComPtr<IGameInputReading> reading{};
 
-        HRESULT currentReadingRes = m_gameInput.GetCurrentReading(GameInputKindGamepad, nullptr, &reading);
-        ITF_ASSERT_HR_RESULT(currentReadingRes);
+        HRESULT currentReadingRes = m_gameInput->GetCurrentReading(GameInputKindGamepad, nullptr, reading.ReleaseAndGetAddressOf());
 
         if (SUCCEEDED(currentReadingRes))
         {
-            IGameInputDevice* device;
-            reading->GetDevice(&device);
+            ComPtr<IGameInputDevice> device{};
+            reading->GetDevice(device.ReleaseAndGetAddressOf());
 
             if (device != nullptr)
             {
-                i32 deviceIndex = getIndex(*device);
+                i32 deviceIndex = getIndex(device.Get());
                 if (deviceIndex == -1)
                 {
-                    deviceIndex = addPad(*device);
+                    deviceIndex = addPad(std::move(device));
                 }
 
                 GameInputGamepadState state{};
@@ -90,15 +88,14 @@ namespace ITF
 
                 m_pads[deviceIndex].update(state);
             }
-            reading->Release();
         }
     }
 
-    u32 InputPadsHandler_GameInput::getIndex(IGameInputDevice & device)
+    u32 InputPadsHandler_GameInput::getIndex(IGameInputDevice * _device)
     {
         for (const InputPad_GameInput & pad : m_pads)
         {
-            if (pad.getDevice() == &device)
+            if (pad.getDevice() == _device)
             {
                 return u32(distInRange(m_pads, pad));
             }
@@ -106,16 +103,16 @@ namespace ITF
         return U32_INVALID;
     }
 
-    u32 InputPadsHandler_GameInput::addPad(IGameInputDevice & device)
+    u32 InputPadsHandler_GameInput::addPad(ComPtr<IGameInputDevice> _device)
     {
-        ITF_ASSERT_CRASH(getIndex(device) == INVALID_PAD_INDEX, "Trying to add a pad already in the pad handler");
-        m_pads.emplace_back(device);
+        ITF_ASSERT_CRASH(getIndex(_device.Get()) == INVALID_PAD_INDEX, "Trying to add a pad already in the pad handler");
+        m_pads.emplace_back(std::move(_device));
         return m_pads.size() - 1u;
     }
 
-    void InputPadsHandler_GameInput::removePad(IGameInputDevice & device)
+    void InputPadsHandler_GameInput::removePad(ComPtr<IGameInputDevice> _device)
     {
-        auto removeIt = std::find_if(m_pads.begin(), m_pads.end(), [&](const InputPad_GameInput& pad) { return pad.getDevice() == &device; });
+        auto removeIt = std::find_if(m_pads.begin(), m_pads.end(), [&](const InputPad_GameInput& pad) { return pad.getDevice() == _device.Get(); });
 
         if (removeIt != m_pads.end())
         {

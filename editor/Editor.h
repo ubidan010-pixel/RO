@@ -791,6 +791,9 @@ private:
     /// Set the whole map music theme
     void                        MuteMusic(bbool _mute);
 
+    //set the debug audio mode
+    void                        DebugSound(bbool _debug);
+
     ///////////////////////////////////////////////////////////////////////////////////////////
     /// Rename the selection, also add a counter if selection is multiple
     void                        renameSelectionFriendlyNames();

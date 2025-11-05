@@ -90,8 +90,9 @@ namespace ITF
             ItemId_SubSceneUnlock,
             ItemId_SubSceneGoto,
             ItemId_SubSceneOpen,
-			ItemId_SetMusicTheme,
+	    ItemId_SetMusicTheme,
             ItemId_MuteMusic,
+            ItemId_Sound,
             ItemId_OpenTsc,
 
 

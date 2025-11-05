@@ -5,15 +5,18 @@
 #include "adapters/InputAdapter_xboxseries/InputPad_xboxseries.h"
 
 #include "core/container/extendedVector.h"
+#include <wrl/client.h>
 
 namespace ITF
 {
+    using Microsoft::WRL::ComPtr;
+
     class InputPadsHandler_GameInput final
     {
     public:
         constexpr static u32 MAX_PAD_COUNT = 4; // Only 4 pads supported by the game.
 
-        explicit InputPadsHandler_GameInput(IGameInput& _gameInput);
+        explicit InputPadsHandler_GameInput(ComPtr<IGameInput> _gameInput);
         ~InputPadsHandler_GameInput();
 
         InputPadsHandler_GameInput(const InputPadsHandler_GameInput&) = delete;
@@ -30,8 +33,8 @@ namespace ITF
         void startRumble(u32 _numPad, f64 _time, f32 _leftMotorSpeed, f32 _rightMotorSpeed);
         void stopRumble(u32 _numPad);
 
-        u32 addPad(IGameInputDevice & device);
-        void removePad(IGameInputDevice & device);
+        u32 addPad(ComPtr<IGameInputDevice> _device);
+        void removePad(ComPtr<IGameInputDevice> _device);
 
         InputAdapter::PadType getPadType(u32 _numPad) const;
         bbool isPadConnected(u32 _numPad) const;
@@ -39,7 +42,7 @@ namespace ITF
     private:
         void updateRemovePads();
         enum : u32 { INVALID_PAD_INDEX = U32_INVALID };
-        u32 getIndex(IGameInputDevice& _device); // return INVALID_PAD_INDEX if no assigned with this not found
+        u32 getIndex(IGameInputDevice* _device); // return INVALID_PAD_INDEX if no assigned with this not found
 
         static void CALLBACK onGameInputDevice(
             _In_ GameInputCallbackToken,
@@ -49,11 +52,11 @@ namespace ITF
             _In_ GameInputDeviceStatus currentStatus,
             _In_ GameInputDeviceStatus) noexcept;
 
-        IGameInput& m_gameInput;
+        ComPtr<IGameInput> m_gameInput{};
         GameInputCallbackToken m_deviceToken = 0;
         Vector<InputPad_GameInput> m_pads{};
         mutable Mutex m_mutexOnRemoveList{};
-        Vector<IGameInputDevice*> m_removeDevices{};
+        Vector<ComPtr<IGameInputDevice>> m_removeDevices{};
     };
 
 } // namespace ITF

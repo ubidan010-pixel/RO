@@ -2274,6 +2274,20 @@ void fillMusicThemes(ContextMenuItem* _parentMenu)
         unsetItem->setInactiveColor();
 }
 
+void fillSound(ContextMenuItem* _parentMenu)
+{
+    ContextMenuItem* displaySoundBankItem = _parentMenu->m_subMenu.addItem(EditorContextMenu::ItemId_Sound, "Display Sound Bank Loaded");
+    displaySoundBankItem->m_userData = 1;
+    ContextMenuItem* hideSoundBankItem = _parentMenu->m_subMenu.addItem(EditorContextMenu::ItemId_Sound, "Hide Sound Bank Loaded");
+    hideSoundBankItem->m_userData = 0;
+    if (AUDIO_ADAPTER->isInDebugMode())
+        displaySoundBankItem->setInactiveColor();
+    else
+        hideSoundBankItem->setInactiveColor();
+}
+
+
+
 void fillMuteMusic(ContextMenuItem* _parentMenu)
 {
     //Mute elem
@@ -2441,6 +2455,8 @@ void Editor::updateTopBarMenu()
             fillMusicThemes(subItem);
             subItem = menu.addSubItem(EditorContextMenu::ItemId_MuteMusic, "Music", EditorContextMenu::ItemId_TopBar_Options, "Options");
             fillMuteMusic(subItem);
+            subItem = menu.addSubItem(EditorContextMenu::ItemId_Sound, "Sound Bank Debug", EditorContextMenu::ItemId_TopBar_Options, "Options");
+            fillSound(subItem);
         }
 
         // TOOLS
@@ -4711,6 +4727,15 @@ void Editor::MuteMusic(bbool _mute)
     MUSICMANAGER->muteAll(_mute);
 #endif // ITF_WINDOWS
 }
+
+void Editor::DebugSound(bbool _debug)
+{
+#if defined(ITF_WINDOWS)
+    if (AUDIO_ADAPTER)
+        AUDIO_ADAPTER->setInDebugMode(_debug);
+#endif // ITF_WINDOWS
+}
+
 
 void Editor::chooseAngleStep()
 {

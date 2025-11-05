@@ -112,6 +112,9 @@
 #include "adapters/OnlineTrackingAdapter_x360/OnlineTrackingAdapter_x360.h"
 #include "adapters/OnlineTrackingAdapter_ps3/OnlineTrackingAdapter_PS3.h"
 
+// Adapter Ubiservices
+#include "adapters/OnlineAdapter_Ubiservices/OnlineAdapter_Ubiservices.h"
+
 // Reward adapter
 #include "adapters/RewardAdapter_win/RewardAdapter_win.h"
 #include "adapters/RewardAdapter_PS3/RewardAdapter_PS3.h"

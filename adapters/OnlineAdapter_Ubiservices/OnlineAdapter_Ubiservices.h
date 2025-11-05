@@ -4,6 +4,9 @@
 #include <ubiservices/ubiservices.h>
 #include <ubiservices/facade.h>
 
+#include <ealmem.h>
+#include <eallog.h>
+
 #include "core/Macros.h"
 #include "engine/AdaptersInterfaces/OnlineAdapter/OnlineAdapter.h"
 
@@ -31,6 +34,9 @@ namespace ITF
         String8 generateBuildId();
 
         US_NS::Facade* m_usFacade;
+        US_NS::GameConfig *m_gameConfig;
+        US_NS::SystemConfig *m_sysConfig;
+
         bool m_initialized;
     };
 

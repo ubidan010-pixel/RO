@@ -930,6 +930,11 @@ bbool Editor::handleContextMenuItemClicked(ContextMenuItem* _item, ObjectRef _me
     case EditorContextMenu::ItemId_MuteMusic:
         MuteMusic(bbool(_item->m_userData));
         break;
+
+    case EditorContextMenu::ItemId_Sound:
+        DebugSound(bbool(_item->m_userData));
+        break;
+
     
     case EditorContextMenu::ItemId_ChooseAngleStep:
         chooseAngleStep();

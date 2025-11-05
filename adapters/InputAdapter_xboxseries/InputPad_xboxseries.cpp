@@ -14,20 +14,20 @@ namespace ITF
         constexpr f64 GAMEINPUT_MAX_VIBRATION_TIME = 10.0; // 10 seconds max
     }
 
-    InputPad_GameInput::InputPad_GameInput(IGameInputDevice& _gameInputDevice)
-        : m_gameInputDevice(&_gameInputDevice)
+    InputPad_GameInput::InputPad_GameInput(ComPtr<IGameInputDevice> _gameInputDevice)
+        : m_gameInputDevice(std::move(_gameInputDevice))
     {
         m_axes.fill(0.0f);
         m_buttons.fill(InputAdapter::PressStatus::Released);
     }
 
     InputPad_GameInput::InputPad_GameInput(InputPad_GameInput&& _other)
-        : m_gameInputDevice(_other.m_gameInputDevice)
+        : m_gameInputDevice(std::move(_other.m_gameInputDevice))
         , m_axes(std::move(_other.m_axes))
         , m_buttons(std::move(_other.m_buttons))
         , m_vibrationEndTime(_other.m_vibrationEndTime)
     {
-        _other.m_gameInputDevice = nullptr;
+        _other.m_gameInputDevice.Reset();
         _other.m_axes.fill(0.0f);
         _other.m_buttons.fill(InputAdapter::Released);
         _other.m_vibrationEndTime = 0.0;
@@ -43,8 +43,7 @@ namespace ITF
         if (m_gameInputDevice != nullptr)
         {
             stopVibration();
-            m_gameInputDevice->Release();
-            m_gameInputDevice = nullptr;
+            m_gameInputDevice.Reset();
         }
     }
 
@@ -56,18 +55,17 @@ namespace ITF
             if (m_gameInputDevice != nullptr)
             {
                 stopVibration();
-                m_gameInputDevice->Release();
-                m_gameInputDevice = nullptr;
+                m_gameInputDevice.Reset();
             }
 
             // Move resources from _other
-            m_gameInputDevice = _other.m_gameInputDevice;
+            m_gameInputDevice = std::move(_other.m_gameInputDevice);
             m_axes = std::move(_other.m_axes);
             m_buttons = std::move(_other.m_buttons);
             m_vibrationEndTime = _other.m_vibrationEndTime;
 
             // Reset _other
-            _other.m_gameInputDevice = nullptr;
+            _other.m_gameInputDevice.Reset();
             _other.m_axes.fill(0.0f);
             _other.m_buttons.fill(InputAdapter::Released);
             _other.m_vibrationEndTime = 0.0;
@@ -114,7 +112,7 @@ namespace ITF
 
     void InputPad_GameInput::getGamePadPos(float* _pos, u32 _nbAxis) const
     {
-        ITF_ASSERT(_nbAxis < m_axes.size());
+        ITF_ASSERT(_nbAxis <= m_axes.size());
 
         // Limit the number of axis to the max supported, set the rest to 0
         u32 nbEffectiveAxis = _nbAxis;

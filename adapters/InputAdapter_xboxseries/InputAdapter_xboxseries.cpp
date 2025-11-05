@@ -5,32 +5,30 @@
 
 namespace ITF
 {
-    namespace
+    static ComPtr<IGameInput> createGameInput()
     {
-        static IGameInput* createGameInput()
-        {
-            IGameInput* gameInput = nullptr;
-            ITF_VERIFY_HR_CALL(::GameInputCreate(&gameInput));
-            return gameInput;
-        }
+        ComPtr<IGameInput> gameInput{};
+        ITF_VERIFY_HR_CALL(::GameInputCreate(gameInput.ReleaseAndGetAddressOf()));
+        return gameInput;
     }
 
     InputAdapter_XBoxSeries::InputAdapter_XBoxSeries()
-        : m_gameInput(*createGameInput())
+        : m_gameInput(createGameInput())
         , m_padsHandler(m_gameInput)
     {
     }
 
-    InputAdapter_XBoxSeries::~InputAdapter_XBoxSeries()
-    {
-        m_gameInput.Release();
-    }
+    InputAdapter_XBoxSeries::~InputAdapter_XBoxSeries() = default;
 
     void InputAdapter_XBoxSeries::updateAllInputState()
     {
         m_padsHandler.update();
-    }
 
+        for (u32 padIdx = 0; padIdx < NbMaxPads; ++padIdx)
+        {
+            setPadConnected(padIdx, m_padsHandler.isPadConnected(padIdx));
+        }
+    }
 
     u32 InputAdapter_XBoxSeries::getGamePadCount()
     {
@@ -39,8 +37,7 @@ namespace ITF
 
     void InputAdapter_XBoxSeries::getGamePadPos(u32 _environment, u32 _padIdx, float * _pos, u32 _nbAxis) const
     {
-        ITF_ASSERT(_padIdx < m_padsHandler.getGamePadCount());
-        if ((m_environmentInput & _environment) != 0)
+        if ((m_environmentInput & _environment) != 0 && _padIdx < m_padsHandler.getMaxPadCount())
         {
             m_padsHandler.getGamePadPos(_padIdx, _pos, _nbAxis);
         }
@@ -52,9 +49,7 @@ namespace ITF
 
     void InputAdapter_XBoxSeries::getGamePadButtons(u32 _environment, u32 _padIdx, PressStatus* _buttons, u32 _nbButtons) const
     {
-        ITF_ASSERT(_padIdx < m_padsHandler.getGamePadCount());
-
-        if ((m_environmentInput & _environment) != 0)
+        if ((m_environmentInput & _environment) != 0 && _padIdx < m_padsHandler.getMaxPadCount())
         {
             m_padsHandler.getGamePadButtons(_padIdx, _buttons, _nbButtons);
         }
@@ -66,7 +61,6 @@ namespace ITF
 
     void InputAdapter_XBoxSeries::startRumble(u32 _padIdx, f64 _duration, f32 _leftMotorSpeed, f32 _rightMotorSpeed)
     {
-        ITF_ASSERT(_padIdx < m_padsHandler.getGamePadCount());
         m_padsHandler.startRumble(_padIdx, _duration, _leftMotorSpeed, _rightMotorSpeed);
     }
 

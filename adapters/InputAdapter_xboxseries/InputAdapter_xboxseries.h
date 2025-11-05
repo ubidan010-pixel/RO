@@ -1,12 +1,13 @@
 #pragma once
 #include "engine/AdaptersInterfaces/InputAdapter.h"
-
 #include "adapters/InputAdapter_xboxseries/InputPadsHandler_xboxseries.h"
-
 #include <memory>
+#include <wrl/client.h>
 
 namespace ITF
 {
+    using Microsoft::WRL::ComPtr;
+
     class InputAdapter_XBoxSeries : public InputAdapter
     {
     private:
@@ -28,7 +29,7 @@ namespace ITF
         void updateAllInputState();
 
     private:
-        IGameInput& m_gameInput;
+        ComPtr<IGameInput> m_gameInput{};
         InputPadsHandler_GameInput m_padsHandler;
     };
 

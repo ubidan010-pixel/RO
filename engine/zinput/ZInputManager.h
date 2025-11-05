@@ -41,6 +41,7 @@ namespace  ITF
         void                addPS3pad_device(u32 maxPAD);
         void                addPS5pad_device(u32 maxPAD);
         void                addNintendopad_device(u32 maxPAD);
+        void                addXBoxSeries_device(u32 maxPAD);
 
         struct ActionMapInternal
         {
