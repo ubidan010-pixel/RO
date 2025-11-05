@@ -75,6 +75,18 @@ namespace ITF
     }
 
     Ray_OptionMenuHelper* Ray_OptionMenuHelper::s_activeHelper = nullptr;
+
+    void Ray_OptionMenuHelper::requestExitEditMode(UIComponent* component)
+    {
+        if (!s_activeHelper || !component)
+            return;
+
+        if (s_activeHelper->isEditing() && s_activeHelper->m_currentEditingComponent == component)
+        {
+            s_activeHelper->exitEditMode();
+        }
+    }
+
     Ray_OptionMenuHelper::Ray_OptionMenuHelper()
         : m_mainListener(nullptr)
           , m_menu(nullptr)

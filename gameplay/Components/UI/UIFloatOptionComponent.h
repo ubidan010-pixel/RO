@@ -75,6 +75,7 @@ namespace ITF
         Vec2d                   m_originalCursorScale;
         Vec2d                   m_originalCursorSelectedScale;
         f32                     m_value;
+        bbool                   m_exitEditAfterRelease;
     };
 
     class UIFloatOptionComponent_Template : public UIGameOptionComponent_Template

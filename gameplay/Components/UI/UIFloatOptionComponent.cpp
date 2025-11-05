@@ -61,6 +61,7 @@ namespace ITF
     , m_originalCursorScale(1.0f, 1.0f)
     , m_originalCursorSelectedScale(1.0f, 1.0f)
     , m_value(0.5f)
+    , m_exitEditAfterRelease(bfalse)
     {
     }
 
@@ -80,6 +81,7 @@ namespace ITF
         m_sliderCursorSelectedActor = NULL;
         m_cursorGraphComponent = NULL;
         m_isSliding = bfalse;
+        m_exitEditAfterRelease = bfalse;
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -182,6 +184,9 @@ namespace ITF
     void UIFloatOptionComponent::updateSliderFromMouse()
     {
         if (!m_isSliding || !m_sliderBackgroundStartActor || !m_sliderBackgroundEndActor)
+            return;
+
+        if (!INPUT_ADAPTER->isMousePressed(InputAdapter::MB_Left))
             return;
 
         UIComponent* startComponent = m_sliderBackgroundStartActor->GetComponent<UIComponent>();
@@ -317,6 +322,7 @@ namespace ITF
     {
         Super::onPressed();
         m_isSliding = btrue;
+        m_exitEditAfterRelease = INPUT_ADAPTER->isMousePressed(InputAdapter::MB_Left);
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -324,6 +330,11 @@ namespace ITF
     {
         Super::onReleased();
         m_isSliding = bfalse;
+        if (m_exitEditAfterRelease)
+        {
+            Ray_OptionMenuHelper::requestExitEditMode(this);
+        }
+        m_exitEditAfterRelease = bfalse;
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////

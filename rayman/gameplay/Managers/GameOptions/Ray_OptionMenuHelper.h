@@ -147,6 +147,7 @@ namespace ITF
         {
             return s_activeHelper ? s_activeHelper->processEditingInput(component, action) : bfalse;
         }
+        static void requestExitEditMode(UIComponent* component);
     };
 }
 

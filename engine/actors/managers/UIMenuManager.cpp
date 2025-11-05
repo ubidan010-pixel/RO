@@ -1611,10 +1611,12 @@ void UIMenuManager::applySelectionChange(UIMenu* menu, UIComponent* oldSel, UICo
                         f32 width = max.m_x - min.m_x;
                         f32 height = max.m_y - min.m_y;
                         
-                        const f32 MAX_REASONABLE_WIDTH = 800.0f;
-                        const f32 MAX_REASONABLE_HEIGHT = 100.0f;
+                        const f32 screenWidth = static_cast<f32>(GFX_ADAPTER->getScreenWidth());
+                        const f32 screenHeight = static_cast<f32>(GFX_ADAPTER->getScreenHeight());
+                        const f32 maxAllowedWidth = (screenWidth > 0.0f ? screenWidth * 1.25f : 99999.0f);
+                        const f32 maxAllowedHeight = (screenHeight > 0.0f ? screenHeight * 1.25f : 99999.0f);
                         
-                        if (width > MAX_REASONABLE_WIDTH || height > MAX_REASONABLE_HEIGHT)
+                        if (width > maxAllowedWidth || height > maxAllowedHeight)
                         {
                             continue;
                         }
@@ -1731,6 +1733,14 @@ void UIMenuManager::applySelectionChange(UIMenu* menu, UIComponent* oldSel, UICo
 				{
 					selectMenuItem(scrollDirectionX, scrollDirectionY);
 				}
+			}
+			else if (!componentUnderMouse)
+			{
+				if (!selectedComponent)
+				{
+					break;
+				}
+				componentUnderMouse = selectedComponent;
 			}
 			else if (!selectedComponent || (selectedComponent != componentUnderMouse && selectedComponent->IsClassCRC(UISliderComponent::GetClassCRCStatic()) == false))
 			{
