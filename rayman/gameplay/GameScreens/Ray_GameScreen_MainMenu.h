@@ -173,6 +173,7 @@ namespace ITF
         static void onCloseTRCMessage(const StringID & answer, TRCMessage_Base * pMessage, void* params);
 
         bbool shouldShowWarningBootPopup();
+        void calculateAndLogLastPlayTime();
         void updateLastPlayTime();
 
         static bbool m_firstLoading;
@@ -194,8 +195,7 @@ namespace ITF
         f64 m_timeStartingToWait;
         u32 m_waitingFrameForTRCMsg;
         bbool m_pendingShowPCMenu;
-        bbool m_pendingSaveOptions;
-        u32 m_framesToDelaySaveOptions;
+        bbool m_shouldShowWarningBoot;
 #ifdef ITF_SUPPORT_NETWORKSERVICES
         NetworkServices::User* m_validUser;
 #endif //ITF_SUPPORT_NETWORKSERVICES

@@ -144,8 +144,7 @@ namespace ITF
         m_wasPreloaded (bfalse),
         m_waitingFrameForTRCMsg(0),
         m_pendingShowPCMenu(bfalse),
-        m_pendingSaveOptions(bfalse),
-        m_framesToDelaySaveOptions(0)
+        m_shouldShowWarningBoot(bfalse)
 
 #ifdef ITF_SUPPORT_NETWORKSERVICES
         ,m_validUser(NULL)
@@ -187,6 +186,10 @@ namespace ITF
             m_firstLoading = bfalse;
         }
         setState(State_ShowingTitleScreen);
+
+        calculateAndLogLastPlayTime();
+        RAY_GAMEMANAGER->saveGameOptions();
+
         if (!m_wasPreloaded)
             RAY_GAMEMANAGER->setMusicTheme(ITF_GET_STRINGID_CRC(menu,105712373));
 
@@ -567,21 +570,6 @@ namespace ITF
             setState(State_ShowingMainMenu_SaveLoad_Root);
             return;
         }
-        if(m_pendingSaveOptions)
-        {
-            if(m_framesToDelaySaveOptions > 0)
-            {
-                m_framesToDelaySaveOptions--;
-            }
-            else
-            {
-                if(!SAVEGAME_ADAPTER->hasPendingOperation() && !GAMEMANAGER->isSaveNotificationDisplayed())
-                {
-                    RAY_GAMEMANAGER->saveGameOptions();
-                    m_pendingSaveOptions = bfalse;
-                }
-            }
-        }
 
         // Check if something occurs
         // SAVEGAME_ADAPTER->checkForSaveStateValidity(getPlayerIndex());
@@ -687,10 +675,6 @@ namespace ITF
                 UI_MENUMANAGER->showMenuPage(GAMEINTERFACE->getGameMenuPriority(), PCMENU_FRIENDLY, btrue, this);
                 m_pendingShowPCMenu = bfalse;
                 updateLastPlayTime();
-                // Delay save options to avoid lag during scene loading
-                // Save will happen after map is loaded or after a few frames
-                m_pendingSaveOptions = btrue;
-                m_framesToDelaySaveOptions = 3; // Wait 3 frames for menu to stabilize
             }
 
             // If the save system is disable, do not check save slot
@@ -727,9 +711,6 @@ namespace ITF
                 UI_MENUMANAGER->showMenuPage(GAMEINTERFACE->getGameMenuPriority(), PCMENU_FRIENDLY, btrue, pThis);
                 pThis->m_pendingShowPCMenu = bfalse;
                 pThis->updateLastPlayTime();
-                // Delay save options to avoid lag during scene loading
-                pThis->m_pendingSaveOptions = btrue;
-                pThis->m_framesToDelaySaveOptions = 3;
             }
             return;
         }
@@ -1172,37 +1153,7 @@ namespace ITF
         NETWORKSERVICES->getUserFromControllerIndex(getPlayerIndex(), m_validUser);
 #endif // ITF_SUPPORT_NETWORKSERVICES
 
-        if(RAY_GAMEMANAGER)
-        {
-            f32 lastPlayTimeFloat = RAY_GAMEMANAGER->getGameOptionManager().getFloatOption(LAST_PLAY_TIME, 0.0f);
-            if(lastPlayTimeFloat == 0.0f)
-            {
-                LOG("[MainMenu] Press Start - First time playing (lastPlayTime = 0.0)");
-            }
-            else
-            {
-                const f64 currentTime = SYSTEM_ADAPTER->getEpochSeconds();
-                const f64 lastPlayTime = (f64)lastPlayTimeFloat;
-                f64 deltaSeconds = currentTime - lastPlayTime;
-                if (deltaSeconds < 0.0) deltaSeconds = 0.0;
-
-                const u32 secondsPerMinute = 60u;
-                const u32 secondsPerHour = 60u * secondsPerMinute;
-                const u32 secondsPerDay = 24u * secondsPerHour;
-
-                const u32 days = (u32)(deltaSeconds / (f64)secondsPerDay);
-                f64 remainder = deltaSeconds - (f64)days * (f64)secondsPerDay;
-                const u32 hours = (u32)(remainder / (f64)secondsPerHour);
-                remainder -= (f64)hours * (f64)secondsPerHour;
-                const u32 minutes = (u32)(remainder / (f64)secondsPerMinute);
-                remainder -= (f64)minutes * (f64)secondsPerMinute;
-                const u32 seconds = (u32)(remainder + 0.5);
-
-                LOG("[MainMenu] Press Start - Last played %u days, %u hours, %u minutes, %u seconds ago (lastPlayTime: %.2f, currentTime: %.2f)",
-                    days, hours, minutes, seconds, lastPlayTime, currentTime);
-            }
-            // Defer updating last play time until after potential warning popup
-        }
+        // Last play time already calculated and logged in onWorldLoaded
 
         SAVEGAME_ADAPTER->preLoad(getPlayerIndex(), 1, 1);
         if(TRC_ADAPTER)
@@ -1456,15 +1407,7 @@ namespace ITF
             //}
         }
 
-        // Save options after map is loaded to avoid lag during scene loading
-        if(m_pendingSaveOptions)
-        {
-            if(!SAVEGAME_ADAPTER->hasPendingOperation() && !GAMEMANAGER->isSaveNotificationDisplayed())
-            {
-                RAY_GAMEMANAGER->saveGameOptions();
-                m_pendingSaveOptions = bfalse;
-            }
-        }
+
 
     }
 
@@ -1490,17 +1433,48 @@ namespace ITF
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
-    bbool Ray_GameScreen_MainMenu::shouldShowWarningBootPopup()
+    void Ray_GameScreen_MainMenu::calculateAndLogLastPlayTime()
     {
         if(!RAY_GAMEMANAGER)
-            return btrue;
+        {
+            m_shouldShowWarningBoot = btrue;
+            return;
+        }
+
         f32 lastPlayTimeFloat = RAY_GAMEMANAGER->getGameOptionManager().getFloatOption(LAST_PLAY_TIME, 0.0f);
         if(lastPlayTimeFloat == 0.0f)
-            return btrue;
-        f64 currentTime = SYSTEM_ADAPTER->getEpochSeconds();
-        f64 lastPlayTime = (f64)lastPlayTimeFloat;
-        f64 daysSinceLastPlay = (currentTime - lastPlayTime) / (24.0 * 60.0 * 60.0);
-        return (daysSinceLastPlay >= DAYS_TO_SHOW_WARNING_BOOT);
+        {
+            LOG("[MainMenu] Init - First time playing (lastPlayTime = 0.0)");
+            m_shouldShowWarningBoot = btrue;
+        }
+        else
+        {
+            const f64 currentTime = SYSTEM_ADAPTER->getEpochSeconds();
+            const f64 lastPlayTime = (f64)lastPlayTimeFloat;
+            f64 deltaSeconds = currentTime - lastPlayTime;
+            if (deltaSeconds < 0.0) deltaSeconds = 0.0;
+
+            const u32 secondsPerMinute = 60u;
+            const u32 secondsPerHour = 60u * secondsPerMinute;
+            const u32 secondsPerDay = 24u * secondsPerHour;
+
+            const u32 days = (u32)(deltaSeconds / (f64)secondsPerDay);
+            f64 remainder = deltaSeconds - (f64)days * (f64)secondsPerDay;
+            const u32 hours = (u32)(remainder / (f64)secondsPerHour);
+            remainder -= (f64)hours * (f64)secondsPerHour;
+            const u32 minutes = (u32)(remainder / (f64)secondsPerMinute);
+            remainder -= (f64)minutes * (f64)secondsPerMinute;
+            const u32 seconds = (u32)(remainder + 0.5);
+
+            LOG("[MainMenu] Init - Last played %u days, %u hours, %u minutes, %u seconds ago (lastPlayTime: %.2f, currentTime: %.2f)",
+                days, hours, minutes, seconds, lastPlayTime, currentTime);
+            m_shouldShowWarningBoot = (days >= DAYS_TO_SHOW_WARNING_BOOT);
+        }
+    }
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    bbool Ray_GameScreen_MainMenu::shouldShowWarningBootPopup()
+    {
+        return m_shouldShowWarningBoot;
     }
     ///////////////////////////////////////////////////////////////////////////////////////////
     void Ray_GameScreen_MainMenu::updateLastPlayTime()
