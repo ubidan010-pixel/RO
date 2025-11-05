@@ -351,8 +351,14 @@ namespace ITF
         if (m_leftArrowActor)
             m_leftArrowActor->enable();
 
+        if (m_leftArrowHighlightActor)
+            m_leftArrowHighlightActor->disable();
+
         if (m_rightArrowActor)
             m_rightArrowActor->enable();
+
+        if (m_rightArrowHighlightActor)
+            m_rightArrowHighlightActor->disable();
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////

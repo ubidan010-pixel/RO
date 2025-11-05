@@ -44,6 +44,7 @@ namespace ITF
         void                    applyLabelColors();
         void                    updateLabelColor();
         void                    updateSubMenuTextColor();
+        Actor*                  m_labelActor;
 
     private:
         void                    clear();
@@ -51,7 +52,6 @@ namespace ITF
         void                    resolveSubMenuActor();
 
         String8                 m_labelPath;
-        Actor*                  m_labelActor;
         bbool                   m_labelColorsApplied;
         String8                 m_subMenuTextIdPath;
         Actor*                  m_subMenuActor;

@@ -1,18 +1,16 @@
 #ifndef _ITF_UITOGGLEOPTIONCOMPONENT_H_
 #define _ITF_UITOGGLEOPTIONCOMPONENT_H_
 
-#ifndef _ITF_UICOMPONENT_H_
-#include "gameplay/components/UI/UIComponent.h"
-#endif //_ITF_UICOMPONENT_H_
+#ifndef _ITF_UIGAMEOPTIONCOMPONENT_H_
+#include "gameplay/components/UI/UIGameOptionComponent.h"
+#endif //_ITF_UIGAMEOPTIONCOMPONENT_H_
 
 
 namespace ITF
 {
-    class Actor;
-
-    class UIToggleOptionComponent : public UIComponent
+    class UIToggleOptionComponent : public UIGameOptionComponent
     {
-        DECLARE_OBJECT_CHILD_RTTI(UIToggleOptionComponent, UIComponent, 3689192266);
+        DECLARE_OBJECT_CHILD_RTTI(UIToggleOptionComponent, UIGameOptionComponent, 3689192266);
 
     public:
         DECLARE_SERIALIZE()
@@ -24,7 +22,6 @@ namespace ITF
         virtual     bbool       needsDraw           (       ) const             { return bfalse; }
         virtual     bbool       needsDraw2D         (       ) const             { return bfalse; }
         virtual     void        onActorLoaded(Pickable::HotReloadType /*_hotReload*/);
-        virtual     void        Update              ( f32 _deltaTime );
 
         virtual     void        onActorClearComponents();
         virtual     void        onBecomeActive();
@@ -47,13 +44,7 @@ namespace ITF
 
     private:
         void                    clear();
-        void                    resolveLabelActor();
-        void                    applyLabelColors();
         void                    resolveCheckboxActors();
-
-        String8                 m_labelPath;
-        Actor*                  m_labelActor;
-        bbool                   m_labelColorsApplied;
 
         String8                 m_checkboxOnPath;
         Actor*                  m_checkboxOnActor;
@@ -61,9 +52,9 @@ namespace ITF
         Actor*                  m_checkboxOffActor;
     };
 
-    class UIToggleOptionComponent_Template : public UIComponent_Template
+    class UIToggleOptionComponent_Template : public UIGameOptionComponent_Template
     {
-        DECLARE_OBJECT_CHILD_RTTI(UIToggleOptionComponent_Template, UIComponent_Template, 3491665612);
+        DECLARE_OBJECT_CHILD_RTTI(UIToggleOptionComponent_Template, UIGameOptionComponent_Template, 3491665612);
         DECLARE_SERIALIZE();
         DECLARE_ACTORCOMPONENT_TEMPLATE(UIToggleOptionComponent);
 
