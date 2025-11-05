@@ -15,33 +15,33 @@ namespace ITF
         DECLARE_SERIALIZE()
 
         UIListOptionComponent();
-        ~UIListOptionComponent() override;
+        ~UIListOptionComponent();
 
-        bbool       needsUpdate         (       ) const override { return btrue; }
-        bbool       needsDraw           (       ) const override { return bfalse; }
-        bbool       needsDraw2D         (       ) const override { return bfalse; }
-        void        onActorLoaded(Pickable::HotReloadType /*_hotReload*/) override;
-        void        Update              ( f32 _deltaTime ) override;
+        virtual bbool       needsUpdate         (       ) const { return btrue; }
+        virtual bbool       needsDraw           (       ) const { return bfalse; }
+        virtual bbool       needsDraw2D         (       ) const { return bfalse; }
+        virtual void        onActorLoaded(Pickable::HotReloadType /*_hotReload*/);
+        virtual void        Update              ( f32 _deltaTime );
 
-        void        onActorClearComponents() override;
-        void        onBecomeActive() override;
-        void        onBecomeInactive() override;
+        virtual void        onActorClearComponents();
+        virtual void        onBecomeActive();
+        virtual void        onBecomeInactive();
 
-        void        onPressed           () override;
-        void        onReleased          () override;
-        void        onRollover          () override;
-        void        onRollout           () override;
-        void        onAction            (const StringID & action) override;
+        virtual void        onPressed           ();
+        virtual void        onReleased          ();
+        virtual void        onRollover          ();
+        virtual void        onRollout           ();
+        virtual void        onAction            (const StringID & action);
 
         ITF_INLINE Actor*       getValueActor() const { return m_valueActor; }
         void                    setEditingMode(bbool editing);
 
     protected:
         ITF_INLINE const class UIListOptionComponent_Template* getTemplate() const;
-        virtual void            handleSelectionChanged(bbool isSelected) override;
+        virtual void            handleSelectionChanged(bbool isSelected);
 
     private:
-        void                    clear() override;
+        virtual void                    clear();
         void                    resolveValueActor();
         void                    applyValueColors();
         void                    applyValueColor(bbool isSelected);
@@ -73,7 +73,7 @@ namespace ITF
 
     public:
         UIListOptionComponent_Template();
-        ~UIListOptionComponent_Template() override;
+        ~UIListOptionComponent_Template();
 
     private:
 

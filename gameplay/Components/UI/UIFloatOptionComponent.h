@@ -21,23 +21,23 @@ namespace ITF
         DECLARE_SERIALIZE()
 
         UIFloatOptionComponent();
-        ~UIFloatOptionComponent() override;
+        ~UIFloatOptionComponent();
 
-        bbool       needsUpdate         (       ) const override { return btrue; }
-        bbool       needsDraw           (       ) const override { return bfalse; }
-        bbool       needsDraw2D         (       ) const override { return bfalse; }
-        void        onActorLoaded(Pickable::HotReloadType /*_hotReload*/) override;
-        void        Update              ( f32 _deltaTime ) override;
+        virtual bbool       needsUpdate         (       ) const { return btrue; }
+        virtual bbool       needsDraw           (       ) const { return bfalse; }
+        virtual bbool       needsDraw2D         (       ) const { return bfalse; }
+        virtual void        onActorLoaded(Pickable::HotReloadType /*_hotReload*/);
+        virtual void        Update              ( f32 _deltaTime );
 
-        void        onActorClearComponents() override;
-        void        onBecomeActive() override;
-        void        onBecomeInactive() override;
+        virtual void        onActorClearComponents();
+        virtual void        onBecomeActive();
+        virtual void        onBecomeInactive();
 
-        void        onPressed           () override;
-        void        onReleased          () override;
-        void        onRollover          () override;
-        void        onRollout           () override;
-        void        onAction            (const StringID & action) override;
+        virtual void        onPressed           ();
+        virtual void        onReleased          ();
+        virtual void        onRollover          ();
+        virtual void        onRollout           ();
+        virtual void        onAction            (const StringID & action);
 
         f32         getValue() const { return m_value; }
         void        setValue(f32 val, bbool updatePosition = btrue);
@@ -49,10 +49,10 @@ namespace ITF
 
     protected:
         ITF_INLINE const class UIFloatOptionComponent_Template* getTemplate() const;
-        virtual void            handleSelectionChanged(bbool isSelected) override;
+        virtual void            handleSelectionChanged(bbool isSelected);
 
     private:
-        void                    clear() override;
+        virtual void                    clear();
         void                    resolveSliderActors();
         void                    updateSliderVisuals();
         void                    updateSliderFromMouse();
@@ -85,7 +85,7 @@ namespace ITF
 
     public:
         UIFloatOptionComponent_Template();
-        ~UIFloatOptionComponent_Template() override;
+        ~UIFloatOptionComponent_Template();
 
         ITF_INLINE f32      getSpeedCursor() const { return m_speedCursor; }
         ITF_INLINE f32      getScaleOnSelected() const { return m_scaleOnSelected; }
