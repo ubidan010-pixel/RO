@@ -17,6 +17,10 @@
 #include "rayman/gameplay/GameScreens/Ray_JoinLeaveGameHandler.h"
 #endif //_ITF_RAY_JOINLEAVEGAMEHANDLER_H_
 
+#ifndef _ITF_RAY_OPTIONMENUHELPER_H_
+#include "rayman/gameplay/Managers/GameOptions/Ray_OptionMenuHelper.h"
+#endif //_ITF_RAY_OPTIONMENUHELPER_H_
+
 namespace ITF {
 
 //------------------------------------------------------------------------------
@@ -48,6 +52,7 @@ public:
     virtual bbool canPause();
     virtual void showPauseMenu (bbool _isVisible);
     virtual bbool checkSignInOutChanges();
+    virtual void onMenuItemAction (UIComponent* _UIComponent);
     // WORLDMAP
     void        setPreLoadedMap( ObjectRef _mapRef ) { m_preLoadedMap = _mapRef; }
     ObjectRef   getPreLoadedMap() const { return m_preLoadedMap; }
@@ -68,6 +73,7 @@ private:
     ObjectRef       m_preLoadedMap;
     bbool           m_showingControls;
     bbool           m_musicThemeSet;
+    Ray_OptionMenuHelper m_optionMenuHelper;
 };
 
 } // namespace ITF

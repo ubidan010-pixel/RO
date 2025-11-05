@@ -71,7 +71,7 @@ namespace ITF {
 IMPLEMENT_OBJECT_RTTI(Ray_GameScreen_WorldMap)
 
 //------------------------------------------------------------------------------
-Ray_GameScreen_WorldMap::Ray_GameScreen_WorldMap() 
+Ray_GameScreen_WorldMap::Ray_GameScreen_WorldMap()
     : Super()
     , m_firstFrame(btrue)
     , m_joinLeaveGameHandler()
@@ -106,7 +106,7 @@ void Ray_GameScreen_WorldMap::init()
 
         m_world = (World*)GETOBJECT(rWorld);
         ITF_ASSERT(m_world!=NULL);
-        
+
         Vector<ObjectPath> prefetchTargets;
 
         const ObjectPath& world = RAY_GAMEMANAGER->getWMCurrentWorldObjectPath();
@@ -144,9 +144,9 @@ void Ray_GameScreen_WorldMap::onWorldLoaded()
 {
     RAY_GAMEMANAGER->spawnPlayerActors(GetClassCRCStatic());
     RAY_GAMEMANAGER->enableBaseScene(btrue);
-    
+
     //update counts
-    
+
     for (u32 i=0; i<GAMEMANAGER->getMaxPlayerCount(); ++i )
     {
         Player* player = GAMEMANAGER->getPlayer(i);
@@ -290,10 +290,10 @@ void Ray_GameScreen_WorldMap::update()
 
 
 #ifdef ITF_PS3
-            if( !GAMEMANAGER->isInPause() && 
-                CONTEXTICONSMANAGER->isVisible() && 
-                !isMoving && 
-                !inHomeMap && 
+            if( !GAMEMANAGER->isInPause() &&
+                CONTEXTICONSMANAGER->isVisible() &&
+                !isMoving &&
+                !inHomeMap &&
                 !RAY_GAMEMANAGER->isPlayingWorldMapUnlockSequenceAndDisplayingUnlocks() &&
                 canPause() /* to handle the fade */)
             {
@@ -310,14 +310,14 @@ void Ray_GameScreen_WorldMap::update()
                         InputAdapter::PressStatus buttons[JOY_MAX_BUT];
                         INPUT_ADAPTER->getGamePadButtons(InputAdapter::EnvironmentLua, i, buttons, JOY_MAX_BUT);
 
-                        if (!m_showingControls 
+                        if (!m_showingControls
                             && (buttons[m_joyButton_Y] == InputAdapter::JustReleased
                             || buttons[m_joyButton_Triangle] == InputAdapter::JustReleased) )
                         {
                             m_showingControls = btrue;
                             showConfig(btrue);
                         }
-                        else if (m_showingControls 
+                        else if (m_showingControls
                             && buttons[backButton] == InputAdapter::JustReleased )
                         {
                             m_showingControls = bfalse;
@@ -381,7 +381,7 @@ void Ray_GameScreen_WorldMap::showPauseMenu(bbool _isVisible)
         bbool inHomeMap = mainPlayer && (RAY_GAMEMODE_PLATFORMER == mainPlayer->getCurrentMode());
 
         // in world map
-        if(!inHomeMap) 
+        if(!inHomeMap)
         {
             UI_MENUMANAGER->showMenuPage(GAMEINTERFACE->getPauseMenuPriority(), WORLDMAPMENU_FRIENDLY, btrue, this);
         }
@@ -496,6 +496,18 @@ void Ray_GameScreen_WorldMap::showConfig(bbool _isVisible)
         }
     }
 }
+//------------------------------------------------------------------------------
+void Ray_GameScreen_WorldMap::onMenuItemAction(UIComponent* _UIComponent)
+{
+    if(!_UIComponent) return;
+    Ray_Pause_MenuItemActionListener::onMenuItemAction(_UIComponent);
+    const StringID id = _UIComponent->getID();
+    if (id == ITF_GET_STRINGID_CRC(Options, 3527952213))
+    {
+        m_optionMenuHelper.activateForOptionMenu(this);
+    }
+}
+
 //------------------------------------------------------------------------------
 ITF::bbool Ray_GameScreen_WorldMap::checkSignInOutChanges()
 {
