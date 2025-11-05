@@ -12048,7 +12048,7 @@ namespace ITF
     {
         f32 masterVol = getMasterVolume();
         LOG("[OptionMenu] Master Volume: %.2f (%.0f%%)", masterVol, masterVol * 100.0f);
-        
+
         Adapter_AudioMiddleware *audioAdapter = Adapter_AudioMiddleware::getptr();
         if (audioAdapter)
             audioAdapter->setMasterVolume(Volume(masterVol, false));
@@ -12058,7 +12058,7 @@ namespace ITF
     {
         f32 musicVol = getMusicVolume();
         LOG("[OptionMenu] Music Volume: %.2f (%.0f%%)", musicVol, musicVol * 100.0f);
-        
+
         Adapter_AudioMiddleware *audioAdapter = Adapter_AudioMiddleware::getptr();
         if (audioAdapter)
         {
@@ -12070,7 +12070,7 @@ namespace ITF
     {
         f32 sfxVol = getSFXVolume();
         LOG("[OptionMenu] SFX Volume: %.2f (%.0f%%)", sfxVol, sfxVol * 100.0f);
-        
+
         Adapter_AudioMiddleware *audioAdapter = Adapter_AudioMiddleware::getptr();
         if (audioAdapter)
         {
@@ -12147,6 +12147,7 @@ namespace ITF
         {
             LOG("[GameOptions] Load failed - using default options");
             RAY_GAMEMANAGER->applyDisplayOptions();
+            RAY_GAMEMANAGER->applyMasterVolumeOption();
             RAY_GAMEMANAGER->applyMusicVolumeOption();
             RAY_GAMEMANAGER->applySFXVolumeOption();
         }
@@ -12154,6 +12155,7 @@ namespace ITF
         {
             LOG("[GameOptions] No saved options found - using defaults");
             RAY_GAMEMANAGER->applyDisplayOptions();
+            RAY_GAMEMANAGER->applyMasterVolumeOption();
             RAY_GAMEMANAGER->applyMusicVolumeOption();
             RAY_GAMEMANAGER->applySFXVolumeOption();
         }
