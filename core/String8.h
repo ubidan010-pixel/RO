@@ -551,7 +551,7 @@ private:
     UTF8ToWChar m_converter;
 };
 
-// UTF16 to UTF16 conversion
+// UTF8 to UTF16 conversion (in char16_t format)
 template <>
 class String8ToCharType<char16_t> final
 {
@@ -569,6 +569,26 @@ public:
 private:
     UTF8ToUTF16 m_converter;
 };
+
+// UTF8 to UTF16 conversion (in u16 format)
+template <>
+class String8ToCharType<u16> final
+{
+public:
+    String8ToCharType(const String8& str)
+        : m_converter{ str.cStr() }
+    {
+    }
+
+    const u16* get() const
+    {
+        return m_converter.getAsU16();
+    }
+
+private:
+    UTF8ToUTF16 m_converter;
+};
+
 
 // UTF8 to UTF32 conversion
 template <>
@@ -591,11 +611,9 @@ private:
 
 using String8ToWChar = String8ToCharType<wchar_t>;
 using String8ToChar16 = String8ToCharType<char16_t>;
+using String8ToU16 = String8ToCharType<u16>;
 using String8ToChar32 = String8ToCharType<char32_t>;
 
 } // namespace ITF
-
-
-
 
 #endif //_ITF_STRING8_H_

@@ -5217,6 +5217,8 @@ namespace ITF
             m_inputManager->addPS5pad_device(JOY_MAX_COUNT);
 
             m_inputManager->addNintendopad_device(JOY_MAX_COUNT);
+
+            m_inputManager->addXBoxSeries_device(JOY_MAX_COUNT);
         }
 
         fillWorldMapWorldsList();

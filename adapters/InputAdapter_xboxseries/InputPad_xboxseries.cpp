@@ -194,7 +194,7 @@ namespace ITF
 
     void InputPad_GameInput::updateAxis(u32 _axisId, f32 _newValue)
     {
-        auto axis = m_axes[_axisId];
+        auto & axis = m_axes[_axisId];
         if (_newValue > -GAMEINPUT_AXIS_DEADZONE && _newValue < GAMEINPUT_AXIS_DEADZONE)
             axis = 0.0f;
         else
@@ -205,7 +205,7 @@ namespace ITF
 
     void InputPad_GameInput::updateTriggerAxis(u32 _axisId, f32 _newValue)
     {
-        auto axis = m_axes[_axisId];
+        auto & axis = m_axes[_axisId];
         if (_newValue < GAMEINPUT_TRIGGER_DEADZONE)
             axis = 0.0f;
         else
