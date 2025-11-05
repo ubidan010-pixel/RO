@@ -702,52 +702,84 @@ namespace ITF
         }
 
         // Use of the D-pad: the button is pressed -> scroll left or right
-        else if (m_timer > m_timeout && action == input_actionID_LeftHold)
+        else if (action == input_actionID_LeftHold)
         {
-            if (m_firstPressed && m_timer > m_timeoutJustPressed)
-            {
-                m_timer = 0.0f;
-                m_firstPressed = bfalse;
-            }
-            if (!m_firstPressed)
-            {
-                m_timer = 0.0f;
+            UIListOptionComponent* listOption = component->DynamicCast<UIListOptionComponent>(ITF_GET_STRINGID_CRC(UIListOptionComponent, 3621365669));
+            UIFloatOptionComponent* floatOption = component->DynamicCast<UIFloatOptionComponent>(ITF_GET_STRINGID_CRC(UIFloatOptionComponent, 226609316));
 
-                if (UIListOptionComponent* listOption = component->DynamicCast<UIListOptionComponent>(ITF_GET_STRINGID_CRC(UIListOptionComponent, 3621365669)))
+            // For list options, apply initial delay
+            if (listOption)
+            {
+                if (m_timer > m_timeout)
                 {
-                    adjustListOption(listOption, m_currentEditingOption, -1);
-                    return btrue;
+                    if (m_firstPressed && m_timer > m_timeoutJustPressed)
+                    {
+                        m_timer = 0.0f;
+                        m_firstPressed = bfalse;
+                    }
+                    if (!m_firstPressed)
+                    {
+                        m_timer = 0.0f;
+                        adjustListOption(listOption, m_currentEditingOption, -1);
+                        return btrue;
+                    }
                 }
-
-                if (UIFloatOptionComponent* floatOption = component->DynamicCast<UIFloatOptionComponent>(ITF_GET_STRINGID_CRC(UIFloatOptionComponent, 226609316)))
+            }
+            // For slider (float option), no delay needed - execute immediately when held
+            else if (floatOption)
+            {
+                // If first press, execute immediately and reset timer
+                if (m_firstPressed)
                 {
+                    m_firstPressed = bfalse;
+                    m_timer = 0.0f;
                     adjustFloatOption(floatOption, m_currentEditingOption, -1);
                     return btrue;
                 }
+                // For continuous movement, execute every frame for smooth slider movement
+                // No timeout check needed - slider should update continuously while held
+                adjustFloatOption(floatOption, m_currentEditingOption, -1);
+                return btrue;
             }
         }
-        else if (m_timer > m_timeout && action == input_actionID_RightHold)
+        else if (action == input_actionID_RightHold)
         {
-            if (m_firstPressed && m_timer > m_timeoutJustPressed)
-            {
-                m_timer = 0.0f;
-                m_firstPressed = bfalse;
-            }
-            if (!m_firstPressed)
-            {
-                m_timer = 0.0f;
+            UIListOptionComponent* listOption = component->DynamicCast<UIListOptionComponent>(ITF_GET_STRINGID_CRC(UIListOptionComponent, 3621365669));
+            UIFloatOptionComponent* floatOption = component->DynamicCast<UIFloatOptionComponent>(ITF_GET_STRINGID_CRC(UIFloatOptionComponent, 226609316));
 
-                if (UIListOptionComponent* listOption = component->DynamicCast<UIListOptionComponent>(ITF_GET_STRINGID_CRC(UIListOptionComponent, 3621365669)))
+            // For list options, apply initial delay
+            if (listOption)
+            {
+                if (m_timer > m_timeout)
                 {
-                    adjustListOption(listOption, m_currentEditingOption, 1);
-                    return btrue;
+                    if (m_firstPressed && m_timer > m_timeoutJustPressed)
+                    {
+                        m_timer = 0.0f;
+                        m_firstPressed = bfalse;
+                    }
+                    if (!m_firstPressed)
+                    {
+                        m_timer = 0.0f;
+                        adjustListOption(listOption, m_currentEditingOption, 1);
+                        return btrue;
+                    }
                 }
-
-                if (UIFloatOptionComponent* floatOption = component->DynamicCast<UIFloatOptionComponent>(ITF_GET_STRINGID_CRC(UIFloatOptionComponent, 226609316)))
+            }
+            // For slider (float option), no delay needed - execute immediately when held
+            else if (floatOption)
+            {
+                // If first press, execute immediately and reset timer
+                if (m_firstPressed)
                 {
+                    m_firstPressed = bfalse;
+                    m_timer = 0.0f;
                     adjustFloatOption(floatOption, m_currentEditingOption, 1);
                     return btrue;
                 }
+                // For continuous movement, execute every frame for smooth slider movement
+                // No timeout check needed - slider should update continuously while held
+                adjustFloatOption(floatOption, m_currentEditingOption, 1);
+                return btrue;
             }
         }
 
