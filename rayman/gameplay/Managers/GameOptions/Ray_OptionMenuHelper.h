@@ -23,6 +23,16 @@ namespace ITF
     class UIListOptionComponent;
     class UIFloatOptionComponent;
     class UIToggleOptionComponent;
+    
+    namespace Ray_OptionMenuHelperConstants
+    {
+        static const f32 INPUT_REPEAT_TIMEOUT = 0.2f;         
+        static const f32 INPUT_INITIAL_DELAY = 0.3f;           
+        static const f32 SLIDER_DEFAULT_STEP = 0.05f;           
+        static const f32 SLIDER_SPEED_MULTIPLIER = 3.0f;         
+        static const f32 FLOAT_EPSILON = 1e-4f;                 
+    }
+    
     class Ray_OptionMenuHelper : public UIMenuManager::MenuItemActionListener
     {
     public:

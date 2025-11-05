@@ -50,8 +50,8 @@ namespace ITF
           , m_currentEditingOption(StringID::Invalid)
           , m_currentEditingComponent(nullptr)
           , m_timer(0.0f)
-          , m_timeout(0.2f)
-          , m_timeoutJustPressed(0.3f)
+          , m_timeout(Ray_OptionMenuHelperConstants::INPUT_REPEAT_TIMEOUT)
+          , m_timeoutJustPressed(Ray_OptionMenuHelperConstants::INPUT_INITIAL_DELAY)
           , m_firstPressed(btrue)
     {
     }
@@ -567,13 +567,15 @@ namespace ITF
 
         f32 step = floatComponent->getCursorSpeed();
         if (step <= 0.0f)
-            step = 0.05f;
+            step = Ray_OptionMenuHelperConstants::SLIDER_DEFAULT_STEP;
+        
+        step *= Ray_OptionMenuHelperConstants::SLIDER_SPEED_MULTIPLIER;
 
         f32 currentValue = floatOption->getValue();
         f32 newValue = currentValue + ((direction > 0) ? step : -step);
         newValue = std::max(floatOption->getMinValue(), std::min(floatOption->getMaxValue(), newValue));
 
-        if (std::fabs(newValue - currentValue) < 1e-4f)
+        if (std::fabs(newValue - currentValue) < Ray_OptionMenuHelperConstants::FLOAT_EPSILON)
             return;
 
         if (optionId == OPTION_MASTER_VOLUME)
