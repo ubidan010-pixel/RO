@@ -38,9 +38,42 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstring>
 
 namespace ITF
 {
+    namespace
+    {
+        struct OptionNavigationEntry
+        {
+            const char* friendly;
+            const char* up;
+            const char* down;
+            const char* left;
+            const char* right;
+        };
+
+        static const OptionNavigationEntry s_optionNavigationEntries[] =
+        {
+            { "resolution_option",        nullptr,                  "window_option",          nullptr,                    "start_with_heart_option" },
+            { "window_option",            "resolution_option",       "language_option",        nullptr,                    "run_button_option" },
+            { "language_option",          "window_option",           "master_volume_option",   nullptr,                    "vibration_option" },
+            { "master_volume_option",     "language_option",         "music_volume_option",    nullptr,                    "reset_to_default_button" },
+            { "music_volume_option",      "master_volume_option",    "sfx_volume_option",      nullptr,                    "reset_to_default_button" },
+            { "sfx_volume_option",        "music_volume_option",     "accept_button",          nullptr,                    "ubisoftconnect_button" },
+            { "accept_button",            "sfx_volume_option",       nullptr,                  nullptr,                    "cancel_button" },
+            { "cancel_button",            "ubisoftconnect_button",   nullptr,                  "accept_button",            nullptr },
+            { "reset_to_default_button",  "intensity_option",        "ubisoftconnect_button",  "music_volume_option",      "cancel_button" },
+            { "ubisoftconnect_button",    "reset_to_default_button", "cancel_button",          "sfx_volume_option",        "cancel_button" },
+            { "start_with_heart_option",  nullptr,                  "run_button_option",      "resolution_option",        nullptr },
+            { "run_button_option",        "start_with_heart_option", "vibration_option",       "window_option",            nullptr },
+            { "vibration_option",         "run_button_option",       "intensity_option",       "language_option",          nullptr },
+            { "intensity_option",         "vibration_option",        "reset_to_default_button","language_option",          nullptr },
+        };
+
+        static const size_t s_optionNavigationEntryCount = sizeof(s_optionNavigationEntries) / sizeof(s_optionNavigationEntries[0]);
+    }
+
     Ray_OptionMenuHelper* Ray_OptionMenuHelper::s_activeHelper = nullptr;
     Ray_OptionMenuHelper::Ray_OptionMenuHelper()
         : m_mainListener(nullptr)
@@ -801,6 +834,102 @@ namespace ITF
             return nullptr;
 
         return component->DynamicCast<UIFloatOptionComponent>(ITF_GET_STRINGID_CRC(UIFloatOptionComponent, 226609316));
+    }
+
+    UIComponent* Ray_OptionMenuHelper::findComponentByFriendlyName(const char* friendlyName) const
+    {
+        if (!m_menu || !friendlyName || friendlyName[0] == '\0')
+            return nullptr;
+
+        const ObjectRefList& componentsList = m_menu->getUIComponentsList();
+        for (u32 i = 0; i < componentsList.size(); ++i)
+        {
+            UIComponent* comp = UIMenuManager::getUIComponent(componentsList[i]);
+            if (!comp)
+                continue;
+
+            Actor* actor = comp->GetActor();
+            if (!actor)
+                continue;
+
+            const String8& compFriendly = actor->getUserFriendly();
+            if (compFriendly.isEmpty())
+                continue;
+
+            if (compFriendly.equals(friendlyName, bfalse))
+                return comp;
+        }
+
+        return nullptr;
+    }
+
+    UIComponent* Ray_OptionMenuHelper::getNavigationTarget(UIComponent* current, ENavigationDirection direction) const
+    {
+        if (!current)
+            return nullptr;
+
+        Actor* actor = current->GetActor();
+        if (!actor)
+            return nullptr;
+
+        const String8& friendly = actor->getUserFriendly();
+        if (friendly.isEmpty())
+            return nullptr;
+
+        for (size_t i = 0; i < s_optionNavigationEntryCount; ++i)
+        {
+            const OptionNavigationEntry& entry = s_optionNavigationEntries[i];
+            if (!entry.friendly || !friendly.equals(entry.friendly, bfalse))
+                continue;
+
+            const char* targetFriendly = nullptr;
+            switch (direction)
+            {
+            case Navigation_Up:    targetFriendly = entry.up; break;
+            case Navigation_Down:  targetFriendly = entry.down; break;
+            case Navigation_Left:  targetFriendly = entry.left; break;
+            case Navigation_Right: targetFriendly = entry.right; break;
+            default: break;
+            }
+
+            if (!targetFriendly)
+                return nullptr;
+
+            return findComponentByFriendlyName(targetFriendly);
+        }
+
+        return nullptr;
+    }
+
+    ObjectRef Ray_OptionMenuHelper::getNavigationOverrideTarget(UIComponent* current, f32 joyX, f32 joyY) const
+    {
+        if (!m_isActive || !isNavigating() || !m_menu || !current)
+            return ObjectRef::InvalidRef;
+
+        const f32 absJoyX = f32_Abs(joyX);
+        const f32 absJoyY = f32_Abs(joyY);
+        if (absJoyX < MTH_EPSILON && absJoyY < MTH_EPSILON)
+            return ObjectRef::InvalidRef;
+
+        ENavigationDirection direction;
+        if (absJoyX >= absJoyY)
+        {
+            if (absJoyX < MTH_EPSILON)
+                return ObjectRef::InvalidRef;
+            direction = (joyX > 0.0f) ? Navigation_Right : Navigation_Left;
+        }
+        else
+        {
+            if (absJoyY < MTH_EPSILON)
+                return ObjectRef::InvalidRef;
+            direction = (joyY > 0.0f) ? Navigation_Down : Navigation_Up;
+        }
+
+        UIComponent* target = getNavigationTarget(current, direction);
+        if (!target || target == current || !target->getActive() || !target->getCanBeSelected())
+            return ObjectRef::InvalidRef;
+
+        return target->getUIref();
     }
 
     void Ray_OptionMenuHelper::UpdateResolutionText()

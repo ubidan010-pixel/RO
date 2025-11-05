@@ -881,6 +881,29 @@ void UIMenuManager::applySelectionChange(UIMenu* menu, UIComponent* oldSel, UICo
                     if (handleMenuStartHorizontalNavigation(pMenu, pUIComponentSelected, joyX, joyY))
                         return;
 
+                    Ray_OptionMenuHelper* optionHelper = Ray_OptionMenuHelper::getActiveHelper();
+                    if (optionHelper)
+                    {
+                        ObjectRef overrideRef = optionHelper->getNavigationOverrideTarget(pUIComponentSelected, joyX, joyY);
+                        if (overrideRef.isValid())
+                        {
+                            ObjectRef refComponentSelected = pUIComponentSelected->getUIref();
+                            if (overrideRef != refComponentSelected)
+                            {
+                                UIComponent* newSel = getUIComponent(overrideRef);
+                                if (newSel)
+                                {
+                                    applySelectionChange(pMenu, pUIComponentSelected, newSel);
+                                    return;
+                                }
+                            }
+                            else
+                            {
+                                return;
+                            }
+                        }
+                    }
+
                     f32 angleJoy = atan2f(joyY, joyX);
                     ObjectRef refComponentSelected = pUIComponentSelected->getUIref();
                     ObjectRef refNextComponentSelected = findUIComponentToSelect(UIComponentsList,pUIComponentSelected,angleJoy);
@@ -909,7 +932,7 @@ void UIMenuManager::applySelectionChange(UIMenu* menu, UIComponent* oldSel, UICo
         ObjectRef refNextComponentSelected = refComponentSelected;
         Vec3d posComponentSelected = _pUIComponentSelected->GetActor()->getPos();
 
-        f32 angleJoyComponent ;
+        f32 angleJoyComponent;
         if (_findFarthest)
             angleJoyComponent = 0.0f;
         else
@@ -918,36 +941,37 @@ void UIMenuManager::applySelectionChange(UIMenu* menu, UIComponent* oldSel, UICo
         for (u32 i = 0; i < _UIComponentsList.size(); i++)
         {
             UIComponent* pUIComponent = getUIComponent(_UIComponentsList[i]);
-            if (pUIComponent && pUIComponent->getActive() && pUIComponent->getCanBeSelected())
+            if (!pUIComponent || !pUIComponent->getActive() || !pUIComponent->getCanBeSelected())
+                continue;
+
+            ObjectRef refUIComponent = pUIComponent->getUIref();
+            if (refUIComponent == refComponentSelected)
+                continue;
+
+            Vec3d posComponent = pUIComponent->GetActor()->getPos();
+            Vec2d delta(posComponent.m_x - posComponentSelected.m_x,
+                        posComponent.m_y - posComponentSelected.m_y);
+
+            f32 angleComponents = atan2f(delta.m_y, delta.m_x);
+            f32 sqDist = delta.sqrnorm();
+            f32 angleJoyComponentTemp = angleComponents - _angleJoy;
+
+            if (angleJoyComponentTemp < -MTH_PI)
+                angleJoyComponentTemp += 2 * MTH_PI;
+            if (angleJoyComponentTemp > MTH_PI)
+                angleJoyComponentTemp -= 2 * MTH_PI;
+
+            angleJoyComponentTemp = f32_Abs(angleJoyComponentTemp);
+            f32 score = angleJoyComponentTemp * 60.0f + (sqDist / 5000.0f);
+
+            if ((!_findFarthest && angleJoyComponentTemp < (MTH_PI / 2.5f) && score < angleJoyComponent) ||
+                (_findFarthest && angleJoyComponentTemp > (MTH_PI / 1.5f) && score > angleJoyComponent))
             {
-                ObjectRef refUIComponent = pUIComponent->getUIref();
-                if (refUIComponent != refComponentSelected)
-                {
-                    Vec3d posComponent = pUIComponent->GetActor()->getPos();
-
-                    f32 angleComponents = atan2f( posComponent.m_y - posComponentSelected.m_y,
-                        posComponent.m_x - posComponentSelected.m_x);
-
-                    f32 sqDist = (posComponent - posComponentSelected).sqrnorm();
-                    f32 angleJoyComponentTemp = angleComponents - _angleJoy;
-
-                    if (angleJoyComponentTemp < -MTH_PI)
-                        angleJoyComponentTemp += 2 * MTH_PI;
-                    if (angleJoyComponentTemp > MTH_PI)
-                        angleJoyComponentTemp -= 2 * MTH_PI;
-
-                    angleJoyComponentTemp = f32_Abs(angleJoyComponentTemp);
-                    f32 score = angleJoyComponentTemp * 60 + (sqDist / 5000);
-
-                    if ((!_findFarthest && angleJoyComponentTemp < (MTH_PI / 2.5f) && score < angleJoyComponent) ||
-                        (_findFarthest && angleJoyComponentTemp > (MTH_PI / 1.5f) && score > angleJoyComponent))
-                    {
-                        angleJoyComponent = score;
-                        refNextComponentSelected = refUIComponent;
-                    }
-                }
+                angleJoyComponent = score;
+                refNextComponentSelected = refUIComponent;
             }
         }
+
         return refNextComponentSelected;
     }
 

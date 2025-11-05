@@ -51,6 +51,7 @@ namespace ITF
         bbool onMenuItemOtherAction(UIComponent* _UIComponent, const StringID& _action) override;
         void UpdateMenuOnSelectionChange(UIComponent* uiComponent, bbool isSelected) override;
         void updateTimer();
+        ObjectRef getNavigationOverrideTarget(UIComponent* current, f32 joyX, f32 joyY) const;
 
     private:
         bbool handleResetToDefault(const StringID& id);
@@ -101,6 +102,15 @@ namespace ITF
         UIListOptionComponent* findListOptionComponent(const StringID& optionId) const;
         UIToggleOptionComponent* findToggleOptionComponent(const StringID& optionId) const;
         UIFloatOptionComponent* findFloatOptionComponent(const StringID& optionId) const;
+        UIComponent* findComponentByFriendlyName(const char* friendlyName) const;
+        enum ENavigationDirection
+        {
+            Navigation_Up,
+            Navigation_Down,
+            Navigation_Left,
+            Navigation_Right
+        };
+        UIComponent* getNavigationTarget(UIComponent* current, ENavigationDirection direction) const;
 
         MenuItemActionListener* m_mainListener;
         UIMenu*    m_menu;
