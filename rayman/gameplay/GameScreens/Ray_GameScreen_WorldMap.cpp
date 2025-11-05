@@ -506,6 +506,10 @@ void Ray_GameScreen_WorldMap::onMenuItemAction(UIComponent* _UIComponent)
     {
         m_optionMenuHelper.activateForOptionMenu(this);
     }
+    else if (id == ITF_GET_STRINGID_CRC(controls, 1174371653))
+    {
+        m_controlsRemappingMenuHelper.activateForControlsRemappingMenu(this);
+    }
 }
 
 //------------------------------------------------------------------------------
