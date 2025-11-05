@@ -11963,9 +11963,6 @@ namespace ITF
         volume = std::max(volume, 0.0f);
         volume = std::min(volume, 1.0f);
         m_gameOptionManager.setFloatOption(OPTION_MASTER_VOLUME, volume);
-        Adapter_AudioMiddleware *audioAdapter = Adapter_AudioMiddleware::getptr();
-        if (audioAdapter)
-            audioAdapter->setMasterVolume(Volume(volume, false));
     }
 
     f32 Ray_GameManager::getMusicVolume() const
@@ -11978,11 +11975,6 @@ namespace ITF
         volume = std::max(volume, 0.0f);
         volume = std::min(volume, 1.0f);
         m_gameOptionManager.setFloatOption(OPTION_MUSIC_VOLUME, volume);
-        Adapter_AudioMiddleware *audioAdapter = Adapter_AudioMiddleware::getptr();
-        if (audioAdapter)
-        {
-            audioAdapter->setBusVolume(SOUND_BUS_MUSIC, Volume(volume, false), 0.0f);
-        }
     }
 
     f32 Ray_GameManager::getSFXVolume() const
@@ -11995,11 +11987,6 @@ namespace ITF
         volume = std::max(volume, 0.0f);
         volume = std::min(volume, 1.0f);
         m_gameOptionManager.setFloatOption(OPTION_SFX_VOLUME, volume);
-        Adapter_AudioMiddleware *audioAdapter = Adapter_AudioMiddleware::getptr();
-        if (audioAdapter)
-        {
-            audioAdapter->setBusVolume(StringID("SFX"), Volume(volume, false), 0.0f);
-        }
     }
 
     f32 Ray_GameManager::getIntensity() const
@@ -12018,7 +12005,7 @@ namespace ITF
     {
     }
 
-    void Ray_GameManager::applyapplyLanguageOption()
+    void Ray_GameManager::applyLanguageOption()
     {
         ITF_LANGUAGE language = static_cast<ITF_LANGUAGE>(m_gameOptionManager.getIntListOptionValue(OPTION_LANGUAGE));
         if (LOCALISATIONMANAGER && LOCALISATIONMANAGER->getCurrentLanguage() != language)
@@ -12061,24 +12048,34 @@ namespace ITF
     {
         f32 masterVol = getMasterVolume();
         LOG("[OptionMenu] Master Volume: %.2f (%.0f%%)", masterVol, masterVol * 100.0f);
-        // TODO: Apply master volume to audio system when needed
-        // SOUND_ADAPTER->setMasterVolume(masterVol);
+        
+        Adapter_AudioMiddleware *audioAdapter = Adapter_AudioMiddleware::getptr();
+        if (audioAdapter)
+            audioAdapter->setMasterVolume(Volume(masterVol, false));
     }
 
     void Ray_GameManager::applyMusicVolumeOption()
     {
         f32 musicVol = getMusicVolume();
         LOG("[OptionMenu] Music Volume: %.2f (%.0f%%)", musicVol, musicVol * 100.0f);
-        // TODO: Apply to SOUND_ADAPTER when needed
-        // SOUND_ADAPTER->setMusicVolume(musicVol);
+        
+        Adapter_AudioMiddleware *audioAdapter = Adapter_AudioMiddleware::getptr();
+        if (audioAdapter)
+        {
+            audioAdapter->setBusVolume(SOUND_BUS_MUSIC, Volume(musicVol, false), 0.0f);
+        }
     }
 
     void Ray_GameManager::applySFXVolumeOption()
     {
         f32 sfxVol = getSFXVolume();
         LOG("[OptionMenu] SFX Volume: %.2f (%.0f%%)", sfxVol, sfxVol * 100.0f);
-        // TODO: Apply to SOUND_ADAPTER when needed
-        // SOUND_ADAPTER->setSFXVolume(sfxVol);
+        
+        Adapter_AudioMiddleware *audioAdapter = Adapter_AudioMiddleware::getptr();
+        if (audioAdapter)
+        {
+            audioAdapter->setBusVolume(StringID("SFX"), Volume(sfxVol, false), 0.0f);
+        }
     }
 
     void Ray_GameManager::applyIntensityOption()
