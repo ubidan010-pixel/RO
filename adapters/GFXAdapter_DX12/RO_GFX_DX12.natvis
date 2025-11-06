@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+    <Type Name="ITF::DX12::TexturePool::TexturePoolEntry">
+        <DisplayString Condition="texture != nullptr">tex = {texture->textureName}</DisplayString>
+    </Type>
+    <Type Name="ITF::DX12::ShaderProgram">
+        <DisplayString>{m_loadedFileName}</DisplayString>
+    </Type>
+    <Type Name="ITF::DX12::VRAMHandleLinks">
+        <Expand>
+            <Item Name="Chunk" Condition="prev == nullptr">(ITF::DX12::VRAMAllocator::ChunkEntry*)((char *)&amp;next - 24)</Item>
+            <LinkedListItems Condition="prev != nullptr">
+                <Size>4</Size>
+                <HeadPointer>this</HeadPointer>
+                <NextPointer>prev</NextPointer>
+                <ValueNode>
+                    prev
+                </ValueNode>
+            </LinkedListItems>
+        </Expand>
+    </Type>    
+    <Type Name="ITF::DX12::ResourceVRAMRelocHandle">
+        <DisplayString>w={m_desc.Width} h={m_desc.Height} {m_desc.Dimension}</DisplayString>
+    </Type>
+    <Type Name="ITF::ITF_VertexBuffer">
+        <DisplayString>{{Count={m_nVertex}, FromRingBuffer={m_bUseRingBuffer}, Dynamic={mb_dynamic}}}</DisplayString>
+        <Expand>
+            <Item Name="UseRingBuffer">m_bUseRingBuffer</Item>
+            <Item Name="Count">m_nVertex</Item>
+            <Item Name="Offset">m_offset</Item>
+            <Item Name="Size">m_size</Item>
+            <Item Name="VertexSize">m_structVertexSize</Item>
+            <Item Name="Format">m_vertexFormat</Item>
+            <Item Name="Dynamic">mb_dynamic</Item>
+            <Item Name="DX12::VertexBuffer">((DX12::VertexBuffer*)mp_VertexBuffer)</Item>
+        </Expand>
+    </Type>
+</AutoVisualizer>

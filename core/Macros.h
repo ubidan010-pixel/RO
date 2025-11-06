@@ -75,7 +75,7 @@
     #define ITF_SUPPORT_PLUGIN 1
 #endif  //!defined (ITF_FINAL)
 
-#if defined (ITF_PS3) || defined(ITF_PS5) || defined(ITF_NINTENDO)
+#if defined (ITF_PS3) || defined(ITF_PS5) || defined(ITF_NINTENDO) || defined(ITF_XBOX_SERIES)
 #define ITF_SUPPORT_XML                 1 // Used by shaders for technique descriptors
 #endif
 
@@ -175,13 +175,15 @@
 #endif
 
 #if defined(ITF_MICROSOFT)
-    #define SPRINTF_S(__buf,__size,__format,...)            sprintf_s(__buf,__size,__format,__VA_ARGS__)
-    #define SPRINTF_S_TRUNC(__buf,__size,__format,...)      FormatTruncate( __buf, __size, __format, __VA_ARGS__);
-    #define SSCANF_S(__buf,__format,...)                    sscanf_s(__buf,__format,__VA_ARGS__)
+    #define SPRINTF_S(buf_, size_, format_, ...)            sprintf_s(buf_, size_, format_, __VA_ARGS__)
+    #define SPRINTF_S_TRUNC(buf_, size_, format_, ...)      FormatTruncate( buf_, size_, format_, __VA_ARGS__);
+    #define SPRINTF_S_TRUNC_VALIST(buf_, size_, format_, list_) VFormatTruncate( buf_, size_, format_, list_);
+    #define SSCANF_S(buf_, format_,...)                    sscanf_s(buf_, format_, __VA_ARGS__)
 #else
-    #define SPRINTF_S(__buf,__size,__format,...)            sprintf(__buf,__format,## __VA_ARGS__)
-    #define SPRINTF_S_TRUNC(__buf,__size,__format,...)      FormatTruncate( __buf, __size, __format, __VA_ARGS__)
-    #define SSCANF_S(__buf,__format,...)                    sscanf(__buf,__format,## __VA_ARGS__)
+    #define SPRINTF_S(buf_, size_, format_,...)            sprintf(buf_, format_, ## __VA_ARGS__)
+    #define SPRINTF_S_TRUNC(buf_, size_, format_,...)      FormatTruncate( buf_, size_, format_, __VA_ARGS__)
+    #define SPRINTF_S_TRUNC_VALIST(buf_, size_, format_, list_) VFormatTruncate( buf_, size_, format_, list_);
+    #define SSCANF_S(buf_, format_, ...)                    sscanf(buf_, format_, ## __VA_ARGS__)
 #endif // !ITF_MICROSOFT
 
 // $GB 2025/28/02: replace __DEBUG_BREAK by ITF_DEBUG_BREAK
@@ -201,7 +203,7 @@
 
 // $GB 2025/25/02: ITF_RESTRICT as a define to handle differences that could exist between compilers.
 // While restrict is C99 keyword, there is no such thing in C++.
-// Anyway __restrict is available on GCC/Clang/MSVC in C++ but subtly propagation rules can change.
+// Anyway __restrict is available on GCC/Clang/MSVC in C++ but subtle propagation rules can change.
 #define ITF_RESTRICT __restrict
 
 // $GB 2025/25/02: ITF_FORCE_INLINE also set for other compilers (ref code from wikipedia).
@@ -410,7 +412,15 @@
     #define ITF_ASSERT_NN_RESULT(res_) ITF_ASSERT_NN_RESULT_NAMED(res_, #res_)
 #elif defined(ITF_MICROSOFT)
     #if defined(ASSERT_ENABLED)
-        #define ITF_VERIFY_HR_CALL_NAMED(call_, name_) [&](){ HRESULT hr_ = (call_); ITF_ASSERT_MSG(SUCCEEDED(hr_), "HRESULT call failed %s with error code 0x%08x", name_, hr_); }()
+        #define ITF_VERIFY_HR_CALL_NAMED(call_, name_) [&](){ \
+                HRESULT hr_ = (call_); \
+                if (FAILED(hr_)) \
+                { \
+                    char hresultMsg_[200]; \
+                    ITF::AssertManager::HResultToStringBuf(hr_, hresultMsg_); \
+                    ITF_ASSERT_MSG(SUCCEEDED(hr_), "HRESULT failed %s. %s", name_, hresultMsg_); \
+                } \
+            }()
         #define ITF_ASSERT_HR_RESULT_NAMED(res_, name_) ITF_VERIFY_HR_CALL_NAMED(res_, name_)
     #else
         #define ITF_VERIFY_HR_CALL_NAMED(call_, name_) call_
@@ -559,7 +569,7 @@ namespace ITF
 
 } // namespace ITF
 
-#if !defined(ITF_MICROSOFT) && !defined(MAKEFOURCC)
+#if !defined(ITF_WINDOWS) && !defined(MAKEFOURCC)
     #define MAKEFOURCC(ch0, ch1, ch2, ch3)                              \
         ((unsigned int)(unsigned char)(ch0) | ((unsigned int)(unsigned char)(ch1) << 8) |   \
         ((unsigned int)(unsigned char)(ch2) << 16) | ((unsigned int)(unsigned char)(ch3) << 24 ))

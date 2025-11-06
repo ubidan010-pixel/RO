@@ -61,6 +61,15 @@ namespace ITF
 
         HWND getHwnd() const { return static_cast<HWND>(m_hwnd); }
 
+        struct UserInfo
+        {
+            XUserHandle handle = nullptr;
+            uint64_t userId = 0;
+            XUserLocalId localId = XUserNullUserLocalId;
+        };
+        UserInfo getInitialUserInfo() const;
+        const char* getServiceConfigurationId() const { return m_serviceConfigurationIdStr.cStr(); }
+
     protected:
         void setResolution();
         void createWindow(String _name);
@@ -69,6 +78,8 @@ namespace ITF
         void addInitialUser();
         void initSuspendEvents();
         void initConstrainedEvents();
+        void initTitleId();
+        void initXBoxLive();
         void fetchSuspendRequest();
         void updatePauseState();
 
@@ -93,14 +104,12 @@ namespace ITF
         mutable Mutex m_mutexDialog; // Ensure only one message box at a time
 
         mutable Mutex m_mutexUser;
-        struct UserInfo
-        {
-            XUserHandle handle = nullptr;
-            uint64_t userId = 0;
-            XUserLocalId localId = XUserNullUserLocalId;
-        };
         UserInfo m_initialUserInfo;
         Vector<UserInfo> m_usersInfo;
+
+        u32 m_titleId = 0x7E750470; // This default value come from the sample GameSaveCombo. It should be changed after init by requesting it.
+        String8 m_titleIdStr;
+        String8 m_serviceConfigurationIdStr;
 
         PAPPSTATE_REGISTRATION m_hProcessLifetimeManagement = nullptr;
         PAPPCONSTRAIN_REGISTRATION m_hProcessLifetimeManagementConstrained = nullptr;
@@ -113,6 +122,8 @@ namespace ITF
 
         bool m_gamePausedByConstrained = false;
     };
+
+    #define SYSTEM_ADAPTER_XBOX_SERIES (static_cast<SystemAdapter_XBoxSeries*>(SYSTEM_ADAPTER))
 
 } // namespace ITF
 

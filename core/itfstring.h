@@ -232,10 +232,10 @@ public:
     ///
     String ( const u16* szString );
 
-#ifdef ITF_WINDOWS
+#ifdef ITF_WCHAR_IS_16BIT
     //////////////////////////////////////////////////////////////////////////
     ///
-    /// Variant on windows for wchar_t assuming wchar_t as a 16 bits object
+    /// Variant for wchar_t assuming wchar_t as a 16 bits object
     ///
     String(const wchar_t* szString)
         : String(reinterpret_cast<const u16*>(szString))
@@ -351,10 +351,10 @@ public:
     /// Check if the string ends with the specified string
     bool endsWith(const String& _end) const;
 
-#ifdef ITF_WINDOWS
+#ifdef ITF_WCHAR_IS_16BIT
     //////////////////////////////////////////////////////////////////////////
     ///
-    /// Variants using wchar_t for windows assuming wchar_t as a 16 bits object
+    /// Variants using wchar_t assuming wchar_t as a 16 bits object
     ///
     static_assert(sizeof(wchar_t) == sizeof(u16));
 

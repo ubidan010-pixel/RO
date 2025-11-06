@@ -77,7 +77,7 @@
 namespace ITF
 {
 
-#define XBOX_USE_TILE
+// #define XBOX_USE_TILE
 
 //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -577,7 +577,7 @@ namespace ITF
         outputOptions.setOutputHandler(outputHandler);
 
 #ifndef XBOX_USE_TILE
-        if (_szPlatform == "X360")
+        if (_platform == "X360")
             outputHandler->swapToBigEndian();
 #endif
         inputOptions.setRoundMode(nvtt::RoundMode_ToNextPowerOfTwo);

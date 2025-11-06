@@ -3,6 +3,7 @@
 
 namespace ITF
 {
+
     struct DDSCAPS2
     {
         DWORD dwCaps;
@@ -24,21 +25,30 @@ namespace ITF
         DWORD dwFourCC;
         DWORD dwRGBBitCount;
         DWORD dwRBitMask;
-        DWORD dwGBitMaskDWORD;
+        DWORD dwGBitMask;
         DWORD dwBBitMask;
-        DWORD dwRGBAlphaBitMask;
+        DWORD dwABitMask;
 
+        enum : DWORD
+        {
+            ALPHAPIXELS = 0x1, // Texture contains alpha data; dwRGBAlphaBitMask contains valid data.
+            ALPHA = 0x2,       // Used in some older DDS files for alpha channel only uncompressed data (dwRGBBitCount contains the alpha channel bitcount; dwABitMask contains valid data).
+            FOURCC = 0x4,      // dwFourCC contains valid data.
+            RGB = 0x40,        // Texture contains uncompressed RGB data; dwRGBBitCount and the RGB masks(dwRBitMask, dwGBitMask, dwBBitMask) contain valid data.
+            YUV = 0x200,       // Used in some older DDS files for YUV uncompressed data(dwRGBBitCount contains the YUV bit count; dwRBitMask contains the Y mask, dwGBitMask contains the U mask, dwBBitMask contains the V mask)
+            LUMINANCE = 0x2000 // Used in some older DDS files for single channel color uncompressed data(dwRGBBitCount contains the luminance channel bit count; dwRBitMask contains the channel mask).Can be combined with DDPF_ALPHAPIXELS for a two channel DDS file.
+        };
 
-         void swapToBigEndian()
+        void swapToBigEndian()
         {
 
             Endian::swapBigEndian(dwSize,(u8*)&dwSize);
             Endian::swapBigEndian(dwFlags,(u8*)&dwFlags);
             Endian::swapBigEndian(dwFourCC,(u8*)&dwFourCC);
             Endian::swapBigEndian(dwRGBBitCount,(u8*)&dwRGBBitCount);
-            Endian::swapBigEndian(dwGBitMaskDWORD,(u8*)&dwGBitMaskDWORD);
+            Endian::swapBigEndian(dwGBitMask,(u8*)&dwGBitMask);
             Endian::swapBigEndian(dwBBitMask,(u8*)&dwBBitMask);
-            Endian::swapBigEndian(dwRGBAlphaBitMask,(u8*)&dwRGBAlphaBitMask);
+            Endian::swapBigEndian(dwABitMask,(u8*)&dwABitMask);
 
         }
     };
@@ -50,6 +60,18 @@ namespace ITF
         DWORD dwbHasOneColor;
         DWORD dwAnisotropy;
         DWORD dwReserved[7];
+    };
+
+    enum DDS_FLAGS : DWORD
+    {
+        DDSD_CAPS       = 0x1,      // Required in every.dds file.
+        DDSD_HEIGHT     = 0x2,      // Required in every.dds file.
+        DDSD_WIDTH      = 0x4,      // Required in every.dds file.
+        DDSD_PITCH      = 0x8,      // Required when pitch is provided for an uncompressed texture.
+        DDSD_PIXELFORMAT= 0x1000,   // Required in every.dds file.
+        DDSD_MIPMAPCOUNT= 0x20000,  // Required in a mipmapped texture.
+        DDSD_LINEARSIZE = 0x80000,  // Required when pitch is provided for a compressed texture.
+        DDSD_DEPTH      = 0x800000  // Required in a depth texture.
     };
 
     struct DDS_HEADER

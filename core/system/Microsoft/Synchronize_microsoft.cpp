@@ -23,6 +23,11 @@ namespace ITF
         ::EnterCriticalSection(GetCS(cs));
     }
 
+    bool Synchronize::tryEnterCriticalSection(ITF_THREAD_CRITICAL_SECTION* cs)
+    {
+        return 0 != ::TryEnterCriticalSection(GetCS(cs));
+    }
+
     void Synchronize::leaveCriticalSection(ITF_THREAD_CRITICAL_SECTION *cs)
     {
         ::LeaveCriticalSection(GetCS(cs));

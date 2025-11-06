@@ -11185,7 +11185,9 @@ void Ray_PlayerControllerComponent::processChangePage( Ray_EventChangePage* _eve
 
 void Ray_PlayerControllerComponent::processPlayerModeChanged( EventPlayerModeChanged* _eventGameMode )
 {
-    Player* player = GAMEMANAGER->getPlayerFromActor(_eventGameMode->getActivator());
+    Player* player = nullptr;
+    if (_eventGameMode->getActivator().isValid())
+        player = GAMEMANAGER->getPlayerFromActor(_eventGameMode->getActivator());
 
     if ( player && player->getActive() )
     {

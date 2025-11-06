@@ -40,6 +40,16 @@ namespace ITF
         static void OutputDebugMsg( const char * condition, const char * file, int line, int skipCount, const char * message, ... );
         static void OutputDebugMsg(const char * _str);
 
+    #ifdef ITF_MICROSOFT
+        // Helpers to print a more human readable windows HRESULT.
+        static void HResultToStringBuf(long _hr, char* _outBuf, size_t _outBufSize);
+        template <size_t N>
+        static void HResultToStringBuf(long _hr, char(&_outBuf)[N])
+        {
+            HResultToStringBuf(_hr, _outBuf, N);
+        }
+    #endif
+
         // Flag manipulation, to enable/disable specific asserts
         static inline FlagType isFlagEnabled(FlagType _flag)    { return (m_bAssertEnabled & _flag); }
         static void setFlag(FlagType _flag)                     { m_bAssertEnabled |= _flag; }

@@ -144,5 +144,17 @@ REGISTER_ITF_PARENT(TRCManagerAdapter_Nintendo, TRCManagerAdapter)
 REGISTER_ITF_PARENT(RewardAdapter_Dummy, RewardAdapter)
 #endif
 
+#ifdef ITF_XBOX_SERIES
+REGISTER_ITF_PARENT(GFXAdapter_DX12, GFXAdapter)
+REGISTER_ITF_PARENT(FileManager_ITF, FileManager)
+REGISTER_ITF_PARENT(SystemAdapter_XBoxSeries, SystemAdapter)
+REGISTER_ITF_PARENT(Adapter_Savegame_XBoxSeries, Adapter_Savegame)
+#ifdef ITF_SUPPORT_RAKI
+REGISTER_ITF_PARENT(SoundAdapter_Dummy, SoundAdapter)
+#endif
+REGISTER_ITF_PARENT(TRCManagerAdapter_XBoxSeries, TRCManagerAdapter)
+REGISTER_ITF_PARENT(RewardAdapter_Dummy, RewardAdapter)
+#endif
+
 
 END_REGISTER

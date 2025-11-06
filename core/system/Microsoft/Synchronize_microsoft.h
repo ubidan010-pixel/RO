@@ -34,95 +34,6 @@ private:
     volatile long m_lock;
 };
 
-class Mutex
-{
-public:
-
-    Mutex()
-    {
-        m_handle = ::CreateMutex(NULL, FALSE, NULL);
-        ITF_ASSERT(m_handle != NULL);
-    }
-
-    explicit Mutex(const char* /*_dbgName*/) // ignored (or the mutex would be a global object)
-    {
-        m_handle = ::CreateMutex(NULL, FALSE, NULL);
-        ITF_ASSERT(m_handle != NULL);
-    }
-
-    ~Mutex()
-    {
-        if (m_handle)
-        {
-            ::CloseHandle(m_handle);
-        }
-    }
-
-    Mutex(const Mutex&) = delete;
-    Mutex & operator = (const Mutex&) = delete;
-
-    void lock()
-    {
-        ::WaitForSingleObject(m_handle, INFINITE);
-    }
-
-    bool tryLock()
-    {
-        return ::WaitForSingleObject(m_handle, 0) == WAIT_OBJECT_0;
-    }
-
-    void unlock()
-    {
-        ::ReleaseMutex(m_handle);
-    }
-
-private:
-    HANDLE m_handle;
-};
-
-// Generic, could go in a common header
-template <class Locker>
-class ScopeLock
-{
-public:
-    ScopeLock(Locker& _locker)
-        : m_locker(_locker)
-    {
-        m_locker.lock();
-    }
-
-    ~ScopeLock()
-    {
-        m_locker.unlock();
-    }
-private:
-    Locker& m_locker;
-};
-
-template <class Locker>
-class ScopeUnLock
-{
-public:
-    ScopeUnLock(Locker& _locker)
-        : m_locker(_locker)
-    {
-        m_locker.unlock();
-    }
-
-    ~ScopeUnLock()
-    {
-        m_locker.lock();
-    }
-private:
-    Locker& m_locker;
-};
-
-using ScopeLockFastMutex = ScopeLock<ITF_THREAD_FASTMUTEX>;
-using ScopeUnLockFastMutex = ScopeUnLock<ITF_THREAD_FASTMUTEX>;
-
-using ScopeLockMutex = ScopeLock<Mutex>;
-using ScopeUnLockMutex = ScopeUnLock<Mutex>;
-
 
 #define ITF_THREAD_CRITICAL_SECTION CRITICAL_SECTION
 
@@ -191,6 +102,14 @@ using ScopeUnLockMutex = ScopeUnLock<Mutex>;
         static void enterCriticalSection(ITF_THREAD_CRITICAL_SECTION *pCriticalSection);
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
+        /// @fn static bool tryEnterCriticalSection(VOY_THREAD_CRITICAL_SECTION *pCriticalSection)
+        /// @brief  Try to enter critical section. 
+        /// @param [in,out] pCriticalSection    If non-null, the critical section. 
+        ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        static bool tryEnterCriticalSection(ITF_THREAD_CRITICAL_SECTION* pCriticalSection);
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////
         /// @fn static void leaveCriticalSection(ITF_THREAD_CRITICAL_SECTION *pCriticalSection)
         /// @brief  Leave critical section. 
         /// @param [in,out] pCriticalSection    If non-null, the critical section. 
@@ -231,6 +150,143 @@ using ScopeUnLockMutex = ScopeUnLock<Mutex>;
         static void destroyEvent(ITF_THREAD_EVENT *pEvent);
 
         static void waitEvent(ITF_THREAD_EVENT* pEvent);
+    };
+
+    // TODO : The name is confusing, some people will mistake this with the higher overhead "real" mutex provided by Windows, the one we call "ProcessMutex"
+    class Mutex
+    {
+    public:
+
+        Mutex()
+        {
+            Synchronize::createCriticalSection(&m_cs);
+        }
+
+        explicit Mutex(const char* /*_dbgName*/) // ignored
+        {
+            Synchronize::createCriticalSection(&m_cs);
+        }
+
+        Mutex(const Mutex&) = delete;
+        Mutex& operator=(const Mutex&) = delete;
+
+        ~Mutex()
+        {
+            Synchronize::destroyCriticalSection(&m_cs);
+        }
+
+        void lock()
+        {
+            Synchronize::enterCriticalSection(&m_cs);
+        }
+
+        bool tryLock()
+        {
+            return Synchronize::tryEnterCriticalSection(&m_cs);
+        }
+
+        void unlock()
+        {
+            Synchronize::leaveCriticalSection(&m_cs);
+        }
+
+        ITF_THREAD_CRITICAL_SECTION * getCS()
+        {
+            return &m_cs;
+        }
+
+    private:
+        ITF_THREAD_CRITICAL_SECTION m_cs;
+    };
+
+
+    // Generic, could go in a common header
+    template <class Locker>
+    class ScopeLock
+    {
+    public:
+        ScopeLock(Locker& _locker)
+            : m_locker(_locker)
+        {
+            m_locker.lock();
+        }
+
+        ~ScopeLock()
+        {
+            m_locker.unlock();
+        }
+    private:
+        Locker& m_locker;
+    };
+
+    template <class Locker>
+    class ScopeUnLock
+    {
+    public:
+        ScopeUnLock(Locker& _locker)
+            : m_locker(_locker)
+        {
+            m_locker.unlock();
+        }
+
+        ~ScopeUnLock()
+        {
+            m_locker.lock();
+        }
+    private:
+        Locker& m_locker;
+    };
+
+    using ScopeLockFastMutex = ScopeLock<ITF_THREAD_FASTMUTEX>;
+    using ScopeUnLockFastMutex = ScopeUnLock<ITF_THREAD_FASTMUTEX>;
+
+    using ScopeLockMutex = ScopeLock<Mutex>;
+    using ScopeUnLockMutex = ScopeUnLock<Mutex>;
+
+    // simple condition variable + its 'mutex' wrapping
+    class CondVariable
+    {
+    public:
+        explicit CondVariable(const char* _dbgName = nullptr)
+        {
+            ITF_UNUSED(_dbgName); // ignored (or the condvar would be a global object)
+            ::InitializeConditionVariable(&m_cond);
+        }
+
+        CondVariable(const CondVariable&) = delete;
+        CondVariable& operator=(const CondVariable&) = delete;
+
+        Mutex& getMutex() { return m_mutex; }
+
+        void signal() // wake up only 1 waiting thread
+        {
+            ::WakeConditionVariable(&m_cond);
+        }
+
+        void broadcast() // wake up all waiting threads and let them fight on the mutex
+        {
+            ::WakeAllConditionVariable(&m_cond);
+        }
+
+        enum : u32 { Infinite = INFINITE };
+
+        // Returns false in case of error or timeout
+        bool wait(u32 _ulMicroSec = Infinite)
+        {
+            auto msTimeout = (_ulMicroSec == Infinite) ? INFINITE : (_ulMicroSec / 1000);
+            return 0 != ::SleepConditionVariableCS(&m_cond, m_mutex.getCS(), msTimeout);
+        }
+
+        template<class Predicate>
+        void wait(Predicate _pred)
+        {   // wait for signal and test predicate
+            while (!_pred())
+                wait();
+        }
+
+    private:
+        Mutex m_mutex;
+        CONDITION_VARIABLE  m_cond{};
     };
 
 }

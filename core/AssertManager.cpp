@@ -320,8 +320,7 @@ namespace ITF
                 char buffer[tmpSIZE];
                 va_list list;
                 va_start(list,message);
-                SPRINTF_S_TRUNC(buffer,tmpSIZE,message,list);
-
+                SPRINTF_S_TRUNC_VALIST(buffer, tmpSIZE, message, list);
                 va_end(list);
                 
                 SPRINTF_S(temp, tmpSIZE, "%s(%i) - ASSERT : %i time(s)\n\tMessage: \"%s\"\n\tCondition: \"%s\"\n", file, line, skipCount, buffer, condition);
@@ -334,5 +333,63 @@ namespace ITF
         }
     #endif
     }
+
+#ifdef ITF_MICROSOFT
+    // Helpers to print a more human readable windows HRESULT.
+    void AssertManager::HResultToStringBuf(HRESULT hr, char* outBuf, size_t outBufSize)
+    {
+        if (!outBuf || outBufSize == 0)
+            return;
+
+        // Format the HRESULT hex prefix
+        int written = snprintf(outBuf, outBufSize, "HRESULT: 0x%08X", static_cast<unsigned>(hr));
+
+        // Try to get a system message for the HRESULT
+        LPSTR messageBuffer = nullptr;
+        DWORD flags = FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS;
+        DWORD langId = MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT);
+
+        DWORD size = ::FormatMessageA(
+            flags,
+            nullptr,
+            static_cast<DWORD>(hr),
+            langId,
+            reinterpret_cast<LPSTR>(&messageBuffer),
+            0,
+            nullptr);
+
+        if (size != 0 && messageBuffer)
+        {
+            // Trim trailing whitespace/newlines
+            size_t msgLen = strlen(messageBuffer);
+            while (msgLen > 0 && (messageBuffer[msgLen - 1] == '\n' || messageBuffer[msgLen - 1] == '\r' ||
+                messageBuffer[msgLen - 1] == ' ' || messageBuffer[msgLen - 1] == '\t'))
+            {
+                messageBuffer[--msgLen] = '\0';
+            }
+
+            if (msgLen > 0)
+            {
+                // Append " - " and the message, ensuring buffer is not overflowed
+                size_t remain = outBufSize > static_cast<size_t>(written) ? outBufSize - static_cast<size_t>(written) : 0;
+                if (remain > 0)
+                {
+                    strncat_s(outBuf, outBufSize, " - ", remain - 1);
+                    remain = outBufSize - strlen(outBuf);
+                    if (remain > 0)
+                        strncat_s(outBuf, outBufSize, messageBuffer, remain - 1);
+                }
+            }
+            ::LocalFree(messageBuffer);
+        }
+        else
+        {
+            // Append " - Unknown error"
+            size_t remain = outBufSize > static_cast<size_t>(written) ? outBufSize - static_cast<size_t>(written) : 0;
+            if (remain > 0)
+                strncat_s(outBuf, outBufSize, " - Unknown error", remain - 1);
+        }
+    }
+#endif
 
 } // namespace ITF

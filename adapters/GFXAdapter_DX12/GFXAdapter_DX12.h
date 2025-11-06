@@ -4,8 +4,28 @@
 #include "engine/AdaptersInterfaces/GFXAdapter_ShaderManager.h"
 #include "engine/AdaptersInterfaces/WorldViewProj.h"
 
+#include "core/memory/UniquePtr.h"
 #include "core/math/vec2d.h"
 #include "core/math/vec3d.h"
+
+#include "DX12/Helpers.h"
+
+#include "GFXAdapter_device_context_DX12.h"
+
+#include "RenderTargetViewDescriptorPool_DX12.h"
+#include "RenderTarget_DX12.h"
+
+#include "SamplerDescriptorPool_DX12.h"
+
+#include "TextureDescriptorPool_DX12.h"
+
+#include "UploadBufferRequestManager_DX12.h"
+
+#include "FxParameterDB_DX12.h"
+
+#include "Technique_DX12.h"
+
+#include "VertexBuffer_DX12.h"
 
 namespace ITF
 {
@@ -254,80 +274,87 @@ namespace ITF
         void onResumeApp();
 
         // Not virtual methods (mostly called by the SystemAdapter)
-        void preInit();
-        bool createDXDevice(int _alphaBits, int _depthBits, int _stencilBits, bbool _fullscreen, void* _hwnd);
+        bool createRenderingPipeline(int _alphaBits, int _depthBits, int _stencilBits, bbool _fullscreen, void* _hwnd);
 
-        //nvn::CommandBuffer* getRenderingContext() { return m_mainContext->getContext(); };
+        ID3D12GraphicsCommandList * getRenderingContext() { return m_mainContext->getContext(); };
+        bool isFrameStarted() const { return m_mainContext == nullptr ? false : m_mainContext->isFrameStarted(); };
         void resetRenderingStates(); // reset rendering internal states (at new frame)
         void requestRenderTargetsRebuild(i32 _width, i32 _height);
 
+        HWND getHWND() const { return m_hwnd; }
+
+        enum : ux
+        {
+            MAX_FRAME_IN_ADVANCE = DX12::GfxDeviceContext::MAX_FRAME_IN_ADVANCE,
+            FRAME_BUFFER_COUNT = DX12::GfxDeviceContext::FRAME_BUFFER_COUNT,
+        };
+
     private:
-        bool m_isPreinit = false;
+        HWND m_hwnd{};
 
-#if 0
+        ////////////////////////////////////////////////
+        // Methods called by createRenderingPipeline
+        bool createDXGIFactory(); // nothing on XBox
+    #if defined(ITF_WIN64)
+        ComPtr<IDXGIFactory4> m_dxgifactory{};
+    #endif
 
-        static constexpr uPtr InitGraphicMemorySize = 8 * 1024 * 1024; // Same value than in samples. Probably too high. Not used for OUNCE.
+        bool createDebugControler();
+    #if defined(ITF_ENABLE_DX12_GRAPHICS_DEBUGGING) && ITF_ENABLE_DX12_GRAPHICS_DEBUGGING
+        ComPtr<ID3D12Debug> m_debugController{};
+    #endif
 
-        bool m_needRebuildRenderTargets = true; // set to true when the render targets need to be rebuilt (e.g. after a screen resolution change)
-        i32 m_newScreenWidth = 0, m_newScreenHeight = 0;
-        static constexpr ux NB_WINDOW_RENDER_TARGETS = 2;
-        u32 m_backBufferIndex = 0; // index of the back buffer to be used for rendering, 0 to NB_WINDOW_RENDER_TARGETS, indexing m_renderTargets
-        NVN::UniquePtr<NVNRenderTarget> m_renderTargets[NB_WINDOW_RENDER_TARGETS]{};
-        void* m_nativeWindow = nullptr;
-        NVN::UniquePtr<nvn::Window> m_window = nullptr;
+        bool createD3D12Device();
+        ComPtr<ID3D12Device> m_device{};
+        bool initMemoryManagement();
 
-        bool m_deviceInit = false;
-        bool m_hasNVNDebugLayer = false;
-        NVN::UniquePtr<nvn::Device> m_nvnDevice = nullptr;
+        bool getDXGIDeviceAndAdapterOfD3D12Device();
+        ComPtr<IDXGIDevice> m_dxgiDevice;
+        ComPtr<IDXGIAdapter> m_dxgiAdapter{};
 
-        u8 * m_initGraphicMemoryBlock = nullptr;
+        bool enumerateOutputs();
+        Vector<ComPtr<IDXGIOutput>> m_dxgiOutputs{};
 
-        void preInitNVNDebugLayer(); // return true if debug layer is available
-        void createNVNDevice(nvn::DeviceGetProcAddressFunc nvnGetProcFct);
+        bool createDeviceContext();
+        UniquePtr<DX12::GfxDeviceContext> m_mainContext{};
 
-        void initMemoryManagement();
+        bool createSwapChain();
 
-        void nvnDebugLayerCallback(nvn::DebugCallbackSource::Enum source, nvn::DebugCallbackType::Enum type,
-            int id, nvn::DebugCallbackSeverity::Enum severity, const char* message);
+#ifdef ITF_WIN64
+        ComPtr<IDXGISwapChain3> m_swapChain{};
+    #endif
 
-        // Pools to handle texture and sampler descriptors
-        NVN::UniquePtr<NVNTexturePool> m_textureDescriptorPool;
-        NVN::UniquePtr<NVNSamplerPool> m_samplerDescriptorPool;
+        bool createRTVDescriptorHeap();
+        UniquePtr<DX12::RenderTargetViewDescriptorPool> m_rtvDescriptorPool{};
 
-        NVN::UniquePtr<NVNUniformBufferPool> m_uniformBufferPool;
+        bool createFrontAndBackBuffers();
+        DX12::RenderTarget m_swapChainBuffers[FRAME_BUFFER_COUNT];
+        u32 m_frameBufferIndex = 0;
+        DX12::RenderTarget* getBackBufferRT() { return &m_swapChainBuffers[m_frameBufferIndex]; }
+        DX12::RenderTarget* getFrontBufferRT() { return &m_swapChainBuffers[(m_frameBufferIndex - 1) % FRAME_BUFFER_COUNT]; }
 
-        // created by createDevice
-        NVNGfxDeviceContext* m_mainContext = nullptr;
+        bool createSamplerPool();
+        UniquePtr<DX12::SamplerDescriptorPool> m_samplerPool{};
 
-        void fetchScreenResolution();
-        void createRenderTargets();
-        void registerRenderTargetsAsVideoOut();
+        bool createTextureDescriptorPool();
+        UniquePtr<DX12::TextureDescriptorPool> m_textureDescriptorPool{};
 
-        NVNRenderTarget* getBackBufferRT() { return m_renderTargets[m_backBufferIndex].get(); }
-        NVNRenderTarget* getFrontBufferRT() { return m_renderTargets[(m_backBufferIndex-1) % NB_WINDOW_RENDER_TARGETS].get(); }
+        bool createUniformBufferPool();
+        UniquePtr<DX12::UniformBufferPool> m_uniformBufferPool{};
 
-        void setDefaultAlphaTest();
+        bool createUploadBufferRequestManager();
+        UniquePtr<DX12::UploadBufferRequestManager> m_uploadBufferRequestManager{};
 
-        void setRenderTarget(NVNRenderTarget* _rt); // change m_currentRenderTarget. Call setRenderTarget(_rt->nvnTexture)
-        void setRenderTarget(nvn::Texture* _texture); // set the render target to a texture (called by setRenderTarget). Do not change m_currentRenderTarget.
-        NVNRenderTarget* m_currentRenderTarget = nullptr;
+        bool createShaderParametersDB();
+        DX12::FxParameterDB m_paramDB;
+        DX12::FxParameterDB::FloatHdl m_texelRatioBlendHdl{};
+        float m_texelRatioBlend = 0.f;
+        enum : ux { GFX_NB_MAX_SAMPLER = 8 };
+
+        // Low level methods
 
         bool loadCoreShaders();
         bool loadShader(const char* _shaderName);
-
-        void initDefaultRenderStates();
-        void createShaderParametersDB();
-
-        WorldViewProj m_worldViewProj{};
-        // Frustum planes managements (used by setCamera)
-        void updateCameraFrustumPlanes(Camera* _camera);
-
-        void internSetTexture(int _sampler, const Texture* _texture, bool _linearFiltering = btrue); // const Texture* version of SetTexture
-        void internSetTextureBind(u32 _Sampler, NVNTexture * _Bind, bool _linearFiltering = btrue);
-
-        void drawScreenQuadCentroid(f32 _px, f32 _py, f32 _width, f32 _height, f32 _z, u32 _color, f32 _centroid, bbool _noTex = 0);
-
-        // Shaders => tmp
         enum class CoreShaderGroup : u32
         {
             // Any change in this enum should also change the shader names GFXAdapter_Shaders_PS5.cpp
@@ -341,24 +368,99 @@ namespace ITF
             COUNT
         };
         static u32 getShaderGroupIndex(CoreShaderGroup _group) { return static_cast<u32>(_group); }
+        GFXAdapter_shaderManager mp_shaderManager{};
+
         void setShader(ITF_shader* _shader);
         ITF_shader* mp_defaultShader = nullptr; // default shader for basic renderer.
         ITF_shader* mp_currentShader = nullptr;
-        GFXAdapter_shaderManager mp_shaderManager{};
         void setShader(CoreShaderGroup group);
         void setShaderMatrix(ITF_shader* _shader);
 
         bool m_reloadShader = false; // set this to true to reload the shaders
         void checkShaderReload();
 
+        DX12::PSOCache m_psoCache{};
+        DX12::BlendState m_currentBlendState{};
+        GFX_FILLMODE m_currentFillMode = GFX_FILL_SOLID; // should never change until taken into account in the PSO
+
+        WorldViewProj m_worldViewProj{};
+        // UV Animation matrix
+        Matrix44 m_UVmat = GMatrixIdentity;
+
+        GFX_RECT m_lastSetViewPort{};
+
+        // called at present
+        void printDebugInfoOnScreen();
+
+        // Patch
+        void prepareShaderPatchTech(GMatrix44* _matrix, f32 _z, u32& _hdiv, u32& _vdiv, u32 _idTech, GFX_BLENDMODE _blendMode = GFX_BLEND_ALPHA);
+        void shaderPatchFlushSize(u32 _hdiv, u32 _vdiv, u32 _countPoint, u32 _pass, u32 _vdivToDraw = U32_INVALID);
+
+        // AfterFX
+        void initAfterFx();
+        void copyCurrentColorBuffer(u32 _rt);
+        void AFTERFX_SwapFullScreenTarget();
+        void AFTERFX_PrepareSwapRTDown2x2(bool _clear = true);
+        void AFTERFX_SwapTargetDown2x2();
+
+        // AfterFX Surfaces
+        enum : u32 { AFTER_FX_NB_SWAP_SURFACE = 2 };
+
+        DX12::RenderTarget m_afxFullRT[AFTER_FX_NB_SWAP_SURFACE];
+        DX12::RenderTarget m_afxHalfRT[AFTER_FX_NB_SWAP_SURFACE];
+
+        DX12::RenderTarget* m_pCurrentSwapRenderSurf = nullptr;
+        DX12::Texture* m_pCurrentSwapSourceTexture = nullptr;
+        u32 m_curswap = 0;
+
+        // Frustum planes managements (used by setCamera)
+        void updateCameraFrustumPlanes(Camera* _camera);
+
+        // Texture set
+        void internSetTexture(int _sampler, const Texture* _texture, bool _linearFiltering = btrue); // const Texture* version of SetTexture
+        void internSetTextureBind(u32 _Sampler, DX12::Texture* _Bind, bool _linearFiltering = btrue);
+
+        // Vertex/Index buffer set
+        void setVertexBuffer(ITF_VertexBuffer* _vertexBuffer);
+        DX12::VertexFormat m_currentVertexFormat = DX12::VertexFormat::PCT; // set by setVertexFormat. Note that setVertexFormat also set mp_currentShader->m_selectedTech
+        ITF_VertexBuffer* m_currentVertexBuffer = nullptr;
+        void applyVertexBuffer(ITF_VertexBuffer* _vb); // set the vertex buffer in the D3D12 context (to call once the VS is set, so after beginShader)
+        void drawElements(u32 nbIndex); // Call DrawIndexedInstanced with the current index buffer and the number of indices to draw. To call only between beginShader and endShader.
+
+        void setIndexBuffer(ITF_IndexBuffer* _indexBuffer);
+        DX12::IndexBuffer* m_currentIndexBuffer = nullptr;
+        void applyIndexBuffer(DX12::IndexBuffer* _ib); // set the index buffer in the gnm context (to call once the VS is set, so after beginShader)
+
+        // Draw low level methods
+        void drawScreenQuadCentroid(f32 _px, f32 _py, f32 _width, f32 _height, f32 _z, u32 _color, f32 _centroid, bbool _noTex = 0);
+
+        // Current render target state
+        void setRenderTarget(DX12::RenderTarget& _rt); // change m_currentRenderTarget
+        DX12::RenderTarget* m_currentRenderTarget = nullptr;
+
+        // Alpha test: handled by conditional discard instruction in the shader.
+        f32 m_currentAlphaTestRef = 0.f;
+        void setAlphaTestInParamDB();
+        void setDefaultAlphaTest();
+
+#if 0
+
+        static constexpr uPtr InitGraphicMemorySize = 8 * 1024 * 1024; // Same value than in samples. Probably too high. Not used for OUNCE.
+
+        bool m_needRebuildRenderTargets = true; // set to true when the render targets need to be rebuilt (e.g. after a screen resolution change)
+        i32 m_newScreenWidth = 0, m_newScreenHeight = 0;
+        static constexpr ux NB_WINDOW_RENDER_TARGETS = 2;
+        u32 m_backBufferIndex = 0; // index of the back buffer to be used for rendering, 0 to NB_WINDOW_RENDER_TARGETS, indexing m_renderTargets
+        NVN::UniquePtr<NVNRenderTarget> m_renderTargets[NB_WINDOW_RENDER_TARGETS]{};
+        void* m_nativeWindow = nullptr;
+        NVN::UniquePtr<nvn::Window> m_window = nullptr;
+
+        void createRenderTargets();
+
         // Several low level caches
         NVN::UniquePtr<NVN::ShaderProgramCache> m_shaderProgramCache{};
         NVN::UniquePtr<NVN::PolygonStateCache> m_polygonStateCache{};
         NVN::UniquePtr<NVN::BlendStateCache> m_blendStateCache{};
-
-        // Alpha test is handled by conditional discard instruction in the shader.
-        f32 m_currentAlphaTestRef = 0.f;
-        void setAlphaTestInParamDB();
 
         // Vertex declaration
 
@@ -389,42 +491,9 @@ namespace ITF
         NVNIndexBuffer* m_currentIndexBuffer = nullptr;
         void applyIndexBuffer(NVNIndexBuffer* _ib); // set the index buffer in the gnm context (to call once the VS is set, so after beginShader)
 
-        FxParameterDB m_paramDB;
-        FxParameterDB::FloatHdl m_texelRatioBlendHdl{};
+#endif
 
-        float m_texelRatioBlend = 0.f;
-
-        // UV Animation matrix
-        Matrix44 m_UVmat = GMatrixIdentity;
-
-        GFX_RECT m_lastSetViewPort{};
-
-        // called at present
-        void printDebugInfoOnScreen();
-
-        // Patch
-        void prepareShaderPatchTech(GMatrix44* _matrix, f32 _z, u32& _hdiv, u32& _vdiv, u32 _idTech, GFX_BLENDMODE _blendMode = GFX_BLEND_ALPHA);
-        void shaderPatchFlushSize(u32 _hdiv, u32 _vdiv, u32 _countPoint, u32 _pass, u32 _vdivToDraw = U32_INVALID);
-
-        // AfterFX
-        void initAfterFx();
-        void copyCurrentColorBuffer(u32 _rt);
-        void AFTERFX_SwapFullScreenTarget();
-        void AFTERFX_PrepareSwapRTDown2x2(bool _clear = true);
-        void AFTERFX_SwapTargetDown2x2();
-
-        // AfterFX Surfaces
-        static const u32 AfterFXNbSwapSurface = 2;
-
-        NVN::UniquePtr<NVNRenderTarget> m_afxFullRT[AfterFXNbSwapSurface];
-        NVN::UniquePtr<NVNRenderTarget> m_afxHalfRT[AfterFXNbSwapSurface];
-
-        NVNRenderTarget* m_pCurrentSwapRenderSurf = nullptr;
-        NVNTexture* m_pCurrentSwapSourceTexture = nullptr;
-
-        u32 m_curswap = 0;
-
-    #if defined(ITF_ENABLE_NVN_GRAPHICS_DEBUGGING) && ITF_ENABLE_NVN_GRAPHICS_DEBUGGING
+    #if defined(ITF_ENABLE_DX12_GRAPHICS_DEBUGGING) && ITF_ENABLE_DX12_GRAPHICS_DEBUGGING
         i32 m_allowedShaderIdx = -1; // global variable to filter shader by index for debugging
         i32 m_allowedShaderTech = -1; // global variable to filter shader by tech
         GFX_BLENDMODE m_allowedBlendMode = GFX_BLEND_UNKNOWN;
@@ -439,7 +508,7 @@ namespace ITF
     #else
         bool isDrawAllowed(bool _incrementDrawCallIndex = true) const { return true; }
     #endif
-#endif
     };
+
 } // namespace ITF
 

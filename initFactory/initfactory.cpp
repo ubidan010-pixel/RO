@@ -33,7 +33,11 @@
 #endif // ITF_PS5
 #ifdef ITF_NINTENDO
 #include "adapters/SystemAdapter_Nintendo/SystemAdapter_Nintendo.h"
-#endif // ITF_PS5
+#endif // ITF_NINTENDO
+
+#ifdef ITF_XBOX_SERIES
+#include "adapters/SystemAdapter_XBoxSeries/SystemAdapter_XBoxSeries.h"
+#endif // ITF_XBOX_SERIES
 
 #include "adapters/SystemAdapter_Dummy/SystemAdapter_Dummy.h"
 
@@ -47,6 +51,11 @@
 #ifdef ITF_PS5
 #include "adapters/GFXAdapter_PS5/GFXAdapter_PS5.h"
 #endif
+
+#ifdef ITF_XBOX_SERIES
+#include "adapters/GFXAdapter_DX12/GFXAdapter_DX12.h"
+#endif
+
 #include "adapters/GFXAdapter_Dummy/GFXAdapter_Dummy.h"
 #ifdef ITF_NINTENDO
 #include "adapters/GFXAdapter_NVN/GFXAdapter_NVN.h"
@@ -90,6 +99,10 @@
 #include "adapters/Adapter_Savegame_Nintendo/Adapter_Savegame_Nintendo.h"
 #endif // ITF_NINTENDO
 
+#ifdef ITF_XBOX_SERIES
+#include "adapters/Adapter_Savegame_XBoxSeries/Adapter_Savegame_XBoxSeries.h"
+#endif
+
 #include "adapters/Adapter_Savegame_Dummy/Adapter_Savegame_Dummy.h"
 
 // TRC Adapter
@@ -106,6 +119,9 @@
 #include "adapters/TRCAdapter_Nintendo/TRCAdapter_Nintendo.h"
 #endif // ITF_NINTENDO
 
+#ifdef ITF_XBOX_SERIES
+#include "adapters/TRCAdapter_XBoxSeries/TRCAdapter_XBoxSeries.h"
+#endif
 
 // Online Tracking Adapter
 #include "adapters/OnlineTrackingAdapter_win32/OnlineTrackingAdapter_win32.h"
@@ -254,6 +270,11 @@ namespace ITF
         if (m_currentPlatformUsage == eRegisterUsage::eRegisterOUNCE)
         {
             _szDst = _szModuleName + "_OUNCE";
+        }
+        else
+        if (m_currentPlatformUsage == eRegisterUsage::eRegisterXBoxSeries)
+        {
+            _szDst = _szModuleName + "_XBoxSeries";
         }
 
         _szDst.toLower();

@@ -1,9 +1,12 @@
-#ifndef _ITF_UTILITY_H_
-#define _ITF_UTILITY_H_
+#pragma once
+
+#include <utility>
 
 namespace ITF
 {
-    template<typename T>    String8 hex(const T value) {
+    template<typename T>
+    String8 hex(const T value)
+    {
         char result[2+16+1];	// result character array
         static const char hex_chars[] = "0123456789abcdef";
 
@@ -98,8 +101,9 @@ namespace ITF
     {
         template <typename M>
         class Helper;
-        template <typename T, typename... Args>
-        class Helper<void (T::*)(Args...)>
+
+        template <typename T, typename R, typename... Args>
+        class Helper<R (T::*)(Args...)>
         {
         public:
             template <auto Method>
@@ -108,10 +112,10 @@ namespace ITF
                 return &StaticMethod<Method>;
             }
             template <auto Method>
-            static void StaticMethod(Args... args, void* userData)
+            static R StaticMethod(Args... args, void* userData)
             {
                 auto instance = static_cast<T*>(userData);
-                (instance->*Method)(args...);
+                return (instance->*Method)(args...);
             }
         };
     }
@@ -129,8 +133,5 @@ namespace ITF
     }
     // Possible improvement => a version for the convention (void* userData, Args... args)
 
-
 } //namespace ITF
 
-
-#endif //_ITF_UTILITY_H_

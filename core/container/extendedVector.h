@@ -89,11 +89,15 @@ namespace ITF
 			}
 		}
 		
-		explicit Vector(): base_container()
+		Vector(): base_container()
 		{
 		}
 
         explicit Vector(uSize size) : base_container(size)
+        {
+        }
+
+        explicit Vector(std::initializer_list<T> _initList) : base_container(std::move(_initList))
         {
         }
 

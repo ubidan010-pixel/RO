@@ -35,7 +35,7 @@
     #include "VITASpecificConstants.h"
 #elif defined (ITF_WII)
     #include "WiiSpecificConstants.h"
-#elif defined (ITF_NINTENDO)
+#elif defined (ITF_NINTENDO) || defined(ITF_XBOX_SERIES)
     #include "DefaultSpecificConstants.h"
     // DrawPrimitive needs to handle dynamic VB
     #define VBMANAGER_USE_DYNAMICRING_VB

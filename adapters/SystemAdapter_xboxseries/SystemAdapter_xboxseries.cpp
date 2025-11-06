@@ -8,6 +8,7 @@
 #include "engine/singleton/Singletons.h"
 #include "core/error/ErrorHandler.h"
 #include "core/UnicodeTools.h"
+#include "core/memory/UniquePtr.h"
 
 #include <memory>
 
@@ -16,6 +17,9 @@
 #include <XPackage.h>
 #include <XGameUI.h>
 #include <XSystem.h>
+#include <XGame.h>
+
+#include <xsapi-c/services_c.h>
 
 namespace ITF
 {
@@ -44,15 +48,15 @@ namespace ITF
     
     SystemAdapter_XBoxSeries::~SystemAdapter_XBoxSeries()
     {
-        /*unregisterSystemMessageListener(&m_messageListener);
-        ITF_ASSERT(m_systemMessageListeners.size()==0);*/
     }
 
     bbool SystemAdapter_XBoxSeries::initialize()
     {
+        initTitleId();
         addInitialUser();
         initSuspendEvents();
         initConstrainedEvents();
+        initXBoxLive();
         return btrue;
     }
 
@@ -101,6 +105,29 @@ namespace ITF
         }, this, &m_hProcessLifetimeManagementConstrained));
     }
 
+    void SystemAdapter_XBoxSeries::initTitleId()
+    {
+        if (FAILED(XGameGetXboxTitleId(&m_titleId)))
+        {
+            LOG("Failed to get Title ID. Assuming a default value for development.");
+        }
+        m_titleIdStr.setTextFormat("%08X", m_titleId);
+        m_serviceConfigurationIdStr.setTextFormat("00000000-0000-0000-0000-0000%08X", m_titleId);
+        LOG("Title ID: %s", m_titleIdStr.cStr());
+    }
+
+    void SystemAdapter_XBoxSeries::initXBoxLive()
+    {
+        XblInitArgs xblIniArgs = {};
+        xblIniArgs.scid = m_serviceConfigurationIdStr.cStr();
+        HRESULT hr = XblInitialize(&xblIniArgs);
+        ITF_ASSERT_HR_RESULT_NAMED(hr, "XblInitialize");
+        if (FAILED(hr))
+        {
+            LOG("XboxLive Initialisation failed!");
+        }
+    }
+
     void SystemAdapter_XBoxSeries::addUserComplete(XAsyncBlock & _asyncBlock, bool _isInitialUser)
     {
         UserInfo userInfo{};
@@ -134,13 +161,13 @@ namespace ITF
 
     void SystemAdapter_XBoxSeries::addInitialUser()
     {
-        auto asyncBlock = std::make_unique<XAsyncBlock>();
-        ZeroMemory(asyncBlock.get(), sizeof(*asyncBlock));
+        auto asyncBlock = makeUnique<MemoryId::mId_System, XAsyncBlock>();
+        *asyncBlock = {};
         asyncBlock->queue = nullptr; // default queue
         asyncBlock->context = this;
         asyncBlock->callback = [](XAsyncBlock* ab)
         {
-            auto asyncBlock = std::unique_ptr<XAsyncBlock>(ab);
+            auto asyncBlock = UniquePtr<XAsyncBlock>{ ab };
             static_cast<SystemAdapter_XBoxSeries*>(ab->context)->addUserComplete(*ab, true);
         };
 
@@ -151,7 +178,7 @@ namespace ITF
         if (SUCCEEDED(hrUserAdd))
         {
             // The call succeeded, so the destroy of the AsyncBlock will be done after the callback.
-            // If the call fails, the std::unique_ptr will keep ownership and delete the XAsyncBlock*
+            // If the call fails, the unique_ptr will keep ownership and delete the XAsyncBlock*
             asyncBlock.release();
         }
     }
@@ -256,12 +283,13 @@ namespace ITF
 
     bbool SystemAdapter_XBoxSeries::openGraphics (int _width, int _height, int _alphaBits, int _depthBits, int _stencilBits, bbool _fullscreen, bbool _mouseCursor, const String& _name, bbool _waitVBL )
     {
+        setResolution();
         createWindow(_name);
 
         m_gfxAdapterDX12 = static_cast<GFXAdapter_DX12*>(GFX_ADAPTER);
 
         m_gfxAdapterDX12->setWaitVBL(_waitVBL);
-        if (!m_gfxAdapterDX12->createDXDevice(_alphaBits, _depthBits, _stencilBits, _fullscreen, m_hwnd))
+        if (!m_gfxAdapterDX12->createRenderingPipeline(_alphaBits, _depthBits, _stencilBits, _fullscreen, m_hwnd))
         {
             return bfalse;
         }
@@ -673,13 +701,13 @@ namespace ITF
         switch (mask)
         {
         case ITF_MSG_YESNO:
-            choice = showXBoxSeriesMessage(_title, _msg, XGameUiMessageDialogButton::First, XGameUiMessageDialogButton::Second, _option1, _option2, NULL);
+            choice = showXBoxSeriesMessage(_title, _msg, XGameUiMessageDialogButton::First, XGameUiMessageDialogButton::Second, option1, option2, NULL);
             break;
         case ITF_MSG_YESNOCANCEL:
-            choice = showXBoxSeriesMessage(_title, _msg, XGameUiMessageDialogButton::First, XGameUiMessageDialogButton::Third, _option1, _option2, _option3);
+            choice = showXBoxSeriesMessage(_title, _msg, XGameUiMessageDialogButton::First, XGameUiMessageDialogButton::Third, option1, option2, option3);
             break;
         case ITF_MSG_OK:
-            choice = showXBoxSeriesMessage(_title, _msg, XGameUiMessageDialogButton::First, XGameUiMessageDialogButton::First, _option1, NULL, NULL);
+            choice = showXBoxSeriesMessage(_title, _msg, XGameUiMessageDialogButton::First, XGameUiMessageDialogButton::First, option1, NULL, NULL);
             break;
         default:
             choice = -1;
@@ -696,6 +724,11 @@ namespace ITF
 
         if (Synchronize::getCurrentThreadId() == ThreadSettings::m_settings[eThreadId_mainThread].m_threadID)
         {
+            LOG("* MESSAGE BOX *\n"
+                "Title: %ls\n"
+                "Message: %ls\n",
+                _title.wcharCStr(),
+                _msg.wcharCStr());
             return showMessageBox(StringToUTF8(_title).get(), StringToUTF8(_msg).get(), _type, _option1, _option2, _option3, _option4);
         }
         else
@@ -731,5 +764,10 @@ namespace ITF
         ITF_NOT_IMPLEMENTED();
     }
 
+    SystemAdapter_XBoxSeries::UserInfo SystemAdapter_XBoxSeries::getInitialUserInfo() const
+    {
+        ScopeLockMutex lock(m_mutexUser);
+        return m_initialUserInfo;
+    }
 } // namespace ITF
 

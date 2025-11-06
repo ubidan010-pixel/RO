@@ -151,7 +151,7 @@ typedef void (*processObjectRef) (ObjectRef _actorRef);
 // On little endian, the storage as a byte array will be W, Z, Y X, and on big endian it will be X, Y, Z, W
 #if defined(ITF_WINDOWS) || defined(ITF_X360) || defined(ITF_CTR) || defined(ITF_PS5)
     #define ITFCOLOR_AS_ARGB
-#elif defined(ITF_NINTENDO)
+#elif defined(ITF_NINTENDO) || defined(ITF_XBOX_SERIES)
     #define ITFCOLOR_AS_ABGR
 #else // defined(ITF_WINDOWS) || defined(ITF_X360)
     #define ITFCOLOR_AS_RGBA
@@ -534,6 +534,7 @@ namespace ITF
 
 #endif
 
+    void VFormatTruncate(char* buff, unsigned int size, const char* formatstring, va_list argList);
     void FormatTruncate(char* buff,unsigned int size,const char* formatstring, ...);
 
 #ifdef ITF_VITA

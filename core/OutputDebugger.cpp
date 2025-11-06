@@ -21,7 +21,7 @@ namespace ITF
 
     void    OutputDebugger::showString(const char* _str) const
     {
-        #if defined(ITF_WINDOWS)
+        #if defined(ITF_MICROSOFT)
             OutputDebugStringA(_str);
         #elif defined(ITF_X360)
             OutputDebugStringA(_str);

@@ -32,23 +32,31 @@ static_assert(false == std::is_same_v<char, signed char>);
 
 const ITF::ObjectRef ITF::ObjectRef::InvalidRef;
 
-void FormatTruncate(char* buff,unsigned int size,const char* formatstring, ...)
+
+void VFormatTruncate(char* buff, unsigned int size, const char* formatstring, va_list args)
 {
-    va_list args;
-    va_start(args, formatstring);
 #ifdef ITF_WII
-    _vsnprintf_s( buff, _TRUNCATE, formatstring, args);
+    _vsnprintf_s(buff, _TRUNCATE, formatstring, args);
 #elif defined(ITF_CTR)
-	vsnprintf( buff, _TRUNCATE, formatstring, args);//CASA::TODO::Check this function
+    vsnprintf(buff, _TRUNCATE, formatstring, args);//CASA::TODO::Check this function
 #elif defined (ITF_VITA)
-	vsnprintf( buff, _TRUNCATE, formatstring, args);//CASA::TODO::Check this function //TODO VITA
+    vsnprintf(buff, _TRUNCATE, formatstring, args);//CASA::TODO::Check this function //TODO VITA
 #elif defined (ITF_SONY) 
-    vsnprintf( buff, size, formatstring, args);
+    vsnprintf(buff, size, formatstring, args);
 #elif defined(ITF_NINTENDO)
     vsnprintf(buff, size, formatstring, args);
 #else
-    vsnprintf_s( buff, size, _TRUNCATE, formatstring, args);
+    vsnprintf_s(buff, size, _TRUNCATE, formatstring, args);
 #endif    
+}
+
+void FormatTruncate(char* buff, unsigned int size, const char* formatstring, ...)
+{
+    va_list args;
+    va_start(args, formatstring);
+
+    VFormatTruncate(buff, size, formatstring, args);
+
     va_end(args);
 }
 

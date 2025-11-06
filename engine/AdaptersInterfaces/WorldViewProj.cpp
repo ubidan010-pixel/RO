@@ -2,12 +2,12 @@
 
 #include "WorldViewProj.h"
 
+#include "core/math/MathTools.h"
+
+#include "core/math/BooleanLogic.h"
+
 namespace ITF
 {
-    // tools for dirty flags management
-    #if defined(ASSERT_ENABLED) && !defined(ITF_DISABLE_LOG)
-    static inline bool imply(bool a, bool b ) { return !a || b; } // a => b
-    #endif // defined(ASSERT_ENABLED) && !defined(ITF_DISABLE_LOG)
     inline void WorldViewProj::checkDirtyStatesValidity() const
     {
         ITF_ASSERT(imply(m_viewProjDirty, m_worldViewProjDirty)); // m_viewProjDirty => m_worldViewProjDirty as m_viewProjDirty is used to compute m_worldViewProjDirty
