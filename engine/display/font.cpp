@@ -1559,20 +1559,6 @@ void Font::dependenciesFile(const String& _filename,DepCollection& _collection)
             String fontFileLocal16 = path + baseName + langaugeSuffix +"." + ext;
             _collection.add(fontFileLocal16);
         }
-        if (baseName.strstr(String("_tch").cStr()) == NULL)
-        {
-            String ext(fullpath.getExtension());
-
-            String fontFileLocal16 = path + baseName + "_tch." + ext;
-            _collection.add(fontFileLocal16);
-        }
-        if (baseName.strstr(String("_sch").cStr()) == NULL)
-        {
-            String ext(fullpath.getExtension());
-
-            String fontFileLocal16 = path + baseName + "_sch." + ext;
-            _collection.add(fontFileLocal16);
-        }
     }
 
     SF_DEL(pFont);
