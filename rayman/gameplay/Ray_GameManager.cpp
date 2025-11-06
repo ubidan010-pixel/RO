@@ -12054,34 +12054,37 @@ namespace ITF
     {
         f32 masterVol = getMasterVolume();
         LOG("[OptionMenu] Master Volume: %.2f (%.0f%%)", masterVol, masterVol * 100.0f);
-
+#if defined(ITF_SUPPORT_WWISE)
         Adapter_AudioMiddleware *audioAdapter = Adapter_AudioMiddleware::getptr();
         if (audioAdapter)
             audioAdapter->setMasterVolume(Volume(masterVol, false));
+#endif
     }
 
     void Ray_GameManager::applyMusicVolumeOption()
     {
         f32 musicVol = getMusicVolume();
         LOG("[OptionMenu] Music Volume: %.2f (%.0f%%)", musicVol, musicVol * 100.0f);
-
+#if defined(ITF_SUPPORT_WWISE)
         Adapter_AudioMiddleware *audioAdapter = Adapter_AudioMiddleware::getptr();
         if (audioAdapter)
         {
             audioAdapter->setBusVolume(SOUND_BUS_MUSIC, Volume(musicVol, false), 0.0f);
         }
+#endif
     }
 
     void Ray_GameManager::applySFXVolumeOption()
     {
         f32 sfxVol = getSFXVolume();
         LOG("[OptionMenu] SFX Volume: %.2f (%.0f%%)", sfxVol, sfxVol * 100.0f);
-
+#if defined(ITF_SUPPORT_WWISE)
         Adapter_AudioMiddleware *audioAdapter = Adapter_AudioMiddleware::getptr();
         if (audioAdapter)
         {
             audioAdapter->setBusVolume(StringID("SFX"), Volume(sfxVol, false), 0.0f);
         }
+#endif
     }
 
     void Ray_GameManager::applyIntensityOption()

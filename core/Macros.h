@@ -88,7 +88,7 @@
 #ifdef ITF_WINDOWS
 #define ITF_SUPPORT_NETWORKSERVICES 1
 #define ITF_SUPPORT_UPLAY 1
-#define ITF_SUPPORT_UBISERVICES 1
+#define ITF_SUPPORT_UBISERVICES 0
 
 // $GS : need to tell apart UPLAY from PC / STEAM / LUNA / GFN later
 #define ITF_UPLAYPC 1

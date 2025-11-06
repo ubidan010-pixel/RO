@@ -19,7 +19,8 @@
 namespace ITF
 {
     // Define button IDs for controls remapping menu
-    #define CONTROLSREMAPPING_BACK_BUTTON    ITF_GET_STRINGID_CRC(back_button,2697802979)
+    #define CONTROLSREMAPPING_ACCEPT_BUTTON  ITF_GET_STRINGID_CRC(accept_button,25226343)
+    #define CONTROLSREMAPPING_CANCEL_BUTTON  ITF_GET_STRINGID_CRC(cancel_button,4260770984)
     
     Ray_ControlsRemappingMenuHelper::Ray_ControlsRemappingMenuHelper()
         : m_mainListener(nullptr)
@@ -54,17 +55,27 @@ namespace ITF
 
         const StringID id = component->getID();
 
-        // Handle back button
-        if (handleBack(id)) return;
+        // Handle accept and cancel buttons
+        if (handleAccept(id) || handleCancel(id))
+            return;
         
         // Add more button handlers here as needed
-        // For now, just handle back button
     }
 
-    bbool Ray_ControlsRemappingMenuHelper::handleBack(const StringID& id)
+    bbool Ray_ControlsRemappingMenuHelper::handleAccept(const StringID& id)
     {
-        if (id != CONTROLSREMAPPING_BACK_BUTTON) return bfalse;
-        
+        if (id != CONTROLSREMAPPING_ACCEPT_BUTTON)
+            return bfalse;
+
+        closeAndReturn();
+        return btrue;
+    }
+
+    bbool Ray_ControlsRemappingMenuHelper::handleCancel(const StringID& id)
+    {
+        if (id != CONTROLSREMAPPING_CANCEL_BUTTON)
+            return bfalse;
+
         closeAndReturn();
         return btrue;
     }

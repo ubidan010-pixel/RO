@@ -25,7 +25,8 @@ namespace ITF
         void UpdateMenuOnSelectionChange(UIComponent* uiComponent, bbool isSelected) override;
 
     private:
-        bbool handleBack(const StringID& id);
+        bbool handleAccept(const StringID& id);
+        bbool handleCancel(const StringID& id);
         void closeAndReturn();
 
         MenuItemActionListener* m_mainListener;
