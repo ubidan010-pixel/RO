@@ -284,7 +284,6 @@ namespace ITF
 
     }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////
 void UIMenuManager::applySelectionChange(UIMenu* menu, UIComponent* oldSel, UIComponent* newSel)
 {
     MenuItemActionListener* listener = getCurrentMenuActionListener();
@@ -702,7 +701,7 @@ void UIMenuManager::applySelectionChange(UIMenu* menu, UIComponent* oldSel, UICo
             if ( bPressedLBRB)
             {
                 // LB+RB+Back to show debug menu
-                if (buts[m_joyButton_Back] == InputAdapter::JustPressed)
+                if (buts[m_joyButton_DPadU] == InputAdapter::JustPressed)
                 {
                     bool newDebugMenuEnabled = !UI_MENUMANAGER->getIsInDBGMenu();
                     UI_MENUMANAGER->setIsInDBGMenu(newDebugMenuEnabled, i);
@@ -1574,10 +1573,10 @@ void UIMenuManager::applySelectionChange(UIMenu* menu, UIComponent* oldSel, UICo
         const Vec3d mousePos(static_cast<float>(x), static_cast<float>(y), 0.f);
         ObjectRefList components = pMenu->getUIComponentsList();
         i32 size = components.size();
-        
+
         UIComponent* bestComponent = nullptr;
         f32 bestZ = -999999.0f;
-        
+
         for (int i = size - 1; i >= 0; --i)
         {
             UIComponent* comp = getUIComponent(components[i]);
@@ -1586,9 +1585,9 @@ void UIMenuManager::applySelectionChange(UIMenu* menu, UIComponent* oldSel, UICo
                 Actor* actor = comp->GetActor();
                 if (!actor)
                     continue;
-                
+
                 bbool isOptionComponent = comp->IsClassCRC(UIGameOptionComponent::GetClassCRCStatic());
-                
+
                 if (isOptionComponent)
                 {
                     AABB actorAABB = actor->getRelativeAABB();
@@ -1603,19 +1602,19 @@ void UIMenuManager::applySelectionChange(UIMenu* menu, UIComponent* oldSel, UICo
                     {
                         comp->get2DBoundingBox(bb);
                     }
-                    
+
                     if (bb.isValid())
                     {
                         const Vec2d& min = bb.getMin();
                         const Vec2d& max = bb.getMax();
                         f32 width = max.m_x - min.m_x;
                         f32 height = max.m_y - min.m_y;
-                        
+
                         const f32 screenWidth = static_cast<f32>(GFX_ADAPTER->getScreenWidth());
                         const f32 screenHeight = static_cast<f32>(GFX_ADAPTER->getScreenHeight());
                         const f32 maxAllowedWidth = (screenWidth > 0.0f ? screenWidth * 1.25f : 99999.0f);
                         const f32 maxAllowedHeight = (screenHeight > 0.0f ? screenHeight * 1.25f : 99999.0f);
-                        
+
                         if (width > maxAllowedWidth || height > maxAllowedHeight)
                         {
                             continue;
@@ -1626,7 +1625,7 @@ void UIMenuManager::applySelectionChange(UIMenu* menu, UIComponent* oldSel, UICo
                 {
                     comp->get2DBoundingBox(bb);
                 }
-                
+
                 if (bb.isValid() && bb.contains(Vec3d(mousePos)))
                 {
                     Vec3d pos = actor->getBoundLocalPos();
@@ -1638,7 +1637,7 @@ void UIMenuManager::applySelectionChange(UIMenu* menu, UIComponent* oldSel, UICo
                 }
             }
         }
-        
+
         return bestComponent;
     }
 
@@ -1921,7 +1920,6 @@ void UIMenuManager::applySelectionChange(UIMenu* menu, UIComponent* oldSel, UICo
         const f32 absJoyY = f32_Abs(joyY);
         const StringID currentComponentId = selected->getID();
 
-        // Move left into Ubisoft Connect
         if (joyX < 0.0f && absJoyX >= absJoyY && currentComponentId != kUbiConnectID)
         {
             UIComponent* ubisoftComponent = menu->getUIComponentByID(kUbiConnectID);
@@ -1931,7 +1929,7 @@ void UIMenuManager::applySelectionChange(UIMenu* menu, UIComponent* oldSel, UICo
                 return btrue;
             }
         }
-        // Move right back to previous main selection
+
         else if (joyX > 0.0f && absJoyX >= absJoyY && currentComponentId == kUbiConnectID)
         {
             UIComponent* targetComponent = NULL;

@@ -29,6 +29,44 @@
 #endif //_ITF_UIMENUMANAGER_H_
 
 namespace ITF {
+namespace
+{
+    InputAdapter::PadType padTypeFromString(const String8& padName)
+    {
+        struct PadMapEntry
+        {
+            const char* name;
+            InputAdapter::PadType type;
+        };
+
+        static const PadMapEntry entries[] =
+        {
+            { "Pad_Other",           InputAdapter::Pad_Other },
+            { "Pad_X360",            InputAdapter::Pad_X360 },
+            { "Pad_PS3",             InputAdapter::Pad_PS3 },
+            { "Pad_WiiSideWay",      InputAdapter::Pad_WiiSideWay },
+            { "Pad_WiiNunchuk",      InputAdapter::Pad_WiiNunchuk },
+            { "Pad_WiiClassic",      InputAdapter::Pad_WiiClassic },
+            { "Pad_Vita",            InputAdapter::Pad_Vita },
+            { "Pad_CTR",             InputAdapter::Pad_CTR },
+            { "Pad_PS5",             InputAdapter::Pad_PS5 },
+            { "Pad_NX_Joycon",       InputAdapter::Pad_NX_Joycon },
+            { "Pad_NX_Joycon_Dual",  InputAdapter::Pad_NX_Joycon_Dual },
+            { "Pad_NX_Pro",          InputAdapter::Pad_NX_Pro },
+            { "Pad_GenericXBox",     InputAdapter::Pad_GenericXBox },
+        };
+
+        for (size_t i = 0; i < sizeof(entries) / sizeof(entries[0]); ++i)
+        {
+            if (padName == entries[i].name)
+            {
+                return entries[i].type;
+            }
+        }
+
+        return InputAdapter::Pad_Invalid;
+    }
+}
 
 #define CONTEXTICONSCONFIG_PATH GETPATH_ALIAS("contexticons")
 
@@ -71,29 +109,49 @@ void ContextIconsManager::init()
     // store template
     m_template = const_cast<ContextIconsManager_Template*>(config);
 
-    // safety checks
-    bbool ok = btrue;
     if (m_template->getLineIds().size() != ContextIcon_Count)
     {
-        ok = bfalse;
+        ITF_FATAL_ERROR("Error loading context icons config: %s", m_configPath.getString8().cStr());
     }
-    else if (m_template->getButtonNames().size() != InputAdapter::PadType_Count)
+
+    m_padIconStrings.clear();
+    m_padIconStrings.resize(InputAdapter::PadType_Count);
+
+    const ITF_VECTOR<ContextIconsManager_Template::PadIconSet>& padIconSets = m_template->getPadIconSets();
+    for (ITF_VECTOR<ContextIconsManager_Template::PadIconSet>::const_iterator it = padIconSets.begin(); it != padIconSets.end(); ++it)
     {
-        ok = bfalse;
-    }
-    else
-    {
-        for (u32 i=0; i<InputAdapter::PadType_Count; ++i)
+        InputAdapter::PadType padType = padTypeFromString((*it).m_padName);
+        if (padType == InputAdapter::Pad_Invalid || padType >= InputAdapter::PadType_Count)
         {
-            if (m_template->getButtonNames()[i].size() != ContextIconType_Count)
-            {
-                ok = bfalse;
-            }
+            ITF_WARNING_CATEGORY(L10n, NULL, bfalse, "Unknown pad type '%s' in context icons config", (*it).m_padName.cStr());
+            continue;
+        }
+
+        ITF_VECTOR<String8>& target = m_padIconStrings[padType];
+        target = (*it).m_icons;
+
+        if (target.size() < ContextIconType_Count)
+        {
+            ITF_WARNING_CATEGORY(L10n, NULL, bfalse, "Pad '%s' provides %u context icons, expected %u", (*it).m_padName.cStr(), u32(target.size()), u32(ContextIconType_Count));
+            target.resize(ContextIconType_Count, String8("<N/A>"));
         }
     }
-    if (!ok)
+
+    if (m_padIconStrings[InputAdapter::Pad_Other].empty())
     {
-        ITF_FATAL_ERROR("Error loading context icons config: %s", m_configPath.getString8().cStr());
+        m_padIconStrings[InputAdapter::Pad_Other].assign(ContextIconType_Count, String8("<N/A>"));
+    }
+
+    const ITF_VECTOR<String8>& genericIcons = !m_padIconStrings[InputAdapter::Pad_GenericXBox].empty()
+        ? m_padIconStrings[InputAdapter::Pad_GenericXBox]
+        : m_padIconStrings[InputAdapter::Pad_Other];
+
+    for (u32 padIndex = 0; padIndex < InputAdapter::PadType_Count; ++padIndex)
+    {
+        if (m_padIconStrings[padIndex].empty())
+        {
+            m_padIconStrings[padIndex] = genericIcons;
+        }
     }
 }
 
@@ -266,7 +324,21 @@ const String8& ContextIconsManager::getIconStr(u32 _padType, EContextIconType _c
     if(!m_template)
         return String8::emptyString;
 
-    return m_template->getButtonNames()[_padType][_context];
+    if (static_cast<size_t>(_padType) >= m_padIconStrings.size())
+        _padType = InputAdapter::Pad_Other;
+
+    const ITF_VECTOR<String8>& icons = m_padIconStrings[_padType];
+    if (icons.size() > static_cast<size_t>(_context))
+        return icons[_context];
+
+    if (_padType != InputAdapter::Pad_Other && InputAdapter::Pad_Other < m_padIconStrings.size())
+    {
+        const ITF_VECTOR<String8>& fallback = m_padIconStrings[InputAdapter::Pad_Other];
+        if (fallback.size() > static_cast<size_t>(_context))
+            return fallback[_context];
+    }
+
+    return String8::emptyString;
 }
 
 //------------------------------------------------------------------------------
@@ -386,7 +458,7 @@ void ContextIconsManager::setupIcon(EContextIcon _icon, UIComponent* _iconUI, UI
 
         InputAdapter::PadType padType = INPUT_ADAPTER->getDebugInputPadType(mainPlayer);
         if (padType == InputAdapter::Pad_Invalid) return;
-        String8 content = m_template->getButtonNames()[padType][iconType];
+        const String8& content = getIconStr(padType, iconType);
         _iconUI->forceContent(content);
 
         LocalisationId lineId = m_template->getLineIds()[_icon];
@@ -415,7 +487,12 @@ IMPLEMENT_OBJECT_RTTI(ContextIconsManager_Template)
 BEGIN_SERIALIZATION(ContextIconsManager_Template)
     SERIALIZE_MEMBER("menuId", m_menuId);
     SERIALIZE_CONTAINER("lineIds", m_lineIds);
-    SERIALIZE_CONTAINER("buttonNames", m_buttonNames);
+    SERIALIZE_CONTAINER_OBJECT("padIconSets", m_padIconSets);
+END_SERIALIZATION()
+
+BEGIN_SERIALIZATION_SUBCLASS(ContextIconsManager_Template, PadIconSet)
+    SERIALIZE_MEMBER("pad", m_padName);
+    SERIALIZE_CONTAINER("icons", m_icons);
 END_SERIALIZATION()
 
 //------------------------------------------------------------------------------
@@ -423,7 +500,7 @@ ContextIconsManager_Template::ContextIconsManager_Template()
     : Super()
     , m_menuId()
     , m_lineIds()
-    , m_buttonNames()
+    , m_padIconSets()
 {
 }
 
@@ -432,7 +509,7 @@ ContextIconsManager_Template::ContextIconsManager_Template(const Path& _path)
     : Super(_path)
     , m_menuId()
     , m_lineIds()
-    , m_buttonNames()
+    , m_padIconSets()
 {
 }
 

@@ -269,6 +269,11 @@ namespace ITF
             , m_temprunUseShake(bfalse)
             , m_temprunTimerStop(0.0f)
             , m_usePressConfMenu(bfalse)
+            , m_iconsBtnPath()
+            , m_gpeIconsPath()
+            , m_skipIconsPath()
+            , m_menuLogosPath()
+            , m_buttonIconPaths()
         {}
         GameManagerConfig_Template(const Path& _path)
             : Super(_path)
@@ -282,6 +287,11 @@ namespace ITF
             , m_temprunUseShake(bfalse)
             , m_temprunTimerStop(0.0f)
             , m_usePressConfMenu(bfalse)
+            , m_iconsBtnPath()
+            , m_gpeIconsPath()
+            , m_skipIconsPath()
+            , m_menuLogosPath()
+            , m_buttonIconPaths()
         {}
         ~GameManagerConfig_Template();
         ITF_INLINE const ITF_VECTOR<String> &getMaps() const { return m_maps; }
@@ -320,6 +330,20 @@ namespace ITF
         ITF_INLINE const ITF::Path& getIconsGpePath() const { return m_gpeIconsPath; }
         ITF_INLINE const ITF::Path& getIconsSkipPath() const { return m_skipIconsPath; }
         ITF_INLINE const ITF::Path& getMenuLogosPath() const { return m_menuLogosPath; }
+        struct ButtonIconPath
+        {
+            ButtonIconPath()
+                : m_padName()
+                , m_path()
+            {}
+
+            String8 m_padName;
+            Path    m_path;
+
+            DECLARE_SERIALIZE()
+        };
+
+        ITF_INLINE const ITF_VECTOR<ButtonIconPath>& getButtonIconPaths() const { return m_buttonIconPaths; }
 
     private:
 
@@ -363,6 +387,7 @@ namespace ITF
         Path                        m_gpeIconsPath;
         Path                        m_skipIconsPath;
         Path                        m_menuLogosPath;
+        ITF_VECTOR<ButtonIconPath>  m_buttonIconPaths;
 
         // TEMP values  -- Will be removed soon --
         f32                         m_tempThreshold;
@@ -635,6 +660,7 @@ namespace ITF
         const ITF_VECTOR< String >& getPressConfMaps() const { ITF_ASSERT_CRASH( m_configTemplate != NULL, "Template must be loaded first" ); return m_configTemplate->getPressConfMaps(); }
         const Path&                 getLoadingScreenPath() const { ITF_ASSERT_CRASH( m_configTemplate != NULL, "Template must be loaded first" ); return m_configTemplate->getLoadingScreenPath(); }
         const Path&                 getIconsBtnPath() const { ITF_ASSERT_CRASH( m_configTemplate != NULL, "Template must be loaded first" ); return m_configTemplate->getIconsBtnPath(); }
+        const ITF_VECTOR<GameManagerConfig_Template::ButtonIconPath>& getControllerButtonIconPaths() const { ITF_ASSERT_CRASH( m_configTemplate != NULL, "Template must be loaded first" ); return m_configTemplate->getButtonIconPaths(); }
         const Path&                 getIconsGpePath() const { ITF_ASSERT_CRASH( m_configTemplate != NULL, "Template must be loaded first" ); return m_configTemplate->getIconsGpePath(); }
         const Path&                 getIconsSkipPath() const { ITF_ASSERT_CRASH( m_configTemplate != NULL, "Template must be loaded first" ); return m_configTemplate->getIconsSkipPath(); }
         const Path&                 getMenuLogosPath() const { ITF_ASSERT_CRASH( m_configTemplate != NULL, "Template must be loaded first" ); return m_configTemplate->getMenuLogosPath(); }
@@ -872,7 +898,7 @@ namespace ITF
         virtual void stopPauseBusMix() {}
     public :
         typedef void (*CompletionCallback_t)();
-        CompletionCallback_t m_onGameSettingLoaded;
+        CompletionCallback_t m_onGameSettingLoaded = nullptr;
         void setGameSettingLoadEvent(CompletionCallback_t callback) {m_onGameSettingLoaded = callback;};
     protected:
 

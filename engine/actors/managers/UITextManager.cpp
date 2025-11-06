@@ -40,6 +40,10 @@
 #include "core/file/filepath.h"
 #endif //_ITF_FILEPATH_H_
 
+#ifndef _ITF_TYPES_H_
+#include "core/types.h"
+#endif //_ITF_TYPES_H_
+
 #ifndef _ITF_UICOMPONENT_H_
 #include "gameplay/components/UI/UIComponent.h"
 #endif //_ITF_UICOMPONENT_H_
@@ -70,8 +74,8 @@ namespace ITF
     , m_iconSize(32.0f)
     , m_iconYOffset(0.0f)
     , m_iconXOffset(0.f)
-    , m_buttonPath()
-    , m_buttonMap()
+    , m_buttonIconLookup()
+    , m_buttonAtlases()
     , m_gpePath()
     , m_gpeMap()
     {
@@ -115,13 +119,50 @@ namespace ITF
         // store template
         m_template = const_cast<UITextManager_Template*>(config);
 
-        // copy button icons info
-        m_buttonPath = m_template->getButtonPath();
-        const ITF_VECTOR<String8>& buttonNames = m_template->getButtonNames();
-        i32 buttonNamesCount = i32(buttonNames.size());
-        for (i32 i=0; i<buttonNamesCount; ++i)
+        // copy button icons info per pad
+        m_buttonIconLookup.clear();
+        m_buttonAtlases.clear();
+
+        typedef ITF_MAP<String8, Path> PadPathMap;
+        PadPathMap overridePaths;
         {
-            m_buttonMap[buttonNames[i]] = i;
+            const ITF_VECTOR<GameManagerConfig_Template::ButtonIconPath>& buttonIconPaths = GAMEMANAGER->getControllerButtonIconPaths();
+            for (ITF_VECTOR<GameManagerConfig_Template::ButtonIconPath>::const_iterator it = buttonIconPaths.begin(); it != buttonIconPaths.end(); ++it)
+            {
+                if (!(*it).m_padName.isEmpty())
+                {
+                    overridePaths[(*it).m_padName] = (*it).m_path;
+                }
+            }
+        }
+
+        const ITF_VECTOR<UITextManager_Template::ButtonConfig>& buttonConfigs = m_template->getButtonConfigs();
+        m_buttonAtlases.reserve(buttonConfigs.size());
+        for (ITF_VECTOR<UITextManager_Template::ButtonConfig>::const_iterator cfgIt = buttonConfigs.begin(); cfgIt != buttonConfigs.end(); ++cfgIt)
+        {
+            const UITextManager_Template::ButtonConfig& configEntry = *cfgIt;
+            ButtonAtlasRuntime atlas;
+            atlas.padName = configEntry.m_padName;
+
+            PadPathMap::const_iterator overrideIt = overridePaths.find(configEntry.m_padName);
+            if (overrideIt != overridePaths.end() && !overrideIt->second.isEmpty())
+            {
+                atlas.path = overrideIt->second;
+            }
+            else
+            {
+                atlas.path = configEntry.m_buttonPath;
+            }
+
+            const ITF_VECTOR<String8>& buttonNames = configEntry.m_buttonNames;
+            i32 buttonNamesCount = i32(buttonNames.size());
+            for (i32 idx = 0; idx < buttonNamesCount; ++idx)
+            {
+                const String8& buttonName = buttonNames[idx];
+                atlas.iconMap[buttonName] = idx;
+            }
+
+            m_buttonAtlases.push_back(atlas);
         }
 
         // copy GPE icons info
@@ -397,9 +438,29 @@ namespace ITF
             // create resource group
             m_iconsGroup = RESOURCE_MANAGER->newResourceIDFromFile(Resource::ResourceType_ResourceGroup, Path::EmptyPath);
 
-            // add pad buttons icons
-            m_buttonPath = GAMEMANAGER->getIconsBtnPath();
-            m_buttonTextureId = ((ResourceGroup*)(m_iconsGroup.getResource()))->addResource(Resource::ResourceType_Texture, m_buttonPath);
+            typedef ITF_MAP<String8, ResourceID> TextureCache;
+            TextureCache textureCache;
+
+            // add pad buttons icons (per atlas)
+            for (u32 atlasIndex = 0; atlasIndex < m_buttonAtlases.size(); ++atlasIndex)
+            {
+                ButtonAtlasRuntime& atlas = m_buttonAtlases[atlasIndex];
+                if (atlas.path.isEmpty())
+                    continue;
+
+                String8 key = atlas.path.getString8();
+                TextureCache::const_iterator cacheIt = textureCache.find(key);
+                if (cacheIt != textureCache.end())
+                {
+                    atlas.textureId = cacheIt->second;
+                }
+                else
+                {
+                    ResourceID textureId = ((ResourceGroup*)(m_iconsGroup.getResource()))->addResource(Resource::ResourceType_Texture, atlas.path);
+                    atlas.textureId = textureId;
+                    textureCache[key] = textureId;
+                }
+            }
 
             // add GPE icons
             m_gpePath = GAMEMANAGER->getIconsGpePath();
@@ -427,32 +488,34 @@ namespace ITF
     }
 
     //////////////////////////////////////////////////////////////////////////
-    bbool UITextManager::getIconInfo(const String8& _tag, bbool& _isButton, i32& _index) const
+    bbool UITextManager::getIconInfo(const String8& _tag, bbool& _isButton, i32& _index, u32& _atlasIndex) const
     {
         // search in buttons map
-        IconMap::const_iterator it = m_buttonMap.find(_tag);
-        if (it != m_buttonMap.end())
+        ButtonIconLookupMap::const_iterator buttonIt = m_buttonIconLookup.find(_tag);
+        if (buttonIt == m_buttonIconLookup.end())
+        {
+            String8 fallback = getIconFallback(_tag);
+            if (fallback != _tag)
+            {
+                buttonIt = m_buttonIconLookup.find(fallback);
+            }
+        }
+
+        if (buttonIt != m_buttonIconLookup.end())
         {
             _isButton = btrue;
-            _index = it->second;
+            _index = buttonIt->second.frameIndex;
+            _atlasIndex = buttonIt->second.atlasIndex;
             return btrue;
         }
 
         // search in GPEs map
-        it = m_gpeMap.find(_tag);
-        if (it != m_gpeMap.end())
+        IconMap::const_iterator gpeIt = m_gpeMap.find(_tag);
+        if (gpeIt != m_gpeMap.end())
         {
             _isButton = bfalse;
-            _index = it->second;
-            return btrue;
-        }
-
-        // not found, try a platform specific fallback
-        it = m_buttonMap.find(getIconFallback(_tag));
-        if (it != m_buttonMap.end())
-        {
-            _isButton = btrue;
-            _index = it->second;
+            _index = gpeIt->second;
+            _atlasIndex = U32_INVALID;
             return btrue;
         }
 
@@ -460,6 +523,7 @@ namespace ITF
         ITF_WARNING_CATEGORY(L10n, NULL, bfalse, "Unknown icon: %s", _tag.cStr());
         _isButton = bfalse;
         _index = 0;
+        _atlasIndex = U32_INVALID;
         return bfalse;
     }
 
@@ -526,9 +590,12 @@ namespace ITF
     }
 
     //////////////////////////////////////////////////////////////////////////
-    Texture *UITextManager::getButtonTexture()
+    Texture *UITextManager::getButtonTexture(u32 _atlasIndex)
     {
-        return (Texture*)m_buttonTextureId.getResource();
+        if (_atlasIndex >= m_buttonAtlases.size())
+            return NULL;
+
+        return (Texture*)m_buttonAtlases[_atlasIndex].textureId.getResource();
     }
 
     //////////////////////////////////////////////////////////////////////////
@@ -579,10 +646,15 @@ namespace ITF
         SERIALIZE_MEMBER("iconSize", m_iconSize);
         SERIALIZE_MEMBER("iconYOffset", m_iconYOffset);
         SERIALIZE_MEMBER("iconXOffset", m_iconXOffset);
-        SERIALIZE_MEMBER("buttonPath", m_buttonPath);
-        SERIALIZE_CONTAINER("buttonNames", m_buttonNames);
         SERIALIZE_MEMBER("gpePath", m_gpePath);
         SERIALIZE_CONTAINER("gpeNames", m_gpeNames);
+        SERIALIZE_CONTAINER_OBJECT("buttonConfigs", m_buttonConfigs);
+    END_SERIALIZATION()
+
+    BEGIN_SERIALIZATION_SUBCLASS(UITextManager_Template, ButtonConfig)
+        SERIALIZE_MEMBER("pad", m_padName);
+        SERIALIZE_MEMBER("buttonPath", m_buttonPath);
+        SERIALIZE_CONTAINER("buttonNames", m_buttonNames);
     END_SERIALIZATION()
 
 }

@@ -16,6 +16,10 @@
 #include "engine/resources/ResourceManager.h"
 #endif //_ITF_RESOURCEMANAGER_H_
 
+#ifndef _ITF_TYPES_H_
+#include "core/types.h"
+#endif //_ITF_TYPES_H_
+
 #ifndef _ITF_FILEPACKFORMAT_H_
 #include "engine/file/FilePackFormat.h"
 #endif //_ITF_FILEPACKFORMAT_H_
@@ -919,6 +923,12 @@ void Font::writeBox(u32 color,f32 x, f32 y, f32 z, bbool _isRender2D, const Vec3
                     const String iconName = word.substr(indexIconBegin + iconTagBeginSize, indexIconEnd - indexIconBegin - iconTagBeginSize);
                     String8 iconName8(iconName.cStr());
 
+                    newicon.m_isButton = bfalse;
+                    newicon.m_isSkipIcon = bfalse;
+                    newicon.m_isMenuLogo = bfalse;
+                    newicon.m_buttonAtlasIndex = U32_INVALID;
+                    newicon.m_index = 0;
+
                     i32 skipIconIndex = -1;
                     newicon.m_isSkipIcon = UI_TEXTMANAGER->getSkipIconInfo(iconName8, skipIconIndex);
                     if (newicon.m_isSkipIcon)
@@ -943,8 +953,14 @@ void Font::writeBox(u32 color,f32 x, f32 y, f32 z, bbool _isRender2D, const Vec3
                         newicon.m_isMenuLogo = bfalse;
                     }
 
-                    if (newicon.m_isSkipIcon || newicon.m_isMenuLogo || UI_TEXTMANAGER->getIconInfo(iconName8, newicon.m_isButton, newicon.m_index))
+                    u32 buttonAtlasIndex = U32_INVALID;
+                    if (newicon.m_isSkipIcon || newicon.m_isMenuLogo || UI_TEXTMANAGER->getIconInfo(iconName8, newicon.m_isButton, newicon.m_index, buttonAtlasIndex))
                     {
+                        if (newicon.m_isButton)
+                        {
+                            newicon.m_buttonAtlasIndex = buttonAtlasIndex;
+                        }
+
                         // compute space char from size of icon
                         f32 spaceW = getTextWidth(" ", 1);
                         i32 nb = ((i32)(iconSize/spaceW) - 1) + ((i32)(iconXOffset/spaceW));
@@ -1190,7 +1206,7 @@ void Font::writeBox(u32 color,f32 x, f32 y, f32 z, bbool _isRender2D, const Vec3
         //iconpos
         if ( tagicon.size() && _write)
         {
-            Texture* buttonTexture = UI_TEXTMANAGER->getButtonTexture();
+            Texture* defaultButtonTexture = UI_TEXTMANAGER->getButtonTexture(0);
             Texture* gpeTexture = UI_TEXTMANAGER->getGpeTexture();
             Texture* skipIconsTexture = UI_TEXTMANAGER->getSkipIconsTexture();
             Texture* menuLogosTexture = UI_TEXTMANAGER->getMenuLogosTexture();
@@ -1207,7 +1223,19 @@ void Font::writeBox(u32 color,f32 x, f32 y, f32 z, bbool _isRender2D, const Vec3
                 else if (tagicon[i].m_isMenuLogo)
                     texture = menuLogosTexture;
                 else if (tagicon[i].m_isButton)
-                    texture = buttonTexture;
+                {
+                    u32 atlasIndex = tagicon[i].m_buttonAtlasIndex;
+                    if (atlasIndex == U32_INVALID)
+                    {
+                        texture = defaultButtonTexture;
+                    }
+                    else
+                    {
+                        texture = UI_TEXTMANAGER->getButtonTexture(atlasIndex);
+                    }
+                    if (!texture)
+                        texture = defaultButtonTexture;
+                }
                 else
                     texture = gpeTexture;
 
@@ -1557,6 +1585,20 @@ void Font::dependenciesFile(const String& _filename,DepCollection& _collection)
             String ext(fullpath.getExtension());
 
             String fontFileLocal16 = path + baseName + langaugeSuffix +"." + ext;
+            _collection.add(fontFileLocal16);
+        }
+        if (baseName.strstr(String("_tch").cStr()) == NULL)
+        {
+            String ext(fullpath.getExtension());
+
+            String fontFileLocal16 = path + baseName + "_tch." + ext;
+            _collection.add(fontFileLocal16);
+        }
+        if (baseName.strstr(String("_sch").cStr()) == NULL)
+        {
+            String ext(fullpath.getExtension());
+
+            String fontFileLocal16 = path + baseName + "_sch." + ext;
             _collection.add(fontFileLocal16);
         }
     }

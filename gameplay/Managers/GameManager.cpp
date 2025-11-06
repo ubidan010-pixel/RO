@@ -292,6 +292,7 @@ namespace ITF
         SERIALIZE_MEMBER("TEMP_swimSmooth", m_tempswimSmooth);
         SERIALIZE_MEMBER("TEMP_runTimerStop", m_temprunTimerStop);
         SERIALIZE_MEMBER("iconsButtonPath", m_iconsBtnPath);
+        SERIALIZE_CONTAINER_OBJECT("buttonIconPaths", m_buttonIconPaths);
         SERIALIZE_MEMBER("gpeIconsPath", m_gpeIconsPath);
         SERIALIZE_MEMBER("skipIconsPath", m_skipIconsPath);
         SERIALIZE_MEMBER("menuLogosPath", m_menuLogosPath);
@@ -308,6 +309,11 @@ namespace ITF
     BEGIN_SERIALIZATION_SUBCLASS(GameManagerConfig_Template,MusicTheme)
         SERIALIZE_MEMBER("theme",m_theme);
         SERIALIZE_MEMBER("path",m_path);
+    END_SERIALIZATION()
+
+    BEGIN_SERIALIZATION_SUBCLASS(GameManagerConfig_Template, ButtonIconPath)
+        SERIALIZE_MEMBER("pad", m_padName);
+        SERIALIZE_MEMBER("path", m_path);
     END_SERIALIZATION()
 
     GameManagerConfig_Template::~GameManagerConfig_Template()

@@ -364,13 +364,6 @@ namespace ITF
                 UpdateInputForGame();
             }
         }
-#ifdef ITF_SUPPORT_BOT_AUTO
-        static f64 lastTime = 0.0;
-        f64 currentTime = SYSTEM_ADAPTER ? SYSTEM_ADAPTER->getTime() : 0.0;
-        f32 dt = lastTime > 0.0 ? static_cast<f32>(currentTime - lastTime) : 0.016f;
-        lastTime = currentTime;
-        updateVirtualInput(dt);
-#endif
     }
 
     void InputAdapter::getGamePadPos(u32 _environment, u32 _pad, float* _pos, u32 _numAxes) const
@@ -688,7 +681,6 @@ namespace
         {
             INPUT_ADAPTER->onKey(KEY_RALT, (ITF::InputAdapter::PressStatus)bRAlt);
         }
-
         /// Set Keys.
         INPUT_ADAPTER->onKey(TranslateVirtualKey(nChar), status);
     }
@@ -1565,7 +1557,7 @@ namespace
             m_inputMappingTemporary[0][ActionRight].inputValue = VK_RIGHT;
             m_inputMappingTemporary[0][ActionRight].inputType = Keyboard;
 
-            m_inputMappingTemporary[0][ActionJump].inputValue = 'B';
+            m_inputMappingTemporary[0][ActionJump].inputValue = VK_SPACE;
             m_inputMappingTemporary[0][ActionJump].inputType = Keyboard;
 
             m_inputMappingTemporary[0][ActionHit].inputValue = 'S';
@@ -2096,86 +2088,4 @@ namespace
     {
         return m_inputMapping[player][action];
     }
-
-#ifdef ITF_SUPPORT_BOT_AUTO
-    void InputAdapter::virtualPressButton(u32 _buttonIndex)
-    {
-        if (_buttonIndex >= JOY_MAX_BUT) return;
-
-        m_buttons[0][_buttonIndex] = JustPressed;
-        m_virtualButtons[_buttonIndex].active = btrue;
-        m_virtualButtons[_buttonIndex].holdDuration = 0.1f;
-        m_virtualButtons[_buttonIndex].holdTimer = 0.0f;
-    }
-
-    void InputAdapter::virtualReleaseButton(u32 _buttonIndex)
-    {
-        if (_buttonIndex >= JOY_MAX_BUT) return;
-
-        m_buttons[0][_buttonIndex] = JustReleased;
-        m_virtualButtons[_buttonIndex].active = bfalse;
-        m_virtualButtons[_buttonIndex].holdDuration = 0.0f;
-    }
-
-
-    void InputAdapter::virtualSetAxis(u32 _axisIndex, f32 _value)
-    {
-        if (_axisIndex >= JOY_MAX_AXES) return;
-
-        m_virtualAxes[_axisIndex].active = btrue;
-        m_virtualAxes[_axisIndex].targetValue = _value;
-    }
-
-    void InputAdapter::updateVirtualInput(f32 _dt)
-    {
-        for (u32 i = 0; i < JOY_MAX_BUT; ++i)
-        {
-            if (!m_virtualButtons[i].active) continue;
-
-            m_virtualButtons[i].holdTimer += _dt;
-
-            if (m_virtualButtons[i].holdTimer >= m_virtualButtons[i].holdDuration)
-            {
-                m_buttons[0][i] = JustReleased;
-                m_virtualButtons[i].active = bfalse;
-            }
-            else
-            {
-                if (m_virtualButtons[i].holdTimer <= _dt * 1.5f)
-                {
-                    m_buttons[0][i] = JustPressed;
-                }
-                else
-                {
-                    m_buttons[0][i] = Pressed;
-                }
-            }
-        }
-
-        for (u32 i = 0; i < JOY_MAX_AXES; ++i)
-        {
-            if (m_virtualAxes[i].active)
-            {
-                m_axes[0][i] = m_virtualAxes[i].targetValue;
-            }
-        }
-
-        for (i32 i = 0; i < KEY_COUNT; ++i)
-        {
-            if (!m_virtualKeysActive[i]) continue;
-
-            m_virtualKeyTimers[i] -= _dt;
-
-            if (m_virtualKeyTimers[i] <= 0.0f)
-            {
-                m_keyStatus[i] = Released;
-                m_virtualKeysActive[i] = bfalse;
-            }
-            else
-            {
-                m_keyStatus[i] = Pressed;
-            }
-        }
-    }
-#endif
 } // namespace ITF

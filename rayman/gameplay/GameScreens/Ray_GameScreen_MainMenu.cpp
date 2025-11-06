@@ -1471,12 +1471,12 @@ namespace ITF
             m_shouldShowWarningBoot = (days >= DAYS_TO_SHOW_WARNING_BOOT);
         }
     }
-    ///////////////////////////////////////////////////////////////////////////////////////////
+
     bbool Ray_GameScreen_MainMenu::shouldShowWarningBootPopup()
     {
         return m_shouldShowWarningBoot;
     }
-    ///////////////////////////////////////////////////////////////////////////////////////////
+
     void Ray_GameScreen_MainMenu::updateLastPlayTime()
     {
         if(!RAY_GAMEMANAGER)
@@ -1484,5 +1484,5 @@ namespace ITF
         f64 currentTime = SYSTEM_ADAPTER->getEpochSeconds();
         RAY_GAMEMANAGER->getGameOptionManager().setFloatOption(LAST_PLAY_TIME, (f32)currentTime);
     }
-    ///////////////////////////////////////////////////////////////////////////////////////////
+
 }
