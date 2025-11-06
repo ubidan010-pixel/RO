@@ -68,7 +68,6 @@ private:
     i32 m_runtimeDepthRank;
     UIComponent* iconBgSkipCine;
     UIComponent* iconProcessSkipCine;
-    ITF_VECTOR<ITF_VECTOR<String8> > m_padIconStrings;
 };
 
 //------------------------------------------------------------------------------
@@ -84,26 +83,12 @@ public:
 
     ITF_INLINE const StringID& getMenuId() const { return m_menuId; }
     ITF_INLINE const ITF_VECTOR<LocalisationId>& getLineIds() const { return m_lineIds; }
-
-    struct PadIconSet
-    {
-        PadIconSet()
-            : m_padName()
-            , m_icons()
-        {}
-
-        String8                 m_padName;
-        ITF_VECTOR<String8>     m_icons;
-
-        DECLARE_SERIALIZE()
-    };
-
-    ITF_INLINE const ITF_VECTOR<PadIconSet>& getPadIconSets() const { return m_padIconSets; }
+    ITF_INLINE const ITF_VECTOR<ITF_VECTOR<String8> >& getButtonNames() const { return m_buttonNames; }
 
 private:
     StringID m_menuId;
     ITF_VECTOR<LocalisationId> m_lineIds;
-    ITF_VECTOR<PadIconSet> m_padIconSets;
+    ITF_VECTOR<ITF_VECTOR<String8> > m_buttonNames;
 };
 
 } // namespace ITF

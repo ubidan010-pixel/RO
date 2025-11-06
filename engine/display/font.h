@@ -24,7 +24,6 @@ namespace ITF
         i32 m_index;
         bbool m_isSkipIcon;
         bbool m_isMenuLogo;
-        u32 m_buttonAtlasIndex;
     };
 
     struct SCharDescr

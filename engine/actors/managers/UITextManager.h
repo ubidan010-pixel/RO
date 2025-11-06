@@ -109,10 +109,10 @@ namespace ITF
         f32             getIconYOffset() const;
         f32             getIconXOffset() const;
 
-        bbool           getIconInfo(const String8& _tag, bbool& _isButton, i32& _index, u32& _atlasIndex) const;
+        bbool           getIconInfo(const String8& _tag, bbool& _isButton, i32& _index) const;
         bbool           getSkipIconInfo(const String8& _tag, i32& _index) const;
         bbool           getMenuLogoInfo(const String8& _tag, i32& _index) const;
-        Texture*        getButtonTexture(u32 _atlasIndex);
+        Texture*        getButtonTexture();
         Texture*        getGpeTexture();
         Texture*        getSkipIconsTexture();
         Texture*        getMenuLogosTexture();
@@ -132,6 +132,7 @@ namespace ITF
 
         // icons
         ResourceID      m_iconsGroup;
+        ResourceID      m_buttonTextureId;
         ResourceID      m_gpeTextureId;
         ResourceID      m_skipIconsTextureId;
 
@@ -159,35 +160,8 @@ namespace ITF
         f32                         m_iconYOffset;
         f32                         m_iconXOffset;
         typedef ITF_MAP<String8, i32> IconMap;
-        struct ButtonIconInfo
-        {
-            ButtonIconInfo()
-                : atlasIndex(0)
-                , frameIndex(-1)
-            {}
-
-            u32 atlasIndex;
-            i32 frameIndex;
-        };
-        typedef ITF_MAP<String8, ButtonIconInfo> ButtonIconLookupMap;
-
-        struct ButtonAtlasRuntime
-        {
-            ButtonAtlasRuntime()
-                : padName()
-                , path()
-                , textureId()
-                , iconMap()
-            {}
-
-            String8 padName;
-            Path path;
-            ResourceID textureId;
-            IconMap iconMap;
-        };
-
-        ButtonIconLookupMap        m_buttonIconLookup;
-        ITF_VECTOR<ButtonAtlasRuntime> m_buttonAtlases;
+        Path                        m_buttonPath;
+        IconMap                     m_buttonMap;
         Path                        m_gpePath;
         IconMap                     m_gpeMap;
         IconMap                     m_skipIconsMap;
@@ -209,50 +183,38 @@ namespace ITF
             , m_iconSize(32.0f)
             , m_iconYOffset(0.0f)
             , m_iconXOffset(0.f)
+            , m_buttonPath()
+            , m_buttonNames()
             , m_gpePath()
             , m_gpeNames()
-            , m_buttonConfigs()
             {}
         UITextManager_Template(const Path& _path)
             : Super(_path)
             , m_iconSize(32.0f)
             , m_iconYOffset(0.0f)
             , m_iconXOffset(0.f)
+            , m_buttonPath()
+            , m_buttonNames()
             , m_gpePath()
             , m_gpeNames()
-            , m_buttonConfigs()
             {}
 
         ITF_INLINE f32 getIconSize() const { return m_iconSize; }
         ITF_INLINE f32 getIconYOffset() const { return m_iconYOffset; }
         ITF_INLINE f32 getIconXOffset() const { return m_iconXOffset; }
-        ITF_INLINE const ITF_VECTOR<String8>& getGpeNames() const { return m_gpeNames; }
+        ITF_INLINE const Path& getButtonPath() const { return m_buttonPath; }
+        ITF_INLINE const ITF_VECTOR<String8>& getButtonNames() const { return m_buttonNames; }
         ITF_INLINE const Path& getGpePath() const { return m_gpePath; }
-
-        struct ButtonConfig
-        {
-            ButtonConfig()
-                : m_padName()
-                , m_buttonPath()
-                , m_buttonNames()
-            {}
-
-            String8                 m_padName;
-            Path                    m_buttonPath;
-            ITF_VECTOR<String8>     m_buttonNames;
-
-            DECLARE_SERIALIZE()
-        };
-
-        ITF_INLINE const ITF_VECTOR<ButtonConfig>& getButtonConfigs() const { return m_buttonConfigs; }
+        ITF_INLINE const ITF_VECTOR<String8>& getGpeNames() const { return m_gpeNames; }
 
     private:
         f32 m_iconSize;
         f32 m_iconYOffset;
         f32 m_iconXOffset;
+        Path m_buttonPath;
+        ITF_VECTOR<String8> m_buttonNames;
         Path m_gpePath;
         ITF_VECTOR<String8> m_gpeNames;
-        ITF_VECTOR<ButtonConfig> m_buttonConfigs;
     };
 
 }
