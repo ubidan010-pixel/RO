@@ -356,6 +356,8 @@ namespace ITF
 				//	trigger.setActivated(bfalse);
 				//	m_linkComponent->sendEventToChildren(&trigger);
 				//}
+
+                RAY_GAMEMANAGER->markMurphyAssistTargetCollected(m_actor->getRef());
             } 
 			break;
 

@@ -1256,6 +1256,13 @@
 #include "rayman/gameplay/Components/ai/Ray_MurphyAIComponent.h"
 #endif //_ITF_RAY_MURPHYAICOMPONENT_H_
 
+#ifndef _ITF_RAY_MURPHYASSISTAICOMPONENT_H_
+#include "rayman/gameplay/Components/AI/Ray_MurphyAssistAIComponent.h"
+#endif //_ITF_RAY_MURPHYASSISTAICOMPONENT_H_
+
+#ifndef _ITF_RAY_MURPHYASSISTBUBBLEAICOMPONENT_H_
+#include "rayman/gameplay/Components/AI/Ray_MurphyAssistBubbleAIComponent.h"
+#endif //_ITF_RAY_MURPHYASSISTBUBBLEAICOMPONENT_H_
 
 #ifndef _ITF_RAY_CHRONOAICOMPONENT_H_
 #include "rayman/gameplay/Components/ai/TimeAttack/Ray_ChronoAIComponent.h"
@@ -1668,6 +1675,8 @@ namespace ITF
         actorComponentsFactory->RegisterObject<Ray_DeadGuyBTAIComponent>(ITF_GET_STRINGID_CRC(Ray_DeadGuyBTAIComponent,3677113079));
         actorComponentsFactory->RegisterObject<Ray_TalkingHatAIComponent>(ITF_GET_STRINGID_CRC(Ray_TalkingHatAIComponent,3439430031));
         actorComponentsFactory->RegisterObject<Ray_MurphyAIComponent>(ITF_GET_STRINGID_CRC(Ray_MurphyAIComponent,4141462231));
+        actorComponentsFactory->RegisterObject<Ray_MurphyAssistAIComponent>(ITF_GET_STRINGID_CRC(Ray_MurphyAssistAIComponent,2664383627));
+        actorComponentsFactory->RegisterObject<Ray_MurphyAssistBubbleAIComponent>(ITF_GET_STRINGID_CRC(Ray_MurphyAssistBubbleAIComponent, 2616088894));
         actorComponentsFactory->RegisterObject<Ray_ChronoAIComponent>(ITF_GET_STRINGID_CRC(Ray_ChronoAIComponent,1392119711));
         actorComponentsFactory->RegisterObject<Ray_TimeAttackHUDTimerComponent>(ITF_GET_STRINGID_CRC(Ray_TimeAttackHUDTimerComponent,2795731935));
         actorComponentsFactory->RegisterObject<Ray_TimeAttackHUDResultsComponent>(ITF_GET_STRINGID_CRC(Ray_TimeAttackHUDResultsComponent,3725071531));
@@ -2175,7 +2184,9 @@ namespace ITF
         templatesFactory->RegisterObject<Ray_FriendlyBTAIComponent_Template>(ITF_GET_STRINGID_CRC(Ray_FriendlyBTAIComponent_Template,1728992287));
         templatesFactory->RegisterObject<Ray_DeadGuyBTAIComponent_Template>(ITF_GET_STRINGID_CRC(Ray_DeadGuyBTAIComponent_Template,2137520839));
         templatesFactory->RegisterObject<Ray_TalkingHatAIComponent_Template>(ITF_GET_STRINGID_CRC(Ray_TalkingHatAIComponent_Template,4160581289));
-        templatesFactory->RegisterObject<Ray_MurphyAIComponent_Template>(ITF_GET_STRINGID_CRC(Ray_MurphyAIComponent_Template,654353777));
+        templatesFactory->RegisterObject<Ray_MurphyAIComponent_Template>(ITF_GET_STRINGID_CRC(Ray_MurphyAIComponent_Template, 654353777));
+        templatesFactory->RegisterObject<Ray_MurphyAssistAIComponent_Template>(ITF_GET_STRINGID_CRC(Ray_MurphyAssistAIComponent_Template, 907154879));
+        templatesFactory->RegisterObject<Ray_MurphyAssistBubbleAIComponent_Template>(ITF_GET_STRINGID_CRC(Ray_MurphyAssistBubbleAIComponent_Template, 1710378469));
         templatesFactory->RegisterObject<Ray_ChronoAIComponent_Template>(ITF_GET_STRINGID_CRC(Ray_ChronoAIComponent_Template,2735339634));
         templatesFactory->RegisterObject<Ray_TimeAttackHUDTimerComponent_Template>(ITF_GET_STRINGID_CRC(Ray_TimeAttackHUDTimerComponent_Template,2746967258));
         templatesFactory->RegisterObject<Ray_TimeAttackHUDResultsComponent_Template>(ITF_GET_STRINGID_CRC(Ray_TimeAttackHUDResultsComponent_Template,900451392));

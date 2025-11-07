@@ -2,6 +2,8 @@
 
 #include "adapters/OnlineAdapter_Ubiservices/OnlineAdapter_Ubiservices.h"
 
+#ifdef ITF_SUPPORT_UBISERVICES
+
 #include "core/AdaptersInterfaces/SystemAdapter.h"
 #include "core/versioning.h"
 #include "core/Config.h"
@@ -11,21 +13,29 @@
 
 #include "engine/localisation/LocalisationManager.h"
 #include "engine/singleton/Singletons.h"
+#include "engine/networkservices/UPlayService.h"
 
+#include <ubiservices/ubiservicesSdk.h>
 #include <ubiservices/facade.h>
 #include <ubiservices/ubiservices.h>
 #include <ubiservices/session.h>
-#include <ubiservices/services/parameters/parametersClient.h>
-#include <ubiservices/services/parameters/parametersGroupInfo.h>
-#include <ubiservices/services/authentication/sessionInfo.h>
 #include <ubiservices/localizationHelper.h>
 #include <ubiservices/loggingHelper.h>
+
 #include <ubiservices/core/types/string.h>
 #include <ubiservices/core/types/containers.h>
 #include <ubiservices/core/log/log.h>
 #include <ubiservices/core/log/logDevice.h>
 #include <ubiservices/core/configs/threadingConfig.h>
 #include <ubiservices/core/configs/gameConfig.h>
+#include <ubiservices/core/configs/gameConfigEvent.h>
+
+#include <ubiservices/services/parameters/parametersClient.h>
+#include <ubiservices/services/parameters/parametersGroupInfo.h>
+#include <ubiservices/services/event/types/eventTypeInfo.h>
+#include <ubiservices/services/authentication/sessionInfo.h>
+#include <ubiservices/services/notification/playerNotificationClient.h>
+#include <ubiservices/services/notification/playerNotificationUbiServices.h>
 
 using namespace ubiservices;
 
@@ -58,20 +68,16 @@ namespace ITF
 
     OnlineAdapter_Ubiservices::OnlineAdapter_Ubiservices()
         : m_initialized(false)
-        , m_usFacade(nullptr)
         , m_gameConfig(nullptr)
         , m_sysConfig(nullptr)
     {
         US_NS::initializeSdk();
+        bool isMemLibinit = EalMemLibInit();
+        bool isLogLibinit = EalLogLibInit();
     }
 
     OnlineAdapter_Ubiservices::~OnlineAdapter_Ubiservices()
     {
-        if (m_gameConfig)
-            delete m_gameConfig;
-
-        if (m_sysConfig)
-            delete m_sysConfig;
     }
 
     void OnlineAdapter_Ubiservices::initialize()
@@ -99,11 +105,9 @@ namespace ITF
     void OnlineAdapter_Ubiservices::initializeUbiservices()
     {
         String8 buildId = generateBuildId();
-        configureUbiservices(buildId.cStr());
+        m_sdk = US_NS::UbiservicesSdk::create();
 
-        // Retail is built with no logs
-        //US_NS::LoggingHelper::enableMultiLines(true);
-        //US_NS::LoggingHelper::enableVerbose(true);
+        configureUbiservices(buildId.cStr());
 
         // Set the locale so Uplay actions are localized nicely
         String8 lang = "en";
@@ -111,22 +115,30 @@ namespace ITF
         //LOCALISATIONMANAGER->getCurrentLocaleString(lang, locale);
         US_NS::LocalizationHelper::setLocaleCode(US_NS::String::formatText("%s-%s", lang.cStr(), locale.cStr()));
 
-        m_usFacade = US_NEW(ubiservices::Facade);
+        //createSession();
 
         m_initialized = true;
     }
 
     void OnlineAdapter_Ubiservices::configureUbiservices(const ubiservices::String& _buildId)
     {
-        // Initializes UbiServices. This must be done before any other call to UbiServices.
         const US_NS::ApplicationId applicationId("4be81211-c3b6-427b-ab0a-5e2264da4529");
-        const US_NS::SpaceId spaceId("d1f6588a-19b5-421b-beae-5d95372756c6");
+        const US_NS::String applicationBuildId(_buildId);
+        US_NS::OnlineAccessContext onlineAccessContext = US_NS::OnlineAccessContext::Standard;
+        US_NS::ProfilePolicy profilePolicy = US_NS::ProfilePolicy::UseUplayProfile;
 
-        m_gameConfig = new US_NS::GameConfig(applicationId, _buildId, ubiservices::OnlineAccessContext::Standard,
-            ubiservices::GameConfigEvent("Full", "WW", ubiservices::Vector<ubiservices::EventTypeInfo>()));
+        US_NS::UplayPCPolicy uplayPCPolicy = US_NS::UplayPCPolicy::UseUplayPC;
+        const US_NS::GameConfigConsole gameConfigConsole(uplayPCPolicy);
+
+        m_gameConfig = new US_NS::GameConfig(applicationId
+            , applicationBuildId
+            , onlineAccessContext
+            , US_NS::GameConfigEvent("Full", "WW", US_NS::Vector<US_NS::EventTypeInfo>())
+        );
+
         m_sysConfig = new US_NS::SystemConfig();
 
-        US_NS::ConfigureResult res = US_NS::configureSdk(*m_gameConfig, *m_sysConfig);
+        US_NS::ConfigureResult res = m_sdk->configure(*m_gameConfig, *m_sysConfig);
         if (res == ConfigureResult::Success)
         {
             LOG("[Ubiservices] configure OK!");
@@ -135,7 +147,12 @@ namespace ITF
 
     void OnlineAdapter_Ubiservices::terminateUbiservices()
     {
-        US_DELETE(m_usFacade);
+        if (m_session)
+        {
+            closeSession();
+        }
+
+        m_sdk.release();
 
         LOG("[Ubiservices] terminateUbiservices start");
         while (US_NS::uninitializeSdk() != US_NS::UninitializeResult::Complete)
@@ -146,14 +163,106 @@ namespace ITF
         LOG("[Ubiservices] terminateUbiservices completed");
     }
 
-    void OnlineAdapter_Ubiservices::recreateFacade()
+    void OnlineAdapter_Ubiservices::createSession()
     {
-        if (m_usFacade)
+        // Get/Create the UbiServices session instance (assuming there is only one player).
+        // This object must remain alive as long as the player is connected.
+        m_session = US_NS::Session::create(*m_sdk);
+
+        // Create a NotificationUbiServices Handler to receive UbiServices notifications
+        US_NS::ListenerHandler<PlayerNotificationUbiServices> handler = US_NS::PlayerNotificationsModule::module(*m_session).createNotificationListenerUbiServices();
+
+        // Fill up the player credentials. This step is platform dependent.
+        // This object can be deleted once the create session method returns.
+        US_NS::AsyncResult<US_NS::Empty> openResult;
+
+        const US_NS::Vector<US_NS::String> parametersGroupApplication;
+        const US_NS::Vector<US_NS::String> parametersGroupSpace;
+
+        if (!CONFIG->m_onlineLogin.isEmpty() && !CONFIG->m_onlinePassword.isEmpty())
         {
-            US_DELETE(m_usFacade);
+            const US_NS::PlayerCredentials playerCredentials = US_NS::PlayerCredentials(CONFIG->m_onlineLogin.cStr(), CONFIG->m_onlinePassword.cStr());
+            openResult = m_session->open(playerCredentials, parametersGroupApplication, parametersGroupSpace);
+        }
+#if ITF_SUPPORT_UPLAY
+        else
+        {
+            const US_NS::PlayerCredentials playerCredentials = US_NS::PlayerCredentials(UPLAYSERVICE->getToken().cStr(), CredentialsType::UplayPC);
+            openResult = m_session->open(playerCredentials, parametersGroupApplication, parametersGroupSpace);
+        }
+#endif
+
+        // Simulate a pooling loop waiting for the process to complete.
+        while (openResult.isProcessing())
+        {
+            // (Game loop)
         }
 
-        m_usFacade = US_NEW(ubiservices::Facade);
+        if (openResult.hasFailed())
+        {
+            LOG("[Ubiservices] error creating session");
+        }
+
+        // Wait for notification confirming if the websocket is connected or not
+        while (openResult.hasSucceeded() && !handler.isNotificationAvailable())
+        {
+            sleep(10);
+        }
+
+        const US_NS::PlayerNotificationUbiServices notification = handler.popNotification();
+        if (notification.m_type == US_NS::PlayerNotificationUbiServicesType::NotificationThrottled)
+        {
+            // Handle throttling..
+            LOG("[Ubiservices] Websocket creation has been throttled, deleting session!");
+
+            // Set a default wait time before retry. Time in seconds       
+            uint32 waitTimeBeforeRetry = 30;
+
+            // Check if time to wait before retry has been provided
+            if (!notification.m_content.isEmpty())
+            {
+                waitTimeBeforeRetry = US_NS::String::convertToInt(notification.m_content);
+                LOG("[Ubiservices] Retry websocket in %d", waitTimeBeforeRetry);
+            }
+
+            // Start waiting for at least waitTimeBeforeRetry      
+            // Delete Session
+            AsyncResult<Empty> closeResult = m_session->close();
+            // Wait for session deletion
+            closeResult.wait();
+            // Wait time finished. Try creating session again
+        }
+        else if (notification.m_type == US_NS::PlayerNotificationUbiServicesType::NotificationConnectionFailed)
+        {
+            // Handle connection failed..
+            LOG("[Ubiservices] Websocket creation has failed, deleting session!");
+            AsyncResult<Empty> closeResult = m_session->close();
+        }
+        else if (notification.m_type == US_NS::PlayerNotificationUbiServicesType::NotificationConnect)
+        {
+            // You are connected and all is good!
+            LOG("[Ubiservices] Session connected");
+        }
+    }
+
+    void OnlineAdapter_Ubiservices::closeSession()
+    {
+        if (!m_session)
+            return;
+
+        LOG("[Ubiservices] Closing session");
+
+        // Now closing, delete player session
+        AsyncResult<Empty> closeResult = m_session->close();
+        // Wait for the delete session completion. Wait is a blocking call.
+        closeResult.wait();
+        if (!closeResult.hasSucceeded())
+        {
+            // Error
+            LOG("[Ubiservices] Error closing session");
+        }
     }
 
 } // namespace ITF
+
+#endif // ITF_SUPPORT_UBISERVICES

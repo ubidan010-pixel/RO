@@ -1021,6 +1021,27 @@ namespace ITF
         bbool  m_play; 
     };
 
+    class EventActorActiveChanged : public Event
+    {
+        DECLARE_OBJECT_CHILD_RTTI(EventActorActiveChanged, Event, 323621555);
+
+    public:
+        EventActorActiveChanged()
+            : m_actorRef(ITF_INVALID_OBJREF), m_active(bfalse) {
+        }
+
+        EventActorActiveChanged(Actor* a, bbool active)
+            : m_actorRef(a ? a->getRef() : ITF_INVALID_OBJREF), m_active(active) {
+        }
+
+        ITF_INLINE Actor* getActor()  const { return m_actorRef.getActor(); }
+        ITF_INLINE bbool  isActive()  const { return m_active; }
+
+    private:
+        ActorRef m_actorRef;
+        bbool    m_active;
+    };
+
 } // namespace ITF
 
 #endif //_ITF_EVENTS_H_

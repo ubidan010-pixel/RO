@@ -38,6 +38,10 @@
 	#include "rayman/gameplay/Ray_OnlineTrackingManager.h"
 #endif
 
+#ifndef _ITF_RAY_MURPHYASSISTAICOMPONENT_H_
+#include "rayman/gameplay/Components/AI/Ray_MurphyAssistAIComponent.h"
+#endif //_ITF_RAY_MURPHYASSISTAICOMPONENT_H_
+
 namespace ITF
 {
 
@@ -53,6 +57,7 @@ Ray_ChronoAIComponent::Ray_ChronoAIComponent()
 , m_bubbleBoneIndex(U32_INVALID)
 , m_moveCounter(0.f)
 , m_shake(bfalse)
+, m_murphyRef(ITF_INVALID_OBJREF)
 {
 }
 
@@ -64,11 +69,11 @@ void Ray_ChronoAIComponent::onActorClearComponents()
 {
     Actor* bubbleActor = m_bubbleRef.getActor();
 
-    if ( bubbleActor && !bubbleActor->isDestructionRequested() )
+    if (bubbleActor && !bubbleActor->isDestructionRequested())
     {
         Scene* bubbleScene = bubbleActor->getScene();
 
-        if ( bubbleScene )
+        if (bubbleScene)
         {
             bubbleScene->unregisterPickable(bubbleActor);
         }
@@ -187,6 +192,20 @@ void Ray_ChronoAIComponent::onActorLoaded(Pickable::HotReloadType _hotReload)
     }
 
     RAY_GAMEMANAGER->setTimeAttackActorChrono(m_actor->getRef());
+
+    if (!getTemplate()->getMurphyPath().isEmpty()) {
+        SPAWNER->declareNeedsSpawnee(m_actor, &m_murphySpawner, getTemplate()->getMurphyPath());
+
+        Vec3d offset = Vec3d(-7.0f, -0.7f, .0f);
+        Actor* murphyActor = m_murphySpawner.getSpawnee(m_actor->getScene(), m_actor->getPos() + offset, m_actor->getAngle());
+
+        if (murphyActor)
+        {
+            m_murphyRef = murphyActor->getRef();
+
+            RAY_GAMEMANAGER->setMurphyAssist(murphyActor->getRef());
+        }
+    }
 
     ACTOR_REGISTER_EVENT_COMPONENT(m_actor,ITF_GET_STRINGID_CRC(PunchStim,200533519),this);
     ACTOR_REGISTER_EVENT_COMPONENT(m_actor,ITF_GET_STRINGID_CRC(AnimGameplayEvent,2720277301),this);
@@ -382,6 +401,7 @@ BEGIN_SERIALIZATION(Ray_ChronoAIComponent_Template)
     SERIALIZE_MEMBER("fontInitialHeight",m_fontInitialHeight);
     SERIALIZE_MEMBER("moveDuration",m_moveDuration);
     SERIALIZE_MEMBER("moveCurve",m_moveCurve);
+    SERIALIZE_MEMBER("murphyPath", m_murphyAct);
 
 END_SERIALIZATION()
 

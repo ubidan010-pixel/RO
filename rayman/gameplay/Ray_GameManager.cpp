@@ -269,6 +269,10 @@
 #include "rayman/gameplay/Ray_TRCHelper.h"
 #endif //_ITF_RAY_TRCHELPER_H_
 
+#ifndef _ITF_RAY_MURPHYASSISTAICOMPONENT_H_
+#include "rayman/gameplay/Components/AI/Ray_MurphyAssistAIComponent.h"
+#endif //_ITF_RAY_MURPHYASSISTAICOMPONENT_H_
+
 #include "engine/AdaptersInterfaces/AudioMiddlewareAdapter.h"
 #include <algorithm>
 
@@ -1390,6 +1394,49 @@ namespace ITF
         if (timer)
         {
             timer->disable();
+        }
+    }
+
+    void Ray_GameManager::enableMurphyAssistForLevel()
+    {
+        Actor* murphyAssistActor = m_murphyAssist.getActor();
+
+        if (murphyAssistActor)
+        {
+            Ray_MurphyAssistAIComponent* pComp = murphyAssistActor->GetComponent<Ray_MurphyAssistAIComponent>();
+            pComp->requestAppear();
+        }
+    }
+
+    void Ray_GameManager::disableMurphyAssistForLevel()
+    {
+        Actor* murphyAssistActor = m_murphyAssist.getActor();
+
+        if (murphyAssistActor)
+        {
+            murphyAssistActor->disable();
+        }
+    }
+
+    void Ray_GameManager::setMurphyAssistFollowPlayer()
+    {
+        Actor* murphyAssistActor = m_murphyAssist.getActor();
+
+        if (murphyAssistActor)
+        {
+            Ray_MurphyAssistAIComponent* pComp = murphyAssistActor->GetComponent<Ray_MurphyAssistAIComponent>();
+            pComp->followPlayer();
+        }
+    }
+
+    void Ray_GameManager::markMurphyAssistTargetCollected(const ActorRef& _actorRef)
+    {
+        Actor* murphyAssistActor = m_murphyAssist.getActor();
+
+        if (murphyAssistActor)
+        {
+            Ray_MurphyAssistAIComponent* pComp = murphyAssistActor->GetComponent<Ray_MurphyAssistAIComponent>();
+            pComp->markTargetCollected(_actorRef);
         }
     }
 
@@ -2733,6 +2780,7 @@ namespace ITF
         onCheckpointLoadUpdateRescued();
         onCheckpointLoadUpdateSprintTutorial();
         restoreHealthModifierForAllPlayers();
+        onCheckpointLoadUpdateMurphyAssist();
     }
 
     void Ray_GameManager::onCheckpointLoadUpdateRescued()
@@ -2983,6 +3031,26 @@ namespace ITF
                     }
                 }
             }
+        }
+    }
+
+    void Ray_GameManager::onMapLoadedUpdateMurphyAssist()
+    {
+        if (RAY_GAMEMANAGER->isLevelCompletedOnce(RAY_GAMEMANAGER->getCurrentLevelName()))
+        {
+            enableMurphyAssistForLevel();
+        }
+        else
+        {
+            disableMurphyAssistForLevel();
+        }
+    }
+
+    void Ray_GameManager::onCheckpointLoadUpdateMurphyAssist()
+    {
+        if (RAY_GAMEMANAGER->isLevelCompletedOnce(RAY_GAMEMANAGER->getCurrentLevelName()))
+        {
+            setMurphyAssistFollowPlayer();
         }
     }
 
@@ -5263,6 +5331,7 @@ namespace ITF
         Super::onMapLoaded(_pWorld);
 
         onMapLoadedUpdateTimeAttack();
+        onMapLoadedUpdateMurphyAssist();
 
 #ifdef ITF_SUPPORT_ONLINETRACKING
 
@@ -7708,6 +7777,7 @@ namespace ITF
         if (m_cageMapEntry.isValid())
         {
             RAY_GAMEMANAGER->setCageMapPassedDoor(m_cageMapEntry, btrue);
+            //RAY_GAMEMANAGER->setMurphyAssistFollowPlayer();
         }
 
         m_isFinished = true;

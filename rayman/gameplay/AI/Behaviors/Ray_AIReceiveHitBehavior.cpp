@@ -397,7 +397,7 @@ namespace ITF
                 const StringID feedbackAction = hit->getActionFromHit();
                 u32 fxHandle = m_fxController->playFeedback(hit->getSender(), feedbackAction, m_actor->getRef());
 
-                //RO-12880	[3C | Fight] Hit FX : Problème de positionnement
+                //RO-12880	[3C | Fight] Hit FX : Problï¿½me de positionnement
                 //hit fx pos given by rayman is based on a bone this bone may not always be properly positionned,
                 // in the case where contacts are given use the average position
                 const u32 numContacts = hit->getContacts().size();

@@ -27,6 +27,7 @@ namespace ITF
         virtual String8 getInstalledLanguage() { return "en-US"; };
         virtual String8 getUserName() { return String8::emptyString; }
         virtual String8 getUserEmail() { return String8::emptyString; }
+        virtual String8 getToken() { return String8::emptyString; }
         virtual bbool isClientConnected() { return btrue; }
         virtual bbool isClientOnline() { return btrue; }
 

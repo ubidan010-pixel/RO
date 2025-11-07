@@ -171,11 +171,17 @@ u32 XMLAll::readCoreConfig (XMLConfig* _config, const String& _szXMLFile)
 #endif // ITF_WINDOWS
 
 #ifdef ITF_SUPPORT_NETWORKSERVICES
-    _config->m_enableNetwork = XML.readIntAttribute("NetworkServices/enableNetwork", _config->m_enableNetwork);
+    _config->m_enableNetwork = XML.readIntAttribute("Online/enableNetwork", _config->m_enableNetwork);
 #endif // ITF_SUPPORT_NETWORKSERVICES
 #ifdef ITF_SUPPORT_UPLAY
-    _config->m_enableUplay = XML.readIntAttribute("NetworkServices/enableUplay", _config->m_enableUplay);
+    _config->m_enableUplay = XML.readIntAttribute("Online/enableUplay", _config->m_enableUplay);
 #endif // ITF_SUPPORT_UPLAY
+#ifdef ITF_SUPPORT_UBISERVICES
+    _config->m_enableUbiServices = XML.readIntAttribute("Online/enableUbiServices", _config->m_enableUbiServices);
+    _config->m_onlineBuildId = XML.readAttribute("Online/buildId", "BUILD_123456");
+    _config->m_onlineLogin = XML.readAttribute("Online/login", "");
+    _config->m_onlinePassword = XML.readAttribute("Online/password", "");
+#endif // ITF_SUPPORT_UBISERVICES
 #ifdef ITF_SUPPORT_EDITOR
     _config->m_SourceControlProvider    = XML.readAttribute("Editor/SCM","");
 #endif // ITF_SUPPORT_EDITOR

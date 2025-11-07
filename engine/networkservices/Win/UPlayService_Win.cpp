@@ -113,6 +113,28 @@ namespace ITF
         return ret;
     }
 
+    String8 UPlayService_Win::getToken()
+    {
+        char* token = nullptr;
+        String8 result;
+
+        if (!m_isInitialized)
+        {
+            LOG("[UPlay] getToken not init");
+            return result;
+        }
+
+        int ret = UPC_TicketGet_Extended(m_Context, const_cast<const char**>(&token));
+        LOG("[UPlay] ticket get: %d, ticket: %s", ret, token);
+
+        if (ret == UPC_Result_Ok)
+        {
+            result.setText(token);
+        }
+
+        return result;
+    }
+
 } // namespace ITF
 
 #endif //ITF_SUPPORT_UPLAY && ITF_WINDOWS

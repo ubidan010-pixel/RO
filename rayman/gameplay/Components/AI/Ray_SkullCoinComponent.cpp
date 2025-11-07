@@ -636,6 +636,8 @@ namespace ITF
                 setState(State_FollowPlayer);
             }
         }
+
+        RAY_GAMEMANAGER->markMurphyAssistTargetCollected(GetActor()->getRef());
     }
 
     //////////////////////////////////////////////////////////////////////////

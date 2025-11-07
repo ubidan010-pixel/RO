@@ -111,6 +111,9 @@ namespace ITF
 #ifdef ITF_SUPPORT_UPLAY
             , m_enableUplay(bfalse)
 #endif // ITF_SUPPORT_UPLAY
+#ifdef ITF_SUPPORT_UBISERVICES
+            , m_enableUbiServices(bfalse)
+#endif
 /*
 		_config->m_BGColor[0]       = XML.readFloatAttribute("BGColor/R", 0.1f);
 		_config->m_BGColor[1]       = XML.readFloatAttribute("BGColor/G", 0.2f);
@@ -211,9 +214,13 @@ namespace ITF
 #ifdef ITF_SUPPORT_UPLAY
         bbool   m_enableUplay;
 #endif // ITF_SUPPORT_UPLAY
+
+#ifdef ITF_SUPPORT_UBISERVICES
+        bbool   m_enableUbiServices;
         String8 m_onlineBuildId;
         String8 m_onlineLogin;
         String8 m_onlinePassword;
+#endif
 
 #ifndef ITF_FINAL
         bbool   m_showComponentPerf;

@@ -864,6 +864,10 @@
 #include "gameplay/Components/Misc/SaveNotificationComponent.h"
 #endif //_ITF_SAVENOTIFICATIONCOMPONENT_H_
 
+#ifndef _ITF_ACTIVEBROADCASTCOMPONENT_H_
+#include "gameplay/Components/Misc/ActiveBroadcastComponent.h"
+#endif //_ITF_ACTIVEBROADCASTCOMPONENT_H_
+
 namespace ITF
 {
     void GameplayFactoryFiller::fillFactories()
@@ -1042,6 +1046,7 @@ namespace ITF
         actorComponentsFactory->RegisterObject<UIListOptionComponent>(ITF_GET_STRINGID_CRC(UIListOptionComponent,3621365669));
         actorComponentsFactory->RegisterObject<UIToggleOptionComponent>(ITF_GET_STRINGID_CRC(UIToggleOptionComponent,3689192266));
         actorComponentsFactory->RegisterObject<UIFloatOptionComponent>(ITF_GET_STRINGID_CRC(UIFloatOptionComponent,226609316));
+        actorComponentsFactory->RegisterObject<ActiveBroadcastComponent>(ITF_GET_STRINGID_CRC(ActiveBroadcastComponent, 239394893));
     }
 
     /********* TEMPLATE COMPONENTS ***********/
@@ -1175,6 +1180,7 @@ namespace ITF
         templatesFactory->RegisterObject<AtlasAnimationComponent_Template>(ITF_GET_STRINGID_CRC(AtlasAnimationComponent_Template,2427973027));
         templatesFactory->RegisterObject<SaveNotificationComponent_Template>(ITF_GET_STRINGID_CRC(SaveNotificationComponent_Template,495222735));
         templatesFactory->RegisterObject<UIMenuSoundComponent_Template>(ITF_GET_STRINGID_CRC(UIMenuSoundComponent_Template,473615840));
+        templatesFactory->RegisterObject<ActiveBroadcastComponent_Template>(ITF_GET_STRINGID_CRC(ActiveBroadcastComponent_Template, 4009445990));
     }
 
     /********* AI COMPONENTS ***********/
@@ -1379,6 +1385,7 @@ namespace ITF
 
         gameplayEventFactory->RegisterObject<EventGetPolylineConstrainedPosition>(ITF_GET_STRINGID_CRC(EventGetPolylineConstrainedPosition,3189215538));
         gameplayEventFactory->RegisterObject<EventDisplayText>(ITF_GET_STRINGID_CRC(EventDisplayText,3103222744));
+        gameplayEventFactory->RegisterObject<EventActorActiveChanged>(ITF_GET_STRINGID_CRC(EventActorActiveChanged, 323621555));
     }
 
     /********* ANIM TREE COMPONENTS ***********/

@@ -36,11 +36,7 @@ Ray_GameOptionPersistence::~Ray_GameOptionPersistence()
 
 bbool Ray_GameOptionPersistence::isPlatformSupported()
 {
-#if defined(ITF_WINDOWS) || defined(ITF_PS5) || defined(ITF_NINTENDO)
     return btrue;
-#else
-    return bfalse;
-#endif
 }
 
 void Ray_GameOptionPersistence::init()

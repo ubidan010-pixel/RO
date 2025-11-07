@@ -22,6 +22,7 @@ namespace ITF
         virtual int initialize(int _uplayId);
         virtual void terminate();
         virtual i32 showOverlay();
+        virtual String8 getToken();
 
     private:
         UPC_Context* m_Context;

@@ -52,7 +52,7 @@ protected:
         State_Disappear
     };
 
-    void                                setState(State _state);
+    virtual void                        setState(State _state);
 
     typedef SafeArray <LocalisationId> SentenceList;
 

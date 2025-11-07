@@ -1402,6 +1402,12 @@ namespace ITF
         f32             getTimeAttackTimer() const { return m_timeAttackTimer; }
         void            disableTimeAttackForLevel();
         void            disableTimeAttackHUD();
+        void            setMurphyAssist(ObjectRef _ref) { m_murphyAssist = _ref; }
+        ActorRef        getMurphyAssist() const { return m_murphyAssist; }
+        void            enableMurphyAssistForLevel();
+        void            disableMurphyAssistForLevel();
+        void            setMurphyAssistFollowPlayer();
+        void            markMurphyAssistTargetCollected(const ActorRef& _actorRef);
 
         // Unlock messages
         void            setWMUnlockMessageActor( ObjectRef _ref ) { m_worldMapUnlockMsgActor = _ref; }
@@ -1880,6 +1886,8 @@ namespace ITF
         void            onCheckpointLoadUpdateTimeAttack();
         void            onCheckpointLoadUpdateRescued();
         void            onCheckpointLoadUpdateSprintTutorial();
+        void            onMapLoadedUpdateMurphyAssist();
+        void            onCheckpointLoadUpdateMurphyAssist();
 
         class Ray_UIFadeScreenComponent* getUIFade() const;
 
@@ -1937,6 +1945,7 @@ namespace ITF
         ActorRef    m_timeAttackActorFlag;
         ActorRef    m_timeAttackActorResults;
         ActorRef    m_timeAttackActorChrono;
+        ActorRef    m_murphyAssist;
 
         ActorRef    m_worldMapUnlockMsgActor;
 

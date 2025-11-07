@@ -69,6 +69,8 @@ protected:
     Spline                              m_splineMovement;
     f32                                 m_moveCounter;
     bbool                               m_shake;
+    ActorRef                            m_murphyRef;
+    SpawneeGenerator                    m_murphySpawner;
 };
 
 class Ray_ChronoAIComponent_Template : public TemplateActorComponent
@@ -91,6 +93,7 @@ public:
     f32                                     getInitialFontHeight() const { return m_fontInitialHeight; }
     f32                                     getMoveDuration() const { return m_moveDuration; }
     f32                                     getMoveCurve() const { return m_moveCurve; }
+    const Path&                             getMurphyPath() const { return m_murphyAct; }
 
 private:
 
@@ -102,6 +105,7 @@ private:
     f32                                     m_fontInitialHeight;
     f32                                     m_moveDuration;
     f32                                     m_moveCurve;
+    Path                                    m_murphyAct;
 };
 
 ITF_INLINE const class Ray_ChronoAIComponent_Template* Ray_ChronoAIComponent::getTemplate() const
