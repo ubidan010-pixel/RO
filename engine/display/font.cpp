@@ -919,6 +919,9 @@ void Font::writeBox(u32 color,f32 x, f32 y, f32 z, bbool _isRender2D, const Vec3
                     const String iconName = word.substr(indexIconBegin + iconTagBeginSize, indexIconEnd - indexIconBegin - iconTagBeginSize);
                     String8 iconName8(iconName.cStr());
 
+                    // Reset newicon before use
+                    newicon = TAGicon();
+
                     i32 skipIconIndex = -1;
                     newicon.m_isSkipIcon = UI_TEXTMANAGER->getSkipIconInfo(iconName8, skipIconIndex);
                     if (newicon.m_isSkipIcon)
@@ -945,6 +948,28 @@ void Font::writeBox(u32 color,f32 x, f32 y, f32 z, bbool _isRender2D, const Vec3
 
                     if (newicon.m_isSkipIcon || newicon.m_isMenuLogo || UI_TEXTMANAGER->getIconInfo(iconName8, newicon.m_isButton, newicon.m_index))
                     {
+                        // Detect controller type from icon prefix
+                        if (iconName8.startsWith("WII_"))
+                            newicon.m_controllerType = CONTROLLER_WII;
+                        else if (iconName8.startsWith("PS3_"))
+                            newicon.m_controllerType = CONTROLLER_PS3;
+                        else if (iconName8.startsWith("PS5_"))
+                            newicon.m_controllerType = CONTROLLER_PS5;
+                        else if (iconName8.startsWith("VITA_"))
+                            newicon.m_controllerType = CONTROLLER_VITA;
+                        else if (iconName8.startsWith("CTR_"))
+                            newicon.m_controllerType = CONTROLLER_CTR;
+                        else if (iconName8.startsWith("SWITCH_"))
+                            newicon.m_controllerType = CONTROLLER_SWITCH;
+                        else if (iconName8.startsWith("OUNCE_"))
+                            newicon.m_controllerType = CONTROLLER_OUNCE;
+                        else if (iconName8.startsWith("XBOX_"))
+                            newicon.m_controllerType = CONTROLLER_XBOX;
+                        else if (iconName8.startsWith("X360_"))
+                            newicon.m_controllerType = CONTROLLER_X360;
+                        else
+                            newicon.m_controllerType = CONTROLLER_DEFAULT;
+                        
                         // compute space char from size of icon
                         f32 spaceW = getTextWidth(" ", 1);
                         i32 nb = ((i32)(iconSize/spaceW) - 1) + ((i32)(iconXOffset/spaceW));
@@ -1190,7 +1215,6 @@ void Font::writeBox(u32 color,f32 x, f32 y, f32 z, bbool _isRender2D, const Vec3
         //iconpos
         if ( tagicon.size() && _write)
         {
-            Texture* buttonTexture = UI_TEXTMANAGER->getButtonTexture();
             Texture* gpeTexture = UI_TEXTMANAGER->getGpeTexture();
             Texture* skipIconsTexture = UI_TEXTMANAGER->getSkipIconsTexture();
             Texture* menuLogosTexture = UI_TEXTMANAGER->getMenuLogosTexture();
@@ -1207,7 +1231,10 @@ void Font::writeBox(u32 color,f32 x, f32 y, f32 z, bbool _isRender2D, const Vec3
                 else if (tagicon[i].m_isMenuLogo)
                     texture = menuLogosTexture;
                 else if (tagicon[i].m_isButton)
-                    texture = buttonTexture;
+                {
+                    // Get appropriate texture based on controller type
+                    texture = UI_TEXTMANAGER->getButtonTextureByType(tagicon[i].m_controllerType);
+                }
                 else
                     texture = gpeTexture;
 

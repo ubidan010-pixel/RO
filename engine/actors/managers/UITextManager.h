@@ -9,6 +9,10 @@
 #include "engine/events/IEventListener.h"
 #endif //_ITF_EVENTLISTENER_H_
 
+#ifndef _ITF_FONT_H_
+#include "engine/display/font.h"
+#endif //_ITF_FONT_H_
+
 namespace ITF
 {
     class XMLFile;
@@ -113,6 +117,8 @@ namespace ITF
         bbool           getSkipIconInfo(const String8& _tag, i32& _index) const;
         bbool           getMenuLogoInfo(const String8& _tag, i32& _index) const;
         Texture*        getButtonTexture();
+        Texture*        getButtonTexture(const String8& _iconName) const;
+        Texture*        getButtonTextureByType(i32 _controllerType) const;
         Texture*        getGpeTexture();
         Texture*        getSkipIconsTexture();
         Texture*        getMenuLogosTexture();
@@ -132,7 +138,16 @@ namespace ITF
 
         // icons
         ResourceID      m_iconsGroup;
-        ResourceID      m_buttonTextureId;
+        ResourceID      m_buttonTextureId;          // Default (platform-specific)
+        ResourceID      m_wiiButtonTextureId;       // Wii
+        ResourceID      m_ps3ButtonTextureId;       // PS3
+        ResourceID      m_ps5ButtonTextureId;       // PS5
+        ResourceID      m_vitaButtonTextureId;      // PS Vita
+        ResourceID      m_ctrButtonTextureId;       // 3DS
+        ResourceID      m_switchButtonTextureId;    // Switch
+        ResourceID      m_ounceButtonTextureId;     // Ounce
+        ResourceID      m_xboxSeriesButtonTextureId;// Xbox Series
+        ResourceID      m_x360ButtonTextureId;      // Xbox 360
         ResourceID      m_gpeTextureId;
         ResourceID      m_skipIconsTextureId;
 
@@ -161,7 +176,15 @@ namespace ITF
         f32                         m_iconXOffset;
         typedef ITF_MAP<String8, i32> IconMap;
         Path                        m_buttonPath;
-        IconMap                     m_buttonMap;
+        IconMap                     m_buttonMap;        // Default/Xbox icons
+        IconMap                     m_wiiButtonMap;     // Wii icons
+        IconMap                     m_ps3ButtonMap;     // PS3 icons
+        IconMap                     m_ps5ButtonMap;     // PS5 icons
+        IconMap                     m_vitaButtonMap;    // Vita icons
+        IconMap                     m_ctrButtonMap;     // 3DS icons
+        IconMap                     m_switchButtonMap;  // Switch icons
+        IconMap                     m_ounceButtonMap;   // Ounce icons
+        IconMap                     m_x360ButtonMap;    // Xbox 360 icons
         Path                        m_gpePath;
         IconMap                     m_gpeMap;
         IconMap                     m_skipIconsMap;

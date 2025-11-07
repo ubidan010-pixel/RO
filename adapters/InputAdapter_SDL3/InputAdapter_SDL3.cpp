@@ -389,8 +389,8 @@ namespace ITF
         case SDL_GAMEPAD_TYPE_STANDARD:
             return InputAdapter::Pad_GenericXBox;
         case SDL_GAMEPAD_TYPE_PS5:
-            return InputAdapter::Pad_PS5;
         case SDL_GAMEPAD_TYPE_PS4:
+            return InputAdapter::Pad_PS5;
         case SDL_GAMEPAD_TYPE_PS3:
             return InputAdapter::Pad_PS3;
         case SDL_GAMEPAD_TYPE_NINTENDO_SWITCH_PRO:

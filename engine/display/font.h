@@ -17,13 +17,38 @@ namespace ITF
     class ResourceID;
     class GFXAdapter;
 
+    enum EControllerType
+    {
+        CONTROLLER_DEFAULT = 0,
+        CONTROLLER_WII,
+        CONTROLLER_PS3,
+        CONTROLLER_PS5,
+        CONTROLLER_VITA,
+        CONTROLLER_CTR,
+        CONTROLLER_SWITCH,
+        CONTROLLER_OUNCE,
+        CONTROLLER_XBOX,
+        CONTROLLER_X360,
+        ENUM_FORCE_SIZE_32(EControllerType)
+    };
+
     struct TAGicon
     {
+        TAGicon() 
+            : m_pos(Vec2d::Zero)
+            , m_isButton(bfalse)
+            , m_index(0)
+            , m_isSkipIcon(bfalse)
+            , m_isMenuLogo(bfalse)
+            , m_controllerType(CONTROLLER_DEFAULT)
+        {}
+        
         Vec2d m_pos;
         bbool m_isButton; // if false, GPE icon
         i32 m_index;
         bbool m_isSkipIcon;
         bbool m_isMenuLogo;
+        EControllerType m_controllerType; // Store controller type instead of string
     };
 
     struct SCharDescr
