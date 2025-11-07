@@ -61,7 +61,7 @@ namespace ITF
         /// Get the value of the variable
         /// @param _varFriendly friendly of the variable
         const String&   getVariableValue (const StringID &_varFriendly) const;
-        
+
         ///////////////////////////////////////////////////////////////////////////////////////////
         /// Fill m_textPaths with all the paths of the texts
         /// @param _path path
@@ -76,7 +76,7 @@ namespace ITF
         /// @param _deltaTime
         /// @param _fadeDuration duration of the fade in/out
         /// @param _isFadeOut true if the text fade out, false if it fade in
-        void            textFade                (f32 _deltaTime, f32 _fadeDuration, bbool _isFadeOut); 
+        void            textFade                (f32 _deltaTime, f32 _fadeDuration, bbool _isFadeOut);
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         /// Add a text to the text tab
@@ -116,11 +116,11 @@ namespace ITF
         Texture*        getGpeTexture();
         Texture*        getSkipIconsTexture();
         Texture*        getMenuLogosTexture();
-        
+
         ITF_INLINE f32  getMenuLogoScale() const { return 0.35f; }
 
     protected:
-        
+
         void            loadIcons();
         void            unloadIcons();
 
@@ -139,7 +139,7 @@ namespace ITF
         ///////////////////////////////////////////////////////////////////////////////////////////
         /// Convert an ITF_Language to a StringID
         /// @param _language ITF_Language language to convert
-        StringID                    ITFLanguageToStringID (ITF_LANGUAGE _language); 
+        StringID                    ITFLanguageToStringID (ITF_LANGUAGE _language);
 
         StringID                    m_textLanguage;
 
@@ -183,7 +183,6 @@ namespace ITF
             , m_iconSize(32.0f)
             , m_iconYOffset(0.0f)
             , m_iconXOffset(0.f)
-            , m_buttonPath()
             , m_buttonNames()
             , m_gpePath()
             , m_gpeNames()
@@ -193,7 +192,6 @@ namespace ITF
             , m_iconSize(32.0f)
             , m_iconYOffset(0.0f)
             , m_iconXOffset(0.f)
-            , m_buttonPath()
             , m_buttonNames()
             , m_gpePath()
             , m_gpeNames()
@@ -202,7 +200,6 @@ namespace ITF
         ITF_INLINE f32 getIconSize() const { return m_iconSize; }
         ITF_INLINE f32 getIconYOffset() const { return m_iconYOffset; }
         ITF_INLINE f32 getIconXOffset() const { return m_iconXOffset; }
-        ITF_INLINE const Path& getButtonPath() const { return m_buttonPath; }
         ITF_INLINE const ITF_VECTOR<String8>& getButtonNames() const { return m_buttonNames; }
         ITF_INLINE const Path& getGpePath() const { return m_gpePath; }
         ITF_INLINE const ITF_VECTOR<String8>& getGpeNames() const { return m_gpeNames; }

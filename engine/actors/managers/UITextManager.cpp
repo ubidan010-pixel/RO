@@ -116,7 +116,6 @@ namespace ITF
         m_template = const_cast<UITextManager_Template*>(config);
 
         // copy button icons info
-        m_buttonPath = m_template->getButtonPath();
         const ITF_VECTOR<String8>& buttonNames = m_template->getButtonNames();
         i32 buttonNamesCount = i32(buttonNames.size());
         for (i32 i=0; i<buttonNamesCount; ++i)
@@ -579,7 +578,6 @@ namespace ITF
         SERIALIZE_MEMBER("iconSize", m_iconSize);
         SERIALIZE_MEMBER("iconYOffset", m_iconYOffset);
         SERIALIZE_MEMBER("iconXOffset", m_iconXOffset);
-        SERIALIZE_MEMBER("buttonPath", m_buttonPath);
         SERIALIZE_CONTAINER("buttonNames", m_buttonNames);
         SERIALIZE_MEMBER("gpePath", m_gpePath);
         SERIALIZE_CONTAINER("gpeNames", m_gpeNames);
