@@ -456,35 +456,65 @@ namespace ITF
 
             // add default pad buttons icons (platform-specific)
             m_buttonPath = GAMEMANAGER->getIconsBtnPath();
-            m_buttonTextureId = resourceGroup->addResource(Resource::ResourceType_Texture, m_buttonPath);
+            if (!m_buttonPath.isEmpty())
+            {
+                m_buttonTextureId = resourceGroup->addResource(Resource::ResourceType_Texture, m_buttonPath);
+            }
 
             // add ALL controller buttons icons
-            Path wiiPath("WORLD/COMMON/UI/UI_MENU/CONSOLES_BUTTONS/WII/WII_PAD_BUTTONS.TGA");
-            m_wiiButtonTextureId = resourceGroup->addResource(Resource::ResourceType_Texture, wiiPath);
+            const Path& wiiPath = GAMEMANAGER->getIconsBtnPathWii();
+            if (!wiiPath.isEmpty())
+            {
+                m_wiiButtonTextureId = resourceGroup->addResource(Resource::ResourceType_Texture, wiiPath);
+            }
 
-            Path ps3Path("WORLD/COMMON/UI/UI_MENU/CONSOLES_BUTTONS/PS3/PS3_PAD_BUTTONS.TGA");
-            m_ps3ButtonTextureId = resourceGroup->addResource(Resource::ResourceType_Texture, ps3Path);
+            const Path& ps3Path = GAMEMANAGER->getIconsBtnPathPS3();
+            if (!ps3Path.isEmpty())
+            {
+                m_ps3ButtonTextureId = resourceGroup->addResource(Resource::ResourceType_Texture, ps3Path);
+            }
 
-            Path ps5Path("WORLD/COMMON/UI/UI_MENU/CONSOLES_BUTTONS/PS5/PS5_PAD_BUTTONS.PNG");
-            m_ps5ButtonTextureId = resourceGroup->addResource(Resource::ResourceType_Texture, ps5Path);
+            const Path& ps5Path = GAMEMANAGER->getIconsBtnPathPS5();
+            if (!ps5Path.isEmpty())
+            {
+                m_ps5ButtonTextureId = resourceGroup->addResource(Resource::ResourceType_Texture, ps5Path);
+            }
 
-            Path vitaPath("WORLD/COMMON/UI/UI_MENU/CONSOLES_BUTTONS/X360/X360_PAD_BUTTONS.TGA");
-            m_vitaButtonTextureId = resourceGroup->addResource(Resource::ResourceType_Texture, vitaPath);
+            const Path& vitaPath = GAMEMANAGER->getIconsBtnPathVita();
+            if (!vitaPath.isEmpty())
+            {
+                m_vitaButtonTextureId = resourceGroup->addResource(Resource::ResourceType_Texture, vitaPath);
+            }
 
-            Path ctrPath("WORLD/COMMON/UI/UI_MENU/CONSOLES_BUTTONS/X360/X360_PAD_BUTTONS.TGA");
-            m_ctrButtonTextureId = resourceGroup->addResource(Resource::ResourceType_Texture, ctrPath);
+            const Path& ctrPath = GAMEMANAGER->getIconsBtnPathCTR();
+            if (!ctrPath.isEmpty())
+            {
+                m_ctrButtonTextureId = resourceGroup->addResource(Resource::ResourceType_Texture, ctrPath);
+            }
 
-            Path switchPath("WORLD/COMMON/UI/UI_MENU/CONSOLES_BUTTONS/NX/NX_PAD_BUTTONS.PNG");
-            m_switchButtonTextureId = resourceGroup->addResource(Resource::ResourceType_Texture, switchPath);
+            const Path& switchPath = GAMEMANAGER->getIconsBtnPathSwitch();
+            if (!switchPath.isEmpty())
+            {
+                m_switchButtonTextureId = resourceGroup->addResource(Resource::ResourceType_Texture, switchPath);
+            }
 
-            Path ouncePath("WORLD/COMMON/UI/UI_MENU/CONSOLES_BUTTONS/OUNCE/OUNCE_PAD_BUTTONS.PNG");
-            m_ounceButtonTextureId = resourceGroup->addResource(Resource::ResourceType_Texture, ouncePath);
+            const Path& ouncePath = GAMEMANAGER->getIconsBtnPathOunce();
+            if (!ouncePath.isEmpty())
+            {
+                m_ounceButtonTextureId = resourceGroup->addResource(Resource::ResourceType_Texture, ouncePath);
+            }
 
-            Path xboxSeriesPath("WORLD/COMMON/UI/UI_MENU/CONSOLES_BUTTONS/XBOXSERIES/XBOXSERIES_PAD_BUTTONS.TGA");
-            m_xboxSeriesButtonTextureId = resourceGroup->addResource(Resource::ResourceType_Texture, xboxSeriesPath);
+            const Path& xboxSeriesPath = GAMEMANAGER->getIconsBtnPathXboxSeries();
+            if (!xboxSeriesPath.isEmpty())
+            {
+                m_xboxSeriesButtonTextureId = resourceGroup->addResource(Resource::ResourceType_Texture, xboxSeriesPath);
+            }
 
-            Path x360Path("WORLD/COMMON/UI/UI_MENU/CONSOLES_BUTTONS/X360/X360_PAD_BUTTONS.TGA");
-            m_x360ButtonTextureId = resourceGroup->addResource(Resource::ResourceType_Texture, x360Path);
+            const Path& x360Path = GAMEMANAGER->getIconsBtnPathX360();
+            if (!x360Path.isEmpty())
+            {
+                m_x360ButtonTextureId = resourceGroup->addResource(Resource::ResourceType_Texture, x360Path);
+            }
 
             // add GPE icons
             m_gpePath = GAMEMANAGER->getIconsGpePath();

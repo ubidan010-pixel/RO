@@ -269,6 +269,19 @@ namespace ITF
             , m_temprunUseShake(bfalse)
             , m_temprunTimerStop(0.0f)
             , m_usePressConfMenu(bfalse)
+            , m_iconsBtnPath(Path::EmptyPath)
+            , m_iconsBtnPathWii(Path::EmptyPath)
+            , m_iconsBtnPathPS3(Path::EmptyPath)
+            , m_iconsBtnPathPS5(Path::EmptyPath)
+            , m_iconsBtnPathVita(Path::EmptyPath)
+            , m_iconsBtnPathCTR(Path::EmptyPath)
+            , m_iconsBtnPathSwitch(Path::EmptyPath)
+            , m_iconsBtnPathOunce(Path::EmptyPath)
+            , m_iconsBtnPathXboxSeries(Path::EmptyPath)
+            , m_iconsBtnPathX360(Path::EmptyPath)
+            , m_gpeIconsPath(Path::EmptyPath)
+            , m_skipIconsPath(Path::EmptyPath)
+            , m_menuLogosPath(Path::EmptyPath)
         {}
         GameManagerConfig_Template(const Path& _path)
             : Super(_path)
@@ -282,6 +295,19 @@ namespace ITF
             , m_temprunUseShake(bfalse)
             , m_temprunTimerStop(0.0f)
             , m_usePressConfMenu(bfalse)
+            , m_iconsBtnPath(Path::EmptyPath)
+            , m_iconsBtnPathWii(Path::EmptyPath)
+            , m_iconsBtnPathPS3(Path::EmptyPath)
+            , m_iconsBtnPathPS5(Path::EmptyPath)
+            , m_iconsBtnPathVita(Path::EmptyPath)
+            , m_iconsBtnPathCTR(Path::EmptyPath)
+            , m_iconsBtnPathSwitch(Path::EmptyPath)
+            , m_iconsBtnPathOunce(Path::EmptyPath)
+            , m_iconsBtnPathXboxSeries(Path::EmptyPath)
+            , m_iconsBtnPathX360(Path::EmptyPath)
+            , m_gpeIconsPath(Path::EmptyPath)
+            , m_skipIconsPath(Path::EmptyPath)
+            , m_menuLogosPath(Path::EmptyPath)
         {}
         ~GameManagerConfig_Template();
         ITF_INLINE const ITF_VECTOR<String> &getMaps() const { return m_maps; }
@@ -317,6 +343,15 @@ namespace ITF
         ITF_INLINE const f32 getRunTimerStopTEMP() const { return m_temprunTimerStop; }
 
         ITF_INLINE const ITF::Path& getIconsBtnPath() const { return m_iconsBtnPath; }
+        ITF_INLINE const ITF::Path& getIconsBtnPathWii() const { return m_iconsBtnPathWii; }
+        ITF_INLINE const ITF::Path& getIconsBtnPathPS3() const { return m_iconsBtnPathPS3; }
+        ITF_INLINE const ITF::Path& getIconsBtnPathPS5() const { return m_iconsBtnPathPS5; }
+        ITF_INLINE const ITF::Path& getIconsBtnPathVita() const { return m_iconsBtnPathVita; }
+        ITF_INLINE const ITF::Path& getIconsBtnPathCTR() const { return m_iconsBtnPathCTR; }
+        ITF_INLINE const ITF::Path& getIconsBtnPathSwitch() const { return m_iconsBtnPathSwitch; }
+        ITF_INLINE const ITF::Path& getIconsBtnPathOunce() const { return m_iconsBtnPathOunce; }
+        ITF_INLINE const ITF::Path& getIconsBtnPathXboxSeries() const { return m_iconsBtnPathXboxSeries; }
+        ITF_INLINE const ITF::Path& getIconsBtnPathX360() const { return m_iconsBtnPathX360; }
         ITF_INLINE const ITF::Path& getIconsGpePath() const { return m_gpeIconsPath; }
         ITF_INLINE const ITF::Path& getIconsSkipPath() const { return m_skipIconsPath; }
         ITF_INLINE const ITF::Path& getMenuLogosPath() const { return m_menuLogosPath; }
@@ -360,6 +395,15 @@ namespace ITF
         bbool                       m_usePressConfMenu;
         ITF_VECTOR<String>          m_pressConfMaps;
         Path                        m_iconsBtnPath;
+        Path                        m_iconsBtnPathWii;
+        Path                        m_iconsBtnPathPS3;
+        Path                        m_iconsBtnPathPS5;
+        Path                        m_iconsBtnPathVita;
+        Path                        m_iconsBtnPathCTR;
+        Path                        m_iconsBtnPathSwitch;
+        Path                        m_iconsBtnPathOunce;
+        Path                        m_iconsBtnPathXboxSeries;
+        Path                        m_iconsBtnPathX360;
         Path                        m_gpeIconsPath;
         Path                        m_skipIconsPath;
         Path                        m_menuLogosPath;
@@ -635,6 +679,15 @@ namespace ITF
         const ITF_VECTOR< String >& getPressConfMaps() const { ITF_ASSERT_CRASH( m_configTemplate != NULL, "Template must be loaded first" ); return m_configTemplate->getPressConfMaps(); }
         const Path&                 getLoadingScreenPath() const { ITF_ASSERT_CRASH( m_configTemplate != NULL, "Template must be loaded first" ); return m_configTemplate->getLoadingScreenPath(); }
         const Path&                 getIconsBtnPath() const { ITF_ASSERT_CRASH( m_configTemplate != NULL, "Template must be loaded first" ); return m_configTemplate->getIconsBtnPath(); }
+        const Path&                 getIconsBtnPathWii() const { ITF_ASSERT_CRASH( m_configTemplate != NULL, "Template must be loaded first" ); return m_configTemplate->getIconsBtnPathWii(); }
+        const Path&                 getIconsBtnPathPS3() const { ITF_ASSERT_CRASH( m_configTemplate != NULL, "Template must be loaded first" ); return m_configTemplate->getIconsBtnPathPS3(); }
+        const Path&                 getIconsBtnPathPS5() const { ITF_ASSERT_CRASH( m_configTemplate != NULL, "Template must be loaded first" ); return m_configTemplate->getIconsBtnPathPS5(); }
+        const Path&                 getIconsBtnPathVita() const { ITF_ASSERT_CRASH( m_configTemplate != NULL, "Template must be loaded first" ); return m_configTemplate->getIconsBtnPathVita(); }
+        const Path&                 getIconsBtnPathCTR() const { ITF_ASSERT_CRASH( m_configTemplate != NULL, "Template must be loaded first" ); return m_configTemplate->getIconsBtnPathCTR(); }
+        const Path&                 getIconsBtnPathSwitch() const { ITF_ASSERT_CRASH( m_configTemplate != NULL, "Template must be loaded first" ); return m_configTemplate->getIconsBtnPathSwitch(); }
+        const Path&                 getIconsBtnPathOunce() const { ITF_ASSERT_CRASH( m_configTemplate != NULL, "Template must be loaded first" ); return m_configTemplate->getIconsBtnPathOunce(); }
+        const Path&                 getIconsBtnPathXboxSeries() const { ITF_ASSERT_CRASH( m_configTemplate != NULL, "Template must be loaded first" ); return m_configTemplate->getIconsBtnPathXboxSeries(); }
+        const Path&                 getIconsBtnPathX360() const { ITF_ASSERT_CRASH( m_configTemplate != NULL, "Template must be loaded first" ); return m_configTemplate->getIconsBtnPathX360(); }
         const Path&                 getIconsGpePath() const { ITF_ASSERT_CRASH( m_configTemplate != NULL, "Template must be loaded first" ); return m_configTemplate->getIconsGpePath(); }
         const Path&                 getIconsSkipPath() const { ITF_ASSERT_CRASH( m_configTemplate != NULL, "Template must be loaded first" ); return m_configTemplate->getIconsSkipPath(); }
         const Path&                 getMenuLogosPath() const { ITF_ASSERT_CRASH( m_configTemplate != NULL, "Template must be loaded first" ); return m_configTemplate->getMenuLogosPath(); }
