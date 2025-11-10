@@ -19,13 +19,6 @@
 #include <windows.h>
 #include <shlobj.h>
 #endif
-#ifdef ITF_PS5
-#include <save_data/save_data_defs.h>
-#include <save_data.h>
-#include <save_data.h>
-#include <user_service.h>  // For user IDs
-#include <string.h>
-#endif
 
 namespace ITF
 {
@@ -50,94 +43,6 @@ namespace ITF
         }
 #endif
         return true;
-    }
-
-    static bool CreateParentDirectory(const std::string& filePath)
-    {
-#ifdef ITF_WINDOWS
-        // Extract parent directory path
-        size_t lastSlash = filePath.find_last_of("\\/");
-        if (lastSlash == std::string::npos)
-        {
-            LOG("Error: Invalid filePath, no slash found: %s", filePath.c_str());
-            return false;
-        }
-
-        std::string parentDir = filePath.substr(0, lastSlash);
-        LOG("Creating parent dir: %s", parentDir.c_str());
-
-        // Attempt to create directory
-        int result = SHCreateDirectoryExA(NULL, parentDir.c_str(), NULL);
-        if (result == ERROR_SUCCESS)
-        {
-            LOG("Successfully created parent dir: %s", parentDir.c_str());
-            return true;
-        }
-
-        // Handle creation failure
-        DWORD error = GetLastError();
-        if (error != ERROR_ALREADY_EXISTS)
-        {
-            LOG("Error: SHCreateDirectoryExA failed for %s, error code: %lu", parentDir.c_str(), error);
-            return false;
-        }
-
-        // Path already exists - verify it's a directory
-        DWORD attributes = GetFileAttributesA(parentDir.c_str());
-        if (attributes == INVALID_FILE_ATTRIBUTES || !(attributes & FILE_ATTRIBUTE_DIRECTORY))
-        {
-            LOG("Error: Path exists but is not a directory: %s, error code: %lu", parentDir.c_str(), error);
-            return false;
-        }
-
-        LOG("Parent dir already exists: %s", parentDir.c_str());
-        return true;
-
-#else
-        LOG("Skipping directory creation for console, filePath: %s", filePath.c_str());
-        return true;
-#endif
-    }
-
-    static std::string GetConfigFilePath()
-    {
-        std::string path;
-#ifdef ITF_WINDOWS
-        char appData[MAX_PATH];
-        GetEnvironmentVariableA("APPDATA", appData, MAX_PATH);
-        path = std::string(appData) + "\\Ubisoft\\RaymanOrigins\\Settings\\Controls.bin";
-#elif ITF_PS5
-        path = "/save0/Controls.bin";
-#elif ITF_NX
-        path = "save:/Controls.bin";
-#else
-        path = "./Controls.bin";
-#endif
-        return path;
-    }
-
-    bool MountSaveData()
-    {
-#ifdef ITF_WINDOWS
-        return true;
-#elif ITF_PS5
-        // TODO: implemnt UnmountSaveData for PS5 platform
-        return true;
-#elif ITF_NX  // Switch/Switch 2
-        // TODO: not sure what to do in NX platform
-        return true;
-#endif
-        return true;
-    }
-
-    static void UnmountSaveData()
-    {
-#ifdef ITF_WINDOWS
-#elif ITF_PS5
-        // TODO: implemnt UnmountSaveData for PS5 platform
-#elif ITF_NX
-        // TODO: not sure what to do in NX platform
-#endif
     }
 
     static InputAdapter::PadType getDefaultPadType()
@@ -725,127 +630,13 @@ namespace
     {
         ResetToDefaultControls();
         SaveInputMapping();
-        if (!MountSaveData())
-        {
-            return;
-        }
-
-        std::string filePath = GetConfigFilePath();
-
-#ifdef ITF_NX
-    nn::fs::FileHandle handle;
-    if (nn::fs::OpenFile(&handle, filePath.c_str(), nn::fs::OpenMode_Read).IsFailure()) {
-        UnmountSaveData();
-        CopyInputMapping();
-        return;
-    }
-
-    u32 numPlayers, maxActions;
-    nn::fs::ReadFile(handle, 0, &numPlayers, sizeof(u32));
-    nn::fs::ReadFile(handle, sizeof(u32), &maxActions, sizeof(u32));
-
-    if (numPlayers != JOY_MAX_COUNT || maxActions != MAX_ACTIONS) {
-        nn::fs::CloseFile(handle);
-        UnmountSaveData();
-        CopyInputMapping();
-        return;
-    }
-
-    size_t offset = 2 * sizeof(u32);
-    for (u32 player = 0; player < JOY_MAX_COUNT; ++player) {
-        for (u32 action = 0; action < MAX_ACTIONS; ++action) {
-            if (action != ActionBubbleQuit) {
-                InputValue value;
-                nn::fs::ReadFile(handle, offset, &value, sizeof(value));
-                m_inputMapping[player][action] = value;
-                offset += sizeof(value);
-            }
-        }
-    }
-    nn::fs::CloseFile(handle);
-#else
-        std::ifstream file(filePath, std::ios::binary);
-        if (!file.is_open())
-        {
-            UnmountSaveData();
-            CopyInputMapping();
-            return;
-        }
-
-        u32 numPlayers, maxActions;
-        file.read(reinterpret_cast<char*>(&numPlayers), sizeof(u32));
-        file.read(reinterpret_cast<char*>(&maxActions), sizeof(u32));
-
-        if (numPlayers != JOY_MAX_COUNT || maxActions != MAX_ACTIONS)
-        {
-            file.close();
-            UnmountSaveData();
-            CopyInputMapping();
-            return;
-        }
-
-        for (u32 player = 0; player < JOY_MAX_COUNT; ++player)
-        {
-            for (u32 action = 0; action < MAX_ACTIONS; ++action)
-            {
-                if (action != ActionBubbleQuit)
-                {
-                    InputValue value;
-                    file.read(reinterpret_cast<char*>(&value), sizeof(value));
-                    m_inputMapping[player][action] = value;
-                }
-            }
-        }
-        file.close();
-#endif
-
-        UnmountSaveData();
+        // TODO: load control setting from game options
         CopyInputMapping();
     }
 
     void InputAdapter::SavePlayerControlSettings()
     {
-        if (!MountSaveData()) return;
-
-        std::string filePath = GetConfigFilePath();
-
-        if (!CreateParentDirectory(filePath))
-        {
-            UnmountSaveData();
-            LOG("Warning: Could not create parent directory for %s", filePath.c_str());
-            return;
-        }
-
-#ifdef ITF_NX
-        // TODO: will be implemented later
-#else
-        std::ofstream file(filePath, std::ios::binary | std::ios::out | std::ios::trunc);
-        if (!file.is_open())
-        {
-            UnmountSaveData();
-            return;
-        }
-
-        u32 numPlayers = JOY_MAX_COUNT;
-        u32 maxActions = MAX_ACTIONS;
-        file.write(reinterpret_cast<const char*>(&numPlayers), sizeof(u32));
-        file.write(reinterpret_cast<const char*>(&maxActions), sizeof(u32));
-
-        for (u32 playerNumber = 0; playerNumber < JOY_MAX_COUNT; ++playerNumber)
-        {
-            for (u32 action = 0; action < MAX_ACTIONS; ++action)
-            {
-                if (action != ActionBubbleQuit)
-                {
-                    InputValue value = INPUT_ADAPTER->GetInputValue(playerNumber, action);
-                    file.write(reinterpret_cast<const char*>(&value), sizeof(value));
-                }
-            }
-        }
-        file.close();
-#endif
-
-        UnmountSaveData();
+        // TODO: save control setting to game options
     }
 
     void InputAdapter::InitializeActionStrings()

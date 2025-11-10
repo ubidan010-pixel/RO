@@ -29,6 +29,7 @@ namespace ITF
         CONTROLLER_OUNCE,
         CONTROLLER_XBOX,
         CONTROLLER_X360,
+        CONTROLLER_KEYBOARD,
         ENUM_FORCE_SIZE_32(EControllerType)
     };
 

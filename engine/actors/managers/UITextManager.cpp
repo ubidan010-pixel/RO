@@ -74,6 +74,7 @@ namespace ITF
         { IconSlot_Ounce,      "OUNCE_"  },
         { IconSlot_XboxSeries, "XBOX_"   },
         { IconSlot_X360,       "X360_"   },
+        { IconSlot_Keyboard,   "KEYBOARD_" },
         { IconSlot_Default,    NULL      },
     };
 
@@ -109,6 +110,7 @@ namespace ITF
         case CONTROLLER_OUNCE:       return IconSlot_Ounce;
         case CONTROLLER_XBOX:        return IconSlot_XboxSeries;
         case CONTROLLER_X360:        return IconSlot_X360;
+        case CONTROLLER_KEYBOARD:    return IconSlot_Keyboard;
         default:                     return IconSlot_Default;
         }
     }

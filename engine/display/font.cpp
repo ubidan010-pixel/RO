@@ -965,6 +965,8 @@ void Font::writeBox(u32 color,f32 x, f32 y, f32 z, bbool _isRender2D, const Vec3
                             newicon.m_controllerType = CONTROLLER_XBOX;
                         else if (iconName8.startsWith("X360_"))
                             newicon.m_controllerType = CONTROLLER_X360;
+                        else if (iconName8.startsWith("KEYBOARD_"))
+                            newicon.m_controllerType = CONTROLLER_KEYBOARD;
                         else
                             newicon.m_controllerType = CONTROLLER_DEFAULT;
 

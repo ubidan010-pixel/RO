@@ -215,6 +215,7 @@ namespace ITF
         { "iconsButtonPathOunce", IconSlot_Ounce },
         { "iconsButtonPathXboxSeries", IconSlot_XboxSeries },
         { "iconsButtonPathX360", IconSlot_X360 },
+        { "iconsButtonPathKeyboard", IconSlot_Keyboard },
     };
 
     /*

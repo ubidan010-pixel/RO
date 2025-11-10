@@ -76,6 +76,7 @@ namespace ITF
         IconSlot_Ounce,
         IconSlot_XboxSeries,
         IconSlot_X360,
+        IconSlot_Keyboard,
         IconSlot_Count
     };
 
@@ -362,6 +363,7 @@ namespace ITF
         ITF_INLINE const ITF::Path& getIconsBtnPathOunce() const { return getControllerIconPath(IconSlot_Ounce); }
         ITF_INLINE const ITF::Path& getIconsBtnPathXboxSeries() const { return getControllerIconPath(IconSlot_XboxSeries); }
         ITF_INLINE const ITF::Path& getIconsBtnPathX360() const { return getControllerIconPath(IconSlot_X360); }
+        ITF_INLINE const ITF::Path& getIconsBtnPathKeyboard() const { return getControllerIconPath(IconSlot_Keyboard); }
         ITF_INLINE const ITF::Path& getIconsGpePath() const { return m_gpeIconsPath; }
         ITF_INLINE const ITF::Path& getIconsSkipPath() const { return m_skipIconsPath; }
         ITF_INLINE const ITF::Path& getMenuLogosPath() const { return m_menuLogosPath; }
@@ -690,6 +692,7 @@ namespace ITF
         const Path&                 getIconsBtnPathOunce() const { return getIconsBtnPath(IconSlot_Ounce); }
         const Path&                 getIconsBtnPathXboxSeries() const { return getIconsBtnPath(IconSlot_XboxSeries); }
         const Path&                 getIconsBtnPathX360() const { return getIconsBtnPath(IconSlot_X360); }
+        const Path&                 getIconsBtnPathKeyboard() const { return getIconsBtnPath(IconSlot_Keyboard); }
         const Path&                 getIconsGpePath() const { ITF_ASSERT_CRASH( m_configTemplate != NULL, "Template must be loaded first" ); return m_configTemplate->getIconsGpePath(); }
         const Path&                 getIconsSkipPath() const { ITF_ASSERT_CRASH( m_configTemplate != NULL, "Template must be loaded first" ); return m_configTemplate->getIconsSkipPath(); }
         const Path&                 getMenuLogosPath() const { ITF_ASSERT_CRASH( m_configTemplate != NULL, "Template must be loaded first" ); return m_configTemplate->getMenuLogosPath(); }
