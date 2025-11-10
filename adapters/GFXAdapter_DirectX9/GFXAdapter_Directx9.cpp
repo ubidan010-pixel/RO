@@ -336,6 +336,11 @@ GFXAdapter_Directx9::GFXAdapter_Directx9()
     m_pd3dDevice = 0;
     m_depthStencilFormat = D3DFMT_D16;
 
+#ifdef ITF_WINDOWS
+    m_displayMode = 0;
+    m_displayModeCount = 0;
+#endif // ITF_WINDOWS
+
     mp_currentShader = 0;
     mp_VDcl_PCT = 0;
     mp_VDcl_PC = 0;

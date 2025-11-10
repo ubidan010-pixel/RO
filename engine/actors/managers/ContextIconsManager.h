@@ -38,6 +38,7 @@ public:
         );
     void hide();
     void setSkipProgressPercent(f32 _percent);
+    void highlightText(EContextIcon _contextIcon, bbool _isSelected);
     void changeLeftIcon(EContextIcon _icon);
     void changeRightIcon(EContextIcon _icon);
     void changeTopLeftIcon(EContextIcon _icon);
@@ -51,6 +52,12 @@ public:
     ITF_INLINE void resetRuntimeDepthRank() { m_useRuntimeDepthRank = bfalse; m_runtimeDepthRank = 0; }
 
 private:
+    struct IconDataHolder
+    {
+        UIComponent* iconUI;
+        UIComponent* textUI;
+    };
+    Map<EContextIcon,IconDataHolder> m_iconData;
     void setupMenu();
     void setupIcon(EContextIcon _icon, UIComponent* _iconUI, UIComponent* _textUI);
 

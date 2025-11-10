@@ -408,37 +408,7 @@ void ContextIconsManager::setupIcon(EContextIcon _icon, UIComponent* _iconUI, UI
         _iconUI->resetRuntimeDepthRank();
         _textUI->resetRuntimeDepthRank();
     }
-}
-
-//------------------------------------------------------------------------------
-IMPLEMENT_OBJECT_RTTI(ContextIconsManager_Template)
-BEGIN_SERIALIZATION(ContextIconsManager_Template)
-    SERIALIZE_MEMBER("menuId", m_menuId);
-    SERIALIZE_CONTAINER("lineIds", m_lineIds);
-    SERIALIZE_CONTAINER("buttonNames", m_buttonNames);
-END_SERIALIZATION()
-
-//------------------------------------------------------------------------------
-ContextIconsManager_Template::ContextIconsManager_Template()
-    : Super()
-    , m_menuId()
-    , m_lineIds()
-    , m_buttonNames()
-{
-}
-
-//------------------------------------------------------------------------------
-ContextIconsManager_Template::ContextIconsManager_Template(const Path& _path)
-    : Super(_path)
-    , m_menuId()
-    , m_lineIds()
-    , m_buttonNames()
-{
-}
-
-//------------------------------------------------------------------------------
-ContextIconsManager_Template::~ContextIconsManager_Template()
-{
+    m_iconData[_icon]={_iconUI,_textUI};
 }
 void ContextIconsManager::setSkipProgressPercent(f32 _percent)
 {
@@ -473,5 +443,45 @@ void ContextIconsManager::setSkipProgressPercent(f32 _percent)
         iconProcessSkipCine->resetRuntimeDepthRank();
     }
 }
+void ContextIconsManager::highlightText(EContextIcon _contextIcon, bbool _isSelected)
+{
+    auto iconData = m_iconData[_contextIcon];
+    if (iconData.textUI != nullptr)
+    {
+        iconData.textUI->setIsSelected(_isSelected);
+    }
+}
+
+//------------------------------------------------------------------------------
+IMPLEMENT_OBJECT_RTTI(ContextIconsManager_Template)
+BEGIN_SERIALIZATION(ContextIconsManager_Template)
+    SERIALIZE_MEMBER("menuId", m_menuId);
+    SERIALIZE_CONTAINER("lineIds", m_lineIds);
+    SERIALIZE_CONTAINER("buttonNames", m_buttonNames);
+END_SERIALIZATION()
+
+//------------------------------------------------------------------------------
+ContextIconsManager_Template::ContextIconsManager_Template()
+    : Super()
+    , m_menuId()
+    , m_lineIds()
+    , m_buttonNames()
+{
+}
+
+//------------------------------------------------------------------------------
+ContextIconsManager_Template::ContextIconsManager_Template(const Path& _path)
+    : Super(_path)
+    , m_menuId()
+    , m_lineIds()
+    , m_buttonNames()
+{
+}
+
+//------------------------------------------------------------------------------
+ContextIconsManager_Template::~ContextIconsManager_Template()
+{
+}
+
 
 } // namespace ITF

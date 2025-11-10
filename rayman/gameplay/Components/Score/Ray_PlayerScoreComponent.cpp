@@ -327,9 +327,11 @@ namespace ITF
                 {
                     m_speedUpButtonPressed = btrue;
                     m_factorPlayer = getTemplate()->getFactorSpeedUpQoL();
+                    CONTEXTICONSMANAGER->highlightText(ContextIcon_SpeedUp,btrue);
                 }
                 else if (buts[m_joyButton_A] == InputAdapter::Released && m_speedUpButtonPressed)
                 {
+                        CONTEXTICONSMANAGER->highlightText(ContextIcon_SpeedUp,bfalse);
                         ITF_VECTOR<std::pair<u32, u32>> sortedPlayers;
                         for (u32 j = 0; j < RewardManager::PlayersMax; ++j)
                         {
