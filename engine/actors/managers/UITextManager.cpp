@@ -175,10 +175,10 @@ namespace ITF
         // store template
         m_template = const_cast<UITextManager_Template*>(config);
 
-        // copy button icons info - separate by controller type with proper indices
+        // copy button icons info
         const ITF_VECTOR<String8>& buttonNames = m_template->getButtonNames();
         i32 buttonNamesCount = i32(buttonNames.size());
-        
+
         i32 controllerIconIndices[IconSlot_Count];
         ITF_MemSet(controllerIconIndices, 0, sizeof(controllerIconIndices));
 
@@ -465,7 +465,7 @@ namespace ITF
 
             ResourceGroup* resourceGroup = (ResourceGroup*)(m_iconsGroup.getResource());
 
-            // add default pad buttons icons (platform-specific)
+            // add pad buttons icons
             m_buttonPath = GAMEMANAGER->getIconsBtnPath();
 
             for (u32 i = 0; i < ITF_ARRAY_SIZE(g_controllerIconDescriptors); ++i)
@@ -519,7 +519,7 @@ namespace ITF
     bbool UITextManager::getIconInfo(const String8& _tag, bbool& _isButton, i32& _index) const
     {
         IconMap::const_iterator it;
-        
+
         ControllerIconSlot slot = ControllerSlotFromIconName(_tag);
         u32 slotIndex = ControllerSlotToIndex(slot);
         it = m_controllerButtonMaps[slotIndex].find(_tag);

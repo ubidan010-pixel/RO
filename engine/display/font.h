@@ -34,7 +34,7 @@ namespace ITF
 
     struct TAGicon
     {
-        TAGicon() 
+        TAGicon()
             : m_pos(Vec2d::Zero)
             , m_isButton(bfalse)
             , m_index(0)
@@ -42,13 +42,13 @@ namespace ITF
             , m_isMenuLogo(bfalse)
             , m_controllerType(CONTROLLER_DEFAULT)
         {}
-        
+
         Vec2d m_pos;
         bbool m_isButton; // if false, GPE icon
         i32 m_index;
         bbool m_isSkipIcon;
         bbool m_isMenuLogo;
-        EControllerType m_controllerType; // Store controller type instead of string
+        EControllerType m_controllerType;
     };
 
     struct SCharDescr

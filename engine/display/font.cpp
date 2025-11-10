@@ -919,7 +919,6 @@ void Font::writeBox(u32 color,f32 x, f32 y, f32 z, bbool _isRender2D, const Vec3
                     const String iconName = word.substr(indexIconBegin + iconTagBeginSize, indexIconEnd - indexIconBegin - iconTagBeginSize);
                     String8 iconName8(iconName.cStr());
 
-                    // Reset newicon before use
                     newicon = TAGicon();
 
                     i32 skipIconIndex = -1;
@@ -948,7 +947,6 @@ void Font::writeBox(u32 color,f32 x, f32 y, f32 z, bbool _isRender2D, const Vec3
 
                     if (newicon.m_isSkipIcon || newicon.m_isMenuLogo || UI_TEXTMANAGER->getIconInfo(iconName8, newicon.m_isButton, newicon.m_index))
                     {
-                        // Detect controller type from icon prefix
                         if (iconName8.startsWith("WII_"))
                             newicon.m_controllerType = CONTROLLER_WII;
                         else if (iconName8.startsWith("PS3_"))
@@ -969,7 +967,7 @@ void Font::writeBox(u32 color,f32 x, f32 y, f32 z, bbool _isRender2D, const Vec3
                             newicon.m_controllerType = CONTROLLER_X360;
                         else
                             newicon.m_controllerType = CONTROLLER_DEFAULT;
-                        
+
                         // compute space char from size of icon
                         f32 spaceW = getTextWidth(" ", 1);
                         i32 nb = ((i32)(iconSize/spaceW) - 1) + ((i32)(iconXOffset/spaceW));
@@ -1232,7 +1230,6 @@ void Font::writeBox(u32 color,f32 x, f32 y, f32 z, bbool _isRender2D, const Vec3
                     texture = menuLogosTexture;
                 else if (tagicon[i].m_isButton)
                 {
-                    // Get appropriate texture based on controller type
                     texture = UI_TEXTMANAGER->getButtonTextureByType(tagicon[i].m_controllerType);
                 }
                 else
