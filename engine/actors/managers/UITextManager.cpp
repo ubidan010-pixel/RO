@@ -57,6 +57,62 @@ namespace ITF
 {
     #define UITEXTCONFIG_PATH GETPATH_ALIAS("uitextconfig")
 
+    struct ControllerIconDescriptor
+    {
+        ControllerIconSlot slot;
+        const char* prefix;
+    };
+
+    static const ControllerIconDescriptor g_controllerIconDescriptors[] =
+    {
+        { IconSlot_Wii,        "WII_"    },
+        { IconSlot_PS3,        "PS3_"    },
+        { IconSlot_PS5,        "PS5_"    },
+        { IconSlot_Vita,       "VITA_"   },
+        { IconSlot_CTR,        "CTR_"    },
+        { IconSlot_Switch,     "SWITCH_" },
+        { IconSlot_Ounce,      "OUNCE_"  },
+        { IconSlot_XboxSeries, "XBOX_"   },
+        { IconSlot_X360,       "X360_"   },
+        { IconSlot_Default,    NULL      },
+    };
+
+    static ITF_INLINE u32 ControllerSlotToIndex(ControllerIconSlot _slot)
+    {
+        ITF_ASSERT(_slot >= 0 && _slot < IconSlot_Count);
+        return static_cast<u32>(_slot);
+    }
+
+    static ControllerIconSlot ControllerSlotFromIconName(const String8& _name)
+    {
+        for (u32 i = 0; i < ITF_ARRAY_SIZE(g_controllerIconDescriptors); ++i)
+        {
+            const ControllerIconDescriptor& descriptor = g_controllerIconDescriptors[i];
+            if (descriptor.prefix && _name.startsWith(descriptor.prefix))
+            {
+                return descriptor.slot;
+            }
+        }
+        return IconSlot_Default;
+    }
+
+    static ControllerIconSlot ControllerSlotFromType(i32 _controllerType)
+    {
+        switch (_controllerType)
+        {
+        case CONTROLLER_WII:         return IconSlot_Wii;
+        case CONTROLLER_PS3:         return IconSlot_PS3;
+        case CONTROLLER_PS5:         return IconSlot_PS5;
+        case CONTROLLER_VITA:        return IconSlot_Vita;
+        case CONTROLLER_CTR:         return IconSlot_CTR;
+        case CONTROLLER_SWITCH:      return IconSlot_Switch;
+        case CONTROLLER_OUNCE:       return IconSlot_Ounce;
+        case CONTROLLER_XBOX:        return IconSlot_XboxSeries;
+        case CONTROLLER_X360:        return IconSlot_X360;
+        default:                     return IconSlot_Default;
+        }
+    }
+
     ///////////////////////////////////////////////////////////////////////////////////////////
     UITextManager::UITextManager ()
     : m_template(NULL)
@@ -71,11 +127,15 @@ namespace ITF
     , m_iconYOffset(0.0f)
     , m_iconXOffset(0.f)
     , m_buttonPath()
-    , m_buttonMap()
     , m_gpePath()
     , m_gpeMap()
     {
         m_currentColor = Color::black().getAsU32();
+        for (u32 i = 0; i < IconSlot_Count; ++i)
+        {
+            m_controllerButtonTextureIds[i].invalidateResourceId();
+            m_controllerButtonMaps[i].clear();
+        }
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -119,64 +179,15 @@ namespace ITF
         const ITF_VECTOR<String8>& buttonNames = m_template->getButtonNames();
         i32 buttonNamesCount = i32(buttonNames.size());
         
-        // Track separate indices for each controller type
-        i32 defaultIndex = 0;
-        i32 wiiIndex = 0;
-        i32 ps3Index = 0;
-        i32 ps5Index = 0;
-        i32 vitaIndex = 0;
-        i32 ctrIndex = 0;
-        i32 switchIndex = 0;
-        i32 ounceIndex = 0;
-        i32 xboxIndex = 0;
-        i32 x360Index = 0;
-        
+        i32 controllerIconIndices[IconSlot_Count];
+        ITF_MemSet(controllerIconIndices, 0, sizeof(controllerIconIndices));
+
         for (i32 i=0; i<buttonNamesCount; ++i)
         {
             const String8& name = buttonNames[i];
-            
-            // Categorize by prefix and assign proper index for each controller's atlas
-            if (name.startsWith("WII_"))
-            {
-                m_wiiButtonMap[name] = wiiIndex++;
-            }
-            else if (name.startsWith("PS3_"))
-            {
-                m_ps3ButtonMap[name] = ps3Index++;
-            }
-            else if (name.startsWith("PS5_"))
-            {
-                m_ps5ButtonMap[name] = ps5Index++;
-            }
-            else if (name.startsWith("VITA_"))
-            {
-                m_vitaButtonMap[name] = vitaIndex++;
-            }
-            else if (name.startsWith("CTR_"))
-            {
-                m_ctrButtonMap[name] = ctrIndex++;
-            }
-            else if (name.startsWith("SWITCH_"))
-            {
-                m_switchButtonMap[name] = switchIndex++;
-            }
-            else if (name.startsWith("OUNCE_"))
-            {
-                m_ounceButtonMap[name] = ounceIndex++;
-            }
-            else if (name.startsWith("XBOX_"))
-            {
-                m_buttonMap[name] = xboxIndex++;
-            }
-            else if (name.startsWith("X360_"))
-            {
-                m_x360ButtonMap[name] = x360Index++;
-            }
-            else
-            {
-                // Default map for backward compatibility (GPE_REDUCTION, etc.)
-                m_buttonMap[name] = defaultIndex++;
-            }
+            ControllerIconSlot slot = ControllerSlotFromIconName(name);
+            u32 slotIndex = ControllerSlotToIndex(slot);
+            m_controllerButtonMaps[slotIndex][name] = controllerIconIndices[slotIndex]++;
         }
 
         // copy GPE icons info
@@ -456,64 +467,21 @@ namespace ITF
 
             // add default pad buttons icons (platform-specific)
             m_buttonPath = GAMEMANAGER->getIconsBtnPath();
-            if (!m_buttonPath.isEmpty())
-            {
-                m_buttonTextureId = resourceGroup->addResource(Resource::ResourceType_Texture, m_buttonPath);
-            }
 
-            // add ALL controller buttons icons
-            const Path& wiiPath = GAMEMANAGER->getIconsBtnPathWii();
-            if (!wiiPath.isEmpty())
+            for (u32 i = 0; i < ITF_ARRAY_SIZE(g_controllerIconDescriptors); ++i)
             {
-                m_wiiButtonTextureId = resourceGroup->addResource(Resource::ResourceType_Texture, wiiPath);
-            }
+                const ControllerIconDescriptor& descriptor = g_controllerIconDescriptors[i];
+                const Path& iconPath = GAMEMANAGER->getIconsBtnPath(descriptor.slot);
+                if (!iconPath.isEmpty())
+                {
+                    ResourceID& resourceId = m_controllerButtonTextureIds[ControllerSlotToIndex(descriptor.slot)];
+                    resourceId = resourceGroup->addResource(Resource::ResourceType_Texture, iconPath);
 
-            const Path& ps3Path = GAMEMANAGER->getIconsBtnPathPS3();
-            if (!ps3Path.isEmpty())
-            {
-                m_ps3ButtonTextureId = resourceGroup->addResource(Resource::ResourceType_Texture, ps3Path);
-            }
-
-            const Path& ps5Path = GAMEMANAGER->getIconsBtnPathPS5();
-            if (!ps5Path.isEmpty())
-            {
-                m_ps5ButtonTextureId = resourceGroup->addResource(Resource::ResourceType_Texture, ps5Path);
-            }
-
-            const Path& vitaPath = GAMEMANAGER->getIconsBtnPathVita();
-            if (!vitaPath.isEmpty())
-            {
-                m_vitaButtonTextureId = resourceGroup->addResource(Resource::ResourceType_Texture, vitaPath);
-            }
-
-            const Path& ctrPath = GAMEMANAGER->getIconsBtnPathCTR();
-            if (!ctrPath.isEmpty())
-            {
-                m_ctrButtonTextureId = resourceGroup->addResource(Resource::ResourceType_Texture, ctrPath);
-            }
-
-            const Path& switchPath = GAMEMANAGER->getIconsBtnPathSwitch();
-            if (!switchPath.isEmpty())
-            {
-                m_switchButtonTextureId = resourceGroup->addResource(Resource::ResourceType_Texture, switchPath);
-            }
-
-            const Path& ouncePath = GAMEMANAGER->getIconsBtnPathOunce();
-            if (!ouncePath.isEmpty())
-            {
-                m_ounceButtonTextureId = resourceGroup->addResource(Resource::ResourceType_Texture, ouncePath);
-            }
-
-            const Path& xboxSeriesPath = GAMEMANAGER->getIconsBtnPathXboxSeries();
-            if (!xboxSeriesPath.isEmpty())
-            {
-                m_xboxSeriesButtonTextureId = resourceGroup->addResource(Resource::ResourceType_Texture, xboxSeriesPath);
-            }
-
-            const Path& x360Path = GAMEMANAGER->getIconsBtnPathX360();
-            if (!x360Path.isEmpty())
-            {
-                m_x360ButtonTextureId = resourceGroup->addResource(Resource::ResourceType_Texture, x360Path);
+                    if (descriptor.slot == IconSlot_Default)
+                    {
+                        m_buttonPath = iconPath;
+                    }
+                }
             }
 
             // add GPE icons
@@ -531,6 +499,12 @@ namespace ITF
         }
     }
 
+    Texture* UITextManager::getControllerTexture(ControllerIconSlot _slot) const
+    {
+        const ResourceID& resourceId = m_controllerButtonTextureIds[ControllerSlotToIndex(_slot)];
+        return (Texture*)resourceId.getResource();
+    }
+
     void UITextManager::unloadIcons()
     {
         if (m_iconsGroup.isValidResourceId())
@@ -546,102 +520,20 @@ namespace ITF
     {
         IconMap::const_iterator it;
         
-        // Detect controller type from icon prefix and search in appropriate map
-        if (_tag.startsWith("WII_"))
+        ControllerIconSlot slot = ControllerSlotFromIconName(_tag);
+        u32 slotIndex = ControllerSlotToIndex(slot);
+        it = m_controllerButtonMaps[slotIndex].find(_tag);
+        if (it != m_controllerButtonMaps[slotIndex].end())
         {
-            it = m_wiiButtonMap.find(_tag);
-            if (it != m_wiiButtonMap.end())
-            {
-                _isButton = btrue;
-                _index = it->second;
-                return btrue;
-            }
+            _isButton = btrue;
+            _index = it->second;
+            return btrue;
         }
-        else if (_tag.startsWith("PS3_"))
+
+        if (slot != IconSlot_Default)
         {
-            it = m_ps3ButtonMap.find(_tag);
-            if (it != m_ps3ButtonMap.end())
-            {
-                _isButton = btrue;
-                _index = it->second;
-                return btrue;
-            }
-        }
-        else if (_tag.startsWith("PS5_"))
-        {
-            it = m_ps5ButtonMap.find(_tag);
-            if (it != m_ps5ButtonMap.end())
-            {
-                _isButton = btrue;
-                _index = it->second;
-                return btrue;
-            }
-        }
-        else if (_tag.startsWith("VITA_"))
-        {
-            it = m_vitaButtonMap.find(_tag);
-            if (it != m_vitaButtonMap.end())
-            {
-                _isButton = btrue;
-                _index = it->second;
-                return btrue;
-            }
-        }
-        else if (_tag.startsWith("CTR_"))
-        {
-            it = m_ctrButtonMap.find(_tag);
-            if (it != m_ctrButtonMap.end())
-            {
-                _isButton = btrue;
-                _index = it->second;
-                return btrue;
-            }
-        }
-        else if (_tag.startsWith("SWITCH_"))
-        {
-            it = m_switchButtonMap.find(_tag);
-            if (it != m_switchButtonMap.end())
-            {
-                _isButton = btrue;
-                _index = it->second;
-                return btrue;
-            }
-        }
-        else if (_tag.startsWith("OUNCE_"))
-        {
-            it = m_ounceButtonMap.find(_tag);
-            if (it != m_ounceButtonMap.end())
-            {
-                _isButton = btrue;
-                _index = it->second;
-                return btrue;
-            }
-        }
-        else if (_tag.startsWith("XBOX_"))
-        {
-            it = m_buttonMap.find(_tag);
-            if (it != m_buttonMap.end())
-            {
-                _isButton = btrue;
-                _index = it->second;
-                return btrue;
-            }
-        }
-        else if (_tag.startsWith("X360_"))
-        {
-            it = m_x360ButtonMap.find(_tag);
-            if (it != m_x360ButtonMap.end())
-            {
-                _isButton = btrue;
-                _index = it->second;
-                return btrue;
-            }
-        }
-        else
-        {
-            // Default/generic buttons
-            it = m_buttonMap.find(_tag);
-            if (it != m_buttonMap.end())
+            it = m_controllerButtonMaps[ControllerSlotToIndex(IconSlot_Default)].find(_tag);
+            if (it != m_controllerButtonMaps[ControllerSlotToIndex(IconSlot_Default)].end())
             {
                 _isButton = btrue;
                 _index = it->second;
@@ -659,12 +551,29 @@ namespace ITF
         }
 
         // not found, try a platform specific fallback
-        it = m_buttonMap.find(getIconFallback(_tag));
-        if (it != m_buttonMap.end())
+        String8 fallbackName = getIconFallback(_tag);
+        if (fallbackName != _tag)
         {
-            _isButton = btrue;
-            _index = it->second;
-            return btrue;
+            ControllerIconSlot fallbackSlot = ControllerSlotFromIconName(fallbackName);
+            u32 fallbackIndex = ControllerSlotToIndex(fallbackSlot);
+            it = m_controllerButtonMaps[fallbackIndex].find(fallbackName);
+            if (it != m_controllerButtonMaps[fallbackIndex].end())
+            {
+                _isButton = btrue;
+                _index = it->second;
+                return btrue;
+            }
+
+            if (fallbackSlot != IconSlot_Default)
+            {
+                it = m_controllerButtonMaps[ControllerSlotToIndex(IconSlot_Default)].find(fallbackName);
+                if (it != m_controllerButtonMaps[ControllerSlotToIndex(IconSlot_Default)].end())
+                {
+                    _isButton = btrue;
+                    _index = it->second;
+                    return btrue;
+                }
+            }
         }
 
         // not found, warn
@@ -739,82 +648,36 @@ namespace ITF
     //////////////////////////////////////////////////////////////////////////
     Texture *UITextManager::getButtonTexture()
     {
-        return (Texture*)m_buttonTextureId.getResource();
+        Texture* texture = getControllerTexture(IconSlot_Default);
+        if (!texture)
+        {
+            texture = getControllerTexture(IconSlot_XboxSeries);
+        }
+        return texture;
     }
 
     //////////////////////////////////////////////////////////////////////////
     Texture *UITextManager::getButtonTexture(const String8& _iconName) const
     {
-        // Return appropriate texture based on icon prefix
-        if (_iconName.startsWith("WII_"))
+        ControllerIconSlot slot = ControllerSlotFromIconName(_iconName);
+        Texture* texture = getControllerTexture(slot);
+        if (!texture && slot != IconSlot_Default)
         {
-            return (Texture*)m_wiiButtonTextureId.getResource();
+            texture = getControllerTexture(IconSlot_Default);
         }
-        else if (_iconName.startsWith("PS3_"))
-        {
-            return (Texture*)m_ps3ButtonTextureId.getResource();
-        }
-        else if (_iconName.startsWith("PS5_"))
-        {
-            return (Texture*)m_ps5ButtonTextureId.getResource();
-        }
-        else if (_iconName.startsWith("VITA_"))
-        {
-            return (Texture*)m_vitaButtonTextureId.getResource();
-        }
-        else if (_iconName.startsWith("CTR_"))
-        {
-            return (Texture*)m_ctrButtonTextureId.getResource();
-        }
-        else if (_iconName.startsWith("SWITCH_"))
-        {
-            return (Texture*)m_switchButtonTextureId.getResource();
-        }
-        else if (_iconName.startsWith("OUNCE_"))
-        {
-            return (Texture*)m_ounceButtonTextureId.getResource();
-        }
-        else if (_iconName.startsWith("XBOX_"))
-        {
-            return (Texture*)m_xboxSeriesButtonTextureId.getResource();
-        }
-        else if (_iconName.startsWith("X360_"))
-        {
-            return (Texture*)m_x360ButtonTextureId.getResource();
-        }
-        else
-        {
-            // Default texture (platform-specific)
-            return (Texture*)m_buttonTextureId.getResource();
-        }
+        return texture;
     }
 
     //////////////////////////////////////////////////////////////////////////
     Texture *UITextManager::getButtonTextureByType(i32 _controllerType) const
     {
-        switch (_controllerType)
+        ControllerIconSlot slot = ControllerSlotFromType(_controllerType);
+        Texture* texture = getControllerTexture(slot);
+        if (!texture)
         {
-        case CONTROLLER_WII:
-            return (Texture*)m_wiiButtonTextureId.getResource();
-        case CONTROLLER_PS3:
-            return (Texture*)m_ps3ButtonTextureId.getResource();
-        case CONTROLLER_PS5:
-            return (Texture*)m_ps5ButtonTextureId.getResource();
-        case CONTROLLER_VITA:
-            return (Texture*)m_vitaButtonTextureId.getResource();
-        case CONTROLLER_CTR:
-            return (Texture*)m_ctrButtonTextureId.getResource();
-        case CONTROLLER_SWITCH:
-            return (Texture*)m_switchButtonTextureId.getResource();
-        case CONTROLLER_OUNCE:
-            return (Texture*)m_ounceButtonTextureId.getResource();
-        case CONTROLLER_XBOX:
-            return (Texture*)m_xboxSeriesButtonTextureId.getResource();
-        case CONTROLLER_X360:
-            return (Texture*)m_x360ButtonTextureId.getResource();
-        default:
-            return (Texture*)m_buttonTextureId.getResource();
+            texture = getControllerTexture(IconSlot_Default);
         }
+        return texture;
     }
 
     //////////////////////////////////////////////////////////////////////////

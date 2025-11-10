@@ -197,6 +197,26 @@
 
 namespace ITF
 {
+    struct ControllerIconPathDescriptor
+    {
+        const char* key;
+        ControllerIconSlot slot;
+    };
+
+    static const ControllerIconPathDescriptor g_controllerIconPathDescriptors[] =
+    {
+        { "iconsButtonPath", IconSlot_Default },
+        { "iconsButtonPathWii", IconSlot_Wii },
+        { "iconsButtonPathPS3", IconSlot_PS3 },
+        { "iconsButtonPathPS5", IconSlot_PS5 },
+        { "iconsButtonPathVita", IconSlot_Vita },
+        { "iconsButtonPathCTR", IconSlot_CTR },
+        { "iconsButtonPathSwitch", IconSlot_Switch },
+        { "iconsButtonPathOunce", IconSlot_Ounce },
+        { "iconsButtonPathXboxSeries", IconSlot_XboxSeries },
+        { "iconsButtonPathX360", IconSlot_X360 },
+    };
+
     /*
     GameManager::GameScreenOperationData::GameScreenOperationData() : m_loadCheckpointData(bfalse)
     {
@@ -291,16 +311,11 @@ namespace ITF
         SERIALIZE_MEMBER("TEMP_swimMaxSpeed", m_tempswimMaxSpeed);
         SERIALIZE_MEMBER("TEMP_swimSmooth", m_tempswimSmooth);
         SERIALIZE_MEMBER("TEMP_runTimerStop", m_temprunTimerStop);
-        SERIALIZE_MEMBER("iconsButtonPath", m_iconsBtnPath);
-        SERIALIZE_MEMBER("iconsButtonPathWii", m_iconsBtnPathWii);
-        SERIALIZE_MEMBER("iconsButtonPathPS3", m_iconsBtnPathPS3);
-        SERIALIZE_MEMBER("iconsButtonPathPS5", m_iconsBtnPathPS5);
-        SERIALIZE_MEMBER("iconsButtonPathVita", m_iconsBtnPathVita);
-        SERIALIZE_MEMBER("iconsButtonPathCTR", m_iconsBtnPathCTR);
-        SERIALIZE_MEMBER("iconsButtonPathSwitch", m_iconsBtnPathSwitch);
-        SERIALIZE_MEMBER("iconsButtonPathOunce", m_iconsBtnPathOunce);
-        SERIALIZE_MEMBER("iconsButtonPathXboxSeries", m_iconsBtnPathXboxSeries);
-        SERIALIZE_MEMBER("iconsButtonPathX360", m_iconsBtnPathX360);
+        for (u32 iconIdx = 0; iconIdx < ITF_ARRAY_SIZE(g_controllerIconPathDescriptors); ++iconIdx)
+        {
+            const ControllerIconPathDescriptor& iconDesc = g_controllerIconPathDescriptors[iconIdx];
+            serializer->Serialize(iconDesc.key, m_controllerIconPaths[iconDesc.slot]);
+        }
         SERIALIZE_MEMBER("gpeIconsPath", m_gpeIconsPath);
         SERIALIZE_MEMBER("skipIconsPath", m_skipIconsPath);
         SERIALIZE_MEMBER("menuLogosPath", m_menuLogosPath);
