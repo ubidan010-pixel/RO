@@ -23,7 +23,7 @@ namespace ITF
     }
 
 
-    static const char* HardCodedShaders[] =
+    static constexpr char* HardCodedShaders[] =
     {   // Keep the same order, call to m_shaderManager.getShaderByIndex are giving the hard-coded order of the shader
         // Keep in sync with GFXAdapter_PS5::CoreShaderGroup
         "renderPCT",
@@ -35,9 +35,29 @@ namespace ITF
         "movie"
     };
 
+
+
     bool GFXAdapter_DX12::loadCoreShaders()
     {
         static_assert(static_cast<u32>(CoreShaderGroup::COUNT) == ITF_ARRAY_SIZE(HardCodedShaders));
+
+        static auto isCoreShaderGroupNameCoherent = [](CoreShaderGroup _group, std::string_view _expectedGroupName)
+            {
+                return HardCodedShaders[toUnderlying(_group)] == _expectedGroupName;
+            };
+
+        #define IS_CORE_SHADER_GROUP_NAME_COHERENT(shaderGroup_) isCoreShaderGroupNameCoherent((CoreShaderGroup::##shaderGroup_), #shaderGroup_)
+
+        // add static assert on coherency between HardCodedShaders strings and CoreShaderGroup enum
+        static_assert(IS_CORE_SHADER_GROUP_NAME_COHERENT(renderPCT));
+        static_assert(IS_CORE_SHADER_GROUP_NAME_COHERENT(afterfx));
+        static_assert(IS_CORE_SHADER_GROUP_NAME_COHERENT(refract));
+        static_assert(IS_CORE_SHADER_GROUP_NAME_COHERENT(font));
+        static_assert(IS_CORE_SHADER_GROUP_NAME_COHERENT(renderOVERDRAW));
+        static_assert(IS_CORE_SHADER_GROUP_NAME_COHERENT(renderFog));
+        static_assert(IS_CORE_SHADER_GROUP_NAME_COHERENT(movie));
+
+        #undef IS_CORE_SHADER_GROUP_NAME_COHERENT
 
         if (!DX12::ShaderProgramRepository::exists())
             new DX12::ShaderProgramRepository(); // create and register singleton
@@ -308,7 +328,7 @@ namespace ITF
     void GFXAdapter_DX12::beginShader(ITF_shader* _shader)
     {
     #if defined(ITF_ENABLE_DX12_GRAPHICS_DEBUGGING) && ITF_ENABLE_DX12_GRAPHICS_DEBUGGING
-        m_currentShaderInBeginEndIndex = mp_shaderManager.getShaderIndex(_shader);
+        m_currentShaderGroupInBeginEnd = static_cast<CoreShaderGroup>(mp_shaderManager.getShaderIndex(_shader));
         m_currentShaderInBeginEndTech = _shader->m_selectedTech;
     #endif
 
@@ -326,9 +346,9 @@ namespace ITF
     bool GFXAdapter_DX12::isDrawAllowed(bool _incrementDrawCallIndex)
     {
         bool drawAllowed = m_allowedBlendMode == GFX_BLEND_UNKNOWN || u_CurrentBlendingMode == m_allowedBlendMode;
-        if (m_currentShaderInBeginEndIndex != -1 && m_allowedShaderIdx != -1)
+        if (m_currentShaderGroupInBeginEnd != CoreShaderGroup::UNKNOWN && m_allowedShaderGroup != CoreShaderGroup::UNKNOWN)
         {
-            drawAllowed = drawAllowed && (m_currentShaderInBeginEndIndex == m_allowedShaderIdx);
+            drawAllowed = drawAllowed && (m_currentShaderGroupInBeginEnd == m_allowedShaderGroup);
             if (m_currentShaderInBeginEndTech != -1 && m_allowedShaderTech != -1)
             {
                 drawAllowed = drawAllowed && (m_currentShaderInBeginEndTech == m_allowedShaderTech);
@@ -349,7 +369,7 @@ namespace ITF
     void GFXAdapter_DX12::endShader(ITF_shader* _shader)
     {
     #if defined(ITF_ENABLE_DX12_GRAPHICS_DEBUGGING) && ITF_ENABLE_DX12_GRAPHICS_DEBUGGING
-        m_currentShaderInBeginEndIndex = -1;
+        m_currentShaderGroupInBeginEnd = CoreShaderGroup::UNKNOWN;
         m_currentShaderInBeginEndTech = -1;
     #endif
     }

@@ -420,8 +420,12 @@ namespace ITF
 
         if (savedUpdated && m_fileIdxToLoad != U32_INVALID) // m_fileIdxToLoad == U32_INVALID means that it's just a loading from enumeration.
         {
-            ITF_ASSERT(m_currentFullSaveData.m_files[m_fileIdxToLoad].name == m_fileToLoad);
-            m_currentSavegame = m_currentFullSaveData.m_files[m_fileIdxToLoad].data;
+            ITF_ASSERT_MSG(m_fileIdxToLoad < m_currentFullSaveData.m_files.size(), "Invalid save file index requested: %d", m_fileIdxToLoad);
+            if (m_fileIdxToLoad < m_currentFullSaveData.m_files.size())
+            {
+                ITF_ASSERT(m_currentFullSaveData.m_files[m_fileIdxToLoad].name == m_fileToLoad);
+                m_currentSavegame = m_currentFullSaveData.m_files[m_fileIdxToLoad].data;
+            }
         }
     }
 }

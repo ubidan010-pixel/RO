@@ -89,7 +89,7 @@ namespace ITF
     {
         { "Position0"    , Gnmp::kDataFormatR32G32B32Float, 0    , 0},
         { "COLOR0"       , Gnmp::kDataFormatB8G8R8A8Unorm , 12   , 0},
-        { "BLENDINDICES0", Gnmp::kDataFormatR32Sint       , 16   , 0},
+        { "BLENDINDICES0", Gnmp::kDataFormatR8G8B8A8Uint , 16   , 0},
         { "TEXCOORD0"    , Gnmp::kDataFormatR32G32Float   , 20   , 0},
     };
     const Gnmp::FetchShaderInstancingMode gs_vertexFormatInstancingMode_PCBT[] =

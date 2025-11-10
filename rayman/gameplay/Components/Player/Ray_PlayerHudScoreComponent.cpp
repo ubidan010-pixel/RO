@@ -1010,13 +1010,35 @@ namespace ITF
 
     }
 
+    //-------------------------------------------------------------------------------------
+    // gs_pressStartText is not really used
+    constexpr const char* gs_pressStartText[] =
+    {
+        "<N/A>",                        // Pad_Other = 0,
+        "[icon:X360_BUTTON_A]",         // Pad_X360,
+        "[icon:PS3_BUTTON_CROSS]",      // Pad_PS3,
+        "[icon:WII_BUTTON_2]",          // Pad_WiiSideWay,
+        "[icon:WII_BUTTON_A]",          // Pad_WiiNunchuk,
+        "[icon:WII_CLASSIC_BUTTON_B]",  // Pad_WiiClassic,
+        "<N/A>",                        // Pad_Vita,
+        "<N/A>",                        // Pad_CTR,
+        "<N/A>",                        // Pad_PS5,
+        "<N/A>",                        // Pad_NX_Joycon,
+        "<N/A>",                        // Pad_NX_Joycon_Dual,
+        "<N/A>",                        // Pad_NX_Pro,
+        "<N/A>"                         // Pad_GenericXBox,
+    };
+
+    static_assert(ITF_ARRAY_SIZE(gs_pressStartText) == ITF::uSize(InputAdapter::PadType_Count));
+
+
     void Ray_PlayerHudScoreComponent::initPressStartText()
     {
         String8 pressStartText;
         if (m_playerIndex!=U32_INVALID)
         {
             InputAdapter::PadType padType = INPUT_ADAPTER->getDebugInputPadType(m_playerIndex);
-            pressStartText = s_pressStartText[padType];
+            pressStartText = gs_pressStartText[padType];
         }
 
         LocalisationId textId = getTemplate()->getPressStartTextID();/*3873*/
@@ -1069,21 +1091,6 @@ namespace ITF
         }
 
     }
-
-    //-------------------------------------------------------------------------------------
-    // s_pressStartText is not really used
-    const String8 Ray_PlayerHudScoreComponent::s_pressStartText[InputAdapter::PadType_Count] =
-    {
-        "<N/A>",                        // Pad_Other = 0,
-        "[icon:X360_BUTTON_A]",         // Pad_X360,
-        "[icon:PS3_BUTTON_CROSS]",      // Pad_PS3,
-        "[icon:WII_BUTTON_2]",          // Pad_WiiSideWay,
-        "[icon:WII_BUTTON_A]",          // Pad_WiiNunchuk,
-        "[icon:WII_CLASSIC_BUTTON_B]",  // Pad_WiiClassic,
-        "<N/A>",                        // Pad_Vita,
-        "<N/A>",                        // Pad_CTR,
-        "<N/A>"                         // Pad_PS5,
-    };
 
     //-------------------------------------------------------------------------------------
     IMPLEMENT_OBJECT_RTTI(Ray_PlayerHudScoreComponent_Template)

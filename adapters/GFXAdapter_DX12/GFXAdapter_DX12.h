@@ -365,7 +365,8 @@ namespace ITF
             renderOVERDRAW,
             renderFog,
             movie,
-            COUNT
+            COUNT,
+            UNKNOWN = U32_INVALID
         };
         static u32 getShaderGroupIndex(CoreShaderGroup _group) { return static_cast<u32>(_group); }
         GFXAdapter_shaderManager mp_shaderManager{};
@@ -494,12 +495,12 @@ namespace ITF
 #endif
 
     #if defined(ITF_ENABLE_DX12_GRAPHICS_DEBUGGING) && ITF_ENABLE_DX12_GRAPHICS_DEBUGGING
-        i32 m_allowedShaderIdx = -1; // global variable to filter shader by index for debugging
+        CoreShaderGroup m_allowedShaderGroup = CoreShaderGroup::UNKNOWN; // global variable to filter shader by its group for debugging
         i32 m_allowedShaderTech = -1; // global variable to filter shader by tech
         GFX_BLENDMODE m_allowedBlendMode = GFX_BLEND_UNKNOWN;
         i32 m_allowedDrawCallIndexInFrame = -1;
 
-        i32 m_currentShaderInBeginEndIndex = -1;
+        CoreShaderGroup m_currentShaderGroupInBeginEnd = CoreShaderGroup::UNKNOWN;
         i32 m_currentShaderInBeginEndTech = -1;
         // current blend mode if in u_CurrentBlendingMode
         i32 m_currentDrawCallIndexInFrame = 0;

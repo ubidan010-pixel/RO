@@ -132,8 +132,6 @@ namespace ITF
 		static bbool m_isNewCaption;
 		static u32 m_frescoId;
 
-        static const String8 s_pressStartText[InputAdapter::PadType_Count];
-
 		//Tarik::Fresco
 		AtlasDynamicObject m_relic1Atlas,m_relic2Atlas;
     };

@@ -152,6 +152,8 @@ namespace ITF
     return InputAdapter::Pad_CTR;
 #elif defined(ITF_PS5)
     return InputAdapter::Pad_PS5;
+#elif defined(ITF_XBOX_SERIES)
+        return InputAdapter::Pad_GenericXBox;
 #else
         return InputAdapter::Pad_Other;
 #endif

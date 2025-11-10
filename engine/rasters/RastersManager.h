@@ -9,6 +9,7 @@
 #include "core/Color.h"
 #endif //_ITF_COLOR_H_
 
+#include "core/templateSingleton.h"
 
 #if defined(RASTER_ENABLED)
 //We do not protect this file with include guards

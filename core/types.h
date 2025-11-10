@@ -193,7 +193,7 @@ ITF_COMPILE_TIME_ASSERT (i32_size_error, sizeof(i32) == 4);
 #define DECL_BF(A,B) A B
 #endif
 
-#if (defined(ITF_WINDOWS) && !defined(ITF_FINAL)) || ((defined (ITF_X360)||defined (ITF_PS3)||defined(ITF_PS5)||defined(ITF_NINTENDO)) && defined(_DEBUG))
+#if (defined(ITF_WINDOWS) && !defined(ITF_FINAL)) || defined(ITF_DEBUG)
 #define ITF_DEBUG_STRINGID
 #endif
 
