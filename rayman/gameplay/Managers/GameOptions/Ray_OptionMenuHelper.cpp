@@ -201,9 +201,8 @@ namespace ITF
         if (!isEditing())
             return bfalse;
 
-        // Lock navigation while editing.
-        if (action == input_actionID_Up || action == input_actionID_Down ||
-            action == input_actionID_UpHold || action == input_actionID_DownHold)
+        if (action == input_actionID_Up || action == input_actionID_UpHold ||
+            action == input_actionID_Down || action == input_actionID_DownHold)
         {
             return btrue;
         }
@@ -921,9 +920,13 @@ namespace ITF
         return nullptr;
     }
 
-    ObjectRef Ray_OptionMenuHelper::getNavigationOverrideTarget(UIComponent* current, f32 joyX, f32 joyY) const
+    ObjectRef Ray_OptionMenuHelper::getNavigationOverrideTarget(UIComponent* current, f32 joyX, f32 joyY)
     {
-        if (!m_isActive || !isNavigating() || !m_menu || !current)
+        if (!m_isActive || !m_menu || !current)
+            return ObjectRef::InvalidRef;
+
+        const bbool editing = isEditing();
+        if (!editing && !isNavigating())
             return ObjectRef::InvalidRef;
 
         const f32 absJoyX = f32_Abs(joyX);
@@ -932,10 +935,15 @@ namespace ITF
             return ObjectRef::InvalidRef;
 
         ENavigationDirection direction;
-        if (absJoyX >= absJoyY)
+        const bbool preferHorizontal = absJoyX >= absJoyY;
+        if (preferHorizontal)
         {
             if (absJoyX < MTH_EPSILON)
                 return ObjectRef::InvalidRef;
+
+            if (editing)
+                return ObjectRef::InvalidRef;
+
             direction = (joyX > 0.0f) ? Navigation_Right : Navigation_Left;
         }
         else
@@ -945,8 +953,22 @@ namespace ITF
             direction = (joyY > 0.0f) ? Navigation_Down : Navigation_Up;
         }
 
-        UIComponent* target = getNavigationTarget(current, direction);
-        if (!target || target == current || !target->getActive() || !target->getCanBeSelected())
+        UIComponent* navigationStart = current;
+        if (editing)
+        {
+            if (m_currentEditingComponent)
+            {
+                navigationStart = m_currentEditingComponent;
+            }
+
+            exitEditMode();
+        }
+
+        if (!navigationStart)
+            navigationStart = current;
+
+        UIComponent* target = getNavigationTarget(navigationStart, direction);
+        if (!target || target == navigationStart || !target->getActive() || !target->getCanBeSelected())
             return ObjectRef::InvalidRef;
 
         return target->getUIref();

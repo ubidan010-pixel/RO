@@ -51,7 +51,7 @@ namespace ITF
         bbool onMenuItemOtherAction(UIComponent* _UIComponent, const StringID& _action) override;
         void UpdateMenuOnSelectionChange(UIComponent* uiComponent, bbool isSelected) override;
         void updateTimer();
-        ObjectRef getNavigationOverrideTarget(UIComponent* current, f32 joyX, f32 joyY) const;
+        ObjectRef getNavigationOverrideTarget(UIComponent* current, f32 joyX, f32 joyY);
 
     private:
         bbool handleResetToDefault(const StringID& id);
