@@ -11722,7 +11722,7 @@ namespace ITF
 
     void Ray_GameManager::registerMasterVolumeOption()
     {
-        m_gameOptionManager.registerFloatOption(OPTION_MASTER_VOLUME, 0.0f, 0.0f, 1.0f); // Default: Full volume
+        m_gameOptionManager.registerFloatOption(OPTION_MASTER_VOLUME, 1.0f, 0.0f, 1.0f); // Default: Full volume
     }
 
     void Ray_GameManager::registerMusicVolumeOption()
