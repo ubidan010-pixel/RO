@@ -329,6 +329,8 @@ enum JoyAxis_t
             MAX_ACTIONS
         };
 
+        static const u32 MAX_BINDINGS_PER_ACTION = 2;
+
         // ButtonMode is used to determinate which buttons we want when we call getGamePadButtons
         enum ButtonMode
         {
@@ -418,8 +420,8 @@ enum JoyAxis_t
         u32 m_axesPressTime[JOY_MAX_COUNT][JOY_MAX_AXES];
         PressStatus m_buttons[JOY_MAX_COUNT][JOY_MAX_BUT];
         // control remapping
-        InputValue m_inputMapping[JOY_MAX_COUNT][MAX_ACTIONS];
-        InputValue m_inputMappingTemporary[JOY_MAX_COUNT][MAX_ACTIONS];
+        InputValue m_inputMapping[JOY_MAX_COUNT][MAX_ACTIONS][MAX_BINDINGS_PER_ACTION];
+        InputValue m_inputMappingTemporary[JOY_MAX_COUNT][MAX_ACTIONS][MAX_BINDINGS_PER_ACTION];
         const wchar_t* m_actionStrings[MAX_ACTIONS];
         // mouse/keyboard
         PressStatus m_keyStatus[KEY_COUNT];
@@ -676,6 +678,7 @@ enum JoyAxis_t
 
         void InitializeActionStrings();
         virtual void SetInputValue(u32 player, u32 action, InputValue& value);
+        virtual void SetInputValue(u32 player, u32 action, u32 bindingIndex, InputValue& value);
         void UpdateKeyboard();
         virtual void UpdatePads() { ITF_ASSERT_MSG(0, "Not implemented"); }
         void CopyInputMapping();
@@ -715,7 +718,7 @@ enum JoyAxis_t
             return nullptr;
         }
 
-        virtual const InputValue& GetInputValue(u32 player, u32 action) const;
+        virtual const InputValue& GetInputValue(u32 player, u32 action, u32 binding = 0) const;
 
         const wchar_t* GetActionString(u32 action) const { return m_actionStrings[action]; }
 
