@@ -691,13 +691,6 @@ namespace ITF
 
     ControllerType InputAdapter_SDL3::GetControllerType(InputValue& value)
     {
-        if (value.inputType != Keyboard)
-        {
-            if (value.inputType == X360Button)
-                return value.inputType = GenericButton;
-            if (value.inputType == X360Axis)
-                return value.inputType = GenericAxis;
-        }
         return value.inputType;
     }
 

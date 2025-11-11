@@ -1383,13 +1383,6 @@ namespace ITF
 
     ControllerType InputAdapter_DINPUT::GetControllerType(InputValue& value)
     {
-        if (value.inputType != Keyboard)
-        {
-            if (IsDirectInput(DXinput.m_pad[value.inputIndex].m_typePad))
-            {
-                return value.inputType == X360Button ? GenericButton : GenericAxis;
-            }
-        }
         return value.inputType;
     }
 

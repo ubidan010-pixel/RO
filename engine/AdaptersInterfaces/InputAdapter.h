@@ -198,10 +198,8 @@ namespace ITF
     enum ControllerType
     {
         Keyboard,
-        X360Button,
-        X360Axis,
-        GenericButton,
-        GenericAxis
+        ControllerButton,
+        ControllerAxis
     };
 
     struct InputValue

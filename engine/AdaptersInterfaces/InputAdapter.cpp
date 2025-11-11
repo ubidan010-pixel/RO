@@ -58,8 +58,7 @@ namespace ITF
         if (!IsBindingConfigured(binding))
             return false;
 
-        return binding.inputType == X360Axis ||
-            binding.inputType == GenericAxis;
+        return binding.inputType == ControllerAxis;
     }
 
     static InputAdapter::PadType getDefaultPadType()
@@ -699,57 +698,57 @@ namespace
         {
             InputValue& actionUp = m_inputMappingTemporary[playerIndex][ActionUp][0];
             actionUp.inputValue = 1; // left stick Y
-            actionUp.inputType = X360Axis;
+            actionUp.inputType = ControllerAxis;
             actionUp.axisPosition = 1; // +
             actionUp.inputIndex = playerIndex;
 
             InputValue& actionDown = m_inputMappingTemporary[playerIndex][ActionDown][0];
             actionDown.inputValue = 1; // left stick Y
-            actionDown.inputType = X360Axis;
+            actionDown.inputType = ControllerAxis;
             actionDown.axisPosition = 0; // -
             actionDown.inputIndex = playerIndex;
 
             InputValue& actionLeft = m_inputMappingTemporary[playerIndex][ActionLeft][0];
             actionLeft.inputValue = 0; // left stick X
-            actionLeft.inputType = X360Axis;
+            actionLeft.inputType = ControllerAxis;
             actionLeft.axisPosition = 0; // -
             actionLeft.inputIndex = playerIndex;
 
             InputValue& actionRight = m_inputMappingTemporary[playerIndex][ActionRight][0];
             actionRight.inputValue = 0; // left stick X
-            actionRight.inputType = X360Axis;
+            actionRight.inputType = ControllerAxis;
             actionRight.axisPosition = 1; // +
             actionRight.inputIndex = playerIndex;
 
             InputValue& actionJump = m_inputMappingTemporary[playerIndex][ActionJump][0];
             actionJump.inputValue = 0; // A
-            actionJump.inputType = X360Button;
+            actionJump.inputType = ControllerButton;
             actionJump.inputIndex = playerIndex;
 
             InputValue& actionHit = m_inputMappingTemporary[playerIndex][ActionHit][0];
             actionHit.inputValue = 2; // X
-            actionHit.inputType = X360Button;
+            actionHit.inputType = ControllerButton;
             actionHit.inputIndex = playerIndex;
 
             InputValue& actionSprint = m_inputMappingTemporary[playerIndex][ActionSprint][0];
             actionSprint.inputValue = 5; // RT
-            actionSprint.inputType = X360Axis;
+            actionSprint.inputType = ControllerAxis;
             actionSprint.axisPosition = 1; // +
             actionSprint.inputIndex = playerIndex;
 
             InputValue& actionBack = m_inputMappingTemporary[playerIndex][ActionBack][0];
             actionBack.inputValue = 1; // B
-            actionBack.inputType = X360Button;
+            actionBack.inputType = ControllerButton;
             actionBack.inputIndex = playerIndex;
 
             InputValue& actionBubbleQuit = m_inputMappingTemporary[playerIndex][ActionBubbleQuit][0];
             actionBubbleQuit.inputValue = 6; // Back
-            actionBubbleQuit.inputType = X360Button;
+            actionBubbleQuit.inputType = ControllerButton;
             actionBubbleQuit.inputIndex = playerIndex;
 
             InputValue& actionShowMenu = m_inputMappingTemporary[playerIndex][ActionShowMenu][0];
             actionShowMenu.inputValue = 7; // Start
-            actionShowMenu.inputType = X360Button;
+            actionShowMenu.inputType = ControllerButton;
             actionShowMenu.inputIndex = playerIndex;
         }
 
@@ -855,13 +854,11 @@ namespace
                 if (val.inputValue < KEY_COUNT)
                     status = m_keyStatus[val.inputValue];
                 break;
-            case X360Button:
-            case GenericButton:
+            case ControllerButton:
                 if (val.inputValue < JOY_MAX_BUT)
                     status = GetButtonStatus(val);
                 break;
-            case X360Axis:
-            case GenericAxis:
+            case ControllerAxis:
                 if (val.inputValue < JOY_MAX_AXES)
                 {
                     const f32 axisValue = GetAxe(val);
@@ -949,16 +946,14 @@ namespace
                     }
                 }
                 break;
-            case X360Button:
-            case GenericButton:
+            case ControllerButton:
                 if (IsButtonPressed(val))
                 {
                     digitalSet = true;
                     digitalValue = axisValue;
                 }
                 break;
-            case X360Axis:
-            case GenericAxis:
+            case ControllerAxis:
                 if (val.inputValue < JOY_MAX_AXES)
                 {
                     const f32 value = GetAxe(val);
@@ -1013,14 +1008,8 @@ namespace
 
         if (value.inputType != Keyboard)
         {
-#ifdef ITF_USE_SDL
-            if (value.inputType == X360Button)
-                value.inputType = GenericButton;
-            else if (value.inputType == X360Axis)
-                value.inputType = GenericAxis;
-#endif
+            value.inputType = GetControllerType(value);
         }
-        value.inputType = GetControllerType(value);
         for (u32 playerIndex = 0; playerIndex < JOY_MAX_COUNT; ++playerIndex)
         {
             for (u32 actionIndex = ActionBubbleQuit; actionIndex < MAX_ACTIONS; ++actionIndex)
