@@ -244,7 +244,6 @@ enum JoyAxis_t
 #define JOY_AXIS_RT         5
 #define JOY_MAX_AXES        6
     class Interface_InputListener;
-    class IConfigurationStorage;
     class InputAdapter : public TemplateSingleton<InputAdapter>
     {
     public:
@@ -439,15 +438,6 @@ enum JoyAxis_t
         bbool m_runUseShake;
         f32 m_runTimerStop;
         String m_inputString;
-
-        // control remapping
-        const char* m_keyNames[KEY_COUNT];
-        const char* m_X360ButtonNames[JOY_MAX_BUT];
-        const char* m_X360AxisNames[JOY_MAX_AXES][2];
-        const char* m_GenericButtonNames[JOY_MAX_BUT];
-        const char* m_GenericAxisNames[JOY_MAX_AXES][2];
-
-        IConfigurationStorage* m_configurationStorage;
     public:
         /**
         Registers a new listener for input events. you must create a class that inherits from Interface_InputListener
@@ -685,13 +675,6 @@ enum JoyAxis_t
         virtual void ResetToDefaultControls();
 
         void InitializeActionStrings();
-        void InitializeKeyNames();
-        void InitializeX360Names();
-        void InitializeGenericNames();
-        virtual const String& GetInputString(u32 iconType);
-        virtual const String& GetInputString(const String& x360Button);
-        virtual const String& GetInputString(u32 player, u32 action);
-        virtual const String& GetKeyString(u32 key);
         virtual void SetInputValue(u32 player, u32 action, InputValue& value);
         void UpdateKeyboard();
         virtual void UpdatePads() { ITF_ASSERT_MSG(0, "Not implemented"); }
