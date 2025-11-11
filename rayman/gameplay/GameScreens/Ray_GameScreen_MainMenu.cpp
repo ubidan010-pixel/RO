@@ -92,7 +92,11 @@
 
 #define TITLEMENU_FRIENDLY          "menutitlescreen"
 #define MAINMENU_FRIENDLY           "menuPlaywii" //menuPlay
-#define PCMENU_FRIENDLY             "menuStartPC"
+#ifdef ITF_WINDOWS
+#define NEW_MENU_FRIENDLY             "menuStartPC"
+#else
+#define NEW_MENU_FRIENDLY             "menuStartConsole"
+#endif
 
 #define MAX_SLOTS                   3
 #define LOADERROR_FRIENDLY          "menuMainCantLoad"
@@ -672,7 +676,7 @@ namespace ITF
             activeBlackScreen(bfalse);
             if(m_pendingShowPCMenu && !warningBootShown)
             {
-                UI_MENUMANAGER->showMenuPage(GAMEINTERFACE->getGameMenuPriority(), PCMENU_FRIENDLY, btrue, this);
+                UI_MENUMANAGER->showMenuPage(GAMEINTERFACE->getGameMenuPriority(), NEW_MENU_FRIENDLY, btrue, this);
                 m_pendingShowPCMenu = bfalse;
                 updateLastPlayTime();
             }
@@ -708,7 +712,7 @@ namespace ITF
         {
             if(pThis->m_pendingShowPCMenu)
             {
-                UI_MENUMANAGER->showMenuPage(GAMEINTERFACE->getGameMenuPriority(), PCMENU_FRIENDLY, btrue, pThis);
+                UI_MENUMANAGER->showMenuPage(GAMEINTERFACE->getGameMenuPriority(), NEW_MENU_FRIENDLY, btrue, pThis);
                 pThis->m_pendingShowPCMenu = bfalse;
                 pThis->updateLastPlayTime();
             }

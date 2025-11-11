@@ -78,7 +78,11 @@ namespace ITF
 {
     namespace
     {
+#ifdef ITF_WINDOWS
         static const StringID kMenuStartID("menustartpc");
+#else
+        static const StringID kMenuStartID("menustartconsole");
+#endif
         static const StringID kUbiConnectID("ubiconnect_button");
     }
     ///////////////////////////////////////////////////////////////////////////////////////////
