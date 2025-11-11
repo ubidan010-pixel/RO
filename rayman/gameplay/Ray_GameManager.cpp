@@ -12245,6 +12245,7 @@ namespace ITF
             RAY_GAMEMANAGER->applyMusicVolumeOption();
             RAY_GAMEMANAGER->applySFXVolumeOption();
             RAY_GAMEMANAGER->applyIntensityOption();
+            RAY_GAMEMANAGER->applyPCKeyboardControllerSharingOption();
         }
         else if (result == Ray_GameOptionPersistence::Result_LoadFailed)
         {
@@ -12253,6 +12254,7 @@ namespace ITF
             RAY_GAMEMANAGER->applyMasterVolumeOption();
             RAY_GAMEMANAGER->applyMusicVolumeOption();
             RAY_GAMEMANAGER->applySFXVolumeOption();
+            RAY_GAMEMANAGER->applyPCKeyboardControllerSharingOption();
         }
         else if (result == Ray_GameOptionPersistence::Result_LoadNotFound)
         {
@@ -12261,6 +12263,7 @@ namespace ITF
             RAY_GAMEMANAGER->applyMasterVolumeOption();
             RAY_GAMEMANAGER->applyMusicVolumeOption();
             RAY_GAMEMANAGER->applySFXVolumeOption();
+            RAY_GAMEMANAGER->applyPCKeyboardControllerSharingOption();
         }
         if (RAY_GAMEMANAGER->m_onGameSettingLoaded)
         {
