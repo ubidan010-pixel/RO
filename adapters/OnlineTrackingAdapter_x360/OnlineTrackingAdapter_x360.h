@@ -13,12 +13,6 @@ namespace ITF
 
         OnlineTrackingAdapter_x360() {}
         ~OnlineTrackingAdapter_x360() {}
-
-		Quazal::OnlineConfigClient *tryCreatingOnlineConfigClient();
-
-	protected:
-		const char *getOnlineConfigId() const;
-		const char *getSandboxAccessKey() const;
 	};
 
 

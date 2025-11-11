@@ -13,12 +13,6 @@ namespace ITF
 
         OnlineTrackingAdapter_win32(){}
         ~OnlineTrackingAdapter_win32(){}
-
-		Quazal::OnlineConfigClient *tryCreatingOnlineConfigClient();
-
-	protected:
-		const char *getOnlineConfigId() const;
-		const char *getSandboxAccessKey() const;
     };
 
 

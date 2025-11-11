@@ -10,29 +10,8 @@
 #include "core/macros.h"
 #endif //_ITF_CORE_MACROS_H_
 
-
-//#define NO_USING_QUAZAL_DIRECTIVE
-#undef UNICODE
-#undef _UNICODE
-#include "../extern/RendezVous/RendezVous.h"
-
 namespace ITF
 {
-	const char *OnlineTrackingAdapter_win32::getOnlineConfigId() const
-	{
-		return "58c47d2bd1934c97960ab373c14bc417";
-	}
-
-	const char *OnlineTrackingAdapter_win32::getSandboxAccessKey() const
-	{
-		return "mbAvckU3";
-	}
-
-	Quazal::OnlineConfigClient *OnlineTrackingAdapter_win32::tryCreatingOnlineConfigClient()
-	{
-		return qNew OnlineConfigClient(getOnlineConfigId());
-	}
-
 } //ITF
 
 #endif //ITF_SUPPORT_ONLINETRACKING

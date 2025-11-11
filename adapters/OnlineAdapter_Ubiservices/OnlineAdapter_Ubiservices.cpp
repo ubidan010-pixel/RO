@@ -1,6 +1,7 @@
 #include "precompiled_OnlineAdapter_Ubiservices.h"
 
 #include "adapters/OnlineAdapter_Ubiservices/OnlineAdapter_Ubiservices.h"
+#include "adapters/OnlineAdapter_Ubiservices/TrackingService_Ubiservices.h"
 
 #ifdef ITF_SUPPORT_UBISERVICES
 
@@ -122,15 +123,26 @@ namespace ITF
         LOG("[Ubiservices] init EAL mem: %d, log: %d", memInitOk, logInitOk);
 
         US_NS::initializeSdk(&m_ealLogInterface, &m_ealMemInterface);
+
+#if defined(ITF_SUPPORT_ONLINETRACKING)
+        m_trackingService = newAlloc(mId_OnlineServices, TrackingService_Ubiservices);
+#endif
     }
 
     OnlineAdapter_Ubiservices::~OnlineAdapter_Ubiservices()
     {
+#if defined(ITF_SUPPORT_ONLINETRACKING)
+        SF_DEL(m_trackingService);
+#endif
     }
 
     void OnlineAdapter_Ubiservices::initialize()
     {
         initializeUbiservices();
+
+#if defined(ITF_SUPPORT_ONLINETRACKING)
+        m_trackingService->init();
+#endif
     }
 
     void OnlineAdapter_Ubiservices::update()
@@ -139,12 +151,19 @@ namespace ITF
         {
             return;
         }
+
+#if defined(ITF_SUPPORT_ONLINETRACKING)
+        m_trackingService->update();
+#endif
     }
 
     void OnlineAdapter_Ubiservices::terminate()
     {
         if (m_initialized)
         {
+#if defined(ITF_SUPPORT_ONLINETRACKING)
+            m_trackingService->term();
+#endif
             terminateUbiservices();
             m_initialized = false;
         }
@@ -153,6 +172,10 @@ namespace ITF
     void OnlineAdapter_Ubiservices::initializeUbiservices()
     {
         String8 buildId = generateBuildId();
+
+        US_NS::LoggingHelper::enableMultiLines(true);
+        US_NS::LoggingHelper::enableVerbose(true);
+
         m_sdk = US_NS::UbiservicesSdk::create();
 
         configureUbiservices(buildId.cStr());
@@ -163,7 +186,7 @@ namespace ITF
         //LOCALISATIONMANAGER->getCurrentLocaleString(lang, locale);
         US_NS::LocalizationHelper::setLocaleCode(US_NS::String::formatText("%s-%s", lang.cStr(), locale.cStr()));
 
-        //createSession();
+        createSession();
 
         m_initialized = true;
     }

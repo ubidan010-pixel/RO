@@ -13,11 +13,6 @@ namespace ITF
 
 		OnlineTrackingAdapter_ps3() {}
 		~OnlineTrackingAdapter_ps3() {}
-
-	protected:
-		const char *getOnlineConfigId() const;
-		const char *getSandboxAccessKey() const;
-		Quazal::OnlineConfigClient *tryCreatingOnlineConfigClient();
     };
 
 
