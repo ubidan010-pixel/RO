@@ -32,15 +32,15 @@ namespace ITF
         void terminateUbiservices();
         void createSession();
         void closeSession();
-
         String8 generateBuildId();
 
+        // EAL area
+        eal_log_dll_interface m_ealLogInterface;
+        eal_mem_dll_interface m_ealMemInterface;
+        void EalMemDllPopulateInterface(eal_mem_dll_interface& Interface);
+        void EalLogDllPopulateInterface(eal_log_dll_interface& Interface);
+
         US_NS::UniquePtr<US_NS::UbiservicesSdk> m_sdk;
-
-        // configureSdk / uninitializeSdk try to destruct strings inside if we pass configs on stack
-        US_NS::GameConfig *m_gameConfig;
-        US_NS::SystemConfig *m_sysConfig;
-
         US_NS::SharedPtr<US_NS::Session> m_session;
 
         bool m_initialized;

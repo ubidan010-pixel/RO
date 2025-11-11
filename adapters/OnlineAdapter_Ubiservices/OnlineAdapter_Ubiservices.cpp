@@ -27,6 +27,8 @@
 #include <ubiservices/core/log/log.h>
 #include <ubiservices/core/log/logDevice.h>
 #include <ubiservices/core/configs/threadingConfig.h>
+#include <ubiservices/core/configs/systemConfig.h>
+#include <ubiservices/core/configs/telemetryConfig.h>
 #include <ubiservices/core/configs/gameConfig.h>
 #include <ubiservices/core/configs/gameConfigEvent.h>
 
@@ -66,14 +68,60 @@ namespace ITF
         return buildId;
     }
 
+    void OnlineAdapter_Ubiservices::EalLogDllPopulateInterface(eal_log_dll_interface& Interface)
+    {
+        Interface.pEalLogLibInit = EalLogLibInit;
+        Interface.pEalLogLibShutdown = EalLogLibShutdown;
+        Interface.pEalLogOutput = EalLogOutput;
+        Interface.pEalLogAssert = EalLogAssert;
+        Interface.pEalLogIsEnabled = EalLogIsEnabled;
+        Interface.pEalLogAssert2 = EalLogAssert2;
+        Interface.pEalLogOutputWithFormatVa = EalLogOutputWithFormatVa;
+        Interface.pEalLogSetTagName = EalLogSetTagName;
+        Interface.pEalLogGetTagName = EalLogGetTagName;
+        Interface.pEalLogOutputWithSize = EalLogOutputWithSize;
+    }
+
+    void OnlineAdapter_Ubiservices::EalMemDllPopulateInterface(eal_mem_dll_interface& Interface)
+    {
+        Interface.pEalMemLibInit = EalMemLibInit;
+        Interface.pEalMemLibShutdown = EalMemLibShutdown;
+        Interface.pEalMemAlloc = EalMemAlloc;
+        Interface.pEalMemAllocWithContext = EalMemAllocWithContext;
+        Interface.pEalMemRealloc = EalMemRealloc;
+        Interface.pEalMemReallocWithContext = EalMemReallocWithContext;
+        Interface.pEalMemFree = EalMemFree;
+        Interface.pEalMemFreeWithContext = EalMemFreeWithContext;
+        Interface.pEalMemGetPageSize = EalMemGetPageSize;
+        Interface.pEalMemGetAllocatedSize = EalMemGetAllocatedSize;
+        Interface.pEalMemGetAllocated = EalMemGetAllocated;
+        Interface.pEalMemDebugAlloc = EalMemDebugAlloc;
+        Interface.pEalMemDebugAllocWithContext = EalMemDebugAllocWithContext;
+        Interface.pEalMemDebugRealloc = EalMemDebugRealloc;
+        Interface.pEalMemDebugReallocWithContext = EalMemDebugReallocWithContext;
+        Interface.pEalMemDebugFree = EalMemDebugFree;
+        Interface.pEalMemDebugFreeWithContext = EalMemDebugFreeWithContext;
+
+        // BEGIN DEPRECATED in V500
+        Interface.pEalMemDebugSetTagName = EalMemDebugSetTagName;
+        // END DEPRECATED
+
+        Interface.pEalMemDebugDeclareMemory = EalMemDebugDeclareMemory;
+    }
+
+
     OnlineAdapter_Ubiservices::OnlineAdapter_Ubiservices()
         : m_initialized(false)
-        , m_gameConfig(nullptr)
-        , m_sysConfig(nullptr)
     {
-        US_NS::initializeSdk();
-        bool isMemLibinit = EalMemLibInit();
-        bool isLogLibinit = EalLogLibInit();
+        EalLogDllPopulateInterface(m_ealLogInterface);
+        EalMemDllPopulateInterface(m_ealMemInterface);
+
+        bool memInitOk = EalMemLibInit();
+        bool logInitOk = EalLogLibInit();
+
+        LOG("[Ubiservices] init EAL mem: %d, log: %d", memInitOk, logInitOk);
+
+        US_NS::initializeSdk(&m_ealLogInterface, &m_ealMemInterface);
     }
 
     OnlineAdapter_Ubiservices::~OnlineAdapter_Ubiservices()
@@ -122,23 +170,21 @@ namespace ITF
 
     void OnlineAdapter_Ubiservices::configureUbiservices(const ubiservices::String& _buildId)
     {
-        const US_NS::ApplicationId applicationId("4be81211-c3b6-427b-ab0a-5e2264da4529");
-        const US_NS::String applicationBuildId(_buildId);
+        US_NS::ApplicationId applicationId("4be81211-c3b6-427b-ab0a-5e2264da4529");
+        US_NS::String applicationBuildId(_buildId);
         US_NS::OnlineAccessContext onlineAccessContext = US_NS::OnlineAccessContext::Standard;
         US_NS::ProfilePolicy profilePolicy = US_NS::ProfilePolicy::UseUplayProfile;
 
         US_NS::UplayPCPolicy uplayPCPolicy = US_NS::UplayPCPolicy::UseUplayPC;
-        const US_NS::GameConfigConsole gameConfigConsole(uplayPCPolicy);
+        US_NS::GameConfigConsole gameConfigConsole(uplayPCPolicy);
 
-        m_gameConfig = new US_NS::GameConfig(applicationId
+        US_NS::GameConfig gameConfig(applicationId
             , applicationBuildId
             , onlineAccessContext
             , US_NS::GameConfigEvent("Full", "WW", US_NS::Vector<US_NS::EventTypeInfo>())
         );
 
-        m_sysConfig = new US_NS::SystemConfig();
-
-        US_NS::ConfigureResult res = m_sdk->configure(*m_gameConfig, *m_sysConfig);
+        US_NS::ConfigureResult res = m_sdk->configure(gameConfig);
         if (res == ConfigureResult::Success)
         {
             LOG("[Ubiservices] configure OK!");
@@ -152,13 +198,11 @@ namespace ITF
             closeSession();
         }
 
-        m_sdk.release();
-
         LOG("[Ubiservices] terminateUbiservices start");
-        while (US_NS::uninitializeSdk() != US_NS::UninitializeResult::Complete)
-        {
-            sleep(100);
-        }
+        US_NS::uninitializeSdk();
+
+        EalMemLibShutdown();
+        EalLogLibShutdown();
 
         LOG("[Ubiservices] terminateUbiservices completed");
     }
