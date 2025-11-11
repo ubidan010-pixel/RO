@@ -12231,47 +12231,45 @@ namespace ITF
 
     void Ray_GameManager::onLoadOptionsComplete(Ray_GameOptionPersistence::Result result)
     {
+        switch (result)
+        {
+        case Ray_GameOptionPersistence::Result_LoadSuccess:
+            LOG("[GameOptions] Load completed successfully");
+            break;
+        case Ray_GameOptionPersistence::Result_LoadFailed:
+            LOG("[GameOptions] Load failed - using default options");
+            break;
+        case Ray_GameOptionPersistence::Result_LoadNotFound:
+            LOG("[GameOptions] No saved options found - using defaults");
+            break;
+        default:
+            LOG("[GameOptions] Unknown result - applying safe defaults");
+            break;
+        }
+
+        auto* gm = RAY_GAMEMANAGER;
+        gm->applyDisplayOptions();
+        gm->applyMasterVolumeOption();
+        gm->applyMusicVolumeOption();
+        gm->applySFXVolumeOption();
+        gm->applyPCKeyboardControllerSharingOption();
+
         if (result == Ray_GameOptionPersistence::Result_LoadSuccess)
         {
-            LOG("[GameOptions] Load completed successfully");
-
-            RAY_GAMEMANAGER->applyDisplayOptions();
-            RAY_GAMEMANAGER->applyLanguageOption();
-            RAY_GAMEMANAGER->applyStartWithHeartOption();
-            RAY_GAMEMANAGER->applyRunButtonOption();
-            RAY_GAMEMANAGER->applyMurfyAssistOption();
-            RAY_GAMEMANAGER->applyVibrationOption();
-            RAY_GAMEMANAGER->applyMasterVolumeOption();
-            RAY_GAMEMANAGER->applyMusicVolumeOption();
-            RAY_GAMEMANAGER->applySFXVolumeOption();
-            RAY_GAMEMANAGER->applyIntensityOption();
-            RAY_GAMEMANAGER->applyPCKeyboardControllerSharingOption();
+            gm->applyLanguageOption();
+            gm->applyStartWithHeartOption();
+            gm->applyRunButtonOption();
+            gm->applyMurfyAssistOption();
+            gm->applyVibrationOption();
+            gm->applyIntensityOption();
         }
-        else if (result == Ray_GameOptionPersistence::Result_LoadFailed)
+        if (gm->m_onGameSettingLoaded)
         {
-            LOG("[GameOptions] Load failed - using default options");
-            RAY_GAMEMANAGER->applyDisplayOptions();
-            RAY_GAMEMANAGER->applyMasterVolumeOption();
-            RAY_GAMEMANAGER->applyMusicVolumeOption();
-            RAY_GAMEMANAGER->applySFXVolumeOption();
-            RAY_GAMEMANAGER->applyPCKeyboardControllerSharingOption();
-        }
-        else if (result == Ray_GameOptionPersistence::Result_LoadNotFound)
-        {
-            LOG("[GameOptions] No saved options found - using defaults");
-            RAY_GAMEMANAGER->applyDisplayOptions();
-            RAY_GAMEMANAGER->applyMasterVolumeOption();
-            RAY_GAMEMANAGER->applyMusicVolumeOption();
-            RAY_GAMEMANAGER->applySFXVolumeOption();
-            RAY_GAMEMANAGER->applyPCKeyboardControllerSharingOption();
-        }
-        if (RAY_GAMEMANAGER->m_onGameSettingLoaded)
-        {
-            RAY_GAMEMANAGER->m_onGameSettingLoaded();
-            RAY_GAMEMANAGER->m_onGameSettingLoaded = NULL;
+            auto cb = gm->m_onGameSettingLoaded;
+            gm->m_onGameSettingLoaded = nullptr;
+            cb();
         }
     }
-
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #ifdef ITF_SUPPORT_BOT_AUTO
