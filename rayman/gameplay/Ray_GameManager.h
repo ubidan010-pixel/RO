@@ -1770,6 +1770,8 @@ namespace ITF
         bbool           areVibrationsEnabled() const;
         void            setVibrations(bbool enabled);
 
+        bbool           IsKeyboardControllerSharingEnabled() const;
+        void            setKeyboardControllerSharing(bbool enabled);
         //==========================================================================
         // Option Menu - Sound Options
         //==========================================================================
@@ -1866,11 +1868,13 @@ namespace ITF
         void            registerSFXVolumeOption();
         void            registerIntensityOption();
         void            registerLastPlayTime();
+        void            registerPCKeyboardControllerSharingOption();
         void            applyLanguageOption();
         void            applyStartWithHeartOption();
         void            applyVibrationOption();
         void            applyRunButtonOption();
         void            applyMurfyAssistOption();
+        void            applyPCKeyboardControllerSharingOption();
 
         Scene*          getSceneForPersistentActor(Actor *_obj) const;
 

@@ -11745,6 +11745,11 @@ namespace ITF
         m_gameOptionManager.registerFloatOption(LAST_PLAY_TIME, 0.0f, 0.0f, FLT_MAX);
     }
 
+    void Ray_GameManager::registerPCKeyboardControllerSharingOption()
+    {
+        m_gameOptionManager.registerBoolOption(OPTION_PC_KEYBOARD_CONTROLLER_SHARING, btrue);
+    }
+
     void Ray_GameManager::registerAllGameOptions()
     {
         m_gameOptionManager.init();
@@ -11760,6 +11765,7 @@ namespace ITF
         registerSFXVolumeOption();
         registerIntensityOption();
         registerLastPlayTime();
+        registerPCKeyboardControllerSharingOption();
     }
 
     EHealthModifier Ray_GameManager::getHealthModifier() const
@@ -12025,6 +12031,16 @@ namespace ITF
         m_gameOptionManager.setListOptionIndex(OPTION_VIBRATIONS, enabled ? VibrationMode_On : VibrationMode_Off);
     }
 
+    bbool Ray_GameManager::IsKeyboardControllerSharingEnabled() const
+    {
+        return m_gameOptionManager.getBoolOption(OPTION_PC_KEYBOARD_CONTROLLER_SHARING);
+    }
+
+    void Ray_GameManager::setKeyboardControllerSharing(bbool enabled)
+    {
+        m_gameOptionManager.setListOptionIndex(OPTION_PC_KEYBOARD_CONTROLLER_SHARING, enabled);
+    }
+
     ///////////////////////////////////////////////////////////////////////////////////////////
     // OPTION MENU - SOUND OPTIONS
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -12102,6 +12118,11 @@ namespace ITF
     {
         i32 runMode = getRunButtonMode();
         LOG("[OptionMenu] Run Button Mode: %s (value: %d)", getRunButtonDisplayName(runMode), runMode);
+    }
+
+    void Ray_GameManager::applyPCKeyboardControllerSharingOption()
+    {
+        LOG("[OptionMenu] input mode Mode: (value: %d)",);
     }
 
     void Ray_GameManager::applyMurfyAssistOption()
