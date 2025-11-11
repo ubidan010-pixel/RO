@@ -184,15 +184,14 @@ namespace ITF
 
     // *** JOYSTICK ***
 // COMMON
-enum JoyAxis_t
-{
-    m_joyStickLeft_X=0,
-    m_joyStickLeft_Y,
-    m_joyTrigger_Left,
-    m_joyStickRight_X,
-    m_joyStickRight_Y,
-    m_joyTrigger_Right,
-
+    enum JoyAxis_t
+    {
+        m_joyStickLeft_X=0,
+        m_joyStickLeft_Y,
+        m_joyTrigger_Left,
+        m_joyStickRight_X,
+        m_joyStickRight_Y,
+        m_joyTrigger_Right,
         JOY_MAX_AXES
     };
 
