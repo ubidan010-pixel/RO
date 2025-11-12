@@ -66,15 +66,6 @@
 #include "engine/video/MoviePlayer.h"
 #endif //ITF_MOVIEPLAYER_H_
 
-#ifdef ITF_SUPPORT_BOT_AUTO
-#ifndef _RAY_BOTCONTROLLER_H_
-#include "gameplay/AI/PlayerBot/BotController.h"
-#endif //_RAY_BOTCONTROLLER_H_
-#ifndef _RAY_PERCEPTIONMODULE_H_
-#include "gameplay/AI/PlayerBot/PerceptionModule.h"
-#endif //_RAY_PERCEPTIONMODULE_H_
-#endif // ITF_SUPPORT_BOT_AUTO
-
 namespace ITF
 {
     #define RAY_GAMEMANAGER Ray_GameManager::get()
@@ -1771,6 +1762,10 @@ namespace ITF
         bbool           areVibrationsEnabled() const;
         void            setVibrations(bbool enabled);
 
+#if defined(ITF_WINDOWS)
+        bbool           IsKeyboardControllerSharingEnabled() const;
+        void            setKeyboardControllerSharing(bbool enabled);
+#endif
         //==========================================================================
         // Option Menu - Sound Options
         //==========================================================================
@@ -1808,18 +1803,6 @@ namespace ITF
 
 		ITF_INLINE								bbool getIsPlayingFrescoVideo() const { return m_isPlayingFrescoVideo; }
 		ITF_INLINE								void setIsPlayingFrescoVideo(bbool _val) { m_isPlayingFrescoVideo = _val; }
-
-#ifdef ITF_SUPPORT_BOT_AUTO
-        ITF_INLINE BotController* getBotController() { return m_botController; }
-        ITF_INLINE const BotController* getBotController() const { return m_botController; }
-        void updateBotController(f32 dt);
-        void setBotMode(BotMode mode);
-        BotMode getBotMode() const;
-        bbool isBotActive() const;
-        virtual u32 getPlayerStance(u32 playerIndex) const;
-        void scanTargetsForBot();
-        void updateTargetDistancesForBot(struct GameState* state);
-#endif // ITF_SUPPORT_BOT_AUTO
     private:
         // Save/Load callbacks
         static void     onSaveOptionsComplete(Ray_GameOptionPersistence::Result result);
@@ -1867,11 +1850,17 @@ namespace ITF
         void            registerSFXVolumeOption();
         void            registerIntensityOption();
         void            registerLastPlayTime();
+#if defined(ITF_WINDOWS)
+        void            registerPCKeyboardControllerSharingOption();
+#endif
         void            applyLanguageOption();
         void            applyStartWithHeartOption();
         void            applyVibrationOption();
         void            applyRunButtonOption();
         void            applyMurfyAssistOption();
+#if defined(ITF_WINDOWS)
+        void            applyPCKeyboardControllerSharingOption();
+#endif
 
         Scene*          getSceneForPersistentActor(Actor *_obj) const;
 
@@ -2055,10 +2044,6 @@ namespace ITF
         ObjectRef                   m_preloadedPrologueWorld;
         bbool                       m_preloadedPrologueReady;
 		bbool						m_isPlayingFrescoVideo;
-#ifdef ITF_SUPPORT_BOT_AUTO
-        BotController*              m_botController;
-        ITF_VECTOR<TargetInfo>      m_allTargets;
-#endif // ITF_SUPPORT_BOT_AUTO
     };
 
 #define RAY_REWARD_MANAGER      RAY_GAMEMANAGER->getRewardManager()
