@@ -113,6 +113,38 @@ namespace ITF
                 indicatorActor->disable();
             }
         }
+        Actor* bubbleActor = m_bubbleRef.getActor();
+        if (bubbleActor)
+        {
+            Ray_TalkingBubbleComponent* bubble = bubbleActor->GetComponent<Ray_TalkingBubbleComponent>();
+
+            if (bubble)
+            {
+                StringID tag = RAY_GAMEMANAGER->getCurrentLevelName();
+                i32 takenRelic = RAY_GAMEMANAGER->getTakenRelicCount(tag);
+                i32 maxRelic = RAY_GAMEMANAGER->getMaxRelics(tag);
+
+                i32 maxHiddenCage = Max((i32)RAY_GAMEMANAGER->getLevelTotalCageCount(tag) - 1, 0);
+                i32 brokenHiddenCage = Max((i32)RAY_GAMEMANAGER->getLevelBrokenCageCount(tag) - 1, 0);
+
+                PathString8_t relicPath, electoonPath;
+
+                getCustomTemplate()->getRelicPath().getString(relicPath);
+                getCustomTemplate()->getElectoonPath().getString(electoonPath);
+
+                ITF_VECTOR <TextInfo> textInfos;
+
+                textInfos.resize(1);
+
+                TextInfo& textInfo = textInfos[0];
+                //textInfo.m_color = getCustomTemplate()->getTextColor().getAsU32();
+                textInfo.m_size = getCustomTemplate()->getInitialFontHeight();
+                textInfo.m_text.setTextFormat("Pop the bubble & I'll help find the remaining treasures: \n[actor:%s]%i/%i [actor:%s]%i/%i", electoonPath.cStr(), brokenHiddenCage, maxHiddenCage, relicPath.cStr(), takenRelic, maxRelic);
+
+                bubble->setSentencesStr(textInfos);
+                //bubble->setAppear();
+            }
+        }
 
         m_actor->setUpdateType(Pickable::UpdateType_OffscreenAllowed);
 
@@ -721,6 +753,7 @@ namespace ITF
     , m_juiceShowTime(0)
     , m_stillTime(0)
     , m_movementEpsilon(0)
+    , m_fontInitialHeight(1.f)
     {
     }
 
@@ -743,5 +776,8 @@ namespace ITF
         SERIALIZE_MEMBER("juiceShowTime", m_juiceShowTime);
         SERIALIZE_MEMBER("stillTime", m_stillTime);
         SERIALIZE_MEMBER("movementEpsilon", m_movementEpsilon);
+        SERIALIZE_MEMBER("relicPath", m_relicAct);
+        SERIALIZE_MEMBER("electoonPath", m_electoonAct);
+        SERIALIZE_MEMBER("fontInitialHeight", m_fontInitialHeight);
     END_SERIALIZATION()
 }

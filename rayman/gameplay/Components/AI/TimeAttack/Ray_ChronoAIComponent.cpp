@@ -196,7 +196,7 @@ void Ray_ChronoAIComponent::onActorLoaded(Pickable::HotReloadType _hotReload)
     if (!getTemplate()->getMurphyPath().isEmpty()) {
         SPAWNER->declareNeedsSpawnee(m_actor, &m_murphySpawner, getTemplate()->getMurphyPath());
 
-        Vec3d offset = Vec3d(-7.0f, -0.7f, .0f);
+        Vec3d offset = getTemplate()->getMurphyOffset();
         Actor* murphyActor = m_murphySpawner.getSpawnee(m_actor->getScene(), m_actor->getPos() + offset, m_actor->getAngle());
 
         if (murphyActor)
@@ -402,6 +402,7 @@ BEGIN_SERIALIZATION(Ray_ChronoAIComponent_Template)
     SERIALIZE_MEMBER("moveDuration",m_moveDuration);
     SERIALIZE_MEMBER("moveCurve",m_moveCurve);
     SERIALIZE_MEMBER("murphyPath", m_murphyAct);
+    SERIALIZE_MEMBER("murphyOffset", m_murphyOffset);
 
 END_SERIALIZATION()
 
@@ -410,6 +411,7 @@ Ray_ChronoAIComponent_Template::Ray_ChronoAIComponent_Template()
 , m_fontInitialHeight(1.f)
 , m_moveDuration(0.5f)
 , m_moveCurve(100.f)
+, m_murphyOffset(0, 0, 0)
 {
 }
 

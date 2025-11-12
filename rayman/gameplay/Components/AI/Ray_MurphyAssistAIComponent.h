@@ -124,6 +124,9 @@ namespace ITF
         ITF_INLINE f32                                  getJuiceShowTime() const { return m_juiceShowTime; }
         ITF_INLINE f32                                  getStillTime() const { return m_stillTime; }
         ITF_INLINE f32                                  getMovementEpsilon() const { return m_movementEpsilon; }
+        ITF_INLINE const Path&                          getElectoonPath() const { return m_electoonAct; }
+        ITF_INLINE const Path&                          getRelicPath() const { return m_relicAct; }
+        ITF_INLINE f32                                  getInitialFontHeight() const { return m_fontInitialHeight; }
 
     private:
 
@@ -145,6 +148,9 @@ namespace ITF
         f32                         m_juiceShowTime;
         f32                         m_stillTime;
         f32                         m_movementEpsilon;
+        Path                        m_electoonAct;
+        Path                        m_relicAct;
+        f32                         m_fontInitialHeight;
     };
 
     const Ray_MurphyAssistAIComponent_Template* Ray_MurphyAssistAIComponent::getCustomTemplate() const

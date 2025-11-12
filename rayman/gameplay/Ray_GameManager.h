@@ -1356,6 +1356,7 @@ namespace ITF
 
         //////////////////////////////////////////////////////////////////////////////////////////
         // Persistent information (cages, skull coins, ...)
+        u32             getLevelTotalCageCount(const StringID& _levelTag) const;
         u32             getBrokenCageCount() const;
         u32             getReturnedTeethCount() const;
         void            returnTeeth();

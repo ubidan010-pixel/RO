@@ -1273,6 +1273,21 @@ namespace ITF
         m_spawnedRewardResourceGroup.invalidateResourceId();
     }
 
+    u32 Ray_GameManager::getLevelTotalCageCount(const StringID& _levelTag) const
+    {
+        const StringID type = RAY_GAMEMANAGER->getMapConfigType(_levelTag);
+        const Ray_GameManagerConfig_Template::MissionConfig* config = RAY_GAMEMANAGER->findMissionConfigByType(type, btrue);
+
+        i32 count = 0;
+        for (auto slot : config->m_medalSlots)
+        {
+            if (slot.m_type == Ray_GameManagerConfig_Template::MedalSlotConfig::Cage)
+                count++;
+        }
+
+        return count;
+    }
+
     u32 Ray_GameManager::getBrokenCageCount() const
     {
         return m_currentLevelData.getBrokenCageCount();
@@ -3036,7 +3051,18 @@ namespace ITF
 
     void Ray_GameManager::onMapLoadedUpdateMurphyAssist()
     {
-        if (RAY_GAMEMANAGER->isLevelCompletedOnce(RAY_GAMEMANAGER->getCurrentLevelName()))
+        StringID currentLevel = RAY_GAMEMANAGER->getCurrentLevelName();
+        i32 takenRelic = RAY_GAMEMANAGER->getTakenRelicCount(currentLevel);
+        i32 maxRelic = RAY_GAMEMANAGER->getMaxRelics(currentLevel);
+
+        i32 maxHiddenCage = Max((i32)RAY_GAMEMANAGER->getLevelTotalCageCount(currentLevel) - 1, 0);
+        i32 brokenHiddenCage = Max((i32)RAY_GAMEMANAGER->getLevelBrokenCageCount(currentLevel) - 1, 0);
+
+        bbool canEnable = RAY_GAMEMANAGER->isLevelCompletedOnce(currentLevel)
+            && (maxRelic > 0 || maxHiddenCage > 0)
+            && (maxRelic > takenRelic || maxHiddenCage > brokenHiddenCage);
+
+        if (canEnable)
         {
             enableMurphyAssistForLevel();
         }

@@ -94,6 +94,7 @@ public:
     f32                                     getMoveDuration() const { return m_moveDuration; }
     f32                                     getMoveCurve() const { return m_moveCurve; }
     const Path&                             getMurphyPath() const { return m_murphyAct; }
+    const Vec3d                             getMurphyOffset() const { return m_murphyOffset; }
 
 private:
 
@@ -106,6 +107,7 @@ private:
     f32                                     m_moveDuration;
     f32                                     m_moveCurve;
     Path                                    m_murphyAct;
+    Vec3d                                   m_murphyOffset;
 };
 
 ITF_INLINE const class Ray_ChronoAIComponent_Template* Ray_ChronoAIComponent::getTemplate() const
