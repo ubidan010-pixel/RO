@@ -144,6 +144,11 @@ namespace ITF
         }
 
         std::fill(m_PadType, m_PadType + ITF_ARRAY_SIZE(m_PadType), getDefaultPadType());
+        for (u32 i = 0; i < JOY_MAX_COUNT; ++i)
+        {
+            m_lastPrimaryInputType[i] = Keyboard;
+            m_lastPrimaryPadType[i] = m_PadType[i];
+        }
     }
 
     void InputAdapter::addListener(Interface_InputListener* _listener, u32 _priority)
@@ -331,6 +336,7 @@ namespace ITF
             {
                 UpdateInputForGame();
             }
+            UpdatePrimaryInputSources();
         }
     }
 
@@ -1260,6 +1266,7 @@ namespace
                 }
             }
         }
+
     }
 
     const String& InputAdapter::ValidateInputString()
@@ -1300,5 +1307,49 @@ namespace
         if (binding >= MAX_BINDINGS_PER_ACTION)
             binding = 0;
         return m_inputMapping[player][action][binding];
+    }
+
+    void InputAdapter::RecordPrimaryInputSource(u32 player, ControllerType source, const char* deviceName)
+    {
+        if (player >= JOY_MAX_COUNT) return;
+        PadType padType = getPadType(player);
+        if (m_lastPrimaryInputType[player] != source || m_lastPrimaryPadType[player] != padType)
+        {
+            m_lastPrimaryInputType[player] = source;
+            m_lastPrimaryPadType[player] = padType;
+            const char* resolvedName = deviceName;
+            if (!resolvedName)
+                resolvedName = (source == Keyboard) ? "Keyboard" : "Controller";
+            OnPlayerPrimaryInputSourceChanged(player, source, padType, resolvedName);
+        }
+    }
+
+    void InputAdapter::UpdatePrimaryInputSources()
+    {
+        for (u32 player = 0; player < JOY_MAX_COUNT; ++player)
+        {
+            ControllerType controllerSource = ControllerButton;
+            const char* deviceName = nullptr;
+            const bool controllerActive = QueryPadActivity(player, controllerSource, deviceName);
+            bool keyboardActive = false;
+#ifdef ITF_WINDOWS
+            if (player == 0)
+            {
+                for (u32 key = 0; key < KEY_COUNT && !keyboardActive; ++key)
+                {
+                    auto st = m_keyStatus[key];
+                    if (st == JustPressed || st == Pressed) keyboardActive = true;
+                }
+            }
+#endif
+            if (controllerActive)
+            {
+                RecordPrimaryInputSource(player, controllerSource, deviceName);
+            }
+            else if (keyboardActive)
+            {
+                RecordPrimaryInputSource(player, Keyboard, "Keyboard");
+            }
+        }
     }
 } // namespace ITF

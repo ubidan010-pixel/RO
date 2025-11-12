@@ -427,6 +427,8 @@ namespace ITF
     private:
         bbool m_PadConnected[JOY_MAX_COUNT]{};
         PadType m_PadType[JOY_MAX_COUNT]{};
+        ControllerType m_lastPrimaryInputType[JOY_MAX_COUNT]{}; 
+        PadType m_lastPrimaryPadType[JOY_MAX_COUNT]{};         
 
         bbool m_useShakeAttack;
         f32 m_threshold;
@@ -761,6 +763,14 @@ namespace ITF
 
         virtual void OnControllerConnected(u32 _padIndex) {}
         virtual void OnControllerDisconnected(u32 _padIndex) {}
+        virtual void OnPlayerPrimaryInputSourceChanged(u32 player, ControllerType source,
+                                                      PadType padType, const char* deviceName)
+        { ITF_UNUSED(player); ITF_UNUSED(source); ITF_UNUSED(padType); ITF_UNUSED(deviceName); }
+    protected:
+        void RecordPrimaryInputSource(u32 player, ControllerType source, const char* deviceName);
+        void UpdatePrimaryInputSources();
+        virtual bool QueryPadActivity(u32 player, ControllerType& outSource, const char*& outDeviceName) const
+        { ITF_UNUSED(player); ITF_UNUSED(outSource); ITF_UNUSED(outDeviceName); return false; }
     };
 
 #define INPUT_ADAPTER InputAdapter::getptr()
