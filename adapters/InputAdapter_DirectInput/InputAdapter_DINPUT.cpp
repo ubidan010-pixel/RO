@@ -526,10 +526,6 @@ namespace ITF
 
         setPadConnected(0, btrue);
         InitializeActionStrings();
-        InitializeKeyNames();
-        InitializeX360Names();
-        InitializeGenericNames();
-
         memset(m_keyStatus, 0, KEY_COUNT * sizeof(PressStatus));
         memset(m_keyPressTime, 0, KEY_COUNT * sizeof(u32));
         memset(m_connectedPlayers, 0, JOY_MAX_COUNT * sizeof(PlayerState));
@@ -1387,13 +1383,6 @@ namespace ITF
 
     ControllerType InputAdapter_DINPUT::GetControllerType(InputValue& value)
     {
-        if (value.inputType != Keyboard)
-        {
-            if (IsDirectInput(DXinput.m_pad[value.inputIndex].m_typePad))
-            {
-                return value.inputType == X360Button ? GenericButton : GenericAxis;
-            }
-        }
         return value.inputType;
     }
 

@@ -68,6 +68,7 @@ namespace ITF
         bool m_initialized;
 
     private:
+        InputAdapter::PadType detectPadType(const SDLGamepad& pad) const;
         void handleGamepadConnected(SDL_JoystickID instanceId);
         void HandleGamepadDisconnected(SDL_JoystickID instanceId);
         void setGamepadConnected(u32 index, bool connected, InputAdapter::PadType padType);

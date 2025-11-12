@@ -12,6 +12,59 @@
 #include "adapters/SystemAdapter_win/SystemAdapter_win.h"
 #endif
 
+namespace
+{
+    bool ContainsIgnoreCase(const char* haystack, const char* needle)
+    {
+        if (!haystack || !needle || *needle == '\0')
+            return false;
+
+        const size_t needleLen = SDL_strlen(needle);
+        if (needleLen == 0)
+            return false;
+
+        for (const char* current = haystack; *current; ++current)
+        {
+            size_t matched = 0;
+            while (matched < needleLen && current[matched] &&
+                SDL_tolower(static_cast<unsigned char>(current[matched])) ==
+                    SDL_tolower(static_cast<unsigned char>(needle[matched])))
+            {
+                ++matched;
+            }
+
+            if (matched == needleLen)
+                return true;
+        }
+
+        return false;
+    }
+
+    const char* PadTypeToString(ITF::InputAdapter::PadType padType)
+    {
+        using PadType = ITF::InputAdapter::PadType;
+        switch (padType)
+        {
+        case PadType::Pad_X360:              return "Pad_X360";
+        case PadType::Pad_PS3:               return "Pad_PS3";
+        case PadType::Pad_WiiSideWay:        return "Pad_WiiSideWay";
+        case PadType::Pad_WiiNunchuk:        return "Pad_WiiNunchuk";
+        case PadType::Pad_WiiClassic:        return "Pad_WiiClassic";
+        case PadType::Pad_Vita:              return "Pad_Vita";
+        case PadType::Pad_CTR:               return "Pad_CTR";
+        case PadType::Pad_PS5:               return "Pad_PS5";
+        case PadType::Pad_NX_Joycon:         return "Pad_NX_Joycon";
+        case PadType::Pad_NX_Joycon_Dual:    return "Pad_NX_Joycon_Dual";
+        case PadType::Pad_NX_Pro:            return "Pad_NX_Pro";
+        case PadType::Pad_GenericXBox:       return "Pad_GenericXBox";
+        case PadType::Pad_Other:             return "Pad_Other";
+        case PadType::PadType_Count:         return "PadType_Count";
+        case PadType::Pad_Invalid:           return "Pad_Invalid";
+        default:                             return "Pad_Unknown";
+        }
+    }
+}
+
 namespace ITF
 {
     const f32 SDLGamepad::INPUT_DEADZONE = 0.2f;
@@ -321,6 +374,64 @@ namespace ITF
         }
     }
 
+    InputAdapter::PadType SDLInput::detectPadType(const SDLGamepad& pad) const
+    {
+        SDL_Gamepad* handle = const_cast<SDL_Gamepad*>(pad.getGamepad());
+        if (!handle)
+            return InputAdapter::Pad_Other;
+
+        const SDL_GamepadType type = SDL_GetGamepadType(handle);
+        switch (type)
+        {
+        case SDL_GAMEPAD_TYPE_XBOX360:
+            return InputAdapter::Pad_X360;
+        case SDL_GAMEPAD_TYPE_XBOXONE:
+        case SDL_GAMEPAD_TYPE_STANDARD:
+            return InputAdapter::Pad_GenericXBox;
+        case SDL_GAMEPAD_TYPE_PS5:
+        case SDL_GAMEPAD_TYPE_PS4:
+            return InputAdapter::Pad_PS5;
+        case SDL_GAMEPAD_TYPE_PS3:
+            return InputAdapter::Pad_PS3;
+        case SDL_GAMEPAD_TYPE_NINTENDO_SWITCH_PRO:
+            return InputAdapter::Pad_NX_Pro;
+        case SDL_GAMEPAD_TYPE_NINTENDO_SWITCH_JOYCON_LEFT:
+        case SDL_GAMEPAD_TYPE_NINTENDO_SWITCH_JOYCON_RIGHT:
+            return InputAdapter::Pad_NX_Joycon;
+        case SDL_GAMEPAD_TYPE_NINTENDO_SWITCH_JOYCON_PAIR:
+            return InputAdapter::Pad_NX_Joycon_Dual;
+        default:
+            break;
+        }
+
+        const char* controllerName = SDL_GetGamepadName(handle);
+        if (ContainsIgnoreCase(controllerName, "JOYCON") || ContainsIgnoreCase(controllerName, "SWITCH") ||
+            ContainsIgnoreCase(controllerName, "NX"))
+        {
+            return InputAdapter::Pad_NX_Pro;
+        }
+        if (ContainsIgnoreCase(controllerName, "PS5") || ContainsIgnoreCase(controllerName, "DUALSENSE"))
+        {
+            return InputAdapter::Pad_PS5;
+        }
+        if (ContainsIgnoreCase(controllerName, "PS4") || ContainsIgnoreCase(controllerName, "DUALSHOCK") ||
+            ContainsIgnoreCase(controllerName, "PLAYSTATION"))
+        {
+            return InputAdapter::Pad_PS3;
+        }
+        if (ContainsIgnoreCase(controllerName, "XBOX") || ContainsIgnoreCase(controllerName, "MICROSOFT") ||
+            ContainsIgnoreCase(controllerName, "XINPUT"))
+        {
+            return InputAdapter::Pad_GenericXBox;
+        }
+        if (ContainsIgnoreCase(controllerName, "OUNCE"))
+        {
+            return InputAdapter::Pad_Other;
+        }
+
+        return InputAdapter::Pad_Other;
+    }
+
     void SDLInput::refreshGamepadList()
     {
         for (auto& m_gamepad : m_gamepads)
@@ -334,7 +445,12 @@ namespace ITF
         {
             if (m_gamepads[i].initialize(i))
             {
-                setGamepadConnected(i, true, InputAdapter::Pad_X360);
+                const InputAdapter::PadType padType = detectPadType(m_gamepads[i]);
+                setGamepadConnected(i, true, padType);
+                const SDL_Gamepad* handle = m_gamepads[i].getGamepad();
+                const char* padName = handle ? SDL_GetGamepadName(const_cast<SDL_Gamepad*>(handle)) : "Unknown";
+                LOG("[SDL]   Slot %u connected during refresh (type=%s, name=%s)", i, PadTypeToString(padType),
+                    padName ? padName : "Unknown");
             }
             else
             {
@@ -353,8 +469,13 @@ namespace ITF
             {
                 if (m_gamepads[i].initialize(i))
                 {
-                    setGamepadConnected(i, true, InputAdapter::Pad_X360);
-                    LOG("[SDL] - Gamepad connected");
+                    const InputAdapter::PadType padType = detectPadType(m_gamepads[i]);
+                    setGamepadConnected(i, true, padType);
+                    const SDL_Gamepad* handle = m_gamepads[i].getGamepad();
+                    const char* padName = handle ? SDL_GetGamepadName(const_cast<SDL_Gamepad*>(handle)) : "Unknown";
+                    LOG("[SDL] - Gamepad connected (slot=%u, id=%d, type=%s, name=%s)", i,
+                        static_cast<int>(m_gamepads[i].getJoystickId()), PadTypeToString(padType),
+                        padName ? padName : "Unknown");
                     break;
                 }
             }
@@ -367,9 +488,13 @@ namespace ITF
         {
             if (m_gamepads[i].getJoystickId() == instanceId && m_gamepads[i].isConnected())
             {
+                const SDL_Gamepad* handle = m_gamepads[i].getGamepad();
+                const char* padName = handle ? SDL_GetGamepadName(const_cast<SDL_Gamepad*>(handle)) : "Unknown";
+                const InputAdapter::PadType padType = m_adapter ? m_adapter->getPadType(i) : InputAdapter::Pad_Invalid;
+                LOG("[SDL] - Gamepad disconnected (slot=%u, id=%d, type=%s, name=%s)", i,
+                    static_cast<int>(instanceId), PadTypeToString(padType), padName ? padName : "Unknown");
                 m_gamepads[i].cleanup();
                 setGamepadConnected(i, false, InputAdapter::Pad_Invalid);
-                LOG("[SDL] - Gamepad disconnected");
                 break;
             }
         }
@@ -386,10 +511,6 @@ namespace ITF
         setPadConnected(0, btrue);
 
         InitializeActionStrings();
-        InitializeKeyNames();
-        InitializeX360Names();
-        InitializeGenericNames();
-
         memset(m_keyStatus, 0, KEY_COUNT * sizeof(PressStatus));
         memset(m_keyPressTime, 0, KEY_COUNT * sizeof(u32));
         memset(m_connectedPlayers, 0, JOY_MAX_COUNT * sizeof(PlayerState));
@@ -570,13 +691,6 @@ namespace ITF
 
     ControllerType InputAdapter_SDL3::GetControllerType(InputValue& value)
     {
-        if (value.inputType != Keyboard)
-        {
-            if (value.inputType == X360Button)
-                return value.inputType = GenericButton;
-            if (value.inputType == X360Axis)
-                return value.inputType = GenericAxis;
-        }
         return value.inputType;
     }
 
