@@ -80,6 +80,67 @@ namespace ITF
 #endif
     }
 
+    namespace
+    {
+        struct DefaultControllerBinding
+        {
+            InputAdapter::ActionType action;
+            ControllerType type;
+            u32 inputValue;
+            u32 axisPosition;
+        };
+
+        constexpr DefaultControllerBinding kControllerDefaultBindings[] = {
+            {InputAdapter::ActionBack, ControllerButton, m_joyButton_B, 0},
+            {InputAdapter::ActionShowMenu, ControllerButton, m_joyButton_Start, 0},
+            {InputAdapter::ActionJump, ControllerButton, m_joyButton_A, 0},
+            {InputAdapter::ActionHit, ControllerButton, m_joyButton_X, 0},
+            {InputAdapter::ActionSprint, ControllerAxis, m_joyTrigger_Right, 1},
+            {InputAdapter::ActionLeft, ControllerAxis, m_joyStickLeft_X, 0},
+            {InputAdapter::ActionRight, ControllerAxis, m_joyStickLeft_X, 1},
+            {InputAdapter::ActionUp, ControllerAxis, m_joyStickLeft_Y, 1},
+            {InputAdapter::ActionDown, ControllerAxis, m_joyStickLeft_Y, 0},
+        };
+
+#ifdef ITF_WINDOWS
+        struct DefaultKeyboardBinding
+        {
+            InputAdapter::ActionType action;
+            u32 virtualKey;
+        };
+
+        constexpr DefaultKeyboardBinding kKeyboardDefaultBindings[] = {
+            {InputAdapter::ActionUp, VK_UP},
+            {InputAdapter::ActionDown, VK_DOWN},
+            {InputAdapter::ActionLeft, VK_LEFT},
+            {InputAdapter::ActionRight, VK_RIGHT},
+            {InputAdapter::ActionJump, VK_SPACE},
+            {InputAdapter::ActionHit, 'S'},
+            {InputAdapter::ActionSprint, VK_LSHIFT},
+            {InputAdapter::ActionBack, VK_BACK},
+            {InputAdapter::ActionShowMenu, VK_ESCAPE},
+        };
+#endif // ITF_WINDOWS
+
+        ITF_INLINE void ApplyControllerDefaultBinding(InputValue& destination,
+                                                       const DefaultControllerBinding& binding,
+                                                       u32 playerIndex)
+        {
+            destination.inputType = binding.type;
+            destination.inputValue = binding.inputValue;
+            destination.axisPosition = binding.axisPosition;
+            destination.inputIndex = playerIndex;
+        }
+
+#ifdef ITF_WINDOWS
+        ITF_INLINE void ApplyKeyboardDefaultBinding(InputValue& destination, u32 virtualKey)
+        {
+            destination.inputType = Keyboard;
+            destination.inputValue = virtualKey;
+        }
+#endif // ITF_WINDOWS
+    } // namespace
+
     InputAdapter::InputAdapter() :
         m_inMenu(btrue),
         m_focused(true),
@@ -382,7 +443,7 @@ namespace ITF
         ITF_MEMCOPY(_buttons, m_buttonClasses, sizeof(_buttons[0]) * _numButtons);
     }
 
-    void InputAdapter::getGamePadButtons(u32 _environment, u32 _pad, PressStatus* _buttons, u32 _numButtons) const
+     void InputAdapter::getGamePadButtons(u32 _environment, u32 _pad, PressStatus* _buttons, u32 _numButtons) const
     {
         ITF_ASSERT(_numButtons <= JOY_MAX_BUT);
 
@@ -709,18 +770,15 @@ namespace
     void InputAdapter::InitializeActionStrings()
     {
         static constexpr std::array<const wchar_t*, MAX_ACTIONS> kActionStrings = {
-            L"ActionJoinLeave",
-            L"ActionSelect",
-            L"ActionDelete",
-            L"ActionShowMenu",
-            L"ActionBack",
-            L"ActionLeft",
-            L"ActionRight",
             L"ActionUp",
             L"ActionDown",
+            L"ActionLeft",
+            L"ActionRight",
+            L"ActionSprint",
             L"ActionJump",
             L"ActionHit",
-            L"ActionSprint"
+            L"ActionBack",
+            L"ActionShowMenu",
         };
         std::copy(kActionStrings.begin(), kActionStrings.end(), m_actionStrings);
     }
@@ -741,106 +799,20 @@ namespace
 
         for (u32 playerIndex = 0; playerIndex < JOY_MAX_COUNT; ++playerIndex)
         {
-            InputValue& keyboardBubble = m_inputMappingTemporary[playerIndex][ActionBubbleQuit][1];
-            keyboardBubble.inputValue = 0x70 + playerIndex;
-            keyboardBubble.inputType = Keyboard;
-        }
-
-        for (u32 playerIndex = 0; playerIndex < JOY_MAX_COUNT; ++playerIndex)
-        {
-            InputValue& actionUp = m_inputMappingTemporary[playerIndex][ActionUp][0];
-            actionUp.inputValue = 1; // left stick Y
-            actionUp.inputType = ControllerAxis;
-            actionUp.axisPosition = 1; // +
-            actionUp.inputIndex = playerIndex;
-
-            InputValue& actionDown = m_inputMappingTemporary[playerIndex][ActionDown][0];
-            actionDown.inputValue = 1; // left stick Y
-            actionDown.inputType = ControllerAxis;
-            actionDown.axisPosition = 0; // -
-            actionDown.inputIndex = playerIndex;
-
-            InputValue& actionLeft = m_inputMappingTemporary[playerIndex][ActionLeft][0];
-            actionLeft.inputValue = 0; // left stick X
-            actionLeft.inputType = ControllerAxis;
-            actionLeft.axisPosition = 0; // -
-            actionLeft.inputIndex = playerIndex;
-
-            InputValue& actionRight = m_inputMappingTemporary[playerIndex][ActionRight][0];
-            actionRight.inputValue = 0; // left stick X
-            actionRight.inputType = ControllerAxis;
-            actionRight.axisPosition = 1; // +
-            actionRight.inputIndex = playerIndex;
-
-            InputValue& actionJump = m_inputMappingTemporary[playerIndex][ActionJump][0];
-            actionJump.inputValue = 0; // A
-            actionJump.inputType = ControllerButton;
-            actionJump.inputIndex = playerIndex;
-
-            InputValue& actionHit = m_inputMappingTemporary[playerIndex][ActionHit][0];
-            actionHit.inputValue = 2; // X
-            actionHit.inputType = ControllerButton;
-            actionHit.inputIndex = playerIndex;
-
-            InputValue& actionSprint = m_inputMappingTemporary[playerIndex][ActionSprint][0];
-            actionSprint.inputValue = 5; // RT
-            actionSprint.inputType = ControllerAxis;
-            actionSprint.axisPosition = 1; // +
-            actionSprint.inputIndex = playerIndex;
-
-            InputValue& actionBack = m_inputMappingTemporary[playerIndex][ActionBack][0];
-            actionBack.inputValue = 1; // B
-            actionBack.inputType = ControllerButton;
-            actionBack.inputIndex = playerIndex;
-
-            InputValue& actionBubbleQuit = m_inputMappingTemporary[playerIndex][ActionBubbleQuit][0];
-            actionBubbleQuit.inputValue = 6; // Back
-            actionBubbleQuit.inputType = ControllerButton;
-            actionBubbleQuit.inputIndex = playerIndex;
-
-            InputValue& actionShowMenu = m_inputMappingTemporary[playerIndex][ActionShowMenu][0];
-            actionShowMenu.inputValue = 7; // Start
-            actionShowMenu.inputType = ControllerButton;
-            actionShowMenu.inputIndex = playerIndex;
+            for (const auto& binding : kControllerDefaultBindings)
+            {
+                InputValue& destination = m_inputMappingTemporary[playerIndex][binding.action][0];
+                ApplyControllerDefaultBinding(destination, binding, playerIndex);
+            }
         }
 
 #ifdef ITF_WINDOWS
-        InputValue& kbUp = m_inputMappingTemporary[0][ActionUp][1];
-        kbUp.inputValue = VK_UP;
-        kbUp.inputType = Keyboard;
-
-        InputValue& kbDown = m_inputMappingTemporary[0][ActionDown][1];
-        kbDown.inputValue = VK_DOWN;
-        kbDown.inputType = Keyboard;
-
-        InputValue& kbLeft = m_inputMappingTemporary[0][ActionLeft][1];
-        kbLeft.inputValue = VK_LEFT;
-        kbLeft.inputType = Keyboard;
-
-        InputValue& kbRight = m_inputMappingTemporary[0][ActionRight][1];
-        kbRight.inputValue = VK_RIGHT;
-        kbRight.inputType = Keyboard;
-
-        InputValue& kbJump = m_inputMappingTemporary[0][ActionJump][1];
-        kbJump.inputValue = VK_SPACE;
-        kbJump.inputType = Keyboard;
-
-        InputValue& kbHit = m_inputMappingTemporary[0][ActionHit][1];
-        kbHit.inputValue = 'S';
-        kbHit.inputType = Keyboard;
-
-        InputValue& kbSprint = m_inputMappingTemporary[0][ActionSprint][1];
-        kbSprint.inputValue = VK_LSHIFT;
-        kbSprint.inputType = Keyboard;
-
-        InputValue& kbBack = m_inputMappingTemporary[0][ActionBack][1];
-        kbBack.inputValue = VK_BACK;
-        kbBack.inputType = Keyboard;
-
-        InputValue& kbShowMenu = m_inputMappingTemporary[0][ActionShowMenu][1];
-        kbShowMenu.inputValue = VK_ESCAPE;
-        kbShowMenu.inputType = Keyboard;
-#endif
+        for (const auto& binding : kKeyboardDefaultBindings)
+        {
+            InputValue& destination = m_inputMappingTemporary[0][binding.action][1];
+            ApplyKeyboardDefaultBinding(destination, binding.virtualKey);
+        }
+#endif // ITF_WINDOWS
     }
 
 #ifdef ITF_WINDOWS
@@ -1064,7 +1036,7 @@ namespace
         }
         for (u32 playerIndex = 0; playerIndex < JOY_MAX_COUNT; ++playerIndex)
         {
-            for (u32 actionIndex = ActionBubbleQuit; actionIndex < MAX_ACTIONS; ++actionIndex)
+            for (u32 actionIndex = 0; actionIndex < MAX_ACTIONS; ++actionIndex)
             {
                 for (u32 binding = 0; binding < MAX_BINDINGS_PER_ACTION; ++binding)
                 {
@@ -1183,16 +1155,6 @@ namespace
             return UpdateActionForButton(player, action, fallbackButton);
         };
 
-        auto hasKeyboardBinding = [&](u32 player, ActionType action) -> bool
-        {
-            for (u32 binding = 0; binding < MAX_BINDINGS_PER_ACTION; ++binding)
-            {
-                if (m_inputMapping[player][action][binding].inputType == Keyboard)
-                    return true;
-            }
-            return false;
-        };
-
         for (u32 playerIndex = 0; playerIndex < JOY_MAX_COUNT; ++playerIndex)
         {
             if (m_connectedPlayers[playerIndex] == ePlaying || m_connectedPlayers[playerIndex] == eBubble)
@@ -1212,29 +1174,6 @@ namespace
                 {
                     m_connectedPlayers[playerIndex] = ePlaying;
                 }
-#ifdef ITF_WINDOWS
-                const bool bubbleHasKeyboard = hasKeyboardBinding(playerIndex, ActionBubbleQuit);
-                if ((m_keyStatus[VK_LMENU] == Released && m_keyStatus[VK_RMENU] == Released &&
-                        m_keyStatus[VK_LCONTROL] == Released && m_keyStatus[VK_RCONTROL] == Released &&
-                        m_keyStatus[VK_LSHIFT] == Released && m_keyStatus[VK_RSHIFT] == Released) ||
-                    !bubbleHasKeyboard)
-                {
-                    if (UpdateActionForButton(playerIndex, ActionBubbleQuit, m_joyButton_Back))
-                    {
-                        if (m_connectedPlayers[playerIndex] == ePlaying)
-                        {
-                            m_connectedPlayers[playerIndex] = eBubble;
-                        }
-                        else if (m_connectedPlayers[playerIndex] == eBubble)
-                        {
-                            m_connectedPlayers[playerIndex] = eNotConnected;
-                            setPadConnected(playerIndex, bfalse);
-                        }
-                    }
-                }
-#else
-                UpdateActionForButton(playerIndex, ActionBubbleQuit, m_joyButton_Back);
-#endif
             }
             else
             {

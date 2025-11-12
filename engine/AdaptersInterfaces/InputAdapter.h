@@ -1,5 +1,6 @@
 #ifndef _ITF_INPUTADAPTER_H_
 #define _ITF_INPUTADAPTER_H_
+#include <iostream>
 
 #ifndef _ITF_TEMPLATESINGLETON_H_
 #include "core/templateSingleton.h"
@@ -250,6 +251,7 @@ namespace ITF
         ///Button classes. Each button can belong to several classes, we can combine them with OR binary operator
         typedef u8 ButtonClassMask;
 
+
         static const ButtonClassMask BUTTONCLASS_STANDARD = 1; //on XBOX : A,B,X,Y,START,SELECT
         static const ButtonClassMask BUTTONCLASS_ANALOGSTICK = 2; //on XBOX : Left/right analog stick buttons
         static const ButtonClassMask BUTTONCLASS_DIGITALPAD = 4; //on XBOX : digital left,right,up,down buttons
@@ -309,22 +311,19 @@ namespace ITF
             PadType_Count,
         };
 
-        enum ActionType
-        {
-            ActionBubbleQuit,
-            ActionSelect,
-            ActionDelete,
-            ActionShowMenu,
-            ActionBack,
-            ActionLeft,
-            ActionRight,
-            ActionUp,
-            ActionDown,
-            ActionJump,
-            ActionHit,
-            ActionSprint,
-            MAX_ACTIONS
-        };
+            enum ActionType
+            {
+                ActionUp,
+                ActionDown,
+                ActionLeft,
+                ActionRight,
+                ActionSprint,
+                ActionJump,
+                ActionHit,
+                ActionBack,
+                ActionShowMenu,
+                MAX_ACTIONS
+            };
 
         static const u32 MAX_BINDINGS_PER_ACTION = 2;
 
@@ -427,8 +426,8 @@ namespace ITF
     private:
         bbool m_PadConnected[JOY_MAX_COUNT]{};
         PadType m_PadType[JOY_MAX_COUNT]{};
-        ControllerType m_lastPrimaryInputType[JOY_MAX_COUNT]{}; 
-        PadType m_lastPrimaryPadType[JOY_MAX_COUNT]{};         
+        ControllerType m_lastPrimaryInputType[JOY_MAX_COUNT]{};
+        PadType m_lastPrimaryPadType[JOY_MAX_COUNT]{};
 
         bbool m_useShakeAttack;
         f32 m_threshold;
@@ -581,6 +580,18 @@ namespace ITF
             ITF_ASSERT(_numPad < JOY_MAX_COUNT);
             if (_numPad < JOY_MAX_COUNT)
                 m_PadType[_numPad] = _type;
+        }
+
+        ITF_INLINE ControllerType getPrimaryInputType(u32 _numPad) const
+        {
+            ITF_ASSERT(_numPad < JOY_MAX_COUNT);
+            return (_numPad < JOY_MAX_COUNT) ? m_lastPrimaryInputType[_numPad] : Keyboard;
+        }
+
+        ITF_INLINE PadType getPrimaryPadType(u32 _numPad) const
+        {
+            ITF_ASSERT(_numPad < JOY_MAX_COUNT);
+            return (_numPad < JOY_MAX_COUNT) ? m_lastPrimaryPadType[_numPad] : Pad_Other;
         }
 
         // debug input for menus / context icons etc

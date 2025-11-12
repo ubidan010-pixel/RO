@@ -15,6 +15,8 @@
 
 
 namespace ITF {
+#include <array>
+
 
 class ContextIconsManager_Template;
 class UIComponent;
@@ -52,6 +54,15 @@ public:
     ITF_INLINE void resetRuntimeDepthRank() { m_useRuntimeDepthRank = bfalse; m_runtimeDepthRank = 0; }
 
 private:
+    struct ControllerIconLookup
+    {
+        std::array<String8, JOY_MAX_BUT> buttonIcons;
+        std::array<String8, JOY_MAX_AXES> axisNegativeIcons;
+        std::array<String8, JOY_MAX_AXES> axisPositiveIcons;
+
+        ControllerIconLookup();
+    };
+
     struct IconDataHolder
     {
         UIComponent* iconUI;
@@ -60,6 +71,13 @@ private:
     Map<EContextIcon,IconDataHolder> m_iconData;
     void setupMenu();
     void setupIcon(EContextIcon _icon, UIComponent* _iconUI, UIComponent* _textUI);
+    String8 resolveIconForPlayer(u32 playerIndex, EContextIconType iconType) const;
+    String8 resolveKeyboardIcon(u32 playerIndex, EContextIconType iconType) const;
+    String8 resolveControllerIcon(u32 playerIndex, InputAdapter::PadType padType, EContextIconType iconType) const;
+    String8 resolveIconForInputValue(const ControllerIconLookup& lookup, const ITF::InputValue& value) const;
+    String8 fetchTemplateIcon(InputAdapter::PadType padType, EContextIconType iconType) const;
+    void initializeControllerIconLookups();
+    void initializeDefaultKeyboardIcons();
 
     static const EContextIconType s_iconsTypes[ContextIcon_Count];
 
@@ -75,6 +93,9 @@ private:
     i32 m_runtimeDepthRank;
     UIComponent* iconBgSkipCine;
     UIComponent* iconProcessSkipCine;
+
+    std::array<ControllerIconLookup, InputAdapter::PadType_Count> m_controllerIconLookups;
+    std::array<String8, ContextIconType_Count> m_defaultKeyboardIcons;
 };
 
 //------------------------------------------------------------------------------

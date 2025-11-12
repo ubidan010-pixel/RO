@@ -28,7 +28,80 @@
 #include "engine/actors/managers/UIMenuManager.h"
 #endif //_ITF_UIMENUMANAGER_H_
 
+#ifdef ITF_WINDOWS
+#include <windows.h>
+#endif // ITF_WINDOWS
+
+#include <cctype>
+
 namespace ITF {
+
+namespace
+{
+    ITF_INLINE bbool IsBindingConfigured(const InputValue& binding)
+    {
+        return binding.inputType != Keyboard ||
+            binding.inputValue != 0 ||
+            binding.inputIndex != 0 ||
+            binding.axisPosition != 0;
+    }
+
+    ITF_INLINE InputAdapter::ActionType GetActionForContextIcon(EContextIconType iconType)
+    {
+        switch (iconType)
+        {
+        case ContextIconType_Select: return InputAdapter::ActionJump;
+        case ContextIconType_Back: return InputAdapter::ActionBack;
+        case ContextIconType_Delete: return InputAdapter::ActionHit;
+        case ContextIconType_RayHome: return InputAdapter::ActionShowMenu;
+        default: return InputAdapter::ActionJump;
+        }
+    }
+
+    ITF_INLINE String8 KeyboardIconFromVirtualKey(u32 virtualKey)
+    {
+        String8 icon;
+#ifdef ITF_WINDOWS
+        switch (virtualKey)
+        {
+        case VK_SPACE: icon = "[icon:KEYBOARD_SPACE]"; return icon;
+        case VK_ESCAPE: icon = "[icon:KEYBOARD_ESCAPE]"; return icon;
+        case VK_RETURN: icon = "[icon:KEYBOARD_ENTER]"; return icon;
+        case VK_BACK: icon = "[icon:KEYBOARD_BACKSPACE]"; return icon;
+        case VK_DELETE: icon = "[icon:KEYBOARD_DELETE]"; return icon;
+        case VK_SHIFT: icon = "[icon:KEYBOARD_SHIFT]"; return icon;
+        case VK_LSHIFT: icon = "[icon:KEYBOARD_SHIFT]"; return icon;
+        case VK_RSHIFT: icon = "[icon:KEYBOARD_SHIFT]"; return icon;
+        case VK_CONTROL: icon = "[icon:KEYBOARD_CTRL]"; return icon;
+        case VK_LCONTROL: icon = "[icon:KEYBOARD_CTRL]"; return icon;
+        case VK_RCONTROL: icon = "[icon:KEYBOARD_CTRL]"; return icon;
+        case VK_MENU: icon = "[icon:KEYBOARD_ALT]"; return icon;
+        case VK_LMENU: icon = "[icon:KEYBOARD_ALT]"; return icon;
+        case VK_RMENU: icon = "[icon:KEYBOARD_ALT]"; return icon;
+        case VK_TAB: icon = "[icon:KEYBOARD_TAB]"; return icon;
+        case VK_UP: icon = "[icon:KEYBOARD_ARROW_UP]"; return icon;
+        case VK_DOWN: icon = "[icon:KEYBOARD_ARROW_DOWN]"; return icon;
+        case VK_LEFT: icon = "[icon:KEYBOARD_ARROW_LEFT]"; return icon;
+        case VK_RIGHT: icon = "[icon:KEYBOARD_ARROW_RIGHT]"; return icon;
+        }
+
+        if (virtualKey >= '0' && virtualKey <= '9')
+        {
+            icon.setTextFormat("[icon:KEYBOARD_%c]", char(virtualKey));
+            return icon;
+        }
+
+        if (virtualKey >= 'A' && virtualKey <= 'Z')
+        {
+            icon.setTextFormat("[icon:KEYBOARD_%c]", char(std::toupper(static_cast<int>(virtualKey))));
+            return icon;
+        }
+#else
+        (void)virtualKey;
+#endif
+        return icon;
+    }
+}
 
 #define CONTEXTICONSCONFIG_PATH GETPATH_ALIAS("contexticons")
 
@@ -45,6 +118,22 @@ ContextIconsManager::ContextIconsManager()
     , iconBgSkipCine(nullptr)
     , iconProcessSkipCine(nullptr)
 {
+}
+
+ContextIconsManager::ControllerIconLookup::ControllerIconLookup()
+{
+    for (auto& icon : buttonIcons)
+    {
+        icon = String8::emptyString;
+    }
+    for (auto& icon : axisNegativeIcons)
+    {
+        icon = String8::emptyString;
+    }
+    for (auto& icon : axisPositiveIcons)
+    {
+        icon = String8::emptyString;
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -95,6 +184,9 @@ void ContextIconsManager::init()
     {
         ITF_FATAL_ERROR("Error loading context icons config: %s", m_configPath.getString8().cStr());
     }
+
+    initializeControllerIconLookups();
+    initializeDefaultKeyboardIcons();
 }
 
 //------------------------------------------------------------------------------
@@ -269,6 +361,399 @@ const String8& ContextIconsManager::getIconStr(u32 _padType, EContextIconType _c
     return m_template->getButtonNames()[_padType][_context];
 }
 
+String8 ContextIconsManager::resolveIconForPlayer(u32 playerIndex, EContextIconType iconType) const
+{
+    if (iconType <= ContextIconType_Invalid || iconType >= ContextIconType_Count)
+    {
+        return String8::emptyString;
+    }
+
+    const ControllerType primarySource = INPUT_ADAPTER->getPrimaryInputType(playerIndex);
+
+    if (primarySource == Keyboard)
+    {
+        String8 keyboardIcon = resolveKeyboardIcon(playerIndex, iconType);
+        if (!keyboardIcon.isEmpty() && keyboardIcon != "<N/A>")
+        {
+            return keyboardIcon;
+        }
+    }
+
+    InputAdapter::PadType padType = INPUT_ADAPTER->getDebugInputPadType(playerIndex);
+    if (padType == InputAdapter::Pad_Invalid)
+    {
+        padType = InputAdapter::Pad_GenericXBox;
+    }
+
+    String8 controllerIcon = resolveControllerIcon(playerIndex, padType, iconType);
+    if (!controllerIcon.isEmpty() && controllerIcon != "<N/A>")
+    {
+        return controllerIcon;
+    }
+
+    if (primarySource != Keyboard)
+    {
+        String8 keyboardIcon = resolveKeyboardIcon(playerIndex, iconType);
+        if (!keyboardIcon.isEmpty() && keyboardIcon != "<N/A>")
+        {
+            return keyboardIcon;
+        }
+    }
+
+    if (padType != InputAdapter::Pad_GenericXBox)
+    {
+        controllerIcon = resolveControllerIcon(playerIndex, InputAdapter::Pad_GenericXBox, iconType);
+        if (!controllerIcon.isEmpty() && controllerIcon != "<N/A>")
+        {
+            return controllerIcon;
+        }
+    }
+
+    return String8::emptyString;
+}
+
+String8 ContextIconsManager::resolveKeyboardIcon(u32 playerIndex, EContextIconType iconType) const
+{
+    if (iconType <= ContextIconType_Invalid || iconType >= ContextIconType_Count)
+    {
+        return String8::emptyString;
+    }
+
+    const InputAdapter::ActionType action = GetActionForContextIcon(iconType);
+    for (u32 bindingIndex = 0; bindingIndex < InputAdapter::MAX_BINDINGS_PER_ACTION; ++bindingIndex)
+    {
+        const ITF::InputValue& binding = INPUT_ADAPTER->GetInputValue(playerIndex, action, bindingIndex);
+        if (!IsBindingConfigured(binding))
+            continue;
+        if (binding.inputType != Keyboard)
+            continue;
+
+        String8 icon = KeyboardIconFromVirtualKey(binding.inputValue);
+        if (!icon.isEmpty())
+        {
+            return icon;
+        }
+    }
+
+    const String8& fallback = m_defaultKeyboardIcons[iconType];
+    if (!fallback.isEmpty())
+    {
+        return fallback;
+    }
+    return String8::emptyString;
+}
+
+String8 ContextIconsManager::resolveControllerIcon(u32 playerIndex, InputAdapter::PadType padType, EContextIconType iconType) const
+{
+    if (iconType <= ContextIconType_Invalid || iconType >= ContextIconType_Count)
+    {
+        return String8::emptyString;
+    }
+
+    if (padType <= InputAdapter::Pad_Invalid || padType >= InputAdapter::PadType_Count)
+    {
+        return String8::emptyString;
+    }
+
+    const InputAdapter::ActionType action = GetActionForContextIcon(iconType);
+    const size_t padIndex = static_cast<size_t>(padType);
+    const ControllerIconLookup& lookup = m_controllerIconLookups[padIndex];
+
+    for (u32 bindingIndex = 0; bindingIndex < InputAdapter::MAX_BINDINGS_PER_ACTION; ++bindingIndex)
+    {
+        const ITF::InputValue& binding = INPUT_ADAPTER->GetInputValue(playerIndex, action, bindingIndex);
+        if (!IsBindingConfigured(binding))
+            continue;
+        if (binding.inputType == Keyboard)
+            continue;
+
+        String8 icon = resolveIconForInputValue(lookup, binding);
+        if (!icon.isEmpty())
+        {
+            return icon;
+        }
+    }
+
+    return String8::emptyString;
+}
+
+String8 ContextIconsManager::resolveIconForInputValue(const ControllerIconLookup& lookup, const ITF::InputValue& value) const
+{
+    if (!IsBindingConfigured(value))
+    {
+        return String8::emptyString;
+    }
+
+    switch (value.inputType)
+    {
+    case ControllerButton:
+        if (value.inputValue < lookup.buttonIcons.size())
+        {
+            return lookup.buttonIcons[value.inputValue];
+        }
+        break;
+    case ControllerAxis:
+        if (value.inputValue < JOY_MAX_AXES)
+        {
+            if (value.axisPosition == 0)
+            {
+                const String8& negativeIcon = lookup.axisNegativeIcons[value.inputValue];
+                if (!negativeIcon.isEmpty())
+                {
+                    return negativeIcon;
+                }
+            }
+            else
+            {
+                const String8& positiveIcon = lookup.axisPositiveIcons[value.inputValue];
+                if (!positiveIcon.isEmpty())
+                {
+                    return positiveIcon;
+                }
+            }
+        }
+        break;
+    default:
+        break;
+    }
+
+    return String8::emptyString;
+}
+
+String8 ContextIconsManager::fetchTemplateIcon(InputAdapter::PadType padType, EContextIconType iconType) const
+{
+    if (!m_template)
+    {
+        return String8::emptyString;
+    }
+
+    if (padType <= InputAdapter::Pad_Invalid || padType >= InputAdapter::PadType_Count)
+    {
+        return String8::emptyString;
+    }
+
+    if (iconType <= ContextIconType_Invalid || iconType >= ContextIconType_Count)
+    {
+        return String8::emptyString;
+    }
+
+    const ITF_VECTOR<ITF_VECTOR<String8>>& buttonRows = m_template->getButtonNames();
+    const size_t padIndex = static_cast<size_t>(padType);
+    if (padIndex >= buttonRows.size())
+    {
+        return String8::emptyString;
+    }
+
+    const ITF_VECTOR<String8>& column = buttonRows[padIndex];
+    const size_t iconIndex = static_cast<size_t>(iconType);
+    if (iconIndex >= column.size())
+    {
+        return String8::emptyString;
+    }
+
+    return column[iconIndex];
+}
+
+void ContextIconsManager::initializeDefaultKeyboardIcons()
+{
+    for (auto& icon : m_defaultKeyboardIcons)
+    {
+        icon = String8::emptyString;
+    }
+
+    m_defaultKeyboardIcons[ContextIconType_Select] = "[icon:KEYBOARD_ENTER]";
+    m_defaultKeyboardIcons[ContextIconType_Back] = "[icon:KEYBOARD_ESCAPE]";
+    m_defaultKeyboardIcons[ContextIconType_Delete] = "[icon:KEYBOARD_DELETE]";
+    m_defaultKeyboardIcons[ContextIconType_RayHome] = "[icon:KEYBOARD_ESCAPE]";
+}
+
+void ContextIconsManager::initializeControllerIconLookups()
+{
+    for (auto& lookup : m_controllerIconLookups)
+    {
+        lookup = ControllerIconLookup();
+    }
+
+    auto assignButton = [&](InputAdapter::PadType pad, u32 buttonIndex, const char* tag)
+    {
+        if (!tag)
+            return;
+        if (pad <= InputAdapter::Pad_Invalid || pad >= InputAdapter::PadType_Count)
+            return;
+        if (buttonIndex >= JOY_MAX_BUT)
+            return;
+        const size_t padIndex = static_cast<size_t>(pad);
+        m_controllerIconLookups[padIndex].buttonIcons[buttonIndex] = tag;
+    };
+
+    auto assignAxis = [&](InputAdapter::PadType pad, u32 axisIndex, const char* negativeTag, const char* positiveTag)
+    {
+        if (pad <= InputAdapter::Pad_Invalid || pad >= InputAdapter::PadType_Count)
+            return;
+        if (axisIndex >= JOY_MAX_AXES)
+            return;
+        const size_t padIndex = static_cast<size_t>(pad);
+    m_controllerIconLookups[padIndex].axisNegativeIcons[axisIndex] = negativeTag ? String8(negativeTag) : String8();
+    m_controllerIconLookups[padIndex].axisPositiveIcons[axisIndex] = positiveTag ? String8(positiveTag) : String8();
+    };
+
+    // Generic Xbox
+    assignButton(InputAdapter::Pad_GenericXBox, m_joyButton_A, "[icon:XBOX_BUTTON_A]");
+    assignButton(InputAdapter::Pad_GenericXBox, m_joyButton_B, "[icon:XBOX_BUTTON_B]");
+    assignButton(InputAdapter::Pad_GenericXBox, m_joyButton_X, "[icon:XBOX_BUTTON_X]");
+    assignButton(InputAdapter::Pad_GenericXBox, m_joyButton_Y, "[icon:XBOX_BUTTON_Y]");
+    assignButton(InputAdapter::Pad_GenericXBox, m_joyButton_LB, "[icon:XBOX_BUTTON_LB]");
+    assignButton(InputAdapter::Pad_GenericXBox, m_joyButton_RB, "[icon:XBOX_BUTTON_RB]");
+    assignButton(InputAdapter::Pad_GenericXBox, m_joyButton_Back, "[icon:XBOX_BUTTON_BACK]");
+    assignButton(InputAdapter::Pad_GenericXBox, m_joyButton_Start, "[icon:XBOX_BUTTON_START]");
+    assignButton(InputAdapter::Pad_GenericXBox, m_joyButton_DPadL, "[icon:XBOX_DPAD]");
+    assignButton(InputAdapter::Pad_GenericXBox, m_joyButton_DPadR, "[icon:XBOX_DPAD]");
+    assignButton(InputAdapter::Pad_GenericXBox, m_joyButton_DPadU, "[icon:XBOX_DPAD]");
+    assignButton(InputAdapter::Pad_GenericXBox, m_joyButton_DPadD, "[icon:XBOX_DPAD]");
+    assignButton(InputAdapter::Pad_GenericXBox, m_joyButton_ThumbLeft, "[icon:XBOX_STICK]");
+    assignButton(InputAdapter::Pad_GenericXBox, m_joyButton_ThumbRight, "[icon:XBOX_STICK]");
+    assignAxis(InputAdapter::Pad_GenericXBox, m_joyTrigger_Left, nullptr, "[icon:XBOX_BUTTON_LT]");
+    assignAxis(InputAdapter::Pad_GenericXBox, m_joyTrigger_Right, nullptr, "[icon:XBOX_BUTTON_RT]");
+
+    // Xbox 360
+    assignButton(InputAdapter::Pad_X360, m_joyButton_A, "[icon:X360_BUTTON_A]");
+    assignButton(InputAdapter::Pad_X360, m_joyButton_B, "[icon:X360_BUTTON_B]");
+    assignButton(InputAdapter::Pad_X360, m_joyButton_X, "[icon:X360_BUTTON_X]");
+    assignButton(InputAdapter::Pad_X360, m_joyButton_Y, "[icon:X360_BUTTON_Y]");
+    assignButton(InputAdapter::Pad_X360, m_joyButton_LB, "[icon:X360_BUTTON_LB]");
+    assignButton(InputAdapter::Pad_X360, m_joyButton_RB, "[icon:X360_BUTTON_RB]");
+    assignButton(InputAdapter::Pad_X360, m_joyButton_Back, "[icon:X360_BUTTON_BACK]");
+    assignButton(InputAdapter::Pad_X360, m_joyButton_Start, "[icon:X360_BUTTON_START]");
+    assignButton(InputAdapter::Pad_X360, m_joyButton_DPadL, "[icon:X360_DPAD]");
+    assignButton(InputAdapter::Pad_X360, m_joyButton_DPadR, "[icon:X360_DPAD]");
+    assignButton(InputAdapter::Pad_X360, m_joyButton_DPadU, "[icon:X360_DPAD]");
+    assignButton(InputAdapter::Pad_X360, m_joyButton_DPadD, "[icon:X360_DPAD]");
+    assignButton(InputAdapter::Pad_X360, m_joyButton_ThumbLeft, "[icon:X360_STICK]");
+    assignButton(InputAdapter::Pad_X360, m_joyButton_ThumbRight, "[icon:X360_STICK]");
+    assignAxis(InputAdapter::Pad_X360, m_joyTrigger_Left, nullptr, "[icon:X360_BUTTON_LT]");
+    assignAxis(InputAdapter::Pad_X360, m_joyTrigger_Right, nullptr, "[icon:X360_BUTTON_RT]");
+
+    // PlayStation 3
+    assignButton(InputAdapter::Pad_PS3, m_joyButton_A, "[icon:PS3_BUTTON_CROSS]");
+    assignButton(InputAdapter::Pad_PS3, m_joyButton_B, "[icon:PS3_BUTTON_CIRCLE]");
+    assignButton(InputAdapter::Pad_PS3, m_joyButton_X, "[icon:PS3_BUTTON_SQUARE]");
+    assignButton(InputAdapter::Pad_PS3, m_joyButton_Y, "[icon:PS3_BUTTON_TRIANGLE]");
+    assignButton(InputAdapter::Pad_PS3, m_joyButton_LB, "[icon:PS3_BUTTON_L1]");
+    assignButton(InputAdapter::Pad_PS3, m_joyButton_RB, "[icon:PS3_BUTTON_R1]");
+    assignButton(InputAdapter::Pad_PS3, m_joyButton_Back, "[icon:PS3_BUTTON_SELECT]");
+    assignButton(InputAdapter::Pad_PS3, m_joyButton_Start, "[icon:PS3_BUTTON_START]");
+    assignButton(InputAdapter::Pad_PS3, m_joyButton_DPadL, "[icon:PS3_DPAD]");
+    assignButton(InputAdapter::Pad_PS3, m_joyButton_DPadR, "[icon:PS3_DPAD]");
+    assignButton(InputAdapter::Pad_PS3, m_joyButton_DPadU, "[icon:PS3_DPAD]");
+    assignButton(InputAdapter::Pad_PS3, m_joyButton_DPadD, "[icon:PS3_DPAD]");
+    assignButton(InputAdapter::Pad_PS3, m_joyButton_ThumbLeft, "[icon:PS3_STICK]");
+    assignButton(InputAdapter::Pad_PS3, m_joyButton_ThumbRight, "[icon:PS3_STICK]");
+    assignAxis(InputAdapter::Pad_PS3, m_joyTrigger_Left, nullptr, "[icon:PS3_BUTTON_L2]");
+    assignAxis(InputAdapter::Pad_PS3, m_joyTrigger_Right, nullptr, "[icon:PS3_BUTTON_R2]");
+
+    // PlayStation 5
+    assignButton(InputAdapter::Pad_PS5, m_joyButton_A, "[icon:PS5_BUTTON_CROSS]");
+    assignButton(InputAdapter::Pad_PS5, m_joyButton_B, "[icon:PS5_BUTTON_CIRCLE]");
+    assignButton(InputAdapter::Pad_PS5, m_joyButton_X, "[icon:PS5_BUTTON_SQUARE]");
+    assignButton(InputAdapter::Pad_PS5, m_joyButton_Y, "[icon:PS5_BUTTON_TRIANGLE]");
+    assignButton(InputAdapter::Pad_PS5, m_joyButton_LB, "[icon:PS5_BUTTON_L1]");
+    assignButton(InputAdapter::Pad_PS5, m_joyButton_RB, "[icon:PS5_BUTTON_R1]");
+    assignButton(InputAdapter::Pad_PS5, m_joyButton_Back, "[icon:PS5_BUTTON_SHARE]");
+    assignButton(InputAdapter::Pad_PS5, m_joyButton_Start, "[icon:PS5_BUTTON_OPTIONS]");
+    assignButton(InputAdapter::Pad_PS5, m_joyButton_DPadL, "[icon:PS5_DPAD_LEFT]");
+    assignButton(InputAdapter::Pad_PS5, m_joyButton_DPadR, "[icon:PS5_DPAD_RIGHT]");
+    assignButton(InputAdapter::Pad_PS5, m_joyButton_DPadU, "[icon:PS5_DPAD_UP]");
+    assignButton(InputAdapter::Pad_PS5, m_joyButton_DPadD, "[icon:PS5_DPAD_DOWN]");
+    assignButton(InputAdapter::Pad_PS5, m_joyButton_ThumbLeft, "[icon:PS5_STICK_L]");
+    assignButton(InputAdapter::Pad_PS5, m_joyButton_ThumbRight, "[icon:PS5_STICK_R]");
+    assignButton(InputAdapter::Pad_PS5, m_joyButton_TouchPad, "[icon:PS5_TOUCHPAD]");
+    assignAxis(InputAdapter::Pad_PS5, m_joyTrigger_Left, nullptr, "[icon:PS5_BUTTON_L2]");
+    assignAxis(InputAdapter::Pad_PS5, m_joyTrigger_Right, nullptr, "[icon:PS5_BUTTON_R2]");
+
+    // Switch dual/pro controllers (ABXY layout)
+    InputAdapter::PadType switchPads[] = { InputAdapter::Pad_NX_Joycon_Dual, InputAdapter::Pad_NX_Pro };
+    for (InputAdapter::PadType pad : switchPads)
+    {
+        assignButton(pad, m_joyButton_A, "[icon:SWITCH_BUTTON_A]");
+        assignButton(pad, m_joyButton_B, "[icon:SWITCH_BUTTON_B]");
+        assignButton(pad, m_joyButton_X, "[icon:SWITCH_BUTTON_X]");
+        assignButton(pad, m_joyButton_Y, "[icon:SWITCH_BUTTON_Y]");
+        assignButton(pad, m_joyButton_LB, "[icon:SWITCH_BUTTON_L]");
+        assignButton(pad, m_joyButton_RB, "[icon:SWITCH_BUTTON_R]");
+        assignButton(pad, m_joyButton_Back, "[icon:SWITCH_BUTTON_MINUS]");
+        assignButton(pad, m_joyButton_Start, "[icon:SWITCH_BUTTON_PLUS]");
+        assignButton(pad, m_joyButton_DPadL, "[icon:SWITCH_PRO_DPAD_LEFT]");
+        assignButton(pad, m_joyButton_DPadR, "[icon:SWITCH_PRO_DPAD_RIGHT]");
+        assignButton(pad, m_joyButton_DPadU, "[icon:SWITCH_PRO_DPAD_UP]");
+        assignButton(pad, m_joyButton_DPadD, "[icon:SWITCH_PRO_DPAD_DOWN]");
+        assignButton(pad, m_joyButton_ThumbLeft, "[icon:SWITCH_BUTTON_LSTICK]");
+        assignButton(pad, m_joyButton_ThumbRight, "[icon:SWITCH_BUTTON_RSTICK]");
+        assignAxis(pad, m_joyTrigger_Left, nullptr, "[icon:SWITCH_BUTTON_ZL]");
+        assignAxis(pad, m_joyTrigger_Right, nullptr, "[icon:SWITCH_BUTTON_ZR]");
+    }
+
+    // Switch single joycon
+    assignButton(InputAdapter::Pad_NX_Joycon, m_joyButton_DPadR, "[icon:SWITCH_JOYCON_DPAD_RIGHT]");
+    assignButton(InputAdapter::Pad_NX_Joycon, m_joyButton_DPadL, "[icon:SWITCH_JOYCON_DPAD_LEFT]");
+    assignButton(InputAdapter::Pad_NX_Joycon, m_joyButton_DPadU, "[icon:SWITCH_JOYCON_DPAD_UP]");
+    assignButton(InputAdapter::Pad_NX_Joycon, m_joyButton_DPadD, "[icon:SWITCH_JOYCON_DPAD_DOWN]");
+    assignButton(InputAdapter::Pad_NX_Joycon, m_joyButton_B, "[icon:SWITCH_BUTTON_SR]");
+    assignButton(InputAdapter::Pad_NX_Joycon, m_joyButton_A, "[icon:SWITCH_BUTTON_SL]");
+    assignButton(InputAdapter::Pad_NX_Joycon, m_joyButton_LeftSL, "[icon:SWITCH_BUTTON_SL]");
+    assignButton(InputAdapter::Pad_NX_Joycon, m_joyButton_LeftSR, "[icon:SWITCH_BUTTON_SR]");
+    assignButton(InputAdapter::Pad_NX_Joycon, m_joyButton_RightSL, "[icon:SWITCH_BUTTON_SL]");
+    assignButton(InputAdapter::Pad_NX_Joycon, m_joyButton_RightSR, "[icon:SWITCH_BUTTON_SR]");
+
+    // Wii controllers
+    assignButton(InputAdapter::Pad_WiiSideWay, m_joyButton_A, "[icon:WII_BUTTON_2]");
+    assignButton(InputAdapter::Pad_WiiSideWay, m_joyButton_B, "[icon:WII_BUTTON_1]");
+    assignButton(InputAdapter::Pad_WiiSideWay, m_joyButton_Home, "[icon:WII_BUTTON_HOME]");
+    assignButton(InputAdapter::Pad_WiiSideWay, m_joyButton_TriggerLeft, "[icon:WII_BUTTON_MINUS]");
+    assignButton(InputAdapter::Pad_WiiSideWay, m_joyButton_TriggerRight, "[icon:WII_BUTTON_PLUS]");
+
+    assignButton(InputAdapter::Pad_WiiNunchuk, m_joyButton_A, "[icon:WII_BUTTON_A]");
+    assignButton(InputAdapter::Pad_WiiNunchuk, m_joyButton_B, "[icon:WII_BUTTON_B]");
+    assignButton(InputAdapter::Pad_WiiNunchuk, m_joyButton_C, "[icon:WII_BUTTON_C]");
+    assignButton(InputAdapter::Pad_WiiNunchuk, m_joyButton_Z, "[icon:WII_BUTTON_Z]");
+    assignButton(InputAdapter::Pad_WiiNunchuk, m_joyButton_Home, "[icon:WII_BUTTON_HOME]");
+    assignButton(InputAdapter::Pad_WiiNunchuk, m_joyButton_TriggerLeft, "[icon:WII_BUTTON_MINUS]");
+    assignButton(InputAdapter::Pad_WiiNunchuk, m_joyButton_TriggerRight, "[icon:WII_BUTTON_PLUS]");
+
+    assignButton(InputAdapter::Pad_WiiClassic, m_joyButton_A, "[icon:WII_CLASSIC_BUTTON_B]");
+    assignButton(InputAdapter::Pad_WiiClassic, m_joyButton_B, "[icon:WII_CLASSIC_BUTTON_A]");
+    assignButton(InputAdapter::Pad_WiiClassic, m_joyButton_X, "[icon:WII_CLASSIC_BUTTON_X]");
+    assignButton(InputAdapter::Pad_WiiClassic, m_joyButton_Y, "[icon:WII_CLASSIC_BUTTON_Y]");
+    assignButton(InputAdapter::Pad_WiiClassic, m_joyButton_LB, "[icon:WII_CLASSIC_BUTTON_L]");
+    assignButton(InputAdapter::Pad_WiiClassic, m_joyButton_RB, "[icon:WII_CLASSIC_BUTTON_R]");
+    assignButton(InputAdapter::Pad_WiiClassic, m_joyButton_Back, "[icon:WII_BUTTON_MINUS]");
+    assignButton(InputAdapter::Pad_WiiClassic, m_joyButton_Start, "[icon:WII_BUTTON_PLUS]");
+    assignAxis(InputAdapter::Pad_WiiClassic, m_joyTrigger_Left, nullptr, "[icon:WII_CLASSIC_BUTTON_ZL]");
+    assignAxis(InputAdapter::Pad_WiiClassic, m_joyTrigger_Right, nullptr, "[icon:WII_CLASSIC_BUTTON_ZR]");
+
+    // Vita / CTR fallback to Xbox icons
+    assignButton(InputAdapter::Pad_Vita, m_joyButton_A, "[icon:X360_BUTTON_A]");
+    assignButton(InputAdapter::Pad_Vita, m_joyButton_B, "[icon:X360_BUTTON_B]");
+    assignButton(InputAdapter::Pad_Vita, m_joyButton_X, "[icon:X360_BUTTON_X]");
+    assignButton(InputAdapter::Pad_Vita, m_joyButton_Y, "[icon:X360_BUTTON_Y]");
+    assignButton(InputAdapter::Pad_Vita, m_joyButton_LB, "[icon:X360_BUTTON_LB]");
+    assignButton(InputAdapter::Pad_Vita, m_joyButton_RB, "[icon:X360_BUTTON_RB]");
+    assignButton(InputAdapter::Pad_Vita, m_joyButton_Back, "[icon:X360_BUTTON_BACK]");
+    assignButton(InputAdapter::Pad_Vita, m_joyButton_Start, "[icon:X360_BUTTON_START]");
+    assignAxis(InputAdapter::Pad_Vita, m_joyTrigger_Left, nullptr, "[icon:X360_BUTTON_LT]");
+    assignAxis(InputAdapter::Pad_Vita, m_joyTrigger_Right, nullptr, "[icon:X360_BUTTON_RT]");
+
+    assignButton(InputAdapter::Pad_CTR, m_joyButton_A, "[icon:X360_BUTTON_A]");
+    assignButton(InputAdapter::Pad_CTR, m_joyButton_B, "[icon:X360_BUTTON_B]");
+    assignButton(InputAdapter::Pad_CTR, m_joyButton_X, "[icon:X360_BUTTON_X]");
+    assignButton(InputAdapter::Pad_CTR, m_joyButton_Y, "[icon:X360_BUTTON_Y]");
+    assignButton(InputAdapter::Pad_CTR, m_joyButton_LB, "[icon:X360_BUTTON_LB]");
+    assignButton(InputAdapter::Pad_CTR, m_joyButton_RB, "[icon:X360_BUTTON_RB]");
+    assignButton(InputAdapter::Pad_CTR, m_joyButton_Back, "[icon:X360_BUTTON_BACK]");
+    assignButton(InputAdapter::Pad_CTR, m_joyButton_Start, "[icon:X360_BUTTON_START]");
+    assignAxis(InputAdapter::Pad_CTR, m_joyTrigger_Left, nullptr, "[icon:X360_BUTTON_LT]");
+    assignAxis(InputAdapter::Pad_CTR, m_joyTrigger_Right, nullptr, "[icon:X360_BUTTON_RT]");
+}
+
 //------------------------------------------------------------------------------
 void ContextIconsManager::setupMenu()
 {
@@ -383,10 +868,42 @@ void ContextIconsManager::setupIcon(EContextIcon _icon, UIComponent* _iconUI, UI
             else if (iconType == ContextIconType_Back)
                 iconType = ContextIconType_Select;
         }
+        if (iconType < 0 || iconType >= ContextIconType_Count)
+        {
+            iconType = ContextIconType_Select;
+        }
 
-        InputAdapter::PadType padType = INPUT_ADAPTER->getDebugInputPadType(mainPlayer);
-        if (padType == InputAdapter::Pad_Invalid) return;
-        String8 content = m_template->getButtonNames()[padType][iconType];
+        String8 content = resolveIconForPlayer(mainPlayer, iconType);
+
+        if (content.isEmpty() || content == "<N/A>")
+        {
+            InputAdapter::PadType padType = INPUT_ADAPTER->getDebugInputPadType(mainPlayer);
+            if (padType == InputAdapter::Pad_Invalid)
+            {
+                padType = InputAdapter::Pad_GenericXBox;
+            }
+            content = fetchTemplateIcon(padType, iconType);
+
+            if (content.isEmpty() || content == "<N/A>")
+            {
+                content = fetchTemplateIcon(InputAdapter::Pad_GenericXBox, iconType);
+            }
+        }
+
+        if ((content.isEmpty() || content == "<N/A>") && iconType >= 0 && iconType < ContextIconType_Count)
+        {
+            const String8& keyboardFallback = m_defaultKeyboardIcons[iconType];
+            if (!keyboardFallback.isEmpty())
+            {
+                content = keyboardFallback;
+            }
+        }
+
+        if (content.isEmpty())
+        {
+            content = "<N/A>";
+        }
+
         _iconUI->forceContent(content);
 
         LocalisationId lineId = m_template->getLineIds()[_icon];
