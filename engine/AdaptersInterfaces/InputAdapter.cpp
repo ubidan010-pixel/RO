@@ -183,6 +183,9 @@ namespace ITF
 
     void InputAdapter::onMouseButton(InputAdapter::MouseButton _but, InputAdapter::PressStatus _status)
     {
+        if (!m_focused)
+            return;
+
         if (_but == MB_Left)
         {
             if (_status != Released)
@@ -209,6 +212,12 @@ namespace ITF
 
     void InputAdapter::onMouseWheel(i32 _wheelValue)
     {
+        if (!m_focused)
+        {
+            m_lastWheelValue = _wheelValue;
+            return;
+        }
+
         i32 delta = _wheelValue - m_lastWheelValue;
         pushMouseWheelEvent(_wheelValue, delta);
         m_lastWheelValue = _wheelValue;
@@ -222,6 +231,9 @@ namespace ITF
 
     void InputAdapter::onKey(i32 _key, InputAdapter::PressStatus _status)
     {
+        if (!m_focused)
+            return;
+
         ITF_ASSERT((_key >= 0) && (_key < KEY_COUNT));
 
         switch (_status)
@@ -257,6 +269,9 @@ namespace ITF
 
     void InputAdapter::onMousePos(i32 _x, i32 _y)
     {
+        if (!m_focused)
+            return;
+
         m_lastMouseX = _x;
         m_lastMouseY = _y;
         pushMousePosEvent(_x, _y);
@@ -268,13 +283,44 @@ namespace ITF
         _y = m_lastMouseY;
     }
 
+    void InputAdapter::setFocus()
+    {
+        m_focused = true;
+    }
+
+    void InputAdapter::unsetFocus()
+    {
+        m_focused = false;
+        flushKeys();
+        ResetInputState();
+        m_leftMBIsPressed = bfalse;
+        m_rightMBIsPressed = bfalse;
+        m_middleMBIsPressed = bfalse;
+        m_lastWheelValue = 0;
+        m_lastMouseX = 0;
+        m_lastMouseY = 0;
+        std::fill(m_keysReleaseTime, m_keysReleaseTime + KEY_COUNT, 0.0f);
+        std::fill(m_keyStatus, m_keyStatus + KEY_COUNT, Released);
+        std::fill(m_keyPressTime, m_keyPressTime + KEY_COUNT, 0u);
+        m_eventPool.clear();
+    }
+
     void InputAdapter::updateAllInputState()
     {
         ResetInputState();
         UpdatePads();
 #if defined(ITF_WINDOWS) && (defined(ITF_FINAL) || ITF_ENABLE_EDITOR_KEYBOARD)
-        UpdateKeyboard();
+        if (m_focused)
+        {
+            UpdateKeyboard();
+        }
 #endif // ITF_WINDOWS
+        if (!m_focused)
+        {
+            ResetInputState();
+            return;
+        }
+
         if (m_focused)
         {
             if (m_inMenu)

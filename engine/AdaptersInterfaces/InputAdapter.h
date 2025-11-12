@@ -666,8 +666,8 @@ namespace ITF
         void disableEnvironment(u32 _flag) { m_environmentInput = m_environmentInput & (~_flag); }
         void enableEnvironment(u32 _flag) { m_environmentInput |= _flag; }
 
-        virtual void setFocus() { m_focused = true; }
-        virtual void unsetFocus() { m_focused = false; }
+        virtual void setFocus();
+        virtual void unsetFocus();
 
         virtual void LoadPlayerControlSettings();
         virtual void SavePlayerControlSettings();
