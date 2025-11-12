@@ -1206,9 +1206,9 @@ namespace
         return m_inputMapping[player][action][binding];
     }
 
+#if defined(ITF_WINDOWS)
     void InputAdapter::RecordPrimaryInputSource(u32 player, ControllerType source, const char* deviceName)
     {
-#if defined(ITF_WINDOWS)
         if (player >= JOY_MAX_COUNT) return;
         PadType padType = getPadType(player);
         if (m_lastPrimaryInputType[player] != source || m_lastPrimaryPadType[player] != padType)
@@ -1220,16 +1220,10 @@ namespace
                 resolvedName = (source == Keyboard) ? "Keyboard" : "Controller";
             OnPlayerPrimaryInputSourceChanged(player, source, padType, resolvedName);
         }
-#else
-        ITF_UNUSED(player);
-        ITF_UNUSED(source);
-        ITF_UNUSED(deviceName);
-#endif
     }
 
     void InputAdapter::UpdatePrimaryInputSources()
     {
-#if defined(ITF_WINDOWS)
         for (u32 player = 0; player < JOY_MAX_COUNT; ++player)
         {
             ControllerType controllerSource = ControllerButton;
@@ -1253,6 +1247,6 @@ namespace
                 RecordPrimaryInputSource(player, Keyboard, "Keyboard");
             }
         }
-#endif
     }
+#endif
 } // namespace ITF
