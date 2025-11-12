@@ -106,6 +106,11 @@ namespace ITF
 
         void UpdatePads() override;
         ControllerType GetControllerType(InputValue& value) override;
+#if defined(ITF_WINDOWS)
+        void OnPlayerPrimaryInputSourceChanged(u32 player, ControllerType source,
+                                               PadType padType, const char* deviceName) override;
+        bool QueryPadActivity(u32 player, ControllerType& outSource, const char*& outDeviceName) const override;
+#endif
     private:
         SDLInput m_sdlInput;
     };

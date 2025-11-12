@@ -694,5 +694,68 @@ namespace ITF
         return value.inputType;
     }
 
+#if defined(ITF_WINDOWS)
+    void InputAdapter_SDL3::OnPlayerPrimaryInputSourceChanged(u32 player, ControllerType source,
+                                                              PadType padType, const char* deviceName)
+    {
+        const char* nameOverride = deviceName;
+        if (source != Keyboard && player < JOY_MAX_COUNT && m_sdlInput.m_gamepads[player].isConnected())
+        {
+            const SDL_Gamepad* gp = m_sdlInput.m_gamepads[player].getGamepad();
+            if (gp)
+            {
+                const char* sdlName = SDL_GetGamepadName(const_cast<SDL_Gamepad*>(gp));
+                if (sdlName && *sdlName) nameOverride = sdlName;
+            }
+        }
+        LOG("[Input] Primary source changed: player=%u type=%s padType=%d name=%s",
+            player,
+            (source == Keyboard) ? "Keyboard" : (source == ControllerAxis ? "ControllerAxis" : "ControllerButton"),
+            (int)padType,
+            nameOverride ? nameOverride : "Unknown");
+    }
+
+    bool InputAdapter_SDL3::QueryPadActivity(u32 player, ControllerType& outSource, const char*& outDeviceName) const
+    {
+        if (player >= JOY_MAX_COUNT)
+            return false;
+
+        const SDLGamepad& pad = m_sdlInput.m_gamepads[player];
+        if (!pad.isConnected())
+            return false;
+
+        outDeviceName = nullptr;
+        const SDL_Gamepad* handle = pad.getGamepad();
+        if (handle)
+        {
+            const char* sdlName = SDL_GetGamepadName(const_cast<SDL_Gamepad*>(handle));
+            if (sdlName && *sdlName)
+                outDeviceName = sdlName;
+        }
+
+        for (u32 button = 0; button < JOY_MAX_BUT; ++button)
+        {
+            auto status = pad.getButton(button);
+            if (status == JustPressed || status == Pressed)
+            {
+                outSource = ControllerButton;
+                return true;
+            }
+        }
+
+        const float axisThreshold = 0.25f;
+        for (u32 axis = 0; axis < JOY_MAX_AXES; ++axis)
+        {
+            if (fabsf(pad.getAxis(axis)) > axisThreshold)
+            {
+                outSource = ControllerAxis;
+                return true;
+            }
+        }
+
+        return false;
+    }
+#endif
+
 }
 #endif

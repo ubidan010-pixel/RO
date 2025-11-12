@@ -324,6 +324,8 @@ namespace ITF
                 MAX_ACTIONS
             };
 
+        static const u32 MAX_BINDINGS_PER_ACTION = 2;
+
         // ButtonMode is used to determinate which buttons we want when we call getGamePadButtons
         enum ButtonMode
         {
@@ -413,8 +415,8 @@ namespace ITF
         u32 m_axesPressTime[JOY_MAX_COUNT][JOY_MAX_AXES];
         PressStatus m_buttons[JOY_MAX_COUNT][JOY_MAX_BUT];
         // control remapping
-        InputValue m_inputMapping[JOY_MAX_COUNT][MAX_ACTIONS];
-        InputValue m_inputMappingTemporary[JOY_MAX_COUNT][MAX_ACTIONS];
+        InputValue m_inputMapping[JOY_MAX_COUNT][MAX_ACTIONS][MAX_BINDINGS_PER_ACTION];
+        InputValue m_inputMappingTemporary[JOY_MAX_COUNT][MAX_ACTIONS][MAX_BINDINGS_PER_ACTION];
         const wchar_t* m_actionStrings[MAX_ACTIONS];
         // mouse/keyboard
         PressStatus m_keyStatus[KEY_COUNT];
@@ -423,6 +425,10 @@ namespace ITF
     private:
         bbool m_PadConnected[JOY_MAX_COUNT]{};
         PadType m_PadType[JOY_MAX_COUNT]{};
+#if defined(ITF_WINDOWS)
+        ControllerType m_lastPrimaryInputType[JOY_MAX_COUNT]{};
+        PadType m_lastPrimaryPadType[JOY_MAX_COUNT]{};
+#endif
 
         bbool m_useShakeAttack;
         f32 m_threshold;
@@ -577,6 +583,20 @@ namespace ITF
                 m_PadType[_numPad] = _type;
         }
 
+#if defined(ITF_WINDOWS)
+        ITF_INLINE ControllerType getPrimaryInputType(u32 _numPad) const
+        {
+            ITF_ASSERT(_numPad < JOY_MAX_COUNT);
+            return (_numPad < JOY_MAX_COUNT) ? m_lastPrimaryInputType[_numPad] : Keyboard;
+        }
+
+        ITF_INLINE PadType getPrimaryPadType(u32 _numPad) const
+        {
+            ITF_ASSERT(_numPad < JOY_MAX_COUNT);
+            return (_numPad < JOY_MAX_COUNT) ? m_lastPrimaryPadType[_numPad] : Pad_Other;
+        }
+#endif
+
         // debug input for menus / context icons etc
         ITF_INLINE PadType getDebugInputPadType(u32 _numPad) const
         {
@@ -670,6 +690,8 @@ namespace ITF
         virtual void ResetToDefaultControls();
 
         void InitializeActionStrings();
+        virtual void SetInputValue(u32 player, u32 action, InputValue& value);
+        virtual void SetInputValue(u32 player, u32 action, u32 bindingIndex, InputValue& value);
         void UpdateKeyboard();
         virtual void UpdatePads() { ITF_ASSERT_MSG(0, "Not implemented"); }
         void CopyInputMapping();
@@ -709,7 +731,7 @@ namespace ITF
             return nullptr;
         }
 
-        virtual const InputValue& GetInputValue(u32 player, u32 action) const;
+        virtual const InputValue& GetInputValue(u32 player, u32 action, u32 binding = 0) const;
 
         const wchar_t* GetActionString(u32 action) const { return m_actionStrings[action]; }
 
@@ -755,6 +777,33 @@ namespace ITF
 
         virtual void OnControllerConnected(u32 _padIndex) {}
         virtual void OnControllerDisconnected(u32 _padIndex) {}
+#if defined(ITF_WINDOWS)
+        virtual void OnPlayerPrimaryInputSourceChanged(u32 player, ControllerType source,
+                                                      PadType padType, const char* deviceName)
+        { ITF_UNUSED(player); ITF_UNUSED(source); ITF_UNUSED(padType); ITF_UNUSED(deviceName); }
+    protected:
+        void RecordPrimaryInputSource(u32 player, ControllerType source, const char* deviceName);
+        void UpdatePrimaryInputSources();
+        virtual bool QueryPadActivity(u32 player, ControllerType& outSource, const char*& outDeviceName) const
+        { ITF_UNUSED(player); ITF_UNUSED(outSource); ITF_UNUSED(outDeviceName); return false; }
+#else
+        virtual void OnPlayerPrimaryInputSourceChanged(u32 player, ControllerType source,
+                                                      PadType padType, const char* deviceName)
+        {
+            ITF_UNUSED(player); ITF_UNUSED(source); ITF_UNUSED(padType); ITF_UNUSED(deviceName);
+        }
+    protected:
+        void RecordPrimaryInputSource(u32 player, ControllerType source, const char* deviceName)
+        {
+            ITF_UNUSED(player); ITF_UNUSED(source); ITF_UNUSED(deviceName);
+        }
+        void UpdatePrimaryInputSources() {}
+        virtual bool QueryPadActivity(u32 player, ControllerType& outSource, const char*& outDeviceName) const
+        {
+            ITF_UNUSED(player); ITF_UNUSED(outSource); ITF_UNUSED(outDeviceName);
+            return false;
+        }
+#endif
     };
 
 #define INPUT_ADAPTER InputAdapter::getptr()
