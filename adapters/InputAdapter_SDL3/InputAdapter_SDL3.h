@@ -68,7 +68,6 @@ namespace ITF
         bool m_initialized;
 
     private:
-        InputAdapter::PadType detectPadType(const SDLGamepad& pad) const;
         void handleGamepadConnected(SDL_JoystickID instanceId);
         void HandleGamepadDisconnected(SDL_JoystickID instanceId);
         void setGamepadConnected(u32 index, bool connected, InputAdapter::PadType padType);
@@ -106,9 +105,6 @@ namespace ITF
 
         void UpdatePads() override;
         ControllerType GetControllerType(InputValue& value) override;
-        void OnPlayerPrimaryInputSourceChanged(u32 player, ControllerType source,
-                                               PadType padType, const char* deviceName) override;
-        bool QueryPadActivity(u32 player, ControllerType& outSource, const char*& outDeviceName) const override;
     private:
         SDLInput m_sdlInput;
     };

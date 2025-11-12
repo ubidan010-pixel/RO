@@ -1,6 +1,5 @@
 #ifndef _ITF_INPUTADAPTER_H_
 #define _ITF_INPUTADAPTER_H_
-#include <iostream>
 
 #ifndef _ITF_TEMPLATESINGLETON_H_
 #include "core/templateSingleton.h"
@@ -185,22 +184,25 @@ namespace ITF
 
     // *** JOYSTICK ***
 // COMMON
-    enum JoyAxis_t
-    {
-        m_joyStickLeft_X=0,
-        m_joyStickLeft_Y,
-        m_joyTrigger_Left,
-        m_joyStickRight_X,
-        m_joyStickRight_Y,
-        m_joyTrigger_Right,
+enum JoyAxis_t
+{
+    m_joyStickLeft_X=0,
+    m_joyStickLeft_Y,
+    m_joyTrigger_Left,
+    m_joyStickRight_X,
+    m_joyStickRight_Y,
+    m_joyTrigger_Right,
+
         JOY_MAX_AXES
     };
 
     enum ControllerType
     {
         Keyboard,
-        ControllerButton,
-        ControllerAxis
+        X360Button,
+        X360Axis,
+        GenericButton,
+        GenericAxis
     };
 
     struct InputValue
@@ -242,6 +244,7 @@ namespace ITF
 #define JOY_AXIS_RT         5
 #define JOY_MAX_AXES        6
     class Interface_InputListener;
+    class IConfigurationStorage;
     class InputAdapter : public TemplateSingleton<InputAdapter>
     {
     public:
@@ -250,7 +253,6 @@ namespace ITF
         ///////////////////////////////////////////////////////////////////////////////////////////
         ///Button classes. Each button can belong to several classes, we can combine them with OR binary operator
         typedef u8 ButtonClassMask;
-
 
         static const ButtonClassMask BUTTONCLASS_STANDARD = 1; //on XBOX : A,B,X,Y,START,SELECT
         static const ButtonClassMask BUTTONCLASS_ANALOGSTICK = 2; //on XBOX : Left/right analog stick buttons
@@ -311,21 +313,22 @@ namespace ITF
             PadType_Count,
         };
 
-            enum ActionType
-            {
-                ActionUp,
-                ActionDown,
-                ActionLeft,
-                ActionRight,
-                ActionSprint,
-                ActionJump,
-                ActionHit,
-                ActionBack,
-                ActionShowMenu,
-                MAX_ACTIONS
-            };
-
-        static const u32 MAX_BINDINGS_PER_ACTION = 2;
+        enum ActionType
+        {
+            ActionBubbleQuit,
+            ActionSelect,
+            ActionDelete,
+            ActionShowMenu,
+            ActionBack,
+            ActionLeft,
+            ActionRight,
+            ActionUp,
+            ActionDown,
+            ActionJump,
+            ActionHit,
+            ActionSprint,
+            MAX_ACTIONS
+        };
 
         // ButtonMode is used to determinate which buttons we want when we call getGamePadButtons
         enum ButtonMode
@@ -416,8 +419,8 @@ namespace ITF
         u32 m_axesPressTime[JOY_MAX_COUNT][JOY_MAX_AXES];
         PressStatus m_buttons[JOY_MAX_COUNT][JOY_MAX_BUT];
         // control remapping
-        InputValue m_inputMapping[JOY_MAX_COUNT][MAX_ACTIONS][MAX_BINDINGS_PER_ACTION];
-        InputValue m_inputMappingTemporary[JOY_MAX_COUNT][MAX_ACTIONS][MAX_BINDINGS_PER_ACTION];
+        InputValue m_inputMapping[JOY_MAX_COUNT][MAX_ACTIONS];
+        InputValue m_inputMappingTemporary[JOY_MAX_COUNT][MAX_ACTIONS];
         const wchar_t* m_actionStrings[MAX_ACTIONS];
         // mouse/keyboard
         PressStatus m_keyStatus[KEY_COUNT];
@@ -426,8 +429,6 @@ namespace ITF
     private:
         bbool m_PadConnected[JOY_MAX_COUNT]{};
         PadType m_PadType[JOY_MAX_COUNT]{};
-        ControllerType m_lastPrimaryInputType[JOY_MAX_COUNT]{};
-        PadType m_lastPrimaryPadType[JOY_MAX_COUNT]{};
 
         bbool m_useShakeAttack;
         f32 m_threshold;
@@ -438,6 +439,15 @@ namespace ITF
         bbool m_runUseShake;
         f32 m_runTimerStop;
         String m_inputString;
+
+        // control remapping
+        const char* m_keyNames[KEY_COUNT];
+        const char* m_X360ButtonNames[JOY_MAX_BUT];
+        const char* m_X360AxisNames[JOY_MAX_AXES][2];
+        const char* m_GenericButtonNames[JOY_MAX_BUT];
+        const char* m_GenericAxisNames[JOY_MAX_AXES][2];
+
+        IConfigurationStorage* m_configurationStorage;
     public:
         /**
         Registers a new listener for input events. you must create a class that inherits from Interface_InputListener
@@ -582,18 +592,6 @@ namespace ITF
                 m_PadType[_numPad] = _type;
         }
 
-        ITF_INLINE ControllerType getPrimaryInputType(u32 _numPad) const
-        {
-            ITF_ASSERT(_numPad < JOY_MAX_COUNT);
-            return (_numPad < JOY_MAX_COUNT) ? m_lastPrimaryInputType[_numPad] : Keyboard;
-        }
-
-        ITF_INLINE PadType getPrimaryPadType(u32 _numPad) const
-        {
-            ITF_ASSERT(_numPad < JOY_MAX_COUNT);
-            return (_numPad < JOY_MAX_COUNT) ? m_lastPrimaryPadType[_numPad] : Pad_Other;
-        }
-
         // debug input for menus / context icons etc
         ITF_INLINE PadType getDebugInputPadType(u32 _numPad) const
         {
@@ -679,16 +677,22 @@ namespace ITF
         void disableEnvironment(u32 _flag) { m_environmentInput = m_environmentInput & (~_flag); }
         void enableEnvironment(u32 _flag) { m_environmentInput |= _flag; }
 
-        virtual void setFocus();
-        virtual void unsetFocus();
+        virtual void setFocus() { m_focused = true; }
+        virtual void unsetFocus() { m_focused = false; }
 
         virtual void LoadPlayerControlSettings();
         virtual void SavePlayerControlSettings();
         virtual void ResetToDefaultControls();
 
         void InitializeActionStrings();
+        void InitializeKeyNames();
+        void InitializeX360Names();
+        void InitializeGenericNames();
+        virtual const String& GetInputString(u32 iconType);
+        virtual const String& GetInputString(const String& x360Button);
+        virtual const String& GetInputString(u32 player, u32 action);
+        virtual const String& GetKeyString(u32 key);
         virtual void SetInputValue(u32 player, u32 action, InputValue& value);
-        virtual void SetInputValue(u32 player, u32 action, u32 bindingIndex, InputValue& value);
         void UpdateKeyboard();
         virtual void UpdatePads() { ITF_ASSERT_MSG(0, "Not implemented"); }
         void CopyInputMapping();
@@ -728,7 +732,7 @@ namespace ITF
             return nullptr;
         }
 
-        virtual const InputValue& GetInputValue(u32 player, u32 action, u32 binding = 0) const;
+        virtual const InputValue& GetInputValue(u32 player, u32 action) const;
 
         const wchar_t* GetActionString(u32 action) const { return m_actionStrings[action]; }
 
@@ -774,14 +778,6 @@ namespace ITF
 
         virtual void OnControllerConnected(u32 _padIndex) {}
         virtual void OnControllerDisconnected(u32 _padIndex) {}
-        virtual void OnPlayerPrimaryInputSourceChanged(u32 player, ControllerType source,
-                                                      PadType padType, const char* deviceName)
-        { ITF_UNUSED(player); ITF_UNUSED(source); ITF_UNUSED(padType); ITF_UNUSED(deviceName); }
-    protected:
-        void RecordPrimaryInputSource(u32 player, ControllerType source, const char* deviceName);
-        void UpdatePrimaryInputSources();
-        virtual bool QueryPadActivity(u32 player, ControllerType& outSource, const char*& outDeviceName) const
-        { ITF_UNUSED(player); ITF_UNUSED(outSource); ITF_UNUSED(outDeviceName); return false; }
     };
 
 #define INPUT_ADAPTER InputAdapter::getptr()

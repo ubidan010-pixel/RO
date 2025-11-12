@@ -19,6 +19,13 @@
 #include <windows.h>
 #include <shlobj.h>
 #endif
+#ifdef ITF_PS5
+#include <save_data/save_data_defs.h>
+#include <save_data.h>
+#include <save_data.h>
+#include <user_service.h>  // For user IDs
+#include <string.h>
+#endif
 
 namespace ITF
 {
@@ -45,20 +52,92 @@ namespace ITF
         return true;
     }
 
-    ITF_INLINE bool IsBindingConfigured(const InputValue& binding)
+    static bool CreateParentDirectory(const std::string& filePath)
     {
-        return binding.inputType != Keyboard ||
-            binding.inputValue != 0 ||
-            binding.inputIndex != 0 ||
-            binding.axisPosition != 0;
+#ifdef ITF_WINDOWS
+        // Extract parent directory path
+        size_t lastSlash = filePath.find_last_of("\\/");
+        if (lastSlash == std::string::npos)
+        {
+            LOG("Error: Invalid filePath, no slash found: %s", filePath.c_str());
+            return false;
+        }
+
+        std::string parentDir = filePath.substr(0, lastSlash);
+        LOG("Creating parent dir: %s", parentDir.c_str());
+
+        // Attempt to create directory
+        int result = SHCreateDirectoryExA(NULL, parentDir.c_str(), NULL);
+        if (result == ERROR_SUCCESS)
+        {
+            LOG("Successfully created parent dir: %s", parentDir.c_str());
+            return true;
+        }
+
+        // Handle creation failure
+        DWORD error = GetLastError();
+        if (error != ERROR_ALREADY_EXISTS)
+        {
+            LOG("Error: SHCreateDirectoryExA failed for %s, error code: %lu", parentDir.c_str(), error);
+            return false;
+        }
+
+        // Path already exists - verify it's a directory
+        DWORD attributes = GetFileAttributesA(parentDir.c_str());
+        if (attributes == INVALID_FILE_ATTRIBUTES || !(attributes & FILE_ATTRIBUTE_DIRECTORY))
+        {
+            LOG("Error: Path exists but is not a directory: %s, error code: %lu", parentDir.c_str(), error);
+            return false;
+        }
+
+        LOG("Parent dir already exists: %s", parentDir.c_str());
+        return true;
+
+#else
+        LOG("Skipping directory creation for console, filePath: %s", filePath.c_str());
+        return true;
+#endif
     }
 
-    ITF_INLINE bool IsAxisLikeBinding(const InputValue& binding)
+    static std::string GetConfigFilePath()
     {
-        if (!IsBindingConfigured(binding))
-            return false;
+        std::string path;
+#ifdef ITF_WINDOWS
+        char appData[MAX_PATH];
+        GetEnvironmentVariableA("APPDATA", appData, MAX_PATH);
+        path = std::string(appData) + "\\Ubisoft\\RaymanOrigins\\Settings\\Controls.bin";
+#elif ITF_PS5
+        path = "/save0/Controls.bin";
+#elif ITF_NX
+        path = "save:/Controls.bin";
+#else
+        path = "./Controls.bin";
+#endif
+        return path;
+    }
 
-        return binding.inputType == ControllerAxis;
+    bool MountSaveData()
+    {
+#ifdef ITF_WINDOWS
+        return true;
+#elif ITF_PS5
+        // TODO: implemnt UnmountSaveData for PS5 platform
+        return true;
+#elif ITF_NX  // Switch/Switch 2
+        // TODO: not sure what to do in NX platform
+        return true;
+#endif
+        return true;
+    }
+
+    static void UnmountSaveData()
+    {
+#ifdef ITF_WINDOWS
+#elif ITF_PS5
+        // TODO: implemnt UnmountSaveData for PS5 platform
+#elif ITF_NX
+        // TODO: not sure what to do in NX platform
+#endif
     }
 
     static InputAdapter::PadType getDefaultPadType()
@@ -79,67 +158,6 @@ namespace ITF
         return InputAdapter::Pad_Other;
 #endif
     }
-
-    namespace
-    {
-        struct DefaultControllerBinding
-        {
-            InputAdapter::ActionType action;
-            ControllerType type;
-            u32 inputValue;
-            u32 axisPosition;
-        };
-
-        constexpr DefaultControllerBinding kControllerDefaultBindings[] = {
-            {InputAdapter::ActionBack, ControllerButton, m_joyButton_B, 0},
-            {InputAdapter::ActionShowMenu, ControllerButton, m_joyButton_Start, 0},
-            {InputAdapter::ActionJump, ControllerButton, m_joyButton_A, 0},
-            {InputAdapter::ActionHit, ControllerButton, m_joyButton_X, 0},
-            {InputAdapter::ActionSprint, ControllerAxis, m_joyTrigger_Right, 1},
-            {InputAdapter::ActionLeft, ControllerAxis, m_joyStickLeft_X, 0},
-            {InputAdapter::ActionRight, ControllerAxis, m_joyStickLeft_X, 1},
-            {InputAdapter::ActionUp, ControllerAxis, m_joyStickLeft_Y, 1},
-            {InputAdapter::ActionDown, ControllerAxis, m_joyStickLeft_Y, 0},
-        };
-
-#ifdef ITF_WINDOWS
-        struct DefaultKeyboardBinding
-        {
-            InputAdapter::ActionType action;
-            u32 virtualKey;
-        };
-
-        constexpr DefaultKeyboardBinding kKeyboardDefaultBindings[] = {
-            {InputAdapter::ActionUp, VK_UP},
-            {InputAdapter::ActionDown, VK_DOWN},
-            {InputAdapter::ActionLeft, VK_LEFT},
-            {InputAdapter::ActionRight, VK_RIGHT},
-            {InputAdapter::ActionJump, VK_SPACE},
-            {InputAdapter::ActionHit, 'S'},
-            {InputAdapter::ActionSprint, VK_LSHIFT},
-            {InputAdapter::ActionBack, VK_BACK},
-            {InputAdapter::ActionShowMenu, VK_ESCAPE},
-        };
-#endif // ITF_WINDOWS
-
-        ITF_INLINE void ApplyControllerDefaultBinding(InputValue& destination,
-                                                       const DefaultControllerBinding& binding,
-                                                       u32 playerIndex)
-        {
-            destination.inputType = binding.type;
-            destination.inputValue = binding.inputValue;
-            destination.axisPosition = binding.axisPosition;
-            destination.inputIndex = playerIndex;
-        }
-
-#ifdef ITF_WINDOWS
-        ITF_INLINE void ApplyKeyboardDefaultBinding(InputValue& destination, u32 virtualKey)
-        {
-            destination.inputType = Keyboard;
-            destination.inputValue = virtualKey;
-        }
-#endif // ITF_WINDOWS
-    } // namespace
 
     InputAdapter::InputAdapter() :
         m_inMenu(btrue),
@@ -205,11 +223,7 @@ namespace ITF
         }
 
         std::fill(m_PadType, m_PadType + ITF_ARRAY_SIZE(m_PadType), getDefaultPadType());
-        for (u32 i = 0; i < JOY_MAX_COUNT; ++i)
-        {
-            m_lastPrimaryInputType[i] = Keyboard;
-            m_lastPrimaryPadType[i] = m_PadType[i];
-        }
+        m_configurationStorage = nullptr;
     }
 
     void InputAdapter::addListener(Interface_InputListener* _listener, u32 _priority)
@@ -249,9 +263,6 @@ namespace ITF
 
     void InputAdapter::onMouseButton(InputAdapter::MouseButton _but, InputAdapter::PressStatus _status)
     {
-        if (!m_focused)
-            return;
-
         if (_but == MB_Left)
         {
             if (_status != Released)
@@ -278,12 +289,6 @@ namespace ITF
 
     void InputAdapter::onMouseWheel(i32 _wheelValue)
     {
-        if (!m_focused)
-        {
-            m_lastWheelValue = _wheelValue;
-            return;
-        }
-
         i32 delta = _wheelValue - m_lastWheelValue;
         pushMouseWheelEvent(_wheelValue, delta);
         m_lastWheelValue = _wheelValue;
@@ -297,9 +302,6 @@ namespace ITF
 
     void InputAdapter::onKey(i32 _key, InputAdapter::PressStatus _status)
     {
-        if (!m_focused)
-            return;
-
         ITF_ASSERT((_key >= 0) && (_key < KEY_COUNT));
 
         switch (_status)
@@ -335,9 +337,6 @@ namespace ITF
 
     void InputAdapter::onMousePos(i32 _x, i32 _y)
     {
-        if (!m_focused)
-            return;
-
         m_lastMouseX = _x;
         m_lastMouseY = _y;
         pushMousePosEvent(_x, _y);
@@ -349,44 +348,13 @@ namespace ITF
         _y = m_lastMouseY;
     }
 
-    void InputAdapter::setFocus()
-    {
-        m_focused = true;
-    }
-
-    void InputAdapter::unsetFocus()
-    {
-        m_focused = false;
-        flushKeys();
-        ResetInputState();
-        m_leftMBIsPressed = bfalse;
-        m_rightMBIsPressed = bfalse;
-        m_middleMBIsPressed = bfalse;
-        m_lastWheelValue = 0;
-        m_lastMouseX = 0;
-        m_lastMouseY = 0;
-        std::fill(m_keysReleaseTime, m_keysReleaseTime + KEY_COUNT, 0.0f);
-        std::fill(m_keyStatus, m_keyStatus + KEY_COUNT, Released);
-        std::fill(m_keyPressTime, m_keyPressTime + KEY_COUNT, 0u);
-        m_eventPool.clear();
-    }
-
     void InputAdapter::updateAllInputState()
     {
         ResetInputState();
         UpdatePads();
 #if defined(ITF_WINDOWS) && (defined(ITF_FINAL) || ITF_ENABLE_EDITOR_KEYBOARD)
-        if (m_focused)
-        {
-            UpdateKeyboard();
-        }
+        UpdateKeyboard();
 #endif // ITF_WINDOWS
-        if (!m_focused)
-        {
-            ResetInputState();
-            return;
-        }
-
         if (m_focused)
         {
             if (m_inMenu)
@@ -397,7 +365,6 @@ namespace ITF
             {
                 UpdateInputForGame();
             }
-            UpdatePrimaryInputSources();
         }
     }
 
@@ -443,7 +410,7 @@ namespace ITF
         ITF_MEMCOPY(_buttons, m_buttonClasses, sizeof(_buttons[0]) * _numButtons);
     }
 
-     void InputAdapter::getGamePadButtons(u32 _environment, u32 _pad, PressStatus* _buttons, u32 _numButtons) const
+    void InputAdapter::getGamePadButtons(u32 _environment, u32 _pad, PressStatus* _buttons, u32 _numButtons) const
     {
         ITF_ASSERT(_numButtons <= JOY_MAX_BUT);
 
@@ -758,61 +725,856 @@ namespace
     {
         ResetToDefaultControls();
         SaveInputMapping();
-        // TODO: load control setting from game options
+        if (!MountSaveData())
+        {
+            return;
+        }
+
+        std::string filePath = GetConfigFilePath();
+
+#ifdef ITF_NX
+    nn::fs::FileHandle handle;
+    if (nn::fs::OpenFile(&handle, filePath.c_str(), nn::fs::OpenMode_Read).IsFailure()) {
+        UnmountSaveData();
+        CopyInputMapping();
+        return;
+    }
+
+    u32 numPlayers, maxActions;
+    nn::fs::ReadFile(handle, 0, &numPlayers, sizeof(u32));
+    nn::fs::ReadFile(handle, sizeof(u32), &maxActions, sizeof(u32));
+
+    if (numPlayers != JOY_MAX_COUNT || maxActions != MAX_ACTIONS) {
+        nn::fs::CloseFile(handle);
+        UnmountSaveData();
+        CopyInputMapping();
+        return;
+    }
+
+    size_t offset = 2 * sizeof(u32);
+    for (u32 player = 0; player < JOY_MAX_COUNT; ++player) {
+        for (u32 action = 0; action < MAX_ACTIONS; ++action) {
+            if (action != ActionBubbleQuit) {
+                InputValue value;
+                nn::fs::ReadFile(handle, offset, &value, sizeof(value));
+                m_inputMapping[player][action] = value;
+                offset += sizeof(value);
+            }
+        }
+    }
+    nn::fs::CloseFile(handle);
+#else
+        std::ifstream file(filePath, std::ios::binary);
+        if (!file.is_open())
+        {
+            UnmountSaveData();
+            CopyInputMapping();
+            return;
+        }
+
+        u32 numPlayers, maxActions;
+        file.read(reinterpret_cast<char*>(&numPlayers), sizeof(u32));
+        file.read(reinterpret_cast<char*>(&maxActions), sizeof(u32));
+
+        if (numPlayers != JOY_MAX_COUNT || maxActions != MAX_ACTIONS)
+        {
+            file.close();
+            UnmountSaveData();
+            CopyInputMapping();
+            return;
+        }
+
+        for (u32 player = 0; player < JOY_MAX_COUNT; ++player)
+        {
+            for (u32 action = 0; action < MAX_ACTIONS; ++action)
+            {
+                if (action != ActionBubbleQuit)
+                {
+                    InputValue value;
+                    file.read(reinterpret_cast<char*>(&value), sizeof(value));
+                    m_inputMapping[player][action] = value;
+                }
+            }
+        }
+        file.close();
+#endif
+
+        UnmountSaveData();
         CopyInputMapping();
     }
 
     void InputAdapter::SavePlayerControlSettings()
     {
-        // TODO: save control setting to game options
+        if (!MountSaveData()) return;
+
+        std::string filePath = GetConfigFilePath();
+
+        if (!CreateParentDirectory(filePath))
+        {
+            UnmountSaveData();
+            LOG("Warning: Could not create parent directory for %s", filePath.c_str());
+            return;
+        }
+
+#ifdef ITF_NX
+        // TODO: will be implemented later
+#else
+        std::ofstream file(filePath, std::ios::binary | std::ios::out | std::ios::trunc);
+        if (!file.is_open())
+        {
+            UnmountSaveData();
+            return;
+        }
+
+        u32 numPlayers = JOY_MAX_COUNT;
+        u32 maxActions = MAX_ACTIONS;
+        file.write(reinterpret_cast<const char*>(&numPlayers), sizeof(u32));
+        file.write(reinterpret_cast<const char*>(&maxActions), sizeof(u32));
+
+        for (u32 playerNumber = 0; playerNumber < JOY_MAX_COUNT; ++playerNumber)
+        {
+            for (u32 action = 0; action < MAX_ACTIONS; ++action)
+            {
+                if (action != ActionBubbleQuit)
+                {
+                    InputValue value = INPUT_ADAPTER->GetInputValue(playerNumber, action);
+                    file.write(reinterpret_cast<const char*>(&value), sizeof(value));
+                }
+            }
+        }
+        file.close();
+#endif
+
+        UnmountSaveData();
     }
 
     void InputAdapter::InitializeActionStrings()
     {
         static constexpr std::array<const wchar_t*, MAX_ACTIONS> kActionStrings = {
-            L"ActionUp",
-            L"ActionDown",
+            L"ActionJoinLeave",
+            L"ActionSelect",
+            L"ActionDelete",
+            L"ActionShowMenu",
+            L"ActionBack",
             L"ActionLeft",
             L"ActionRight",
-            L"ActionSprint",
+            L"ActionUp",
+            L"ActionDown",
             L"ActionJump",
             L"ActionHit",
-            L"ActionBack",
-            L"ActionShowMenu",
+            L"ActionSprint"
         };
         std::copy(kActionStrings.begin(), kActionStrings.end(), m_actionStrings);
     }
 
+    void InputAdapter::InitializeKeyNames()
+    {
+        static const char* s_keyNames[KEY_COUNT] =
+        {
+            "[4685]" //00 - key not set
+            ,
+            "Mouse left" //01 - VK_LBUTTON
+            ,
+            "Mouse right" //02 - VK_RBUTTON
+            ,
+            "" //03 - VK_CANCEL
+            ,
+            "Mouse middle" //04 - VK_MBUTTON
+            ,
+            "" //05
+            ,
+            "" //06
+            ,
+            "" //07
+            ,
+            "[4666]" //08 - VK_BACK
+            ,
+            "[4657]" //09 - VK_TAB
+            ,
+            "" //0A
+            ,
+            "" //0B
+            ,
+            "" //0C - VK_CLEAR
+            ,
+            "[4665]" //0D - VK_RETURN
+            ,
+            "" //0E
+            ,
+            "" //0F
+            ,
+            "" //10 - VK_SHIFT
+            ,
+            "" //11 - VK_CONTROL
+            ,
+            "" //12 - VK_MENU
+            ,
+            "[4680]" //13 - VK_PAUSE
+            ,
+            "[4658]" //14 - VK_CAPITAL
+            ,
+            "" //15
+            ,
+            "" //16
+            ,
+            "" //17
+            ,
+            "" //18
+            ,
+            "" //19
+            ,
+            "" //1A
+            ,
+            "" //1B - VK_ESCAPE
+            ,
+            "" //1C
+            ,
+            "" //1D
+            ,
+            "" //1E
+            ,
+            "" //1F
+            ,
+            "[4683]" //20 - VK_SPACE
+            ,
+            "[4671]" //21 - VK_PRIOR
+            ,
+            "[4672]" //22 - VK_NEXT
+            ,
+            "[4670]" //23 - VK_END
+            ,
+            "[4668]" //24 - VK_HOME
+            ,
+            "[4675]" //25 - VK_LEFT
+            ,
+            "[4673]" //26 - VK_UP
+            ,
+            "[4676]" //27 - VK_RIGHT
+            ,
+            "[4674]" //28 - VK_DOWN
+            ,
+            "Select" //29 - VK_SELECT
+            ,
+            "" //2A
+            ,
+            "" //2B - VK_EXECUTE
+            ,
+            "[4678]" //2C - VK_SNAPSHOT
+            ,
+            "[4667]" //2D - VK_INSERT
+            ,
+            "[4669]" //2E - VK_DELETE
+            ,
+            "" //2F - VK_HELP
+            ,
+            "0" //30 - 0
+            ,
+            "1" //31 - 1
+            ,
+            "2" //32 - 2
+            ,
+            "3" //33 - 3
+            ,
+            "4" //34 - 4
+            ,
+            "5" //35 - 5
+            ,
+            "6" //36 - 6
+            ,
+            "7" //37 - 7
+            ,
+            "8" //38 - 8
+            ,
+            "9" //39 - 9
+            ,
+            "" //3A
+            ,
+            "" //3B
+            ,
+            "" //3C
+            ,
+            "" //3D
+            ,
+            "" //3E
+            ,
+            "" //3F
+            ,
+            "" //40
+            ,
+            "A" //41 - A
+            ,
+            "B" //42 - B
+            ,
+            "C" //43 - C
+            ,
+            "D" //44 - D
+            ,
+            "E" //45 - E
+            ,
+            "F" //46 - F
+            ,
+            "G" //47 - G
+            ,
+            "H" //48 - H
+            ,
+            "I" //49 - I
+            ,
+            "J" //4A - J
+            ,
+            "K" //4B - K
+            ,
+            "L" //4C - L
+            ,
+            "M" //4D - M
+            ,
+            "N" //4E - N
+            ,
+            "O" //4F - O
+            ,
+            "P" //50 - P
+            ,
+            "Q" //51 - Q
+            ,
+            "R" //52 - R
+            ,
+            "S" //53 - S
+            ,
+            "T" //54 - T
+            ,
+            "U" //55 - U
+            ,
+            "V" //56 - V
+            ,
+            "W" //57 - W
+            ,
+            "X" //58 - X
+            ,
+            "Y" //59 - Y
+            ,
+            "Z" //5A - Z
+            ,
+            "" //5B - VK_LWIN
+            ,
+            "" //5C - VK_RWIN
+            ,
+            "" //5D - VK_APPS
+            ,
+            "" //5E
+            ,
+            "" //5F - VK_SLEEP
+            ,
+            "[4684] 0" //60 - VK_NUMPAD0
+            ,
+            "[4684] 1" //61 - VK_NUMPAD1
+            ,
+            "[4684] 2" //62 - VK_NUMPAD2
+            ,
+            "[4684] 3" //63 - VK_NUMPAD3
+            ,
+            "[4684] 4" //64 - VK_NUMPAD4
+            ,
+            "[4684] 5" //65 - VK_NUMPAD5
+            ,
+            "[4684] 6" //66 - VK_NUMPAD6
+            ,
+            "[4684] 7" //67 - VK_NUMPAD7
+            ,
+            "[4684] 8" //68 - VK_NUMPAD8
+            ,
+            "[4684] 9" //69 - VK_NUMPAD9
+            ,
+            "*" //6A - VK_MULTIPLY
+            ,
+            "+" //6B - VK_ADD
+            ,
+            "\\" //6C - VK_SEPARATOR
+            ,
+            "-" //6D - VK_SUBTRACT
+            ,
+            "." //6E - VK_DECIMAL
+            ,
+            "/" //6F - VK_DIVIDE
+            ,
+            "F1" //70 - VK_F1
+            ,
+            "F2" //71 - VK_F2
+            ,
+            "F3" //72 - VK_F3
+            ,
+            "F4" //73 - VK_F4
+            ,
+            "F5" //74 - VK_F5
+            ,
+            "F6" //75 - VK_F6
+            ,
+            "F7" //76 - VK_F7
+            ,
+            "F8" //77 - VK_F8
+            ,
+            "F9" //78 - VK_F9
+            ,
+            "F10" //79 - VK_F10
+            ,
+            "F11" //7A - VK_F11
+            ,
+            "F12" //7B - VK_F12
+            ,
+            "F13" //7C - VK_F13
+            ,
+            "F14" //7D - VK_F14
+            ,
+            "F15" //7E - VK_F15
+            ,
+            "F16" //7F - VK_F16
+            ,
+            "F17" //80 - VK_F17
+            ,
+            "F18" //81 - VK_F18
+            ,
+            "F19" //82 - VK_F19
+            ,
+            "F20" //83 - VK_F20
+            ,
+            "F21" //84 - VK_F21
+            ,
+            "F22" //85 - VK_F22
+            ,
+            "F23" //86 - VK_F23
+            ,
+            "F24" //87 - VK_F24
+            ,
+            "" //88
+            ,
+            "" //89
+            ,
+            "" //8A
+            ,
+            "" //8B
+            ,
+            "" //8C
+            ,
+            "" //8D
+            ,
+            "" //8E
+            ,
+            "" //8F
+            ,
+            "[4677]" //90 - VK_NUMLOCK
+            ,
+            "[4679]" //91 - VK_SCROLL
+            ,
+            "" //92
+            ,
+            "" //93
+            ,
+            "" //94
+            ,
+            "" //95
+            ,
+            "" //96
+            ,
+            "" //97
+            ,
+            "" //98
+            ,
+            "" //99
+            ,
+            "" //9A
+            ,
+            "" //9B
+            ,
+            "" //9C
+            ,
+            "" //9D
+            ,
+            "" //9E
+            ,
+            "" //9F
+            ,
+            "[4659]" //A0 - VK_LSHIFT
+            ,
+            "[4664]" //A1 - VK_RSHIFT
+            ,
+            "[4660]" //A2 - VK_LCONTROL
+            ,
+            "[4663]" //A3 - VK_RCONTROL
+            ,
+            "[4661]" //A4 - VK_LMENU
+            ,
+            "[4662]" //A5 - VK_RMENU
+            ,
+            "" //A6
+            ,
+            "" //A7
+            ,
+            "" //A8
+            ,
+            "" //A9
+            ,
+            "" //AA
+            ,
+            "" //AB
+            ,
+            "" //AC
+            ,
+            "" //AD
+            ,
+            "" //AE
+            ,
+            "" //AF
+            ,
+            "" //B0
+            ,
+            "" //B1
+            ,
+            "" //B2
+            ,
+            "" //B3
+            ,
+            "" //B4
+            ,
+            "" //B5
+            ,
+            "" //B6
+            ,
+            "" //B7
+            ,
+            "" //B8
+            ,
+            "" //B9
+            ,
+            ";" //BA - ";"
+            ,
+            "+" //BB - "+"
+            ,
+            "," //BC - ","
+            ,
+            "-" //BD - "-"
+            ,
+            "." //BE - "."
+            ,
+            "/" //BF - "/"
+            ,
+            "~" //C0 - "~"
+            ,
+            "" //C1
+            ,
+            "" //C2
+            ,
+            "" //C3
+            ,
+            "" //C4
+            ,
+            "" //C5
+            ,
+            "" //C6
+            ,
+            "" //C7
+            ,
+            "" //C8
+            ,
+            "" //C9
+            ,
+            "" //CA
+            ,
+            "" //CB
+            ,
+            "" //CC
+            ,
+            "" //CD
+            ,
+            "" //CE
+            ,
+            "" //CF
+            ,
+            "" //D0
+            ,
+            "" //D1
+            ,
+            "" //D2
+            ,
+            "" //D3
+            ,
+            "" //D4
+            ,
+            "" //D5
+            ,
+            "" //D6
+            ,
+            "" //D7
+            ,
+            "" //D8
+            ,
+            "" //D9
+            ,
+            "" //DA
+            ,
+            "[" //DB - "["
+            ,
+            "\"" //DC - "\"
+            ,
+            "]" //DD - "]"
+            ,
+            "'" //DE - "'"
+            ,
+            "" //DF
+            ,
+            "" //E0
+            ,
+            "" //E1
+            ,
+            "\\" //E2 - "\"
+            ,
+            "" //E3
+            ,
+            "" //E4
+            ,
+            "" //E5
+            ,
+            "" //E6
+            ,
+            "" //E7
+            ,
+            "" //E8
+            ,
+            "" //E9
+            ,
+            "" //EA
+            ,
+            "" //EB
+            ,
+            "" //EC
+            ,
+            "" //ED
+            ,
+            "" //EE
+            ,
+            "" //EF
+            ,
+            "" //F0
+            ,
+            "" //F1
+            ,
+            "" //F2
+            ,
+            "" //F3
+            ,
+            "" //F4
+            ,
+            "" //F5
+            ,
+            "" //F6
+            ,
+            "" //F7
+            ,
+            "" //F8
+            ,
+            "" //F9
+            ,
+            "" //FA
+            ,
+            "" //FB
+            ,
+            "" //FC
+            ,
+            "" //FD
+            ,
+            "" //FE
+        };
+
+        memcpy(m_keyNames, s_keyNames, KEY_COUNT * sizeof(char*));
+    }
+
+    void InputAdapter::InitializeX360Names()
+    {
+        const char* s_buttonNames[JOY_MAX_BUT] =
+        {
+            "#-[4631]",
+            "#-[4632]",
+            "#-[4633]",
+            "#-[4634]",
+            "#-[4635]",
+            "#-[4636]",
+            "#-[4644]",
+            "#-[4643]",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+        };
+
+        memcpy(m_X360ButtonNames, s_buttonNames, JOY_MAX_BUT * sizeof(char*));
+
+        const char* s_axisNames[JOY_MAX_AXES][2] =
+        {
+            {"#-[4623]", "#-[4624]"},
+            {"#-[4626]", "#-[4625]"},
+            {"#-[4637]", "#-[4637]"},
+            {"#-[4627]", "#-[4628]"},
+            {"#-[4630]", "#-[4629]"},
+            {"#-[4638]", "#-[4638]"}
+        };
+
+        memcpy(m_X360AxisNames, s_axisNames, JOY_MAX_AXES * 2 * sizeof(char*));
+    }
+
+    void InputAdapter::InitializeGenericNames()
+    {
+        // Button names for generic controller
+        static constexpr std::array<const char*, JOY_MAX_BUT> kButtonNames = {
+            "#-[4646] 1", "#-[4646] 2", "#-[4646] 3", "#-[4646] 4",
+            "#-[4646] 5", "#-[4646] 6", "#-[4646] 7", "#-[4646] 8",
+            "#-[4646] 9", "#-[4646] 10", "#-[4646] 11", "#-[4646] 12",
+            "#-[4646] 13", "#-[4646] 14", "#-[4646] 15", "#-[4646] 16",
+            "#-[4646] 17", "#-[4646] 18", "#-[4646] 19", "#-[4646] 20",
+            "#-[4646] 21", "#-[4646] 22", "#-[4646] 23", "#-[4646] 24",
+            "#-[4646] 25", "#-[4646] 26", "#-[4646] 27", "#-[4646] 28",
+            "#-[4646] 29", "#-[4646] 30", "#-[4646] 31", "#-[4646] 32"
+        };
+
+        // Axis names for generic controller (Negative/Positive)
+        static const std::array<std::array<const char*, 2>, JOY_MAX_AXES> kAxisNames = {
+            {
+                {"#-[4645] 1(-)", "#-[4645] 1(+)"}, // Axis 1
+                {"#-[4645] 2(-)", "#-[4645] 2(+)"}, // Axis 2
+                {"#-[4645] 3(-)", "#-[4645] 3(+)"}, // Axis 3
+                {"#-[4645] 4(-)", "#-[4645] 4(+)"}, // Axis 4
+                {"#-[4645] 5(-)", "#-[4645] 5(+)"}, // Axis 5
+                {"#-[4645] 6(-)", "#-[4645] 6(+)"}, // Axis 6
+            }
+        };
+        std::copy(kButtonNames.begin(), kButtonNames.end(), m_GenericButtonNames);
+        for (size_t i = 0; i < JOY_MAX_AXES; ++i)
+        {
+            std::copy(kAxisNames[i].begin(), kAxisNames[i].end(), m_GenericAxisNames[i]);
+        }
+    }
+
     void InputAdapter::CopyInputMapping()
     {
-        memcpy(m_inputMappingTemporary, m_inputMapping, sizeof(m_inputMapping));
+        memcpy(m_inputMappingTemporary, m_inputMapping, JOY_MAX_COUNT * MAX_ACTIONS * sizeof(InputValue));
     }
 
     void InputAdapter::SaveInputMapping()
     {
-        memcpy(m_inputMapping, m_inputMappingTemporary, sizeof(m_inputMappingTemporary));
+        memcpy(m_inputMapping, m_inputMappingTemporary, JOY_MAX_COUNT * MAX_ACTIONS * sizeof(InputValue));
     }
 
     void InputAdapter::ResetToDefaultControls()
     {
-        memset(m_inputMappingTemporary, 0, sizeof(m_inputMappingTemporary));
+        memset(m_inputMappingTemporary, 0, MAX_ACTIONS * JOY_MAX_COUNT * sizeof(InputValue));
 
-        for (u32 playerIndex = 0; playerIndex < JOY_MAX_COUNT; ++playerIndex)
+        m_inputMappingTemporary[0][ActionBubbleQuit].inputValue = 0x70;
+        m_inputMappingTemporary[0][ActionBubbleQuit].inputType = Keyboard;
+        m_inputMappingTemporary[1][ActionBubbleQuit].inputValue = 0x71;
+        m_inputMappingTemporary[1][ActionBubbleQuit].inputType = Keyboard;
+        m_inputMappingTemporary[2][ActionBubbleQuit].inputValue = 0x72;
+        m_inputMappingTemporary[2][ActionBubbleQuit].inputType = Keyboard;
+        m_inputMappingTemporary[3][ActionBubbleQuit].inputValue = 0x73;
+        m_inputMappingTemporary[3][ActionBubbleQuit].inputType = Keyboard;
+
+
+        uint32_t controllerCount = getGamePadCount();
+        for (u32 i = 0; i < controllerCount; i++)
         {
-            for (const auto& binding : kControllerDefaultBindings)
-            {
-                InputValue& destination = m_inputMappingTemporary[playerIndex][binding.action][0];
-                ApplyControllerDefaultBinding(destination, binding, playerIndex);
-            }
-        }
+            m_inputMappingTemporary[i][ActionUp].inputValue = 1; //left stick Y
+            m_inputMappingTemporary[i][ActionUp].inputType = X360Axis;
+            m_inputMappingTemporary[i][ActionUp].axisPosition = 1; //+
+            m_inputMappingTemporary[i][ActionUp].inputIndex = i;
 
+            m_inputMappingTemporary[i][ActionDown].inputValue = 1; //left stick Y
+            m_inputMappingTemporary[i][ActionDown].inputType = X360Axis;
+            m_inputMappingTemporary[i][ActionDown].axisPosition = 0; //-
+            m_inputMappingTemporary[i][ActionDown].inputIndex = i;
+
+            m_inputMappingTemporary[i][ActionLeft].inputValue = 0; //left stick X
+            m_inputMappingTemporary[i][ActionLeft].inputType = X360Axis;
+            m_inputMappingTemporary[i][ActionLeft].axisPosition = 0; //-
+            m_inputMappingTemporary[i][ActionLeft].inputIndex = i;
+
+            m_inputMappingTemporary[i][ActionRight].inputValue = 0; //left stick X
+            m_inputMappingTemporary[i][ActionRight].inputType = X360Axis;
+            m_inputMappingTemporary[i][ActionRight].axisPosition = 1; //+
+            m_inputMappingTemporary[i][ActionRight].inputIndex = i;
+
+            m_inputMappingTemporary[i][ActionJump].inputValue = 0; //A
+            m_inputMappingTemporary[i][ActionJump].inputType = X360Button;
+            m_inputMappingTemporary[i][ActionJump].inputIndex = i;
+
+            m_inputMappingTemporary[i][ActionHit].inputValue = 2; //X
+            m_inputMappingTemporary[i][ActionHit].inputType = X360Button;
+            m_inputMappingTemporary[i][ActionHit].inputIndex = i;
+
+            m_inputMappingTemporary[i][ActionSprint].inputValue = 5;
+            m_inputMappingTemporary[i][ActionSprint].inputType = X360Axis;
+            m_inputMappingTemporary[i][ActionSprint].axisPosition = 1; //+
+            m_inputMappingTemporary[i][ActionSprint].inputIndex = i;
+
+            m_inputMappingTemporary[i][ActionBack].inputValue = 1; //back
+            m_inputMappingTemporary[i][ActionBack].inputType = X360Button;
+            m_inputMappingTemporary[i][ActionBack].inputIndex = i;
+
+            m_inputMappingTemporary[i][ActionBubbleQuit].inputValue = 6; //back
+            m_inputMappingTemporary[i][ActionBubbleQuit].inputType = X360Button;
+            m_inputMappingTemporary[i][ActionBubbleQuit].inputIndex = i;
+
+            m_inputMappingTemporary[i][ActionShowMenu].inputValue = 7; //start
+            m_inputMappingTemporary[i][ActionShowMenu].inputType = X360Button;
+            m_inputMappingTemporary[i][ActionShowMenu].inputIndex = i;
+        }
+        if (controllerCount == 0)
+        {
+            //no X360 pads were found
+            //use default keyboard controls for player0
 #ifdef ITF_WINDOWS
-        for (const auto& binding : kKeyboardDefaultBindings)
-        {
-            InputValue& destination = m_inputMappingTemporary[0][binding.action][1];
-            ApplyKeyboardDefaultBinding(destination, binding.virtualKey);
+            m_inputMappingTemporary[0][ActionUp].inputValue = VK_UP;
+            m_inputMappingTemporary[0][ActionUp].inputType = Keyboard;
+
+            m_inputMappingTemporary[0][ActionDown].inputValue = VK_DOWN;
+            m_inputMappingTemporary[0][ActionDown].inputType = Keyboard;
+
+            m_inputMappingTemporary[0][ActionLeft].inputValue = VK_LEFT;
+            m_inputMappingTemporary[0][ActionLeft].inputType = Keyboard;
+
+            m_inputMappingTemporary[0][ActionRight].inputValue = VK_RIGHT;
+            m_inputMappingTemporary[0][ActionRight].inputType = Keyboard;
+
+            m_inputMappingTemporary[0][ActionJump].inputValue = VK_SPACE;
+            m_inputMappingTemporary[0][ActionJump].inputType = Keyboard;
+
+            m_inputMappingTemporary[0][ActionHit].inputValue = 'S';
+            m_inputMappingTemporary[0][ActionHit].inputType = Keyboard;
+
+            m_inputMappingTemporary[0][ActionSprint].inputValue = VK_LSHIFT;
+            m_inputMappingTemporary[0][ActionSprint].inputType = Keyboard;
+
+            m_inputMappingTemporary[0][ActionBack].inputValue = VK_BACK;
+            m_inputMappingTemporary[0][ActionBack].inputType = Keyboard;
+
+            m_inputMappingTemporary[0][ActionShowMenu].inputValue = VK_ESCAPE;
+            m_inputMappingTemporary[0][ActionShowMenu].inputType = Keyboard;
+#endif
         }
-#endif // ITF_WINDOWS
     }
 
 #ifdef ITF_WINDOWS
@@ -859,196 +1621,234 @@ namespace
 #endif
     bbool InputAdapter::UpdateActionForButton(u32 player, ActionType action, JoyButton_Common button)
     {
-        bool hasDoublePress = false;
-        bool hasJustPressed = false;
-        bool hasPressed = false;
-        bool hasJustReleased = false;
+        InputValue val = m_inputMapping[player][action];
 
-        for (u32 binding = 0; binding < MAX_BINDINGS_PER_ACTION; ++binding)
+        if (val.inputType == Keyboard)
         {
-            const InputValue& val = m_inputMapping[player][action][binding];
-            if (!IsBindingConfigured(val))
-                continue;
-
-            PressStatus status = Released;
-
-            switch (val.inputType)
-            {
-            case Keyboard:
-                if (val.inputValue < KEY_COUNT)
-                    status = m_keyStatus[val.inputValue];
-                break;
-            case ControllerButton:
-                if (val.inputValue < JOY_MAX_BUT)
-                    status = GetButtonStatus(val);
-                break;
-            case ControllerAxis:
-                if (val.inputValue < JOY_MAX_AXES)
-                {
-                    const f32 axisValue = GetAxe(val);
-                    if ((val.axisPosition == 0 && axisValue <= -0.65f) ||
-                        (val.axisPosition == 1 && axisValue >= 0.65f))
-                    {
-                        status = Pressed;
-                    }
-                }
-                break;
-            default:
-                break;
-            }
-
-            switch (status)
-            {
-            case Double_Press:
-                hasDoublePress = true;
-                break;
-            case JustPressed:
-                hasJustPressed = true;
-                break;
-            case Pressed:
-                hasPressed = true;
-                break;
-            case JustReleased:
-                hasJustReleased = true;
-                break;
-            default:
-                break;
-            }
+            m_buttons[player][button] = m_keyStatus[val.inputValue];
         }
-
-        PressStatus finalStatus = Released;
-        if (hasDoublePress)
-            finalStatus = Double_Press;
-        else if (hasJustPressed)
-            finalStatus = JustPressed;
-        else if (hasPressed)
-            finalStatus = Pressed;
-        else if (hasJustReleased)
-            finalStatus = JustReleased;
-
+        else if (val.inputType == X360Button || val.inputType == GenericButton)
+        {
+            m_buttons[player][button] = GetButtonStatus(val);
+            if (m_buttons[player][button] == Released && player == 0 && action == ActionShowMenu)
+            {
 #ifdef ITF_WINDOWS
-        if (player == 0 && action == ActionShowMenu && finalStatus == Released)
-        {
-            finalStatus = m_keyStatus[VK_ESCAPE];
-        }
+                m_buttons[player][button] = m_keyStatus[VK_ESCAPE];
 #endif
+            }
+        }
+        else if (val.inputType == X360Axis || val.inputType == GenericAxis)
+        {
+            f32 axisValue = GetAxe(val);
+            if (axisValue < -.65f && val.axisPosition == 0)
+            {
+                m_buttons[player][button] = Pressed;
+            }
+            if (axisValue > .65f && val.axisPosition == 1)
+            {
+                m_buttons[player][button] = Pressed;
+            }
+        }
 
-        m_buttons[player][button] = finalStatus;
-        return finalStatus == JustPressed;
+        return m_buttons[player][button] == JustPressed;
     }
 
     bbool InputAdapter::UpdateActionForAxis(u32 player, ActionType action, JoyAxis_t axis, f32 axisValue)
     {
-        const f32 previousValue = m_axes[player][axis];
-        bool hasAnalogValue = false;
-        f32 bestAnalogValue = 0.0f;
-        bool digitalSet = false;
-        f32 digitalValue = 0.0f;
+        InputValue val = m_inputMapping[player][action];
 
-        for (u32 binding = 0; binding < MAX_BINDINGS_PER_ACTION; ++binding)
+        if (val.inputType == Keyboard)
         {
-            const InputValue& val = m_inputMapping[player][action][binding];
-            if (!IsBindingConfigured(val))
-                continue;
-
-            switch (val.inputType)
+            if ((m_keyStatus[val.inputValue] == JustPressed || m_keyStatus[val.inputValue] == Pressed) &&
+                m_axesPressTime[player][axis] > m_keyPressTime[val.inputValue])
             {
-            case Keyboard:
-                if (m_inMenu)
-                    break;
-                if (val.inputValue < KEY_COUNT)
-                {
-                    const PressStatus keyStatus = m_keyStatus[val.inputValue];
-                    if (keyStatus == JustPressed || keyStatus == Pressed)
-                    {
-                        if (m_axesPressTime[player][axis] > m_keyPressTime[val.inputValue])
-                        {
-                            m_axesPressTime[player][axis] = m_keyPressTime[val.inputValue];
-                        }
-                        digitalSet = true;
-                        digitalValue = axisValue;
-                    }
-                }
-                break;
-            case ControllerButton:
-                if (IsButtonPressed(val))
-                {
-                    digitalSet = true;
-                    digitalValue = axisValue;
-                }
-                break;
-            case ControllerAxis:
-                if (val.inputValue < JOY_MAX_AXES)
-                {
-                    const f32 value = GetAxe(val);
-                    if (!hasAnalogValue || fabsf(value) > fabsf(bestAnalogValue))
-                    {
-                        bestAnalogValue = value;
-                        hasAnalogValue = true;
-                    }
-                }
-                break;
-            default:
-                break;
+                m_axesPressTime[player][axis] = m_keyPressTime[val.inputValue];
+                m_axes[player][axis] = axisValue;
             }
         }
-
-        const f32 analogThreshold = 0.1f;
-        f32 finalValue = previousValue;
-
-        if (hasAnalogValue && fabsf(bestAnalogValue) >= analogThreshold)
+        else if (val.inputType == X360Button || val.inputType == GenericButton)
         {
-            finalValue = bestAnalogValue;
-        }
-
-        if (digitalSet)
-        {
-            finalValue = digitalValue;
-        }
-        else if (!hasAnalogValue || fabsf(bestAnalogValue) < analogThreshold)
-        {
-            // Only clear if we were contributing on this side or already at rest
-            if ((axisValue > 0.0f && finalValue > 0.0f) ||
-                (axisValue < 0.0f && finalValue < 0.0f) ||
-                finalValue == 0.0f)
+            if (IsButtonPressed(val))
             {
-                finalValue = 0.0f;
+                m_axes[player][axis] = axisValue;
             }
         }
+        else if (val.inputType == X360Axis || val.inputType == GenericAxis)
+        {
+            m_axes[player][axis] = GetAxe(val);
+        }
 
-        m_axes[player][axis] = finalValue;
-        return (fabsf(finalValue) >= .65f);
+        return (fabsf(m_axes[player][axis]) >= .65f);
+    }
+
+    const String& InputAdapter::GetInputString(const String& x360Button)
+    {
+        static const String sprint = "X360_BUTTON_RT";
+        static const String atack = "X360_BUTTON_X";
+        static const String jump = "X360_BUTTON_A";
+        static const String back = "X360_BUTTON_BACK";
+        static const String stick = "X360_STICK";
+        LocalisationId idd;
+        idd.value = 4682;
+        static const String stick_keys = LOCALISATIONMANAGER->getText(idd);
+
+        if (x360Button == sprint)
+        {
+            return GetInputString(0, ActionSprint);
+        }
+        else if (x360Button == atack)
+        {
+            return GetInputString(0, ActionHit);
+        }
+        else if (x360Button == jump)
+        {
+            return GetInputString(0, ActionJump);
+        }
+        else if (x360Button == back)
+        {
+            return GetInputString(0, ActionBack);
+        }
+        else if (x360Button == stick)
+        {
+            return stick_keys;
+        }
+
+        return String::emptyString;
+    }
+
+    const String& InputAdapter::GetInputString(u32 player, u32 action)
+    {
+        m_inputString.setText("");
+
+        switch (m_inputMappingTemporary[player][action].inputType)
+        {
+        case Keyboard:
+            m_inputString.setText(m_keyNames[m_inputMappingTemporary[player][action].inputValue]);
+            break;
+        case X360Button:
+            m_inputString.setText(m_X360ButtonNames[m_inputMappingTemporary[player][action].inputValue]);
+            break;
+        case X360Axis:
+            m_inputString.setText(
+                m_X360AxisNames[m_inputMappingTemporary[player][action].inputValue][m_inputMappingTemporary[player][
+                    action].axisPosition]);
+            break;
+        case GenericButton:
+            m_inputString.setText(m_GenericButtonNames[m_inputMappingTemporary[player][action].inputValue]);
+            break;
+        case GenericAxis:
+            m_inputString.setText(
+                m_GenericAxisNames[m_inputMappingTemporary[player][action].inputValue][m_inputMappingTemporary[player][
+                    action].axisPosition]);
+            break;
+        }
+
+        if (m_inputString.cStr()[0] == '#')
+        {
+            m_inputString.replace('#', char('1' + m_inputMappingTemporary[player][action].inputIndex));
+        }
+
+        return ValidateInputString();
     }
 
     void InputAdapter::SetInputValue(u32 player, u32 action, InputValue& value)
     {
-        SetInputValue(player, action, 0, value);
-    }
-
-    void InputAdapter::SetInputValue(u32 player, u32 action, u32 bindingIndex, InputValue& value)
-    {
-        if (bindingIndex >= MAX_BINDINGS_PER_ACTION)
-            bindingIndex = 0;
-
         if (value.inputType != Keyboard)
         {
-            value.inputType = GetControllerType(value);
+#ifdef ITF_USE_SDL
+            if (value.inputType == X360Button)
+                value.inputType = GenericButton;
+            else if (value.inputType == X360Axis)
+                value.inputType = GenericAxis;
+#endif
         }
+        value.inputType = GetControllerType(value);
         for (u32 playerIndex = 0; playerIndex < JOY_MAX_COUNT; ++playerIndex)
         {
-            for (u32 actionIndex = 0; actionIndex < MAX_ACTIONS; ++actionIndex)
+            for (u32 actionIndex = ActionBubbleQuit; actionIndex < MAX_ACTIONS; ++actionIndex)
             {
-                for (u32 binding = 0; binding < MAX_BINDINGS_PER_ACTION; ++binding)
+                if (!memcmp(&value, &m_inputMappingTemporary[playerIndex][actionIndex], sizeof(InputValue)))
                 {
-                    if (!memcmp(&value, &m_inputMappingTemporary[playerIndex][actionIndex][binding], sizeof(InputValue)))
-                    {
-                        memset(&m_inputMappingTemporary[playerIndex][actionIndex][binding], 0, sizeof(InputValue));
-                    }
+                    memset(&m_inputMappingTemporary[playerIndex][actionIndex], 0, sizeof(InputValue));
                 }
             }
         }
 
-        m_inputMappingTemporary[player][action][bindingIndex] = value;
+        m_inputMappingTemporary[player][action] = value;
+    }
+
+    const String& InputAdapter::GetInputString(u32 iconType)
+    {
+        m_inputString.setText("");
+        if (!GAMEMANAGER->isPlayableScreen())
+        {
+#ifdef ITF_WINDOWS
+            switch (iconType)
+            {
+            case ContextIconType_Select:
+                m_inputString.setText(m_keyNames[VK_RETURN]);
+                break;
+            case ContextIconType_Back:
+                m_inputString.setText(m_keyNames[VK_ESCAPE]);
+                break;
+            case ContextIconType_Delete:
+                m_inputString.setText(m_keyNames[VK_DELETE]);
+                break;
+            case ContextIconType_RayHome:
+                m_inputString.setText(m_keyNames[VK_ESCAPE]);
+                break;
+            }
+#endif
+        }
+        else
+        {
+            u32 action = 0;
+            switch (iconType)
+            {
+            case ContextIconType_Select:
+                action = ActionJump;
+                break;
+            case ContextIconType_Back:
+                action = ActionBack;
+                break;
+            case ContextIconType_Delete:
+                action = ActionDelete;
+                break;
+            case ContextIconType_RayHome:
+                action = ActionHit;
+                break;
+            }
+
+            switch (m_inputMappingTemporary[0][action].inputType)
+            {
+            case Keyboard:
+                m_inputString.setText(m_keyNames[m_inputMappingTemporary[0][action].inputValue]);
+                break;
+            case X360Button:
+                m_inputString.setText(m_X360ButtonNames[m_inputMappingTemporary[0][action].inputValue]);
+                break;
+            case X360Axis:
+                m_inputString.setText(
+                    m_X360AxisNames[m_inputMappingTemporary[0][action].inputValue][m_inputMappingTemporary[0][action].
+                        axisPosition]);
+                break;
+            case GenericButton:
+                m_inputString.setText(m_GenericButtonNames[m_inputMappingTemporary[0][action].inputValue]);
+                break;
+            case GenericAxis:
+                m_inputString.setText(
+                    m_GenericAxisNames[m_inputMappingTemporary[0][action].inputValue][m_inputMappingTemporary[0][action]
+                        .axisPosition]);
+                break;
+            }
+
+            if (m_inputString.cStr()[0] == '#')
+            {
+                m_inputString.replace('#', char('1' + m_inputMappingTemporary[0][action].inputIndex));
+            }
+        }
+
+        return ValidateInputString();
     }
 
     void InputAdapter::ResetInputState()
@@ -1062,32 +1862,32 @@ namespace
     {
         for (u32 playerIndex = 0; playerIndex < JOY_MAX_COUNT; ++playerIndex)
         {
-            if (CanUseInputValue(m_inputMapping[playerIndex][ActionJump][0]))
+            if (CanUseInputValue(m_inputMapping[playerIndex][ActionJump]))
             {
                 UpdateActionForButton(playerIndex, ActionJump, m_joyButton_A);
             }
 
-            if (CanUseInputValue(m_inputMapping[playerIndex][ActionBack][0]))
+            if (CanUseInputValue(m_inputMapping[playerIndex][ActionBack]))
             {
                 UpdateActionForButton(playerIndex, ActionBack, m_joyButton_B);
             }
 
-            if (CanUseInputValue(m_inputMapping[playerIndex][ActionLeft][0]))
+            if (CanUseInputValue(m_inputMapping[playerIndex][ActionLeft]))
             {
                 UpdateActionForAxis(playerIndex, ActionLeft, m_joyStickLeft_X, -1);
             }
 
-            if (CanUseInputValue(m_inputMapping[playerIndex][ActionRight][0]))
+            if (CanUseInputValue(m_inputMapping[playerIndex][ActionRight]))
             {
                 UpdateActionForAxis(playerIndex, ActionRight, m_joyStickLeft_X, 1);
             }
 
-            if (CanUseInputValue(m_inputMapping[playerIndex][ActionUp][0]))
+            if (CanUseInputValue(m_inputMapping[playerIndex][ActionUp]))
             {
                 UpdateActionForAxis(playerIndex, ActionUp, m_joyStickLeft_Y, 1);
             }
 
-            if (CanUseInputValue(m_inputMapping[playerIndex][ActionDown][0]))
+            if (CanUseInputValue(m_inputMapping[playerIndex][ActionDown]))
             {
                 UpdateActionForAxis(playerIndex, ActionDown, m_joyStickLeft_Y, -1);
             }
@@ -1137,24 +1937,6 @@ namespace
 
     void InputAdapter::UpdateInputForGame()
     {
-        auto hasAxisBinding = [&](u32 player, ActionType action) -> bool
-        {
-            for (u32 binding = 0; binding < MAX_BINDINGS_PER_ACTION; ++binding)
-            {
-                if (IsAxisLikeBinding(m_inputMapping[player][action][binding]))
-                    return true;
-            }
-            return false;
-        };
-
-        auto callAxisOrButton = [&](u32 player, ActionType action, JoyAxis_t axis, f32 axisValue,
-            JoyButton_Common fallbackButton) -> bbool
-        {
-            if (hasAxisBinding(player, action))
-                return UpdateActionForAxis(player, action, axis, axisValue);
-            return UpdateActionForButton(player, action, fallbackButton);
-        };
-
         for (u32 playerIndex = 0; playerIndex < JOY_MAX_COUNT; ++playerIndex)
         {
             if (m_connectedPlayers[playerIndex] == ePlaying || m_connectedPlayers[playerIndex] == eBubble)
@@ -1164,18 +1946,55 @@ namespace
                 pressed |= UpdateActionForButton(playerIndex, ActionHit, m_joyButton_X);
                 pressed |= UpdateActionForButton(playerIndex, ActionBack, m_joyButton_B);
                 pressed |= UpdateActionForButton(playerIndex, ActionShowMenu, m_joyButton_Start);
-                callAxisOrButton(playerIndex, ActionLeft, m_joyStickLeft_X, -1, m_joyButton_DPadL);
-                callAxisOrButton(playerIndex, ActionRight, m_joyStickLeft_X, 1, m_joyButton_DPadR);
-                callAxisOrButton(playerIndex, ActionDown, m_joyStickLeft_Y, -1, m_joyButton_DPadD);
-                callAxisOrButton(playerIndex, ActionUp, m_joyStickLeft_Y, 1, m_joyButton_DPadU);
+                (m_inputMapping[playerIndex][ActionLeft].inputType == X360Axis || m_inputMapping[playerIndex][
+                        ActionLeft].inputType == GenericAxis || m_inputMapping[playerIndex][ActionLeft].inputType ==
+                    Keyboard)
+                    ? UpdateActionForAxis(playerIndex, ActionLeft, m_joyStickLeft_X, -1)
+                    : UpdateActionForButton(playerIndex, ActionLeft, m_joyButton_DPadL);
+                (m_inputMapping[playerIndex][ActionRight].inputType == X360Axis || m_inputMapping[playerIndex][
+                        ActionRight].inputType == GenericAxis || m_inputMapping[playerIndex][ActionRight].inputType ==
+                    Keyboard)
+                    ? UpdateActionForAxis(playerIndex, ActionRight, m_joyStickLeft_X, 1)
+                    : UpdateActionForButton(playerIndex, ActionRight, m_joyButton_DPadR);
+                (m_inputMapping[playerIndex][ActionDown].inputType == X360Axis || m_inputMapping[playerIndex][
+                        ActionDown].inputType == GenericAxis || m_inputMapping[playerIndex][ActionDown].inputType ==
+                    Keyboard)
+                    ? UpdateActionForAxis(playerIndex, ActionDown, m_joyStickLeft_Y, -1)
+                    : UpdateActionForButton(playerIndex, ActionDown, m_joyButton_DPadD);
+                (m_inputMapping[playerIndex][ActionUp].inputType == X360Axis || m_inputMapping[playerIndex][ActionUp].
+                    inputType == GenericAxis || m_inputMapping[playerIndex][ActionUp].inputType == Keyboard)
+                    ? UpdateActionForAxis(playerIndex, ActionUp, m_joyStickLeft_Y, 1)
+                    : UpdateActionForButton(playerIndex, ActionUp, m_joyButton_DPadU);
                 UpdateActionForAxis(playerIndex, ActionSprint, m_joyTrigger_Right, 1);
 
                 if (pressed && m_connectedPlayers[playerIndex] == eBubble)
                 {
                     m_connectedPlayers[playerIndex] = ePlaying;
                 }
+#ifdef ITF_WINDOWS
+                if ((m_keyStatus[VK_LMENU] == Released && m_keyStatus[VK_RMENU] == Released &&
+                        m_keyStatus[VK_LCONTROL] == Released && m_keyStatus[VK_RCONTROL] == Released &&
+                        m_keyStatus[VK_LSHIFT] == Released && m_keyStatus[VK_RSHIFT] == Released) ||
+                    m_inputMapping[playerIndex][ActionBubbleQuit].inputType != Keyboard)
+                {
+                    if (UpdateActionForButton(playerIndex, ActionBubbleQuit, m_joyButton_Back))
+                    {
+                        if (m_connectedPlayers[playerIndex] == ePlaying)
+                        //if player press first time on Bubble/Quit button he will be in bubble state
+                        {
+                            m_connectedPlayers[playerIndex] = eBubble;
+                        }
+                        else if (m_connectedPlayers[playerIndex] == eBubble)
+                        //if player press second time on Bubble/Quit button he will be disconnected
+                        {
+                            m_connectedPlayers[playerIndex] = eNotConnected;
+                            setPadConnected(playerIndex, bfalse);
+                        }
+                    }
+                }
+#endif
             }
-            else
+            else //player should join on any pressed key/button/axis
             {
                 bbool pressed = bfalse;
 
@@ -1183,10 +2002,29 @@ namespace
                 pressed |= UpdateActionForButton(playerIndex, ActionHit, m_joyButton_X);
                 pressed |= UpdateActionForButton(playerIndex, ActionBack, m_joyButton_B);
                 pressed |= UpdateActionForButton(playerIndex, ActionShowMenu, m_joyButton_Start);
-                pressed |= callAxisOrButton(playerIndex, ActionLeft, m_joyStickLeft_X, -1, m_joyButton_DPadL);
-                pressed |= callAxisOrButton(playerIndex, ActionRight, m_joyStickLeft_X, 1, m_joyButton_DPadR);
-                pressed |= callAxisOrButton(playerIndex, ActionDown, m_joyStickLeft_Y, -1, m_joyButton_DPadD);
-                pressed |= callAxisOrButton(playerIndex, ActionUp, m_joyStickLeft_Y, 1, m_joyButton_DPadU);
+
+                pressed |= (m_inputMapping[playerIndex][ActionLeft].inputType == X360Axis || m_inputMapping[playerIndex]
+                               [ActionLeft].inputType == GenericAxis || m_inputMapping[playerIndex][ActionLeft].
+                               inputType == Keyboard)
+                               ? UpdateActionForAxis(playerIndex, ActionLeft, m_joyStickLeft_X, -1)
+                               : UpdateActionForButton(playerIndex, ActionLeft, m_joyButton_DPadL);
+                pressed |= (m_inputMapping[playerIndex][ActionRight].inputType == X360Axis || m_inputMapping[
+                               playerIndex][ActionRight].inputType == GenericAxis || m_inputMapping[playerIndex][
+                               ActionRight].inputType == Keyboard)
+                               ? UpdateActionForAxis(playerIndex, ActionRight, m_joyStickLeft_X, 1)
+                               : UpdateActionForButton(playerIndex, ActionRight, m_joyButton_DPadR);
+                pressed |= (m_inputMapping[playerIndex][ActionDown].inputType == X360Axis || m_inputMapping[playerIndex]
+                               [ActionDown].inputType == GenericAxis || m_inputMapping[playerIndex][ActionDown].
+                               inputType == Keyboard)
+                               ? UpdateActionForAxis(playerIndex, ActionDown, m_joyStickLeft_Y, -1)
+                               : UpdateActionForButton(playerIndex, ActionDown, m_joyButton_DPadD);
+                pressed |= (m_inputMapping[playerIndex][ActionUp].inputType == X360Axis || m_inputMapping[playerIndex][
+                                   ActionUp].inputType == GenericAxis || m_inputMapping[playerIndex][ActionUp].inputType
+                               ==
+                               Keyboard)
+                               ? UpdateActionForAxis(playerIndex, ActionUp, m_joyStickLeft_Y, 1)
+                               : UpdateActionForButton(playerIndex, ActionUp, m_joyButton_DPadU);
+
                 pressed |= UpdateActionForAxis(playerIndex, ActionSprint, m_joyTrigger_Right, 1);
 
                 if (pressed)
@@ -1194,6 +2032,7 @@ namespace
                     m_connectedPlayers[playerIndex] = eBubble;
                     setPadConnected(playerIndex, btrue);
 
+                    //reset buttons states to ignore first command
                     m_buttons[playerIndex][m_joyButton_A] = Released;
                     m_buttons[playerIndex][m_joyButton_X] = Released;
                     m_buttons[playerIndex][m_joyButton_B] = Released;
@@ -1205,7 +2044,6 @@ namespace
                 }
             }
         }
-
     }
 
     const String& InputAdapter::ValidateInputString()
@@ -1241,54 +2079,15 @@ namespace
         return output;
     }
 
-    const InputValue& InputAdapter::GetInputValue(u32 player, u32 action, u32 binding) const
+    const String& InputAdapter::GetKeyString(u32 key)
     {
-        if (binding >= MAX_BINDINGS_PER_ACTION)
-            binding = 0;
-        return m_inputMapping[player][action][binding];
+        m_inputString.setText(m_keyNames[key]);
+
+        return ValidateInputString();
     }
 
-    void InputAdapter::RecordPrimaryInputSource(u32 player, ControllerType source, const char* deviceName)
+    const InputValue& InputAdapter::GetInputValue(u32 player, u32 action) const
     {
-        if (player >= JOY_MAX_COUNT) return;
-        PadType padType = getPadType(player);
-        if (m_lastPrimaryInputType[player] != source || m_lastPrimaryPadType[player] != padType)
-        {
-            m_lastPrimaryInputType[player] = source;
-            m_lastPrimaryPadType[player] = padType;
-            const char* resolvedName = deviceName;
-            if (!resolvedName)
-                resolvedName = (source == Keyboard) ? "Keyboard" : "Controller";
-            OnPlayerPrimaryInputSourceChanged(player, source, padType, resolvedName);
-        }
-    }
-
-    void InputAdapter::UpdatePrimaryInputSources()
-    {
-        for (u32 player = 0; player < JOY_MAX_COUNT; ++player)
-        {
-            ControllerType controllerSource = ControllerButton;
-            const char* deviceName = nullptr;
-            const bool controllerActive = QueryPadActivity(player, controllerSource, deviceName);
-            bool keyboardActive = false;
-#ifdef ITF_WINDOWS
-            if (player == 0)
-            {
-                for (u32 key = 0; key < KEY_COUNT && !keyboardActive; ++key)
-                {
-                    auto st = m_keyStatus[key];
-                    if (st == JustPressed || st == Pressed) keyboardActive = true;
-                }
-            }
-#endif
-            if (controllerActive)
-            {
-                RecordPrimaryInputSource(player, controllerSource, deviceName);
-            }
-            else if (keyboardActive)
-            {
-                RecordPrimaryInputSource(player, Keyboard, "Keyboard");
-            }
-        }
+        return m_inputMapping[player][action];
     }
 } // namespace ITF

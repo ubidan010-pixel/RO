@@ -11771,11 +11771,6 @@ namespace ITF
         m_gameOptionManager.registerFloatOption(LAST_PLAY_TIME, 0.0f, 0.0f, FLT_MAX);
     }
 
-    void Ray_GameManager::registerPCKeyboardControllerSharingOption()
-    {
-        m_gameOptionManager.registerBoolOption(OPTION_PC_KEYBOARD_CONTROLLER_SHARING, btrue);
-    }
-
     void Ray_GameManager::registerAllGameOptions()
     {
         m_gameOptionManager.init();
@@ -11791,7 +11786,6 @@ namespace ITF
         registerSFXVolumeOption();
         registerIntensityOption();
         registerLastPlayTime();
-        registerPCKeyboardControllerSharingOption();
     }
 
     EHealthModifier Ray_GameManager::getHealthModifier() const
@@ -12057,16 +12051,6 @@ namespace ITF
         m_gameOptionManager.setListOptionIndex(OPTION_VIBRATIONS, enabled ? VibrationMode_On : VibrationMode_Off);
     }
 
-    bbool Ray_GameManager::IsKeyboardControllerSharingEnabled() const
-    {
-        return m_gameOptionManager.getBoolOption(OPTION_PC_KEYBOARD_CONTROLLER_SHARING);
-    }
-
-    void Ray_GameManager::setKeyboardControllerSharing(bbool enabled)
-    {
-        m_gameOptionManager.setListOptionIndex(OPTION_PC_KEYBOARD_CONTROLLER_SHARING, enabled);
-    }
-
     ///////////////////////////////////////////////////////////////////////////////////////////
     // OPTION MENU - SOUND OPTIONS
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -12144,11 +12128,6 @@ namespace ITF
     {
         i32 runMode = getRunButtonMode();
         LOG("[OptionMenu] Run Button Mode: %s (value: %d)", getRunButtonDisplayName(runMode), runMode);
-    }
-
-    void Ray_GameManager::applyPCKeyboardControllerSharingOption()
-    {
-        LOG("[OptionMenu] input mode Mode: (value: %d)",);
     }
 
     void Ray_GameManager::applyMurfyAssistOption()
@@ -12257,45 +12236,44 @@ namespace ITF
 
     void Ray_GameManager::onLoadOptionsComplete(Ray_GameOptionPersistence::Result result)
     {
-        switch (result)
-        {
-        case Ray_GameOptionPersistence::Result_LoadSuccess:
-            LOG("[GameOptions] Load completed successfully");
-            break;
-        case Ray_GameOptionPersistence::Result_LoadFailed:
-            LOG("[GameOptions] Load failed - using default options");
-            break;
-        case Ray_GameOptionPersistence::Result_LoadNotFound:
-            LOG("[GameOptions] No saved options found - using defaults");
-            break;
-        default:
-            LOG("[GameOptions] Unknown result - applying safe defaults");
-            break;
-        }
-
-        auto* gm = RAY_GAMEMANAGER;
-        gm->applyDisplayOptions();
-        gm->applyMasterVolumeOption();
-        gm->applyMusicVolumeOption();
-        gm->applySFXVolumeOption();
-        gm->applyPCKeyboardControllerSharingOption();
-
         if (result == Ray_GameOptionPersistence::Result_LoadSuccess)
         {
-            gm->applyLanguageOption();
-            gm->applyStartWithHeartOption();
-            gm->applyRunButtonOption();
-            gm->applyMurfyAssistOption();
-            gm->applyVibrationOption();
-            gm->applyIntensityOption();
+            LOG("[GameOptions] Load completed successfully");
+
+            RAY_GAMEMANAGER->applyDisplayOptions();
+            RAY_GAMEMANAGER->applyLanguageOption();
+            RAY_GAMEMANAGER->applyStartWithHeartOption();
+            RAY_GAMEMANAGER->applyRunButtonOption();
+            RAY_GAMEMANAGER->applyMurfyAssistOption();
+            RAY_GAMEMANAGER->applyVibrationOption();
+            RAY_GAMEMANAGER->applyMasterVolumeOption();
+            RAY_GAMEMANAGER->applyMusicVolumeOption();
+            RAY_GAMEMANAGER->applySFXVolumeOption();
+            RAY_GAMEMANAGER->applyIntensityOption();
         }
-        if (gm->m_onGameSettingLoaded)
+        else if (result == Ray_GameOptionPersistence::Result_LoadFailed)
         {
-            auto cb = gm->m_onGameSettingLoaded;
-            gm->m_onGameSettingLoaded = nullptr;
-            cb();
+            LOG("[GameOptions] Load failed - using default options");
+            RAY_GAMEMANAGER->applyDisplayOptions();
+            RAY_GAMEMANAGER->applyMasterVolumeOption();
+            RAY_GAMEMANAGER->applyMusicVolumeOption();
+            RAY_GAMEMANAGER->applySFXVolumeOption();
+        }
+        else if (result == Ray_GameOptionPersistence::Result_LoadNotFound)
+        {
+            LOG("[GameOptions] No saved options found - using defaults");
+            RAY_GAMEMANAGER->applyDisplayOptions();
+            RAY_GAMEMANAGER->applyMasterVolumeOption();
+            RAY_GAMEMANAGER->applyMusicVolumeOption();
+            RAY_GAMEMANAGER->applySFXVolumeOption();
+        }
+        if (RAY_GAMEMANAGER->m_onGameSettingLoaded)
+        {
+            RAY_GAMEMANAGER->m_onGameSettingLoaded();
+            RAY_GAMEMANAGER->m_onGameSettingLoaded = NULL;
         }
     }
+
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #ifdef ITF_SUPPORT_BOT_AUTO
