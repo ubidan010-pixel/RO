@@ -63,8 +63,8 @@ namespace ITF
         if (!m_initialized)
             return;
 
-        UpdateInputSources();
         UpdateVirtualState();
+        UpdateInputSources();
     }
 
     void InputManager::Shutdown()
