@@ -102,7 +102,7 @@ namespace ITF
                 for (u32 buttonId = 0; buttonId < JOY_MAX_BUT; ++buttonId)
                 {
                     InputAdapter::PressStatus buttonStatus = source->GetButtonState(buttonId);
-                    if (buttonStatus == InputAdapter::Released || buttonStatus == InputAdapter::JustReleased)
+                    if (buttonStatus == InputAdapter::Released)
                         continue;
 
                     PhysicalInput physical = MakeControllerButtonInput(deviceId, buttonId);
@@ -193,8 +193,6 @@ namespace ITF
         if (physical.type == PhysicalInput::Keyboard)
         {
             newStatus = source->GetKeyState(physical.inputId);
-            LOG("[VirtualInputState] UpdateButtonFromPhysicalInput: Keyboard key=%d -> VirtualButton=%d, player=%d, status=%d", 
-                physical.inputId, virtualInput.virtualId, player, newStatus);
         }
         else if (physical.type == PhysicalInput::ControllerButton)
         {
