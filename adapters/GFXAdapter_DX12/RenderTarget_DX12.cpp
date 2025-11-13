@@ -5,8 +5,23 @@
 
 namespace ITF::DX12
 {
-    Texture& RenderTarget::getOrCreateAsTexture(TextureDescriptorPool& _texPool)
+#if defined(ASSERT_ENABLED)
+    // This is not very clean, but it helps to catch incorrect usage of render targets vs textures
+    RenderTarget* gs_currentRenderTarget = nullptr;
+#endif
+
+    void RenderTarget::set(ID3D12GraphicsCommandList* _cmdList)
     {
+        transitionToRenderTarget(_cmdList);
+        m_descriptorHdl.set(_cmdList);
+    #if defined(ASSERT_ENABLED)
+        gs_currentRenderTarget = this;
+    #endif
+    }
+
+    Texture& RenderTarget::createTextureView(TextureDescriptorPool& _texPool)
+    {
+        ITF_ASSERT(m_asTexture.getResource() == nullptr);
         if (m_asTexture.getResource() == nullptr)
         {
             m_asTexture = Texture::createFromRenderTarget(_texPool, *this);
@@ -14,19 +29,45 @@ namespace ITF::DX12
         return m_asTexture;
     }
 
-    void RenderTarget::syncToUseAsTexture(ID3D12GraphicsCommandList* _cmdList)
+    Texture* RenderTarget::transitionToTexture(ID3D12GraphicsCommandList* _cmdList)
     {
-        ITF_ASSERT(m_resource != nullptr);
-        D3D12_RESOURCE_BARRIER barrierDesc = CD3DX12_RESOURCE_BARRIER::Transition(
-            m_resource.Get(),
-            D3D12_RESOURCE_STATE_RENDER_TARGET,
-            D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-        _cmdList->ResourceBarrier(1, &barrierDesc);
+        ITF_ASSERT(m_asTexture.getResource() != nullptr);
+        if (m_asTexture.getResource() == nullptr)
+            return nullptr;
+        transitionTo(_cmdList, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+        ITF_ASSERT_MSG(gs_currentRenderTarget != this, "Render target %s transition to texture while still being set as render target.", getDebugName());
+        return &m_asTexture;
     }
 
-    RenderTarget RenderTarget::createFromResource(ComPtr<ID3D12Resource> _resource, RenderTargetViewDescriptorPool& _descriptorPool, const char* _debugName)
+    void RenderTarget::transitionTo(ID3D12GraphicsCommandList* _cmdList, D3D12_RESOURCE_STATES _newState)
+    {
+        ITF_ASSERT(m_resource != nullptr);
+        if (m_currentState != _newState)
+        {
+            D3D12_RESOURCE_BARRIER barrierDesc = CD3DX12_RESOURCE_BARRIER::Transition(
+                m_resource.Get(),
+                m_currentState,
+                _newState);
+            _cmdList->ResourceBarrier(1, &barrierDesc);
+            m_currentState = _newState;
+        }
+    }
+
+#if defined(ASSERT_ENABLED)
+    const Texture* RenderTarget::getTextureView() const
+    {
+        ITF_ASSERT(m_asTexture.getResource() != nullptr);
+        if (m_asTexture.getResource() == nullptr)
+            return nullptr;
+        return &m_asTexture;
+    }
+#endif
+
+    RenderTarget RenderTarget::createFromResource(ComPtr<ID3D12Resource> _resource, RenderTargetViewDescriptorPool& _descriptorPool, D3D12_RESOURCE_STATES _initialState, const char* _debugName)
     {
         RenderTarget result{};
+        result.m_currentState = _initialState;
+
         RenderTargetViewDescriptorPool::Handle hdl = _descriptorPool.acquireHandle(_resource.Get());
         if (hdl != RenderTargetViewDescriptorPool::Handle{})
         {
@@ -57,7 +98,7 @@ namespace ITF::DX12
             &CD3DX12_CLEAR_VALUE(DXGI_FORMAT_R8G8B8A8_UNORM, colorAsArray),
             DX12_IID_COMPTR_ARGS(resource)));
 
-        return createFromResource(std::move(resource), _descriptorPool, _debugName);
+        return createFromResource(std::move(resource), _descriptorPool, D3D12_RESOURCE_STATE_RENDER_TARGET, _debugName);
     }
 
     RenderTarget RenderTarget::createDisplayable(u32 _width, u32 _height, Color _clearColor, RenderTargetViewDescriptorPool& _descriptorPool, const char* _debugName)
@@ -73,7 +114,7 @@ namespace ITF::DX12
             &CD3DX12_CLEAR_VALUE(DXGI_FORMAT_R8G8B8A8_UNORM, colorAsArray),
             DX12_IID_COMPTR_ARGS(resource)));
 
-        return createFromResource(std::move(resource), _descriptorPool, _debugName);
+        return createFromResource(std::move(resource), _descriptorPool, D3D12_RESOURCE_STATE_PRESENT, _debugName);
     }
 
 }

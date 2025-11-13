@@ -821,21 +821,30 @@ namespace ITF
         internSetTextureBind(static_cast<u32>(_sampler), texDX12, _linearFiltering);
     }
 
-    void GFXAdapter_DX12::internSetTextureBind(u32 _samplerIdx, DX12::Texture * _bind, bool _linearFiltering)
+    void GFXAdapter_DX12::internSetTextureBind(u32 _samplerIdx, DX12::Texture * _textureToBind, bool _linearFiltering)
     {
         ITF_ASSERT(_samplerIdx < GFX_NB_MAX_SAMPLER);
 
-        if (_bind)
+        if (_textureToBind)
         {
-            _bind->ensureUploadDone(*m_uploadBufferRequestManager);
-            _bind->markAsUsedAtFrame(m_mainContext->getNbSubmittedFrame() + 1);
+            _textureToBind->ensureUploadDone(*m_uploadBufferRequestManager);
+            _textureToBind->markAsUsedAtFrame(m_mainContext->getNbSubmittedFrame() + 1);
         }
 
         DX12::FxParameterDB::TexSamplerHdl texAndSamplerHDl{ mp_currentShader->m_TextureHandle[_samplerIdx] };
-        m_paramDB.setTexture(texAndSamplerHDl, _bind);
+        m_paramDB.setTexture(texAndSamplerHDl, _textureToBind);
         auto samplerMode = m_paramDB.getSamplerMode(texAndSamplerHDl);
         samplerMode.linearFiltering = _linearFiltering;
         m_paramDB.setSamplerMode(texAndSamplerHDl, samplerMode);
+    }
+
+    void GFXAdapter_DX12::setRTAsTexture(u32 _samplerIdx, DX12::RenderTarget* _rtToBind, bool _linearFiltering)
+    {
+        ITF_ASSERT(_rtToBind != nullptr);
+        if (_rtToBind != nullptr)
+        {
+            internSetTextureBind(_samplerIdx, _rtToBind->transitionToTexture(getRenderingContext()), _linearFiltering);
+        }
     }
 
     void GFXAdapter_DX12::lockTexture(Texture* _tex, LOCKED_TEXTURE* _lockTex, u32 _flag)
@@ -959,6 +968,20 @@ namespace ITF
         }
     }
 
+    static bool isValidScissorForViewport(GFX_RECT _scissorRect, GFX_RECT _viewportRect)
+    {
+        bool scissorEmpty = (_scissorRect.right <= _scissorRect.left) || (_scissorRect.bottom <= _scissorRect.top);
+        bool viewportEmpty = (_viewportRect.right <= _viewportRect.left) || (_viewportRect.bottom <= _viewportRect.top);
+
+        bool scissorIntersectViewport =
+            (_scissorRect.left < _viewportRect.right) &&
+            (_scissorRect.right > _viewportRect.left) &&
+            (_scissorRect.top < _viewportRect.bottom) &&
+            (_scissorRect.bottom > _viewportRect.top);
+
+        return !viewportEmpty && !scissorEmpty && scissorIntersectViewport;
+    }
+
     void GFXAdapter_DX12::setScissorRect(GFX_RECT* _clipRect)
     {
         if (_clipRect == nullptr)
@@ -967,8 +990,21 @@ namespace ITF
         }
         else
         {
-            D3D12_RECT dx12Rect = itfRectToDX12Rect(*_clipRect);
-            getRenderingContext()->RSSetScissorRects(1, &dx12Rect);
+            if (isValidScissorForViewport(*_clipRect, m_lastSetViewPort))
+            {
+                D3D12_VIEWPORT  dx12ViewPort = itfRectToDX12Viewport(m_lastSetViewPort);
+                getRenderingContext()->RSSetViewports(1, &dx12ViewPort);
+                D3D12_RECT dx12Rect = itfRectToDX12Rect(*_clipRect);
+                getRenderingContext()->RSSetScissorRects(1, &dx12Rect);
+            }
+            else
+            {
+                // If the scissor rect is not valid, set the viewport and scissor to 0.
+                D3D12_VIEWPORT  dx12ViewPort = itfRectToDX12Viewport(GFX_RECT{ 0, 0, 0, 0 });
+                getRenderingContext()->RSSetViewports(1, &dx12ViewPort);
+                D3D12_RECT dx12Rect = itfRectToDX12Rect(GFX_RECT{ 0, 0, 0, 0 });
+                getRenderingContext()->RSSetScissorRects(1, &dx12Rect);
+            }
         }
     }
 
@@ -1271,15 +1307,7 @@ namespace ITF
 
         m_VertexBufferManager.DynamicRingVBEndDraw();
 
-        // Transition back buffer to present state
-        CD3DX12_RESOURCE_BARRIER barriers[] =
-        {
-            CD3DX12_RESOURCE_BARRIER::Transition(
-                getBackBufferRT()->getResource(),
-                D3D12_RESOURCE_STATE_RENDER_TARGET,
-                D3D12_RESOURCE_STATE_PRESENT)
-        };
-        getRenderingContext()->ResourceBarrier(1, barriers);
+        getBackBufferRT()->transitionToPresent(getRenderingContext());
 
         // Copy during a potential CPU - GPU sync
         m_uploadBufferRequestManager->pushRequestedCopyCommands(); // trigger copy commands before flip
@@ -1319,14 +1347,6 @@ namespace ITF
 
 
         DX12::pushMarker(getRenderingContext(), "startRendering");
-
-        // Transition back buffer to render target state
-        CD3DX12_RESOURCE_BARRIER barriers[] = {
-            CD3DX12_RESOURCE_BARRIER::Transition(
-                getBackBufferRT()->getResource(),
-                D3D12_RESOURCE_STATE_PRESENT,
-                D3D12_RESOURCE_STATE_RENDER_TARGET) };
-        getRenderingContext()->ResourceBarrier(1, barriers);
 
         resetRenderingStates();
         resetSceneResolvedFlag(); // inform the parent (GFXAdapter) that a scene resolving will be needed at this new frame

@@ -215,7 +215,7 @@ namespace ITF
         #else
             m_swapChainBuffers[i] = DX12::RenderTarget::createDisplayable(getScreenWidth(), getScreenHeight(), Color::zero(), *m_rtvDescriptorPool, debugName.cStr());
         #endif
-            m_swapChainBuffers[i].getOrCreateAsTexture(*m_textureDescriptorPool);
+            m_swapChainBuffers[i].createTextureView(*m_textureDescriptorPool);
         }
 
         return std::end(m_swapChainBuffers) == std::find_if(std::begin(m_swapChainBuffers), std::end(m_swapChainBuffers), [](auto& p) { return p.getResource() == nullptr; });
@@ -260,20 +260,29 @@ namespace ITF
                     success = success && f();
             };
 
-        initStep(&GFXAdapter_DX12::createDXGIFactory);
-        initStep(&GFXAdapter_DX12::createDebugControler);
-        initStep(&GFXAdapter_DX12::createD3D12Device);
-        initStep(&GFXAdapter_DX12::initMemoryManagement);
-        initStep(&GFXAdapter_DX12::getDXGIDeviceAndAdapterOfD3D12Device);
-        initStep(&GFXAdapter_DX12::enumerateOutputs);
-        initStep(&GFXAdapter_DX12::createDeviceContext);
-        initStep(&GFXAdapter_DX12::createTextureDescriptorPool);
-        initStep(&GFXAdapter_DX12::createSwapChain);
-        initStep(&GFXAdapter_DX12::createRTVDescriptorHeap);
-        initStep(&GFXAdapter_DX12::createFrontAndBackBuffers);
-        initStep(&GFXAdapter_DX12::createSamplerPool);
-        initStep(&GFXAdapter_DX12::createUniformBufferPool);
-        initStep(&GFXAdapter_DX12::createUploadBufferRequestManager);
+        #define GFX_ADAPTER_DX12_INIT_STEP(step_) \
+            do { \
+                bool prevSuccessState = success;\
+                initStep(&GFXAdapter_DX12::step_); \
+                ITF_ASSERT_MSG(success || !prevSuccessState, "Failure of GFX Adapter DX12 init step %s", #step_); \
+            } while(0)
+
+        GFX_ADAPTER_DX12_INIT_STEP(createDXGIFactory);
+        GFX_ADAPTER_DX12_INIT_STEP(createDebugControler);
+        GFX_ADAPTER_DX12_INIT_STEP(createD3D12Device);
+        GFX_ADAPTER_DX12_INIT_STEP(initMemoryManagement);
+        GFX_ADAPTER_DX12_INIT_STEP(getDXGIDeviceAndAdapterOfD3D12Device);
+        GFX_ADAPTER_DX12_INIT_STEP(enumerateOutputs);
+        GFX_ADAPTER_DX12_INIT_STEP(createDeviceContext);
+        GFX_ADAPTER_DX12_INIT_STEP(createTextureDescriptorPool);
+        GFX_ADAPTER_DX12_INIT_STEP(createSwapChain);
+        GFX_ADAPTER_DX12_INIT_STEP(createRTVDescriptorHeap);
+        GFX_ADAPTER_DX12_INIT_STEP(createFrontAndBackBuffers);
+        GFX_ADAPTER_DX12_INIT_STEP(createSamplerPool);
+        GFX_ADAPTER_DX12_INIT_STEP(createUniformBufferPool);
+        GFX_ADAPTER_DX12_INIT_STEP(createUploadBufferRequestManager);
+
+        #undef GFX_ADAPTER_INIT_STEP
 
         return success;
     }

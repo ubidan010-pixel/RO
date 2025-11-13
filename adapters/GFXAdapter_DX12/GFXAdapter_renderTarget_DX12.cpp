@@ -47,7 +47,7 @@ namespace ITF
                 ITF_ASSERT(surf != nullptr);
                 ITF_ASSERT(_target->getTexture() != nullptr);
                 ITF_ASSERT(_target->getTexture()->m_adapterimplementationData != nullptr);
-                ITF_ASSERT(reinterpret_cast<DX12::Texture*>(_target->getTexture()->m_adapterimplementationData) == surf->getAsTexture());
+                ITF_ASSERT(reinterpret_cast<DX12::Texture*>(_target->getTexture()->m_adapterimplementationData) == surf->getTextureView());
                 _target->getTexture()->m_adapterimplementationData = nullptr;
                 delete surf;
                 _target->setSurface(0);
@@ -84,8 +84,15 @@ namespace ITF
 
         DX12::setMarker(getRenderingContext(), "disableRenderTarget");
 
+        DX12::RenderTarget* rt = reinterpret_cast<DX12::RenderTarget*>(_target->getSurface());
+
         DX12::RenderTarget* prevRT = reinterpret_cast<DX12::RenderTarget*>(_target->m_prevColourSurface);
+
         setRenderTarget(*prevRT);
+
+        DX12::Texture* tex = rt->transitionToTexture(getRenderingContext());
+        ITF_UNUSED(tex);
+        ITF_ASSERT(tex == reinterpret_cast<DX12::Texture*>(_target->getTexture()->m_adapterimplementationData));
     }
 
     void GFXAdapter_DX12::clearRenderTarget(renderTarget* _target, u32 _color)
@@ -129,7 +136,7 @@ namespace ITF
         DX12::RenderTarget* rt = new (MemoryId::mId_GfxAdapter) DX12::RenderTarget(
             DX12::RenderTarget::createCommitted(width, height, Color(0, 0, 0, 0), *m_rtvDescriptorPool, "RTOnTheFly"));
 
-        DX12::Texture* rtAsTex = &rt->getOrCreateAsTexture(*m_textureDescriptorPool);
+        DX12::Texture * rtAsTex = &rt->createTextureView(*m_textureDescriptorPool);
 
         _target->setSurface(uPtr(rt));
         _target->getTexture()->m_adapterimplementationData = rtAsTex;

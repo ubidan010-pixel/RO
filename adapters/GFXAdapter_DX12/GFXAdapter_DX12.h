@@ -410,8 +410,8 @@ namespace ITF
         DX12::RenderTarget m_afxFullRT[AFTER_FX_NB_SWAP_SURFACE];
         DX12::RenderTarget m_afxHalfRT[AFTER_FX_NB_SWAP_SURFACE];
 
-        DX12::RenderTarget* m_pCurrentSwapRenderSurf = nullptr;
-        DX12::Texture* m_pCurrentSwapSourceTexture = nullptr;
+        DX12::RenderTarget* m_pCurrentSwapRTDest = nullptr;
+        DX12::RenderTarget* m_pCurrentSwapRTSource = nullptr;
         u32 m_curswap = 0;
 
         // Frustum planes managements (used by setCamera)
@@ -419,7 +419,8 @@ namespace ITF
 
         // Texture set
         void internSetTexture(int _sampler, const Texture* _texture, bool _linearFiltering = btrue); // const Texture* version of SetTexture
-        void internSetTextureBind(u32 _Sampler, DX12::Texture* _Bind, bool _linearFiltering = btrue);
+        void internSetTextureBind(u32 _Sampler, DX12::Texture* _textureToBind, bool _linearFiltering = btrue);
+        void setRTAsTexture(u32 _samplerIdx, DX12::RenderTarget* _rtToBind, bool _linearFiltering = btrue);
 
         // Vertex/Index buffer set
         void setVertexBuffer(ITF_VertexBuffer* _vertexBuffer);
@@ -443,56 +444,6 @@ namespace ITF
         f32 m_currentAlphaTestRef = 0.f;
         void setAlphaTestInParamDB();
         void setDefaultAlphaTest();
-
-#if 0
-
-        static constexpr uPtr InitGraphicMemorySize = 8 * 1024 * 1024; // Same value than in samples. Probably too high. Not used for OUNCE.
-
-        bool m_needRebuildRenderTargets = true; // set to true when the render targets need to be rebuilt (e.g. after a screen resolution change)
-        i32 m_newScreenWidth = 0, m_newScreenHeight = 0;
-        static constexpr ux NB_WINDOW_RENDER_TARGETS = 2;
-        u32 m_backBufferIndex = 0; // index of the back buffer to be used for rendering, 0 to NB_WINDOW_RENDER_TARGETS, indexing m_renderTargets
-        NVN::UniquePtr<NVNRenderTarget> m_renderTargets[NB_WINDOW_RENDER_TARGETS]{};
-        void* m_nativeWindow = nullptr;
-        NVN::UniquePtr<nvn::Window> m_window = nullptr;
-
-        void createRenderTargets();
-
-        // Several low level caches
-        NVN::UniquePtr<NVN::ShaderProgramCache> m_shaderProgramCache{};
-        NVN::UniquePtr<NVN::PolygonStateCache> m_polygonStateCache{};
-        NVN::UniquePtr<NVN::BlendStateCache> m_blendStateCache{};
-
-        // Vertex declaration
-
-        // use an enum to be sure to not forget one
-        enum class VertexFormatAsEnum : i32
-        {
-            P = VertexFormat_P,
-            PC = VertexFormat_PC,
-            PCT = VertexFormat_PCT,
-            PT = VertexFormat_PT,
-            PCBT = VertexFormat_PCBT,
-            PNCT = VertexFormat_PNCT,           // not used. Old code?
-            PNC3T = VertexFormat_PNC3T,
-            PatchAnim = VertexFormat_PatchAnim, // not used, depending on define ANIMUSEGEOMETRYSHADER
-            PTa = VertexFormat_PTa,
-        };
-
-        VertexFormatDescriptor& getVertexFormatDescriptor(VertexFormatAsEnum _vertexFormat) const;
-        VertexFormatDescriptor& getVertexFormatDescriptor(u32 _vertexFormat) const;
-        void setVertexBuffer(ITF_VertexBuffer* _vertexBuffer);
-        VertexFormatAsEnum m_currentVertexFormat = VertexFormatAsEnum::PCT; // set by setVertexFormat. Note that setVertexFormat also set mp_currentShader->m_selectedTech
-        ITF_VertexBuffer* m_currentVertexBuffer = nullptr;
-        void applyVertexBuffer(ITF_VertexBuffer* _vb); // set the vertex buffer in the nvn context (to call once the VS is set, so after beginShader)
-        void nvnBindVertexBuffer(NVNVertexBuffer* _vertexBuffer, u32 _offset); // bind the nvnVertex buffer in the nvn context (called by applyVertexBuffer and draw primitive)
-        void nvnDrawElements(u32 nbIndex); // Call nvnDrawElements with the current index buffer and the number of indices to draw. To call only between beginShader and endShader.
-
-        void setIndexBuffer(ITF_IndexBuffer* _indexBuffer);
-        NVNIndexBuffer* m_currentIndexBuffer = nullptr;
-        void applyIndexBuffer(NVNIndexBuffer* _ib); // set the index buffer in the gnm context (to call once the VS is set, so after beginShader)
-
-#endif
 
     #if defined(ITF_ENABLE_DX12_GRAPHICS_DEBUGGING) && ITF_ENABLE_DX12_GRAPHICS_DEBUGGING
         CoreShaderGroup m_allowedShaderGroup = CoreShaderGroup::UNKNOWN; // global variable to filter shader by its group for debugging

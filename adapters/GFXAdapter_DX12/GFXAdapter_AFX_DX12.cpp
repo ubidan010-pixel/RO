@@ -26,14 +26,14 @@ namespace ITF
         {
             debugName.setTextFormat("afxFullRT_%d", distInRange(m_afxFullRT, renderTarget));
             renderTarget = DX12::RenderTarget::createCommitted(getScreenWidth(), getScreenHeight(), Color::black(), *m_rtvDescriptorPool, debugName.cStr());
-            renderTarget.getOrCreateAsTexture(*m_textureDescriptorPool);
+            renderTarget.createTextureView(*m_textureDescriptorPool);
         }
 
         for (auto& renderTarget : m_afxHalfRT)
         {
             debugName.setTextFormat("afxHalfRT_%d", distInRange(m_afxHalfRT, renderTarget));
             renderTarget = DX12::RenderTarget::createCommitted(getScreenWidth() / 2, getScreenHeight() / 2, Color::black(), *m_rtvDescriptorPool, debugName.cStr());
-            renderTarget.getOrCreateAsTexture(*m_textureDescriptorPool);
+            renderTarget.createTextureView(*m_textureDescriptorPool);
         }
     }
 
@@ -52,7 +52,7 @@ namespace ITF
         // backbuffer_copy/refraction texture.
 
         setTextureAdressingMode(1, GFXTADDRESS_CLAMP, GFXTADDRESS_CLAMP);
-        internSetTextureBind(1, m_afxFullRT[1].getAsTexture());
+        setRTAsTexture(1, &m_afxFullRT[1]);
 
         // try normal texture.
         setTextureAdressingMode(2, GFXTADDRESS_WRAP, GFXTADDRESS_WRAP);
@@ -112,8 +112,8 @@ namespace ITF
         f32 H = (f32)getScreenHeight();
 
         mp_currentShader->m_selectedTech = 9;
-        setRenderTarget(*m_pCurrentSwapRenderSurf);
-        internSetTextureBind(0, m_pCurrentSwapSourceTexture, false);
+        setRenderTarget(*m_pCurrentSwapRTDest);
+        setRTAsTexture(0, m_pCurrentSwapRTSource, false);
         setAlphaBlend(GFX_BLEND_COPY);
 
         drawScreenQuad(0.f, 0.f, W, H, 0.f, COLOR_WHITE);
@@ -144,8 +144,8 @@ namespace ITF
             if (m_currentRenderTarget == getBackBufferRT())
             {
                 // set the back buffer as source and dest (after fx job to not used it at the same time)
-                m_pCurrentSwapRenderSurf = getBackBufferRT();
-                m_pCurrentSwapSourceTexture = m_pCurrentSwapRenderSurf->getAsTexture();
+                m_pCurrentSwapRTDest = getBackBufferRT();
+                m_pCurrentSwapRTSource = m_pCurrentSwapRTDest;
             }
             return;
         }
@@ -159,16 +159,15 @@ namespace ITF
         {
             copyCurrentColorBuffer(0);
             setRenderTarget(m_afxFullRT[1]);
-            m_pCurrentSwapSourceTexture = m_afxFullRT[0].getAsTexture();
-            m_pCurrentSwapRenderSurf = &m_afxFullRT[1];
+            m_pCurrentSwapRTSource = &m_afxFullRT[0];
+            m_pCurrentSwapRTDest = &m_afxFullRT[1];
         }
         else if (m_currentRenderTarget == &m_afxFullRT[1])
         {
             setRenderTarget(m_afxFullRT[0]);
             //clear( GFX_CLEAR_COLOR , 0, 0, 0, 0);  // Is it really useful ?
-            m_afxFullRT[1].syncToUseAsTexture(getRenderingContext());
-            m_pCurrentSwapSourceTexture = m_afxFullRT[1].getAsTexture();
-            m_pCurrentSwapRenderSurf = &m_afxFullRT[0];
+            m_pCurrentSwapRTSource = &m_afxFullRT[1];
+            m_pCurrentSwapRTDest = &m_afxFullRT[0];
         }
     }
 
@@ -191,7 +190,7 @@ namespace ITF
             Viewport.bottom = i32(getScreenHeight());
             setupViewport(&Viewport);
 
-            internSetTextureBind(0, m_pCurrentSwapSourceTexture, true);
+            setRTAsTexture(0, m_pCurrentSwapRTSource, true);
             setAlphaBlend(_finalBlend);
             drawScreenQuad(0, 0, (f32)getScreenWidth(), (f32)getScreenHeight(), 0, COLOR_WHITE);
 
@@ -241,7 +240,7 @@ namespace ITF
         f32 ratiopixel = 1.f / W;
 
         // save old Current RT.
-        auto * currentRenderSurfSaved = m_pCurrentSwapRenderSurf;
+        auto * currentRenderSurfSaved = m_pCurrentSwapRTDest;
 
         if (_clearRT)
         {
@@ -251,8 +250,8 @@ namespace ITF
 
         mp_currentShader->m_selectedTech = 6; // Copy
         setAlphaBlend(GFX_BLEND_COPY);
-        setRenderTarget(*m_pCurrentSwapRenderSurf); // first, copy the source buffer
-        internSetTextureBind(0, m_pCurrentSwapSourceTexture);
+        setRenderTarget(*m_pCurrentSwapRTDest); // first, copy the source buffer
+        setRTAsTexture(0, m_pCurrentSwapRTSource);
         drawScreenQuad(0, 0, (f32)getScreenWidth(), (f32)getScreenHeight(), 0, COLOR_WHITE); // use full res quad as the matrix is still the full res one
 
         if (_quality == GFX_QUALITY_MEDIUM || _quality == GFX_QUALITY_LOW)
@@ -264,9 +263,9 @@ namespace ITF
         u32 passo = 0;
         while (displace > ratiopixel)
         {
-            setRenderTarget(*m_pCurrentSwapRenderSurf);
+            setRenderTarget(*m_pCurrentSwapRTDest);
 
-            internSetTextureBind(0, m_pCurrentSwapSourceTexture);
+            setRTAsTexture(0, m_pCurrentSwapRTSource);
 
             /// shader const.
             mp_currentShader->setFloat(0, displace);
@@ -284,7 +283,7 @@ namespace ITF
         }
 
         /// Go back to full RT by restoring old current RT.
-        m_pCurrentSwapRenderSurf = currentRenderSurfSaved;
+        m_pCurrentSwapRTDest = currentRenderSurfSaved;
 
         DX12::popMarker(getRenderingContext()); // pop "BigBlur"
     }
@@ -297,7 +296,7 @@ namespace ITF
 
         // A texture with the content of what was rendered until now.
         // Depending on the prepareAfterFX parameter, it is the final rt or a afx full rt
-        auto* originalSceneTexture = m_pCurrentSwapSourceTexture;
+        auto* originalSceneTexture = m_pCurrentSwapRTSource;
 
         // As the prepareAfterFx has a no_copy flag, the afterFx shader was not set
         setShader(mp_shaderManager.getShaderByIndex(1));
@@ -319,9 +318,9 @@ namespace ITF
         mp_currentShader->setFloat(2, _addalpha);
 
         setAlphaBlend(GFX_BLEND_COPY);
-        setRenderTarget(*m_pCurrentSwapRenderSurf);
-        internSetTextureBind(0, m_pCurrentSwapSourceTexture);
-        internSetTextureBind(1, originalSceneTexture);
+        setRenderTarget(*m_pCurrentSwapRTDest);
+        setRTAsTexture(0, m_pCurrentSwapRTSource);
+        setRTAsTexture(1, originalSceneTexture);
         drawScreenQuad(0.f, 0.f, (f32)getScreenWidth(), (f32)getScreenHeight(), 0.f, COLOR_WHITE);
 
         AFTERFX_SwapFullScreenTarget();
@@ -362,7 +361,7 @@ namespace ITF
         setAlphaBlend(GFX_BLEND_ADD);
         mp_currentShader->m_selectedTech = 1;
         setRenderTarget(*previousRT);
-        internSetTextureBind(0, m_pCurrentSwapSourceTexture);
+        setRTAsTexture(0, m_pCurrentSwapRTSource);
 
         drawScreenQuad(0.f, 0.f, W, H, 0.f, COLOR_WHITE);
     }
@@ -377,8 +376,8 @@ namespace ITF
 
         mp_currentShader->m_selectedTech = 3;
 
-        setRenderTarget(*m_pCurrentSwapRenderSurf);
-        internSetTextureBind(0, m_pCurrentSwapSourceTexture, false);
+        setRenderTarget(*m_pCurrentSwapRTDest);
+        setRTAsTexture(0, m_pCurrentSwapRTSource, false);
         setAlphaBlend(GFX_BLEND_COPY);
 
         mp_currentShader->setFloat(2, _sat);
@@ -401,8 +400,8 @@ namespace ITF
         f32 H = (f32)getScreenHeight();
 
         mp_currentShader->m_selectedTech = 10;
-        setRenderTarget(*m_pCurrentSwapRenderSurf);
-        internSetTextureBind(0, m_pCurrentSwapSourceTexture, false);
+        setRenderTarget(*m_pCurrentSwapRTDest);
+        setRTAsTexture(0, m_pCurrentSwapRTSource, false);
         setAlphaBlend(GFX_BLEND_COPY);
 
         mp_currentShader->setFloat(1, _inBlack);
@@ -428,8 +427,8 @@ namespace ITF
         mp_currentShader->setFloat(2, 1.f);
 
         mp_currentShader->m_selectedTech = 1;
-        setRenderTarget(*m_pCurrentSwapRenderSurf);
-        internSetTextureBind(0, m_pCurrentSwapSourceTexture, false);
+        setRenderTarget(*m_pCurrentSwapRTDest);
+        setRTAsTexture(0, m_pCurrentSwapRTSource, false);
 
         drawScreenQuad(0.f, 0.f, W, H, 0.f, COLOR_WHITE);
 
@@ -444,8 +443,8 @@ namespace ITF
         f32 H = (f32)getScreenHeight();
 
         mp_currentShader->m_selectedTech = _tech;
-        setRenderTarget(*m_pCurrentSwapRenderSurf);
-        internSetTextureBind(0, m_pCurrentSwapSourceTexture);
+        setRenderTarget(*m_pCurrentSwapRTDest);
+        setRTAsTexture(0, m_pCurrentSwapRTSource);
 
         drawScreenQuad(0.f, 0.f, W, H, 0.f, COLOR_WHITE);
 
@@ -464,8 +463,8 @@ namespace ITF
 
         setAlphaBlend(GFX_BLEND_COPY);
         mp_currentShader->m_selectedTech = _tech;
-        setRenderTarget(*m_pCurrentSwapRenderSurf);
-        internSetTextureBind(0, m_pCurrentSwapSourceTexture, false);
+        setRenderTarget(*m_pCurrentSwapRTDest);
+        setRTAsTexture(0, m_pCurrentSwapRTSource, false);
 
         if (mp_currentShader->m_FloatHandle[1])
             mp_currentShader->setFloat(1, _p0);
@@ -516,14 +515,15 @@ namespace ITF
         DX12::RenderTarget* dstSurf = &m_afxFullRT[_rt];
         if (m_currentRenderTarget == dstSurf)
             return; // nothing to do
-        DX12::pushMarker(getRenderingContext(), "copyCurrentColorBuffer");
 
-        // First ensure that we can copy the current color buffer
-        m_currentRenderTarget->syncToUseAsTexture(getRenderingContext());
+        DX12::pushMarker(getRenderingContext(), "copyCurrentColorBuffer");
 
         if (isCopyResourcePossible(dstSurf->getDesc(), m_currentRenderTarget->getDesc()))
         {
+            m_currentRenderTarget->transitionToCopySource(getRenderingContext());
+            dstSurf->transitionToCopyDest(getRenderingContext());
             getRenderingContext()->CopyResource(dstSurf->getResource(), m_currentRenderTarget->getResource());
+            m_currentRenderTarget->set(getRenderingContext());
         }
         else
         {
@@ -545,13 +545,12 @@ namespace ITF
             setOrthoView(0.f, f32(dstSurf->getDesc().Width), 0.f, f32(dstSurf->getDesc().Height));
 
             DX12::RenderTarget* previousRT = m_currentRenderTarget;
-            DX12::Texture* srcTex = m_currentRenderTarget->getAsTexture();
 
             // copy using the default shader
             mp_currentShader->m_selectedTech = 0; // default_PCT_VS/PS
             setAlphaBlend(GFX_BLEND_COPY);
             setRenderTarget(*dstSurf);
-            internSetTextureBind(0, srcTex, false);
+            setRTAsTexture(0, previousRT, false);
             drawScreenQuad(0, 0, f32(dstSurf->getDesc().Width), f32(dstSurf->getDesc().Height), 0, COLOR_WHITE);
 
             // restore states
@@ -566,8 +565,6 @@ namespace ITF
 
             setRenderTarget(*previousRT);
         }
-
-        dstSurf->syncToUseAsTexture(getRenderingContext());
     }
 
 
@@ -629,8 +626,8 @@ namespace ITF
     {
         IMPLEMENTED_NOT_TESTED;
 
-        auto* save = m_pCurrentSwapSourceTexture;
-        auto* savecur = m_pCurrentSwapRenderSurf;
+        auto* save = m_pCurrentSwapRTSource;
+        auto* savecur = m_pCurrentSwapRTDest;
 
         f32 W = (f32)getScreenWidth();
         f32 H = (f32)getScreenHeight();
@@ -675,9 +672,9 @@ namespace ITF
         u32 passo = 0;
         for (u32 i = 0; i < 8; i++)
         {
-            setRenderTarget(*m_pCurrentSwapRenderSurf);
+            setRenderTarget(*m_pCurrentSwapRTDest);
 
-            internSetTextureBind(0, m_pCurrentSwapSourceTexture);
+            setRTAsTexture(0, m_pCurrentSwapRTSource);
 
             /// shader const.
             mp_currentShader->setFloat(1, value);
@@ -693,7 +690,7 @@ namespace ITF
         }
 
         /// Go back to full RT by restoring old current RT.
-        m_pCurrentSwapRenderSurf = savecur;
+        m_pCurrentSwapRTDest = savecur;
 
         /// Mul factor.
         mp_currentShader->setFloat(1, _v2);
@@ -701,12 +698,12 @@ namespace ITF
         mp_currentShader->setFloat(2, _v3);
 
         /// set scene texture to shader to add with bigblur result.
-        internSetTextureBind(1, save, false);
+        setRTAsTexture(1, save, false);
 
         setAlphaBlend(GFX_BLEND_COPY);
         mp_currentShader->m_selectedTech = 1;
-        setRenderTarget(*m_pCurrentSwapRenderSurf);
-        internSetTextureBind(0, m_pCurrentSwapSourceTexture);
+        setRenderTarget(*m_pCurrentSwapRTDest);
+        setRTAsTexture(0, m_pCurrentSwapRTSource);
         drawScreenQuad(0.f, 0.f, W, H, 0.f, COLOR_WHITE);
 
         AFTERFX_SwapFullScreenTarget();
@@ -721,7 +718,7 @@ namespace ITF
         depthMask(0);
         copyCurrentColorBuffer(0);
 
-        setRenderTarget(*m_pCurrentSwapRenderSurf);
+        setRenderTarget(*m_pCurrentSwapRTDest);
 
         /// Write Mask to depth.
         setShader(mp_defaultShader);
@@ -748,8 +745,8 @@ namespace ITF
 
         setAlphaBlend(GFX_BLEND_ALPHA);
         mp_currentShader->m_selectedTech = 1;
-        setRenderTarget(*m_pCurrentSwapRenderSurf);
-        internSetTextureBind(0, m_pCurrentSwapSourceTexture);
+        setRenderTarget(*m_pCurrentSwapRTDest);
+        setRTAsTexture(0, m_pCurrentSwapRTSource);
         drawScreenQuad(0.f, 0.f, (f32)getScreenWidth(), (f32)getScreenHeight(), 0.f, COLOR_WHITE);
 
         AFTERFX_SwapTargetDown2x2();
@@ -757,26 +754,23 @@ namespace ITF
 
     void GFXAdapter_DX12::AFTERFX_SwapTargetDown2x2()
     {
-        m_afxHalfRT[m_curswap].syncToUseAsTexture(getRenderingContext());
-        m_pCurrentSwapSourceTexture = m_afxHalfRT[m_curswap].getAsTexture();
+        m_pCurrentSwapRTSource = &m_afxHalfRT[m_curswap];
 
         m_curswap = (m_curswap + 1) % AFTER_FX_NB_SWAP_SURFACE;
-        m_pCurrentSwapRenderSurf = &m_afxHalfRT[m_curswap];
+        m_pCurrentSwapRTDest = &m_afxHalfRT[m_curswap];
     }
 
     void GFXAdapter_DX12::AFTERFX_SwapFullScreenTarget()
     {
-        if (m_pCurrentSwapRenderSurf == &m_afxFullRT[0])
+        if (m_pCurrentSwapRTDest == &m_afxFullRT[0])
         {
-            m_pCurrentSwapRenderSurf = &m_afxFullRT[1];
-            m_afxFullRT[0].syncToUseAsTexture(getRenderingContext());
-            m_pCurrentSwapSourceTexture = m_afxFullRT[0].getAsTexture();
+            m_pCurrentSwapRTDest = &m_afxFullRT[1];
+            m_pCurrentSwapRTSource = &m_afxFullRT[0];
         }
-        else if (m_pCurrentSwapRenderSurf == &m_afxFullRT[1])
+        else if (m_pCurrentSwapRTDest == &m_afxFullRT[1])
         {
-            m_pCurrentSwapRenderSurf = &m_afxFullRT[0];
-            m_afxFullRT[1].syncToUseAsTexture(getRenderingContext());
-            m_pCurrentSwapSourceTexture = m_afxFullRT[1].getAsTexture();
+            m_pCurrentSwapRTDest = &m_afxFullRT[0];
+            m_pCurrentSwapRTSource = &m_afxFullRT[1];
         }
     }
 
@@ -801,7 +795,7 @@ namespace ITF
             setRenderTarget(m_afxHalfRT[0]);
         }
         m_curswap = 0;
-        m_pCurrentSwapRenderSurf = &m_afxHalfRT[0];
+        m_pCurrentSwapRTDest = &m_afxHalfRT[0];
     }
 
 } // namespace ITF
