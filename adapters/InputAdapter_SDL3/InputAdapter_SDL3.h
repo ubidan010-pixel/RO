@@ -81,6 +81,7 @@ namespace ITF
         void InitScePad(int* out_pScePadHandles);
         void GetScePadDeviceId(int in_padHandle, uint32_t& out_resolvedId);
         bool GetMMDeviceFromPadHandle(wchar_t const* containerInfo, IMMDevice*& io_pMmDevice);
+        InputAdapter::PadType detectPadType(const SDLGamepad& pad) const;
         InputAdapter* m_adapter;
     };
 
