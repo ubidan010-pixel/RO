@@ -55,9 +55,9 @@ namespace ITF
         };
 
         Type type;
-        u32 deviceId;      // 0-3 for controller, or KEYBOARD_DEVICE_ID for keyboard
-        u32 inputId;       // Key code, button index, or axis index
-        f32 axisValue;     // For axis: direction (-1.0f or 1.0f) or actual value
+        u32 deviceId;      
+        u32 inputId;      
+        f32 axisValue;     
 
         PhysicalInput()
             : type(Keyboard)
@@ -112,7 +112,7 @@ namespace ITF
         };
 
         Type type;
-        u32 virtualId;     // VirtualButton enum or VirtualAxis enum
+        u32 virtualId;    
 
         VirtualInput()
             : type(Button)
