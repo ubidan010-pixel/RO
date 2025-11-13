@@ -4,7 +4,9 @@
 #ifndef _ITF_TEMPLATESINGLETON_H_
 #include "core/templateSingleton.h"
 #endif // ITF_TEMPLATESINGLETON_H_
-
+#if defined(USE_PAD_HAPTICS)&& defined(ITF_WINDOWS)
+#include <mmdeviceapi.h>
+#endif
 #include "engine/AdaptersInterfaces/AudioMiddlewareAdapter_Types.h"
 #include "core/serializer/ObjectFactory.h"
 #include "engine/events/IEventListener.h"
@@ -58,7 +60,7 @@ namespace	ITF
 			virtual void			destroy() = 0;
 			virtual void			fastDestroy() = 0;
 			virtual bbool			isRunning() const = 0;
-                        
+
 			virtual SoundEventID	getIDFromGUID(const StringID &_guid) const = 0;
             virtual f32             getDurationFromGUID(const StringID& _guid) const = 0;
 			//virtual AudioItemType	getAudioTypeFromGUID(const StringID &_guid) const = 0;
@@ -74,7 +76,7 @@ namespace	ITF
             virtual void			resume(AudioPauseID _pauselevel) = 0;
 
 			virtual void			mute(bbool _isMute) = 0;
-			
+
             virtual void			loadBank(const char *_path, const SoundComponent_Template *_tpl) = 0;
             virtual void			unloadBank(const char *_path, const SoundComponent_Template *_tpl) = 0;
             virtual void			loadBank(const char *_path, const SoundConfig_Template *_tpl) = 0;
@@ -134,13 +136,21 @@ namespace	ITF
 
             virtual SoftwareBus* getBus(const StringID _name) = 0;
 
-
+#ifdef USE_PAD_HAPTICS
+	   virtual bbool registerHaptics(u32 _pad,u32 _deviceId,u32 _deviceOutputId,bbool _isSony){return bfalse;};
+	   virtual bbool unregisterHaptics(u32 _pad){return bfalse;};
+	   virtual bbool registerControllerSpeaker(u32 _pad,u32 _deviceId,u32 _deviceOutputId,bbool _isSony){return bfalse;};
+	   virtual bbool unregisterControllerSpeaker(u32 _pad){return bfalse;};
+#if defined(ITF_WINDOWS)
+	    virtual u32 getDeviceId(IMMDevice* _imDevice) {return 0;};
+#endif
+#endif
 
 
 #if defined ITF_X360 || defined ITF_DURANGO
             virtual ::IXAudio2*     getXAudio2Interface() = 0;
 #endif
- 
+
 
             //////////////////////////////////////////////////////////////////////////
             // from IEventListener
@@ -163,7 +173,7 @@ namespace	ITF
                      setRtpc(switchGroupID, switchID, _objectRef);
                  }
             }
-            
+
             void helper_setRtpc(const StringID& _rtpcGUID, f32 _value, ObjectRef _objectRef)
             {
                 if(_rtpcGUID.isValid())
@@ -172,7 +182,7 @@ namespace	ITF
                     setRtpc(rtpcGUID, _value, _objectRef);
                 }
             }
-            
+
             SoundHandle helper_play(const StringID& _eventGUID, ObjectRef _objectRef)
             {
                 if(_eventGUID.isValid())

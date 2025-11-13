@@ -34,6 +34,9 @@ namespace	ITF
                 AUDIO_LOG("Play Wwise event \"%d\".", _playRequest.m_soundEventID);
             }
         }
+#ifdef ITF_LOG_SOUND_EVENTS
+	    AUDIO_LOG("HIT Play Wwise event \"%s\".", getWwiseNameFromID(_playRequest.m_soundEventID));
+#endif
 #endif
 
 		struct CallbackWrapper
@@ -81,11 +84,11 @@ namespace	ITF
 			}
 		};
 
-		
-        if(_playRequest.m_objectRef.isValid()) 
+
+        if(_playRequest.m_objectRef.isValid())
             Wwise::AkGameObjectFactory::s_getSingleton()->create(_playRequest.m_objectRef);
 
-        const AkGameObjectID gameObjectID = Wwise::AkGameObject::s_getAkGameObjectID(_playRequest.m_objectRef) ; 
+        const AkGameObjectID gameObjectID = Wwise::AkGameObject::s_getAkGameObjectID(_playRequest.m_objectRef) ;
 		AkUInt32		uFlags = AK_EndOfEvent; // EndOfFile callback
 		AkCallbackFunc	callback = &CallbackWrapper::s_eventCallback;
 
@@ -131,7 +134,7 @@ namespace	ITF
             AUDIO_LOG("WWISE play %s", name);
         }
 #endif
-        
+
 		const AkPlayingID	playingID = AK_SoundEngine_PostEvent(_playRequest.m_soundEventID, gameObjectID, uFlags, callback, this);
 		SoundHandle		SoundHandle(playingID);
 
@@ -140,7 +143,7 @@ namespace	ITF
 			m_playingIDs[SoundHandle.getValueAsU32()] = _playRequest;
 		    if(_playRequest.m_metronomeID != METRONOME_TYPE_INVALID) m_metronomeState[_playRequest.m_metronomeID]->attach(SoundHandle);
         }
-        
+
 		return SoundHandle;
 	}
 
@@ -152,7 +155,7 @@ namespace	ITF
 	{
 		if(isRunning()==false)
 			return;
-		const AkGameObjectID gameObjectID = Wwise::AkGameObject::s_getAkGameObjectID(_objRef) ; 
+		const AkGameObjectID gameObjectID = Wwise::AkGameObject::s_getAkGameObjectID(_objRef) ;
 		Wwise::AkGameObjectFactory::s_getSingleton()->destroy(gameObjectID);
 	}
 	//

@@ -71,7 +71,7 @@ namespace	ITF
         };
         type                                        BankType = GLOBAL;
         BankLoaderRef								ref;
-        u32											BankId = 0;
+        u32 BankId = 0;
     };
 
 
@@ -157,7 +157,7 @@ namespace	ITF
 			virtual void			getListenerOrientation(Vec3d *_front, Vec3d *_top, int _listenerIndex = 0) const;
             virtual void            setActorPosition(ObjectRef _objectRef, const ITF_VECTOR<Vec3d>&_positions, AudioMultiPositionMode _mode) ;
 
-			virtual SoundHandle	    play(const AudioPlayRequest &_playRequest);
+        virtual SoundHandle play(const AudioPlayRequest& _playRequest);
             virtual bbool           prepareEvent(const  SoundEventID _soundEventID);
             virtual bbool           unPrepareEvent(const  SoundEventID _soundEventID);
 			virtual void			stop(SoundHandle _SoundHandle);
@@ -220,7 +220,7 @@ namespace	ITF
 
 			virtual bool				isInDebugMode() {return m_isInDebugMode;}
 			virtual void				setInDebugMode(bool _inDebugMode){ m_isInDebugMode = _inDebugMode;}
-#if !defined(ITF_FINAL) 
+#if !defined(ITF_FINAL)
 			void						updateFailedBank();
 			void						addFailedBank(u32 _bankId);
 #endif
@@ -249,7 +249,7 @@ namespace	ITF
 // 				u32 vumeterDecayRate;
 // 				f32 vumeterRmsBlend;
 // 			};
-// 
+//
 // 			struct WavToolboxSettings
 // 			{
 // 				f32 windowDuration_sec;
@@ -259,7 +259,7 @@ namespace	ITF
 
 
 
-	
+
 			typedef ITF_VECTOR<BankLoader>								BankLoaderList;
 			typedef ITF_MAP<Path, BankLoaderList>						LoadedBankMap;
 			typedef ITF_MAP<u32, AudioPlayRequest>						PlayingIDs;
@@ -271,7 +271,7 @@ namespace	ITF
             typedef ITF_MAP<SoundEventID, StringID>	                    WwiseIDNameMap;
             typedef ITF_VECTOR<String8>                                 DelayedUnloadBank;
             typedef std::pair<SoundRtpcID, SoundRtpcID>                  StateValue;
-            
+
 
 	private:
 
@@ -279,15 +279,15 @@ namespace	ITF
 			const SoundConfig_Template				    *m_config;		////< config
 			PlayingIDs									m_playingIDs;	////< playing ID map
 			GUIDMap										m_guidToID;		////< GUID -> (ID, type)
-            LocIdMap									m_locIdToSound;		
+            LocIdMap									m_locIdToSound;
             RtpcConfig                                  m_guidRtpc;
 			u32											m_engineEventIDs[AUDIO_ENGEVT_COUNT];	////< engevt ID
 			AudioSDK::RingBuffer<SoundHandle, 256>	m_endedEvents;	////< end of event stack
 			MetronomeState								*m_metronomeState[METRONOME_TYPE_COUNT];	////< metronomes
 			bbool										m_isRunning;
 			bool										m_usePackage;
-			u32											m_defaultPackageID; 
-			u32											m_defaultLocalizedPackageID;	
+			u32											m_defaultPackageID;
+			u32											m_defaultLocalizedPackageID;
 
 
 			bbool										m_globalBankIsLoaded;
@@ -316,7 +316,7 @@ namespace	ITF
             ITF_THREAD_CRITICAL_SECTION                 m_cs;
 
 			bool										m_isInDebugMode;
-#if !defined(ITF_FINAL) 
+#if !defined(ITF_FINAL)
             SafeArray<const char*>							m_failedBank;
 			ITF_VECTOR<u32>								m_failedBankId;
 #endif
@@ -347,7 +347,7 @@ namespace	ITF
             void                    InitUAF();
             void                    ClearUAF();
             void                    UpdateUAF(f32 _deltaTime);
-			
+
 			SoundHandle	            priv_play(const AudioPlayRequest &_audioPlayRequest);
 			void					treatEndOfEvent();
 			void					registerActiveAuxBus(SoundBusID _busID, AudioBusSlotID _slotID, SoundEffectID _effectID);
@@ -369,19 +369,38 @@ namespace	ITF
             AK::JobWorkerMgr::InitSettings m_jobWorkerSettings;
             static void WwiseAudioThreadCallbackFunc(AK::IAkGlobalPluginContext* in_pContext, AkGlobalCallbackLocation in_eLocation, void* in_pCookie);
 
+
             AKRESULT AK_SoundEngine_PrepareBank(const char* in_pszString);
             AKRESULT AK_SoundEngine_UnPrepareBank(const char* in_pszString);
             AKRESULT AK_SoundEngine_PrepareEvent(AkUniqueID				 in_eventID);
             AKRESULT AK_SoundEngine_UnPrepareEvent(AkUniqueID				 in_eventID);
-
+        // bank loaded from events
 #ifndef ITF_FINAL
 			// bank reloading for editor
 			void	unloadAllBanks();
 			void	reloadAllBanks();
 			void	traceBankLeaks();
 #endif
-           
-	};
+#ifdef USE_PAD_HAPTICS
+    public:
+	    bbool registerHaptics(u32 _pad,u32 _deviceId,u32 _deviceOutputId,bbool _isSony) override;
+	    bbool unregisterHaptics(u32 _pad) override;
+	    bbool registerControllerSpeaker(u32 _pad,u32 _deviceId,u32 _deviceOutputId,bbool _isSony) override;
+	    bbool unregisterControllerSpeaker(u32 _pad) override;
+#ifdef ITF_WINDOWS
+	    u32 getDeviceId(IMMDevice* _imDevice) override;
+#endif
+    private :
+        const char* CONTROLLER_SPEAKER = "Controller_Speaker";
+        const char* CONTROLLER_MONTION = "Wwise_Motion";
+        const uint32_t CONTROLLER_SPEAKER_SHARESET = 1334442663U;
+        static const int UG_MAX_GAMEPADS = 4;
+        AkOutputDeviceID m_PlayerAudioOutput[UG_MAX_GAMEPADS] ={AK_INVALID_OUTPUT_DEVICE_ID};
+        AkOutputDeviceID m_PlayerMotionOutput[UG_MAX_GAMEPADS]={AK_INVALID_OUTPUT_DEVICE_ID};
+	    void initMotionLib();
+#endif
+    };
+
 }
 
 //$4-*****************************************************************************************************************

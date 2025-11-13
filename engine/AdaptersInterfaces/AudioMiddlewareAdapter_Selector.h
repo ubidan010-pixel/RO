@@ -5,10 +5,10 @@
 
 
 // --- --- --- --- AUDIO ENGINE CHOICE --- --- --- ---
-#if defined(ITF_PS5) || defined(ITF_WINDOWS) || defined(ITF_NX) || defined(ITF_OUNCE)
+#if defined(ITF_PS5) || defined(ITF_WINDOWS) || defined(ITF_NX)
 
 
-#if defined(ITF_WINDOWS) && defined(ITF_RETAIL) 
+#if defined(ITF_WINDOWS) && defined(ITF_RETAIL)
 #define ITF_WWISE_PROFILE
 #endif
 
@@ -20,7 +20,11 @@
 
 
 #if defined(ITF_SUPPORT_WWISE)
-#if defined(ITF_SUPPORT_RAKI) 
+#if defined(ITF_WINDOWS)
+#define USE_PAD_HAPTICS
+#define ITF_LOG_SOUND_EVENTS
+#endif
+#if defined(ITF_SUPPORT_RAKI)
 #error "(macros.h) : Choose only one audio engine"
 #endif
 #endif

@@ -1,5 +1,7 @@
 #include "precompiled_engine.h"
-
+#ifndef _ITF_HATPICMANAGER_H_
+#include "gameplay/Managers/PadHapticsManager.h"
+#endif
 #ifndef _ITF_GAMEINTERFACE_H_
 #include "engine/gameplay/GameInterface.h"
 #endif //_ITF_GAMEINTERFACE_H_
@@ -95,6 +97,9 @@ namespace ITF
         TweenInstructionFactory_Template::create();
         TweenInstructionFactory::create();
         EventDelayHandler::create();
+#ifdef USE_PAD_HAPTICS
+        PadHapticsManager::create();
+#endif
     }
 
     GameInterface::~GameInterface()
@@ -105,6 +110,9 @@ namespace ITF
         FactionManager::destroy();
         LinkManager::destroy();
         EventDelayHandler::destroy();
+#ifdef USE_PAD_HAPTICS
+        PadHapticsManager::destroy();
+#endif
         SF_DEL(m_gameScreenFactory);
         SF_DEL(m_persistentGameDataFactory);
     }
@@ -128,7 +136,7 @@ namespace ITF
     {
         if(SAVEGAME_ADAPTER)
         {
-            SAVEGAME_ADAPTER->setShownHiddenPromptCallback(Adapter_Savegame::PromptType_FileAlreadyExists, loadSavePromptShowHideCallback); 
+            SAVEGAME_ADAPTER->setShownHiddenPromptCallback(Adapter_Savegame::PromptType_FileAlreadyExists, loadSavePromptShowHideCallback);
             SAVEGAME_ADAPTER->setShownHiddenPromptCallback(Adapter_Savegame::PromptType_DeviceWhenDeviceNoLongerValidForSave, loadSavePromptShowHideCallback);
             SAVEGAME_ADAPTER->setShownHiddenPromptCallback(Adapter_Savegame::PromptType_SaveError, loadSavePromptShowHideCallback);
             SAVEGAME_ADAPTER->setShownHiddenPromptCallback(Adapter_Savegame::PromptType_DeviceChosenAsNone, loadSavePromptShowHideCallback);
@@ -138,7 +146,7 @@ namespace ITF
             SAVEGAME_ADAPTER->setShownHiddenPromptCallback(Adapter_Savegame::PromptType_FileAlreadyExistsForNewGame, loadSavePromptShowHideCallback);
             SAVEGAME_ADAPTER->setShownHiddenPromptCallback(Adapter_Savegame::PromptType_UserNotSignedIn, loadSavePromptShowHideCallback);
             SAVEGAME_ADAPTER->setShownHiddenPromptCallback(Adapter_Savegame::PromptType_DeletingCorruptedFile, loadSavePromptShowHideCallback);
-        }       
+        }
     }
     ///////////////////////////////////////////////////////////////////////////////////////////
     StringID GameInterface::onMenuPageAction(UIMenu * _menu, const StringID & _action, const StringID &_defaultAction)
@@ -151,21 +159,21 @@ namespace ITF
     {
         if(!_show)
             return ;
-            
+
         // Save error => TRC error
         TRCManagerAdapter::ErrorContext errorContext = TRCManagerAdapter::GenericContexte;
 
-        switch (_prompt)            
+        switch (_prompt)
         {
         case Adapter_Savegame::PromptType_DeletingCorruptedFile:
             errorContext = TRCManagerAdapter::Sav_AskForDelete;
             break;
 
         case Adapter_Savegame::PromptType_FileAlreadyExists:
-            errorContext = TRCManagerAdapter::Sav_SaveAskForOverwrite;                
+            errorContext = TRCManagerAdapter::Sav_SaveAskForOverwrite;
             if(TRC_ADAPTER)
             {
-                String8 BaseName; 
+                String8 BaseName;
                 String  DisplayedName("");
                 bbool   EmptyContent;
                 SAVEGAME_ADAPTER->getEnumeratedContent(0, 0, BaseName, DisplayedName, EmptyContent);
@@ -173,11 +181,11 @@ namespace ITF
 
                 // Device Name ?
                 String SelectedDeviceName("");
-                SAVEGAME_ADAPTER->GetSelectedDeviceName(SelectedDeviceName);                    
+                SAVEGAME_ADAPTER->GetSelectedDeviceName(SelectedDeviceName);
                 TRC_ADAPTER->setCustomParam_String2(SelectedDeviceName);
             }
             break;
-        
+
         case Adapter_Savegame::PromptType_DeviceWhenDeviceNoLongerValidForSave:
             errorContext = TRCManagerAdapter::Sav_DeviceNoMoreAvailableForSave; break;
 
@@ -198,7 +206,7 @@ namespace ITF
 
         case Adapter_Savegame::PromptType_UserNotSignedIn:
             errorContext = TRCManagerAdapter::Sav_UserNotSignedIn; break;
-        default:        
+        default:
             ITF_ASSERT(0);
             break;
         }
@@ -236,12 +244,12 @@ namespace ITF
         {
             GAMEMANAGER->displaySaveNotification(btrue);
         }
-#if defined(ITF_SUPPORT_CHEAT) && defined(ITF_AUTO_UNLOCK)		
+#if defined(ITF_SUPPORT_CHEAT) && defined(ITF_AUTO_UNLOCK)
         else
         {
             GAMEMANAGER->setSuppressSaveNotification(bfalse);
         }
-#endif		
+#endif
     }
 
 	const GameMaterial_Template* GameInterface::allocateGameMaterial( const Path& _fileName, bool prefetch /* = false */ )

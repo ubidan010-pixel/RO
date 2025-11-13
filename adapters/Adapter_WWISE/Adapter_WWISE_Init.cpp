@@ -1,4 +1,5 @@
 #include "precompiled_Adapter_WWISE.h"
+
 #ifdef ITF_SUPPORT_WWISE
 
 #include "adapters/Adapter_WWISE/Adapter_WWISE.h"
@@ -51,9 +52,7 @@
 #include "engine/sound/InstanceManager.h"
 
 #include "AK/Plugin/AllPluginsFactories.h"
-
 #define SOUND_ADAPTER_MAX_NB_VOICES 256
-
 // !!! check all those constant has always the same value !!!
 // AUDIO_STATIC_ASSERT(AK_INVALID_AUX_ID == ITF_INVALID_SOUND_BUS_ID, "both constants must be equal");
 // AUDIO_STATIC_ASSERT(AK_INVALID_UNIQUE_ID == ITF_INVALID_SOUND_EFFECT_ID, "both constants must be equal");
@@ -82,7 +81,7 @@ namespace	ITF
         ,m_ignorePauseDuringBankGenerations(false)
 #endif
 	{
-        
+
         Synchronize::createCriticalSection(&m_cs);
 
         m_pLowLevelIO = WWISE_NEW(CAkFilePackageLowLevelIODeferred());
@@ -124,6 +123,9 @@ namespace	ITF
 	//
 	ITF::bbool Adapter_WWISE::init(bbool  _enableGameOutputCapture)
 	{
+#if defined(USE_PAD_HAPTICS)
+	    initMotionLib();
+#endif
 		// init engine
 		m_isRunning = initEngine();
 		if(m_isRunning)
@@ -170,7 +172,7 @@ namespace	ITF
 
 
 
- 
+
 		return m_isRunning;
 	}
 
@@ -242,7 +244,7 @@ namespace	ITF
 
         //
 
-     
+
 
 
         // override Wwise log
@@ -278,7 +280,6 @@ namespace	ITF
         delete m_instanceManager;
         m_instanceManager = NULL;
     }
-
     void Adapter_WWISE::InitUAF()
     {
         u32 numBuses = m_config->getBusDefs().size();
@@ -428,7 +429,7 @@ namespace	ITF
 #elif defined (ITF_PS5)
 //         AK::JobWorkerMgr::InitSettings& jws = m_jobWorkerSettings;
 //         if (jws.uNumWorkerThreads > 0)
-//         {
+        //
 //             AKASSERT(jws.uNumWorkerThreads <= AK_MAX_WORKER_THREADS);
 //             jws.arThreadWorkerProperties = &Wwise::Configure::arThreadProperties[0];
 //             for (int uWorkerIdx = 0; uWorkerIdx < jws.uNumWorkerThreads; uWorkerIdx++)
@@ -436,7 +437,7 @@ namespace	ITF
 //                 AkThreadProperties prop;
 //                 AKPLATFORM::AkGetDefaultThreadProperties(prop);
 //                 prop.nPriority = AK_THREAD_PRIORITY_ABOVE_NORMAL;
-// 
+//
 //                 // fill up CCX0 first, with threads able to float across pairs of hw threads, and prefer to run threads "Solo" on a core, eg, 0x0003, 0x000C, 0x0030, 0x00C0, 0x0003, 0x000C, 0x0030, 0x00C0, 0x0300, 0x0C00...
 //                 if (uWorkerIdx < 8)
 //                 {
@@ -450,7 +451,7 @@ namespace	ITF
 //                 {
 //                     prop.dwAffinityMask = AK_THREAD_AFFINITY_ALL;
 //                 }
-// 
+//
 //                 jws.arThreadWorkerProperties[uWorkerIdx] = prop;
 //             }
 //         }
@@ -485,7 +486,8 @@ namespace	ITF
 		// SDK documentation for more information. ;
 		// CAkFilePackageLowLevelIOBlocking::Init() creates a streaming device in the
 		// Stream Manager, and registers itself as the File Location Resolver.
-		//
+        //
+
 #if defined( ITF_NX) || defined( ITF_OUNCE)
         in_deviceSettings.bUseStreamCache = true;
 #endif
@@ -495,7 +497,7 @@ namespace	ITF
 			return false;
 		}
 
-    
+
 
         if (m_jobWorkerSettings.uNumWorkerThreads > 0)
         {
@@ -572,7 +574,7 @@ namespace	ITF
 // 			EVENTMANAGER->unregisterEvent(EventSetWwiseAuxBusEffect_CRC, this);
 // 			EVENTMANAGER->unregisterEvent(EventResetWwiseAuxBusEffect_CRC, this);
 		}
-        
+
         treatEndOfEvent();
 
         ClearUAF();
@@ -701,7 +703,7 @@ namespace	ITF
 				for(ITF_VECTOR<WwiseEngineEvent>::const_iterator it = engineEventList.begin(), itEnd = engineEventList.end(); it != itEnd; ++it)
 				{
 					const int	audioEngineEvent = static_cast<int>(it->getEngineEventType());
-
+                //
 					if((audioEngineEvent >= 0) && (audioEngineEvent < AUDIO_ENGEVT_COUNT))
 					{
 						m_engineEventIDs[audioEngineEvent] = getIDFromGUID(it->getGUID());
@@ -733,11 +735,11 @@ namespace	ITF
 		AkUInt32	packageID;
 		AkOSChar	pck[512];
 
-#if !defined(ITF_FINAL) 
+#if !defined(ITF_FINAL)
 		m_failedBank.clear();
 #endif
 
-		if(m_usePackage == false) 
+		if(m_usePackage == false)
 			return;
 
 		if(m_currentEpisode == _episode)
@@ -747,7 +749,7 @@ namespace	ITF
 		AudioSDK::safeStringCopy(root, Wwise::Configure::c_packageRootPath);
 		AudioSDK::safeStringCat(root, Wwise::Helper::getWwisePlatformName(Wwise::Helper::CURRENT_PLATFORM));
 		AudioSDK::safeStringCat(root, AKTEXT("/"));
-	
+
 
 		if( m_episodePackageID[1] == 0 ) //Ep1.pck + common.pck ( needed even for e2/e3 or e4)
 		{
@@ -834,7 +836,7 @@ namespace	ITF
 
 	}
 
-#endif	
+#endif
 
 
 	//
@@ -898,5 +900,6 @@ namespace	ITF
 // 		loadPackage(1); //temp load episode 1 at init
 #endif
 	}
+
 }
 #endif // ITF_SUPPORT_WWISE
