@@ -49,12 +49,12 @@ namespace ITF
             physical = MakeKeyboardInput(val.inputValue);
             return true;
         }
-        else if (val.inputType == X360Button || val.inputType == GenericButton)
+        else if (val.inputType == ControllerButton)
         {
             physical = MakeControllerButtonInput(val.inputIndex, val.inputValue);
             return true;
         }
-        else if (val.inputType == X360Axis || val.inputType == GenericAxis)
+        else if (val.inputType == ControllerAxis)
         {
             f32 axisValue = (val.axisPosition == 1) ? 1.0f : -1.0f;
             physical = MakeControllerAxisInput(val.inputIndex, val.inputValue, axisValue);
@@ -155,44 +155,6 @@ namespace ITF
         }
         return false;
     }
-
-    /**
-     * Convert PhysicalInput to InputValue
-     * @param physical Physical input
-     * @param val Output InputValue
-     * @return true if conversion successful, false otherwise
-     */
-    static bool ConvertPhysicalInputToInputValue(const PhysicalInput& physical, InputValue& val)
-    {
-        memset(&val, 0, sizeof(InputValue));
-
-        if (physical.type == PhysicalInput::Keyboard)
-        {
-            val.inputType = Keyboard;
-            val.inputValue = physical.inputId;
-            val.inputIndex = 0;
-            val.axisPosition = 0;
-            return true;
-        }
-        else if (physical.type == PhysicalInput::ControllerButton)
-        {
-            val.inputType = GenericButton;
-            val.inputValue = physical.inputId;
-            val.inputIndex = physical.deviceId;
-            val.axisPosition = 0;
-            return true;
-        }
-        else if (physical.type == PhysicalInput::ControllerAxis)
-        {
-            val.inputType = GenericAxis;
-            val.inputValue = physical.inputId;
-            val.inputIndex = physical.deviceId;
-            val.axisPosition = (physical.axisValue >= 0.0f) ? 1 : 0;
-            return true;
-        }
-        return false;
-    }
-
 
     bool CanUseInputValue(InputValue val)
     {
@@ -869,30 +831,19 @@ namespace ITF
         PressStatus buttonState = Released;
         if (virtualInput.type == VirtualInput::Button)
         {
-            buttonState = m_inputManager->GetVirtualInputState().GetButton(player, static_cast<VirtualButton>(virtualInput.virtualId));
+            buttonState = m_inputManager->GetVirtualInputState().GetButton(
+                player, static_cast<VirtualButton>(virtualInput.virtualId));
         }
-                else if (virtualInput.type == VirtualInput::Axis)
-                {
-                    f32 axisValue = m_inputManager->GetVirtualInputState().GetAxis(player, static_cast<VirtualAxis>(virtualInput.virtualId));
-
-                    if (fabsf(axisValue) >= 0.65f)
-                    {
-                        buttonState = Pressed;
-                    }
-                }
-
-        if (buttonState == Released && player == 0 && action == ActionShowMenu)
+        else if (virtualInput.type == VirtualInput::Axis)
         {
-#ifdef ITF_WINDOWS
-            KeyboardInputSource* keyboardSource =
-                static_cast<KeyboardInputSource*>(m_inputManager->GetInputSource(KEYBOARD_DEVICE_ID));
-            if (keyboardSource)
-            {
-                buttonState = keyboardSource->GetKeyState(VK_ESCAPE);
-            }
-#endif
-        }
+            f32 axisValue = m_inputManager->GetVirtualInputState().GetAxis(
+                player, static_cast<VirtualAxis>(virtualInput.virtualId));
 
+            if (fabsf(axisValue) >= 0.65f)
+            {
+                buttonState = Pressed;
+            }
+        }
         m_buttons[player][button] = buttonState;
         return buttonState == JustPressed;
     }
@@ -910,20 +861,22 @@ namespace ITF
 
         if (virtualInput.type == VirtualInput::Axis)
         {
-            f32 virtualAxisValue = m_inputManager->GetVirtualInputState().GetAxis(player, static_cast<VirtualAxis>(virtualInput.virtualId));
+            f32 virtualAxisValue = m_inputManager->GetVirtualInputState().GetAxis(
+                player, static_cast<VirtualAxis>(virtualInput.virtualId));
             m_axes[player][axis] = virtualAxisValue;
             return (fabsf(virtualAxisValue) >= 0.65f);
         }
         else if (virtualInput.type == VirtualInput::Button)
         {
-            PressStatus buttonState = m_inputManager->GetVirtualInputState().GetButton(player, static_cast<VirtualButton>(virtualInput.virtualId));
+            PressStatus buttonState = m_inputManager->GetVirtualInputState().GetButton(
+                player, static_cast<VirtualButton>(virtualInput.virtualId));
             if (buttonState == Pressed || buttonState == JustPressed)
             {
                 m_axes[player][axis] = axisValue;
                 return btrue;
             }
             else
-        {
+            {
                 m_axes[player][axis] = 0.0f;
                 return bfalse;
             }
@@ -935,15 +888,6 @@ namespace ITF
 
     void InputAdapter::SetInputValue(u32 player, u32 action, InputValue& value)
     {
-        if (value.inputType != Keyboard)
-        {
-#ifdef ITF_USE_SDL
-            if (value.inputType == X360Button)
-                value.inputType = GenericButton;
-            else if (value.inputType == X360Axis)
-                value.inputType = GenericAxis;
-#endif
-        }
         value.inputType = GetControllerType(value);
 
         ITF_ASSERT(m_inputManagerInitialized && m_inputManager && m_inputManager->IsInitialized());
@@ -974,13 +918,13 @@ namespace ITF
         ITF_ASSERT(m_inputManagerInitialized && m_inputManager && m_inputManager->IsInitialized());
 
         for (u32 playerIndex = 0; playerIndex < JOY_MAX_COUNT; ++playerIndex)
-            {
-                UpdateActionForButton(playerIndex, ActionJump, m_joyButton_A);
-                UpdateActionForButton(playerIndex, ActionBack, m_joyButton_B);
-                UpdateActionForAxis(playerIndex, ActionLeft, m_joyStickLeft_X, -1);
-                UpdateActionForAxis(playerIndex, ActionRight, m_joyStickLeft_X, 1);
-                UpdateActionForAxis(playerIndex, ActionUp, m_joyStickLeft_Y, 1);
-                UpdateActionForAxis(playerIndex, ActionDown, m_joyStickLeft_Y, -1);
+        {
+            UpdateActionForButton(playerIndex, ActionJump, m_joyButton_A);
+            UpdateActionForButton(playerIndex, ActionBack, m_joyButton_B);
+            UpdateActionForAxis(playerIndex, ActionLeft, m_joyStickLeft_X, -1);
+            UpdateActionForAxis(playerIndex, ActionRight, m_joyStickLeft_X, 1);
+            UpdateActionForAxis(playerIndex, ActionUp, m_joyStickLeft_Y, 1);
+            UpdateActionForAxis(playerIndex, ActionDown, m_joyStickLeft_Y, -1);
 
 #ifdef ITF_WINDOWS
             if (m_connectedPlayers[playerIndex] == ePlaying)
@@ -1047,20 +991,6 @@ namespace ITF
                 {
                     m_connectedPlayers[playerIndex] = ePlaying;
                 }
-#ifdef ITF_WINDOWS
-                    if (UpdateActionForButton(playerIndex, ActionBubbleQuit, m_joyButton_Back))
-                    {
-                        if (m_connectedPlayers[playerIndex] == ePlaying)
-                        {
-                            m_connectedPlayers[playerIndex] = eBubble;
-                        }
-                        else if (m_connectedPlayers[playerIndex] == eBubble)
-                        {
-                            m_connectedPlayers[playerIndex] = eNotConnected;
-                            setPadConnected(playerIndex, bfalse);
-                    }
-                }
-#endif
             }
             else //player should join on any pressed key/button/axis
             {
@@ -1094,18 +1024,20 @@ namespace ITF
         }
     }
 
-    void InputAdapter:: OnControllerConnected(u32 _padIndex,i32 _deviceID,i32 _deviceOutputID,bool isSony)
+    void InputAdapter::OnControllerConnected(u32 _padIndex, i32 _deviceID, i32 _deviceOutputID, bool isSony)
     {
 #ifdef USE_PAD_HAPTICS
-        HAPTICS_MANAGER->onControllerConnected(_padIndex,_deviceID,_deviceOutputID,isSony);
+        HAPTICS_MANAGER->onControllerConnected(_padIndex, _deviceID, _deviceOutputID, isSony);
 #endif
     }
+
     void InputAdapter::OnControllerDisconnected(u32 _padIndex)
     {
 #ifdef USE_PAD_HAPTICS
         HAPTICS_MANAGER->onControllerDisconnected(_padIndex);
 #endif
     }
+
     const InputValue& InputAdapter::GetInputValue(u32 player, u32 action) const
     {
         return m_inputMapping[player][action];
