@@ -11,6 +11,25 @@
 #ifndef ITF_SYSTEMADAPTER_WIN_H_
 #include "adapters/SystemAdapter_win/SystemAdapter_win.h"
 #endif
+#include <pad.h>
+#include <pad_types.h>
+#include <pad_windows_static.h>
+
+#ifndef _ITF_INPUT_MANAGER_H_
+#include "engine/input/InputManager.h"
+#endif //_ITF_INPUT_MANAGER_H_
+
+#ifndef _ITF_KEYBOARD_INPUT_SOURCE_H_
+#include "engine/input/KeyboardInputSource.h"
+#endif //_ITF_KEYBOARD_INPUT_SOURCE_H_
+
+#ifndef _ITF_CONTROLLER_INPUT_SOURCE_H_
+#include "engine/input/ControllerInputSource.h"
+#endif //_ITF_CONTROLLER_INPUT_SOURCE_H_
+
+#ifndef _ITF_INPUT_MAPPING_DEFAULTS_H_
+#include "engine/input/InputMappingDefaults.h"
+#endif //_ITF_INPUT_MAPPING_DEFAULTS_H_
 
 namespace ITF
 {
@@ -21,6 +40,8 @@ namespace ITF
           , m_joystickId(0)
           , m_id(-1)
           , m_connected(false)
+          ,deviceID(0)
+          ,deviceOutputID(0)
     {
         memset(m_axes, 0, sizeof(m_axes));
         memset(m_buttons, 0, sizeof(m_buttons));
@@ -216,6 +237,11 @@ namespace ITF
           , m_initialized(false)
           , m_adapter(nullptr)
     {
+        for (int i = 0; i < JOY_MAX_COUNT; i++)
+        {
+            m_scePadHandles[i] = -1;
+        }
+        InitScePad(m_scePadHandles);
     }
 
     SDLInput::~SDLInput()
@@ -311,14 +337,13 @@ namespace ITF
 
         if (connected)
         {
-            m_adapter->OnControllerConnected(index);
             m_gamepadCount++;
         }
         else
         {
-            m_adapter->OnControllerDisconnected(index);
             m_gamepadCount = (m_gamepadCount > 0) ? m_gamepadCount - 1 : 0;
         }
+        NotifyDeviceConnectEvent(index,padType,connected);
     }
 
     void SDLInput::refreshGamepadList()
@@ -374,6 +399,154 @@ namespace ITF
             }
         }
     }
+    void SDLInput::NotifyDeviceConnectEvent(u32 _padIndex,InputAdapter::PadType _type,bbool isConnected)
+    {
+        SDLGamepad& gamepad = m_gamepads[_padIndex];
+        bool isSonyController = false;
+        if (isConnected)
+        {
+            auto type = SDL_GetGamepadTypeForID(gamepad.getJoystickId());
+            if (type == SDL_GAMEPAD_TYPE_PS5 || type == SDL_GAMEPAD_TYPE_PS4)
+            {
+                isSonyController = true;
+                uint32_t resolvedId;
+                for (int iPadHandleIdx = 0; iPadHandleIdx < JOY_MAX_COUNT; iPadHandleIdx++)
+                {
+                    if (gamepad.deviceID !=0) continue;
+                    int iScePadHandle = m_scePadHandles[iPadHandleIdx];
+                    GetScePadDeviceId(iScePadHandle, resolvedId);
+                    if (resolvedId !=0)
+                    {
+                        gamepad.deviceID = iScePadHandle;
+                    }
+                    ScePadContainerIdInfo padContainerInfo;
+                    {
+                        int ret = scePadGetContainerIdInformation(iScePadHandle, &padContainerInfo);
+                        if (ret >= 0)
+                        {
+                            IMMDevice* io_pMmDevice;
+                            if (GetMMDeviceFromPadHandle(padContainerInfo.containerInfo,io_pMmDevice))
+                            {
+#ifdef USE_PAD_HAPTICS
+                                gamepad.deviceOutputID = AUDIO_ADAPTER->getDeviceId(io_pMmDevice);
+#endif
+                            }
+
+                        }
+                    }
+                }
+            }
+            else
+            {
+                gamepad.deviceID = _padIndex;
+            }
+        }
+        if (isConnected)
+        {
+            m_adapter->OnControllerConnected(_padIndex,gamepad.deviceID,gamepad.deviceOutputID,isSonyController);
+        }
+        else
+        {
+            m_adapter->OnControllerDisconnected(_padIndex);
+        }
+    }
+    void SDLInput::InitScePad(int* out_pScePadHandles)
+    {
+        ScePadInit3Param param;
+        memset(&param.reserve, 0x00, sizeof(uint8_t) * 16);
+        param.supportBusType = SCE_PAD_SUPPORT_BUS_TYPE_USB_BT;
+        int ret = scePadInit();
+        if (ret == SCE_OK)
+        {
+            for (int i = 0; i < SCE_USER_SERVICE_MAX_LOGIN_USERS; i++)
+            {
+                out_pScePadHandles[i] = scePadOpen(SCE_USER_SERVICE_STATIC_USER_ID_1 + i, SCE_PAD_PORT_TYPE_STANDARD, 0, nullptr);
+            }
+        }
+    }
+    void SDLInput::GetScePadDeviceId(int in_padHandle, uint32_t& out_resolvedId)
+    {
+        ScePadControllerType padType;
+        int ret = scePadGetControllerType(in_padHandle, &padType);
+        if (ret == SCE_OK && padType != SCE_PAD_CONTROLLER_TYPE_NOT_CONNECTED)
+        {
+            out_resolvedId = padType == SCE_PAD_CONTROLLER_TYPE_DUALSENSE ? (in_padHandle | 0x80000000) : in_padHandle;
+        }
+        else
+        {
+            out_resolvedId = 0;
+        }
+    }
+    bool SDLInput::GetMMDeviceFromPadHandle(wchar_t const* containerInfo, IMMDevice*& io_pMmDevice)
+    {
+        IMMDeviceEnumerator* pEnumerator = nullptr;
+        HRESULT hr;
+        hr = CoCreateInstance(
+            __uuidof(MMDeviceEnumerator), nullptr,
+            CLSCTX_ALL, __uuidof(IMMDeviceEnumerator),
+            (void**)&pEnumerator);
+
+        if (hr != S_OK || !pEnumerator)
+        {
+            return false;
+        }
+
+        IMMDeviceCollection* pDevices = nullptr;
+        pEnumerator->EnumAudioEndpoints(eRender, DEVICE_STATEMASK_ALL, &pDevices);
+        bool bDeviceFound = false;
+        if (pDevices)
+        {
+            UINT dwCount = 0;
+            pDevices->GetCount(&dwCount);
+
+            for (int32_t i = 0; i < (int32_t)dwCount; i++)
+            {
+                IMMDevice* pDevice = nullptr;
+                pDevices->Item(i, &pDevice);
+                if (!pDevice)
+                {
+                    continue;
+                }
+                IPropertyStore* pProps = NULL;
+                hr = pDevice->OpenPropertyStore(STGM_READ, &pProps);
+                if (hr != S_OK)
+                {
+                    pDevice->Release();
+                    continue;
+                }
+                PROPVARIANT propVar;
+                PropVariantInit(&propVar);
+
+                hr = pProps->GetValue(PKEY_Devices_ContainerId, &propVar);
+                if (hr != S_OK)
+                {
+                    pProps->Release();
+                    pDevice->Release();
+                    continue;
+                }
+                pProps->Release();
+
+                const int32_t MmContainerIdStrLength = 64;
+                wchar_t mmContainerIdStr[MmContainerIdStrLength];
+                int ret = StringFromGUID2(*propVar.puuid, mmContainerIdStr, MmContainerIdStrLength);
+                PropVariantClear(&propVar);
+
+                if (ret == 0 || _wcsnicmp(containerInfo, mmContainerIdStr, MmContainerIdStrLength) != 0)
+                {
+                    pDevice->Release();
+                    continue;
+                }
+
+                io_pMmDevice = pDevice;
+                bDeviceFound = true;
+                break;
+            }
+            pDevices->Release();
+        }
+        pEnumerator->Release();
+
+        return bDeviceFound;
+    }
 
     InputAdapter_SDL3::InputAdapter_SDL3()
     {
@@ -389,6 +562,7 @@ namespace ITF
         memset(m_keyPressTime, 0, KEY_COUNT * sizeof(u32));
         memset(m_connectedPlayers, 0, JOY_MAX_COUNT * sizeof(PlayerState));
         m_connectedPlayers[0] = ePlaying;
+        InitializeInputManager();
         InputAdapter::LoadPlayerControlSettings();
     }
 
@@ -411,6 +585,58 @@ namespace ITF
     {
         m_sdlInput.UpdateInputState();
         u32 connectedCount = 0;
+
+        InputManager* inputManager = m_inputManager;
+        if (inputManager && inputManager->IsInitialized())
+        {
+            for (u32 i = 0; i < JOY_MAX_COUNT; ++i)
+            {
+                if (m_sdlInput.m_gamepads[i].isConnected())
+                {
+                    IInputSource* existingSource = inputManager->GetInputSource(i);
+                    ControllerInputSource* controllerSource = nullptr;
+
+                    if (existingSource && existingSource->GetInputType() == PhysicalInput::ControllerButton)
+                    {
+                        controllerSource = static_cast<ControllerInputSource*>(existingSource);
+                    }
+                    else
+                    {
+                        auto newSource = std::make_unique<ControllerInputSource>(i);
+                        controllerSource = newSource.get();
+                        inputManager->RegisterInputSource(std::move(newSource));
+
+                        InitializeDefaultControllerMappings(inputManager->GetInputMapping(), i);
+                    }
+
+                    const SDLGamepad& gamepad = m_sdlInput.m_gamepads[i];
+                    controllerSource->SetConnected(true);
+
+                    for (u32 button = 0; button < JOY_MAX_BUT; ++button)
+                    {
+                        PressStatus buttonStatus = gamepad.getButton(button);
+                        bool pressed = (buttonStatus == Pressed || buttonStatus == JustPressed);
+                        controllerSource->SetButtonState(button, pressed);
+                    }
+
+                    for (u32 axis = 0; axis < JOY_MAX_AXES; ++axis)
+                    {
+                        f32 axisValue = gamepad.getAxis(axis);
+                        controllerSource->SetAxisState(axis, axisValue);
+                    }
+                }
+                else
+                {
+                    IInputSource* existingSource = inputManager->GetInputSource(i);
+                    if (existingSource && existingSource->GetInputType() == PhysicalInput::ControllerButton)
+                    {
+                        ControllerInputSource* controllerSource = static_cast<ControllerInputSource*>(existingSource);
+                        controllerSource->SetConnected(false);
+                    }
+                }
+            }
+        }
+
         for (u32 i = 0; i < JOY_MAX_COUNT && connectedCount < m_sdlInput.m_gamepadCount; ++i)
         {
             if (m_sdlInput.m_gamepads[i].isConnected())

@@ -530,6 +530,7 @@ namespace ITF
         memset(m_keyPressTime, 0, KEY_COUNT * sizeof(u32));
         memset(m_connectedPlayers, 0, JOY_MAX_COUNT * sizeof(PlayerState));
         m_connectedPlayers[0] = ePlaying;
+        InitializeInputManager();
         InputAdapter::LoadPlayerControlSettings();
 #ifdef USE_WIIMOTE_LIB
         if(CONFIG->m_enableWiiRemoteonPC)

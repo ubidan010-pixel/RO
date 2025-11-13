@@ -6,6 +6,9 @@
 #endif //_ITF_INPUTADAPTER_H_
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_gamepad.h>
+#include <mmdeviceapi.h>
+#include <propkey.h>
+#include "engine/AdaptersInterfaces/AudioMiddlewareAdapter.h"
 
 namespace ITF
 {
@@ -31,6 +34,8 @@ namespace ITF
         InputAdapter::PressStatus getButton(u32 _button) const;
         void setVibration(f32 _leftMotorSpeed, f32 _rightMotorSpeed, f64 _duration = 0.0);
         bool isConnected() const;
+        uint32_t deviceID;
+        uint32_t deviceOutputID;
 
     private:
         void UpdateButtonState(u32 buttonIndex, bool pressed);
@@ -66,11 +71,16 @@ namespace ITF
         SDLGamepad m_gamepads[JOY_MAX_COUNT];
         u32 m_gamepadCount;
         bool m_initialized;
+        int m_scePadHandles[JOY_MAX_COUNT];
 
     private:
         void handleGamepadConnected(SDL_JoystickID instanceId);
         void HandleGamepadDisconnected(SDL_JoystickID instanceId);
         void setGamepadConnected(u32 index, bool connected, InputAdapter::PadType padType);
+        void NotifyDeviceConnectEvent(u32 _padIndex,InputAdapter::PadType _type, bbool isConnected);
+        void InitScePad(int* out_pScePadHandles);
+        void GetScePadDeviceId(int in_padHandle, uint32_t& out_resolvedId);
+        bool GetMMDeviceFromPadHandle(wchar_t const* containerInfo, IMMDevice*& io_pMmDevice);
         InputAdapter* m_adapter;
     };
 

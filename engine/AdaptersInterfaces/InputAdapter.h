@@ -26,6 +26,8 @@
 
 namespace ITF
 {
+    class InputManager;
+
     enum KeyCode
     {
         KEY_SPACE = 32,
@@ -407,6 +409,8 @@ namespace ITF
         void pushMouseWheelEvent(i32 _wheel, i32 _delta);
 
     protected:
+        InputManager* m_inputManager;
+        bbool m_inputManagerInitialized;
         ButtonClassMask m_buttonClasses[JOY_MAX_BUT];
         u32 m_environmentInput;
         ButtonMode m_buttonMode;
@@ -428,6 +432,8 @@ namespace ITF
     private:
         bbool m_PadConnected[JOY_MAX_COUNT]{};
         PadType m_PadType[JOY_MAX_COUNT]{};
+
+
 
         bbool m_useShakeAttack;
         f32 m_threshold;
@@ -671,6 +677,8 @@ namespace ITF
         virtual void SavePlayerControlSettings();
         virtual void ResetToDefaultControls();
 
+        void InitializeInputManager();
+
         void InitializeActionStrings();
         virtual void SetInputValue(u32 player, u32 action, InputValue& value);
         void UpdateKeyboard();
@@ -754,8 +762,8 @@ namespace ITF
         virtual u16 GetTPPosY() { return 0; }
         //CASA>
 
-        virtual void OnControllerConnected(u32 _padIndex) {}
-        virtual void OnControllerDisconnected(u32 _padIndex) {}
+        virtual void OnControllerConnected(u32 _padIndex,i32 _deviceID= -1,i32 _deviceOutputID =-1,bool isSony = false);
+        virtual void OnControllerDisconnected(u32 _padIndex);
     };
 
 #define INPUT_ADAPTER InputAdapter::getptr()
