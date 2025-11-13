@@ -183,7 +183,7 @@ namespace ITF
     };
 
     // *** JOYSTICK ***
-// COMMON
+    // COMMON
     enum JoyAxis_t
     {
         m_joyStickLeft_X=0,
@@ -192,14 +192,17 @@ namespace ITF
         m_joyStickRight_X,
         m_joyStickRight_Y,
         m_joyTrigger_Right,
+
         JOY_MAX_AXES
     };
 
     enum ControllerType
     {
         Keyboard,
-        ControllerButton,
-        ControllerAxis
+        X360Button,
+        X360Axis,
+        GenericButton,
+        GenericAxis
     };
 
     struct InputValue
@@ -240,7 +243,7 @@ namespace ITF
 #define JOY_AXIS_LT         4
 #define JOY_AXIS_RT         5
 #define JOY_MAX_AXES        6
-    class Interface_InputListener;
+
     class InputAdapter : public TemplateSingleton<InputAdapter>
     {
     public:
@@ -249,7 +252,6 @@ namespace ITF
         ///////////////////////////////////////////////////////////////////////////////////////////
         ///Button classes. Each button can belong to several classes, we can combine them with OR binary operator
         typedef u8 ButtonClassMask;
-
 
         static const ButtonClassMask BUTTONCLASS_STANDARD = 1; //on XBOX : A,B,X,Y,START,SELECT
         static const ButtonClassMask BUTTONCLASS_ANALOGSTICK = 2; //on XBOX : Left/right analog stick buttons
@@ -310,21 +312,22 @@ namespace ITF
             PadType_Count,
         };
 
-            enum ActionType
-            {
-                ActionUp,
-                ActionDown,
-                ActionLeft,
-                ActionRight,
-                ActionSprint,
-                ActionJump,
-                ActionHit,
-                ActionBack,
-                ActionShowMenu,
-                MAX_ACTIONS
-            };
-
-        static const u32 MAX_BINDINGS_PER_ACTION = 2;
+        enum ActionType
+        {
+            ActionBubbleQuit,
+            ActionSelect,
+            ActionDelete,
+            ActionShowMenu,
+            ActionBack,
+            ActionLeft,
+            ActionRight,
+            ActionUp,
+            ActionDown,
+            ActionJump,
+            ActionHit,
+            ActionSprint,
+            MAX_ACTIONS
+        };
 
         // ButtonMode is used to determinate which buttons we want when we call getGamePadButtons
         enum ButtonMode
@@ -415,8 +418,8 @@ namespace ITF
         u32 m_axesPressTime[JOY_MAX_COUNT][JOY_MAX_AXES];
         PressStatus m_buttons[JOY_MAX_COUNT][JOY_MAX_BUT];
         // control remapping
-        InputValue m_inputMapping[JOY_MAX_COUNT][MAX_ACTIONS][MAX_BINDINGS_PER_ACTION];
-        InputValue m_inputMappingTemporary[JOY_MAX_COUNT][MAX_ACTIONS][MAX_BINDINGS_PER_ACTION];
+        InputValue m_inputMapping[JOY_MAX_COUNT][MAX_ACTIONS];
+        InputValue m_inputMappingTemporary[JOY_MAX_COUNT][MAX_ACTIONS];
         const wchar_t* m_actionStrings[MAX_ACTIONS];
         // mouse/keyboard
         PressStatus m_keyStatus[KEY_COUNT];
@@ -425,10 +428,6 @@ namespace ITF
     private:
         bbool m_PadConnected[JOY_MAX_COUNT]{};
         PadType m_PadType[JOY_MAX_COUNT]{};
-#if defined(ITF_WINDOWS)
-        ControllerType m_lastPrimaryInputType[JOY_MAX_COUNT]{};
-        PadType m_lastPrimaryPadType[JOY_MAX_COUNT]{};
-#endif
 
         bbool m_useShakeAttack;
         f32 m_threshold;
@@ -439,6 +438,7 @@ namespace ITF
         bbool m_runUseShake;
         f32 m_runTimerStop;
         String m_inputString;
+
     public:
         /**
         Registers a new listener for input events. you must create a class that inherits from Interface_InputListener
@@ -499,8 +499,6 @@ namespace ITF
 
         */
         virtual void getGamePadPos(u32 _environment, u32 _pad, float* _pos, u32 _numAxes) const;
-        virtual void getGamePadPosStatus(u32 _environment, u32 _pad, float* _pos, u32 _numAxes) const;
-
         /**
         Queries the current state of one or more buttons of a GamePad. The button states are
         returned in an array, where the first element represents the first button of the GamePad.
@@ -512,8 +510,6 @@ namespace ITF
         @param        _numButtons    Specifies how many buttons should be returned.
         */
         virtual void getGamePadButtons(u32 _environment, u32 _pad, PressStatus* _buttons, u32 _numButtons) const;
-        virtual void getGamePadButtonsStatus(u32 _environment, u32 _pad, PressStatus* _buttons, u32 _numButtons) const;
-
         /**
         Queries button classes (bit mask). The button classes are
         returned in an array, where the first element represents the first button of the GamePad.
@@ -582,20 +578,6 @@ namespace ITF
             if (_numPad < JOY_MAX_COUNT)
                 m_PadType[_numPad] = _type;
         }
-
-#if defined(ITF_WINDOWS)
-        ITF_INLINE ControllerType getPrimaryInputType(u32 _numPad) const
-        {
-            ITF_ASSERT(_numPad < JOY_MAX_COUNT);
-            return (_numPad < JOY_MAX_COUNT) ? m_lastPrimaryInputType[_numPad] : Keyboard;
-        }
-
-        ITF_INLINE PadType getPrimaryPadType(u32 _numPad) const
-        {
-            ITF_ASSERT(_numPad < JOY_MAX_COUNT);
-            return (_numPad < JOY_MAX_COUNT) ? m_lastPrimaryPadType[_numPad] : Pad_Other;
-        }
-#endif
 
         // debug input for menus / context icons etc
         ITF_INLINE PadType getDebugInputPadType(u32 _numPad) const
@@ -691,7 +673,6 @@ namespace ITF
 
         void InitializeActionStrings();
         virtual void SetInputValue(u32 player, u32 action, InputValue& value);
-        virtual void SetInputValue(u32 player, u32 action, u32 bindingIndex, InputValue& value);
         void UpdateKeyboard();
         virtual void UpdatePads() { ITF_ASSERT_MSG(0, "Not implemented"); }
         void CopyInputMapping();
@@ -718,8 +699,6 @@ namespace ITF
 
         bbool UpdateActionForButton(u32 player, ActionType action, JoyButton_Common button);
         bbool UpdateActionForAxis(u32 player, ActionType action, JoyAxis_t axis, f32 axisValue);
-        virtual bbool isX360Pad(u32 padIndex) { return btrue; }
-        const String& ValidateInputString();
         virtual void updateAllInputState();
         void ResetInputState();
         void UpdateInputForMenu();
@@ -731,7 +710,7 @@ namespace ITF
             return nullptr;
         }
 
-        virtual const InputValue& GetInputValue(u32 player, u32 action, u32 binding = 0) const;
+        virtual const InputValue& GetInputValue(u32 player, u32 action) const;
 
         const wchar_t* GetActionString(u32 action) const { return m_actionStrings[action]; }
 
@@ -777,33 +756,6 @@ namespace ITF
 
         virtual void OnControllerConnected(u32 _padIndex) {}
         virtual void OnControllerDisconnected(u32 _padIndex) {}
-#if defined(ITF_WINDOWS)
-        virtual void OnPlayerPrimaryInputSourceChanged(u32 player, ControllerType source,
-                                                      PadType padType, const char* deviceName)
-        { ITF_UNUSED(player); ITF_UNUSED(source); ITF_UNUSED(padType); ITF_UNUSED(deviceName); }
-    protected:
-        void RecordPrimaryInputSource(u32 player, ControllerType source, const char* deviceName);
-        void UpdatePrimaryInputSources();
-        virtual bool QueryPadActivity(u32 player, ControllerType& outSource, const char*& outDeviceName) const
-        { ITF_UNUSED(player); ITF_UNUSED(outSource); ITF_UNUSED(outDeviceName); return false; }
-#else
-        virtual void OnPlayerPrimaryInputSourceChanged(u32 player, ControllerType source,
-                                                      PadType padType, const char* deviceName)
-        {
-            ITF_UNUSED(player); ITF_UNUSED(source); ITF_UNUSED(padType); ITF_UNUSED(deviceName);
-        }
-    protected:
-        void RecordPrimaryInputSource(u32 player, ControllerType source, const char* deviceName)
-        {
-            ITF_UNUSED(player); ITF_UNUSED(source); ITF_UNUSED(deviceName);
-        }
-        void UpdatePrimaryInputSources() {}
-        virtual bool QueryPadActivity(u32 player, ControllerType& outSource, const char*& outDeviceName) const
-        {
-            ITF_UNUSED(player); ITF_UNUSED(outSource); ITF_UNUSED(outDeviceName);
-            return false;
-        }
-#endif
     };
 
 #define INPUT_ADAPTER InputAdapter::getptr()

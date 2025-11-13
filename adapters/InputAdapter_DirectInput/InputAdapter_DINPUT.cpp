@@ -550,22 +550,6 @@ namespace ITF
 #endif //DX_KEYBOARD
     }
 
-    void InputAdapter_DINPUT::getGamePadPosStatus(u32 _environment, u32 _pad, float* _pos, u32 _numAxes) const
-    {
-        const Joy* pjoy = &DXinput.m_pad[_pad].m_joy;
-
-        if ((m_environmentInput & _environment) != 0) //This environment is enable ,fill the buffer
-        {
-            for (u32 i = 0; i < _numAxes; i++)
-                _pos[i] = pjoy->getAxe(i);
-        }
-        else
-        {
-            for (u32 i = 0; i < _numAxes; i++)
-                _pos[i] = 0.0f;
-        }
-    }
-
     // The speed given is between 0-1
     void InputAdapter_DINPUT::padVibration(u32 _numPad, f32 _leftMotorSpeed, f32 _rightMotorSpeed)
     {
@@ -588,24 +572,6 @@ namespace ITF
             }
         }
         return padIndex;
-    }
-
-    void InputAdapter_DINPUT::getGamePadButtonsStatus(u32 _environment, u32 _pad, PressStatus* _buttons,u32 _numButtons) const
-    {
-        ITF_ASSERT(_numButtons <= JOY_MAX_BUT);
-
-        const Joy* pJoy = &DXinput.m_pad[_pad].m_joy;
-
-        if ((m_environmentInput & _environment) != 0)
-        {
-            for (u32 i = 0; i < _numButtons; i++)
-                _buttons[i] = pJoy->getButton(i);
-        }
-        else
-        {
-            for (u32 i = 0; i < _numButtons; i++)
-                _buttons[i] = Released;
-        }
     }
 
     u32 InputAdapter_DINPUT::getGamePadCount()
@@ -1383,6 +1349,13 @@ namespace ITF
 
     ControllerType InputAdapter_DINPUT::GetControllerType(InputValue& value)
     {
+        if (value.inputType != Keyboard)
+        {
+            if (IsDirectInput(DXinput.m_pad[value.inputIndex].m_typePad))
+            {
+                return value.inputType == X360Button ? GenericButton : GenericAxis;
+            }
+        }
         return value.inputType;
     }
 

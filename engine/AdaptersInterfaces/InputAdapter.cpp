@@ -1,7 +1,5 @@
 #include "precompiled_engine.h"
 
-#include <fstream>
-
 #include "gameplay/managers/GameManager.h"
 
 #ifndef _ITF_SINGLETONS_H_
@@ -15,10 +13,11 @@
 #ifndef _ITF_INPUTADAPTER_H_
 #include "engine/AdaptersInterfaces/InputAdapter.h"
 #endif //_ITF_INPUTADAPTER_H_
-#if defined(ITF_WINDOWS)
+#ifdef ITF_WINDOWS
 #include <windows.h>
 #include <shlobj.h>
 #endif
+
 
 namespace ITF
 {
@@ -28,7 +27,7 @@ namespace ITF
 
     bool CanUseInputValue(InputValue val)
     {
-#if defined(ITF_WINDOWS)
+#ifdef ITF_WINDOWS
         if (val.inputType == Keyboard)
         {
             switch (val.inputValue)
@@ -45,101 +44,24 @@ namespace ITF
         return true;
     }
 
-    ITF_INLINE bool IsBindingConfigured(const InputValue& binding)
-    {
-        return binding.inputType != Keyboard ||
-            binding.inputValue != 0 ||
-            binding.inputIndex != 0 ||
-            binding.axisPosition != 0;
-    }
-
-    ITF_INLINE bool IsAxisLikeBinding(const InputValue& binding)
-    {
-        if (!IsBindingConfigured(binding))
-            return false;
-
-        return binding.inputType == ControllerAxis;
-    }
-
     static InputAdapter::PadType getDefaultPadType()
     {
 #if defined(ITF_X360)
-    return InputAdapter::Pad_X360;
+        return InputAdapter::Pad_X360;
 #elif defined(ITF_PS3)
-    return InputAdapter::Pad_PS3;
+        return InputAdapter::Pad_PS3;
 #elif defined(ITF_VITA)
-    return InputAdapter::Pad_Vita;
+        return InputAdapter::Pad_Vita;
 #elif defined(ITF_CTR)
-    return InputAdapter::Pad_CTR;
+        return InputAdapter::Pad_CTR;
 #elif defined(ITF_PS5)
-    return InputAdapter::Pad_PS5;
+        return InputAdapter::Pad_PS5;
 #elif defined(ITF_XBOX_SERIES)
         return InputAdapter::Pad_GenericXBox;
 #else
         return InputAdapter::Pad_Other;
 #endif
     }
-
-    namespace
-    {
-        struct DefaultControllerBinding
-        {
-            InputAdapter::ActionType action;
-            ControllerType type;
-            u32 inputValue;
-            u32 axisPosition;
-        };
-
-        constexpr DefaultControllerBinding kControllerDefaultBindings[] = {
-            {InputAdapter::ActionBack, ControllerButton, m_joyButton_B, 0},
-            {InputAdapter::ActionShowMenu, ControllerButton, m_joyButton_Start, 0},
-            {InputAdapter::ActionJump, ControllerButton, m_joyButton_A, 0},
-            {InputAdapter::ActionHit, ControllerButton, m_joyButton_X, 0},
-            {InputAdapter::ActionSprint, ControllerAxis, m_joyTrigger_Right, 1},
-            {InputAdapter::ActionLeft, ControllerAxis, m_joyStickLeft_X, 0},
-            {InputAdapter::ActionRight, ControllerAxis, m_joyStickLeft_X, 1},
-            {InputAdapter::ActionUp, ControllerAxis, m_joyStickLeft_Y, 1},
-            {InputAdapter::ActionDown, ControllerAxis, m_joyStickLeft_Y, 0},
-        };
-
-#if defined(ITF_WINDOWS)
-        struct DefaultKeyboardBinding
-        {
-            InputAdapter::ActionType action;
-            u32 virtualKey;
-        };
-
-        constexpr DefaultKeyboardBinding kKeyboardDefaultBindings[] = {
-            {InputAdapter::ActionUp, VK_UP},
-            {InputAdapter::ActionDown, VK_DOWN},
-            {InputAdapter::ActionLeft, VK_LEFT},
-            {InputAdapter::ActionRight, VK_RIGHT},
-            {InputAdapter::ActionJump, VK_SPACE},
-            {InputAdapter::ActionHit, 'S'},
-            {InputAdapter::ActionSprint, VK_LSHIFT},
-            {InputAdapter::ActionBack, VK_BACK},
-            {InputAdapter::ActionShowMenu, VK_ESCAPE},
-        };
-#endif // defined(ITF_WINDOWS)
-
-        ITF_INLINE void ApplyControllerDefaultBinding(InputValue& destination,
-                                                       const DefaultControllerBinding& binding,
-                                                       u32 playerIndex)
-        {
-            destination.inputType = binding.type;
-            destination.inputValue = binding.inputValue;
-            destination.axisPosition = binding.axisPosition;
-            destination.inputIndex = playerIndex;
-        }
-
-#if defined(ITF_WINDOWS)
-        ITF_INLINE void ApplyKeyboardDefaultBinding(InputValue& destination, u32 virtualKey)
-        {
-            destination.inputType = Keyboard;
-            destination.inputValue = virtualKey;
-        }
-#endif // defined(ITF_WINDOWS)
-    } // namespace
 
     InputAdapter::InputAdapter() :
         m_inMenu(btrue),
@@ -205,13 +127,6 @@ namespace ITF
         }
 
         std::fill(m_PadType, m_PadType + ITF_ARRAY_SIZE(m_PadType), getDefaultPadType());
-#if defined(ITF_WINDOWS)
-        for (u32 i = 0; i < JOY_MAX_COUNT; ++i)
-        {
-            m_lastPrimaryInputType[i] = Keyboard;
-            m_lastPrimaryPadType[i] = m_PadType[i];
-        }
-#endif
     }
 
     void InputAdapter::addListener(Interface_InputListener* _listener, u32 _priority)
@@ -353,9 +268,6 @@ namespace ITF
             {
                 UpdateInputForGame();
             }
-#if defined(ITF_WINDOWS)
-            UpdatePrimaryInputSources();
-#endif
         }
     }
 
@@ -375,23 +287,16 @@ namespace ITF
         }
 
 #ifdef USE_WIIMOTE_LIB
-        if(CONFIG->m_enableWiiRemoteonPC)
+        if (CONFIG->m_enableWiiRemoteonPC)
         {
             if ((m_environmentInput & _environment) != 0 &&
                 KPinput.m_pads[_pad].isConnected() && KPinput.m_pads[_pad].isActive())
             {
-                for (u32 i = 0 ; i < _numAxes ; i++)
+                for (u32 i = 0; i < _numAxes; i++)
                     _pos[i] = KPinput.m_pads[_pad].getAxe(i);
             }
         }
 #endif //USE_WIIMOTE_LIB
-    }
-
-    void InputAdapter::getGamePadPosStatus(u32 _environment, u32 _pad, float* _pos, u32 _numAxes) const
-    {
-        // default implementation fills destination array with zeroes
-        for (u32 i = 0; i < _numAxes; i++)
-            _pos[i] = 0.0f;
     }
 
     void InputAdapter::getGamePadButtonClasses(u32 /*_pad*/, ButtonClassMask* _buttons, u32 _numButtons) const
@@ -418,23 +323,16 @@ namespace ITF
                 _buttons[i] = Released;
         }
 #ifdef USE_WIIMOTE_LIB
-        if(CONFIG->m_enableWiiRemoteonPC)
+        if (CONFIG->m_enableWiiRemoteonPC)
         {
             if ((m_environmentInput & _environment) != 0)
             {
-                if(KPinput.m_pads[_pad].isConnected() && KPinput.m_pads[_pad].isActive())
+                if (KPinput.m_pads[_pad].isConnected() && KPinput.m_pads[_pad].isActive())
                     for (u32 i = 0; i < _numButtons; i++)
                         _buttons[i] = KPinput.m_pads[_pad].getButton(i);
             }
         }
 #endif //USE_WIIMOTE_LIB
-    }
-
-    void InputAdapter::getGamePadButtonsStatus(u32 _environment, u32 _pad, PressStatus* _buttons, u32 _numButtons) const
-    {
-        // default implementation fills destination array with "Released"
-        for (u32 i = 0; i < _numButtons; i++)
-            _buttons[i] = Released;
     }
 
     // Speed between 0-1
@@ -553,80 +451,80 @@ namespace ITF
         evt.m_val.m_y = _delta;
         m_eventPool.push_back(evt);
     }
-#if defined(ITF_WINDOWS)
-namespace
-{
-#if defined(ITF_WINDOWS)
-    ITF_INLINE i32 TranslateVirtualKey(u32 vk)
+#ifdef ITF_WINDOWS
+    namespace
     {
-        switch (vk)
+#ifdef ITF_WINDOWS
+        ITF_INLINE i32 TranslateVirtualKey(u32 vk)
         {
-        case VK_ESCAPE:     return KEY_ESC;
-        case VK_RETURN:     return KEY_ENTER;
-        case VK_CLEAR:      return KEY_DEL;
-        case VK_BACK:       return KEY_BACKSPACE;
-        case VK_TAB:        return KEY_TAB;
-        case VK_SPACE:      return KEY_SPACE;
-        case VK_PRIOR:      return KEY_PAGEUP;
-        case VK_NEXT:       return KEY_PAGEDOWN;
-        case VK_END:        return KEY_END;
-        case VK_HOME:       return KEY_HOME;
-        case VK_LEFT:       return KEY_LEFT;
-        case VK_UP:         return KEY_UP;
-        case VK_RIGHT:      return KEY_RIGHT;
-        case VK_DOWN:       return KEY_DOWN;
-        case VK_INSERT:     return KEY_INSERT;
-        case VK_DELETE:     return KEY_DEL;
-        case VK_NUMPAD0:    return KEY_KP_0;
-        case VK_NUMPAD1:    return KEY_KP_1;
-        case VK_NUMPAD2:    return KEY_KP_2;
-        case VK_NUMPAD3:    return KEY_KP_3;
-        case VK_NUMPAD4:    return KEY_KP_4;
-        case VK_NUMPAD5:    return KEY_KP_5;
-        case VK_NUMPAD6:    return KEY_KP_6;
-        case VK_NUMPAD7:    return KEY_KP_7;
-        case VK_NUMPAD8:    return KEY_KP_8;
-        case VK_NUMPAD9:    return KEY_KP_9;
-        case VK_MULTIPLY:   return KEY_KP_MULTIPLY;
-        case VK_ADD:        return KEY_KP_ADD;
-        case VK_SUBTRACT:   return KEY_KP_SUBTRACT;
-        case VK_DECIMAL:    return KEY_KP_DECIMAL;
-        case VK_DIVIDE:     return KEY_KP_DIVIDE;
-        case VK_F1:         return KEY_F1;
-        case VK_F2:         return KEY_F2;
-        case VK_F3:         return KEY_F3;
-        case VK_F4:         return KEY_F4;
-        case VK_F5:         return KEY_F5;
-        case VK_F6:         return KEY_F6;
-        case VK_F7:         return KEY_F7;
-        case VK_F8:         return KEY_F8;
-        case VK_F9:         return KEY_F9;
-        case VK_F10:        return KEY_F10;
-        case VK_F11:        return KEY_F11;
-        case VK_F12:        return KEY_F12;
-        case VK_F13:        return KEY_F13;
-        case VK_F14:        return KEY_F14;
-        case VK_F15:        return KEY_F15;
-        case VK_F16:        return KEY_F16;
-        case VK_F17:        return KEY_F17;
-        case VK_F18:        return KEY_F18;
-        case VK_F19:        return KEY_F19;
-        case VK_F20:        return KEY_F20;
-        case VK_F21:        return KEY_F21;
-        case VK_F22:        return KEY_F22;
-        case VK_F23:        return KEY_F23;
-        case VK_F24:        return KEY_F24;
-        default:
-            return (vk < 256) ? static_cast<i32>(vk) : KEY_SPECIAL;
+            switch (vk)
+            {
+            case VK_ESCAPE: return KEY_ESC;
+            case VK_RETURN: return KEY_ENTER;
+            case VK_CLEAR: return KEY_DEL;
+            case VK_BACK: return KEY_BACKSPACE;
+            case VK_TAB: return KEY_TAB;
+            case VK_SPACE: return KEY_SPACE;
+            case VK_PRIOR: return KEY_PAGEUP;
+            case VK_NEXT: return KEY_PAGEDOWN;
+            case VK_END: return KEY_END;
+            case VK_HOME: return KEY_HOME;
+            case VK_LEFT: return KEY_LEFT;
+            case VK_UP: return KEY_UP;
+            case VK_RIGHT: return KEY_RIGHT;
+            case VK_DOWN: return KEY_DOWN;
+            case VK_INSERT: return KEY_INSERT;
+            case VK_DELETE: return KEY_DEL;
+            case VK_NUMPAD0: return KEY_KP_0;
+            case VK_NUMPAD1: return KEY_KP_1;
+            case VK_NUMPAD2: return KEY_KP_2;
+            case VK_NUMPAD3: return KEY_KP_3;
+            case VK_NUMPAD4: return KEY_KP_4;
+            case VK_NUMPAD5: return KEY_KP_5;
+            case VK_NUMPAD6: return KEY_KP_6;
+            case VK_NUMPAD7: return KEY_KP_7;
+            case VK_NUMPAD8: return KEY_KP_8;
+            case VK_NUMPAD9: return KEY_KP_9;
+            case VK_MULTIPLY: return KEY_KP_MULTIPLY;
+            case VK_ADD: return KEY_KP_ADD;
+            case VK_SUBTRACT: return KEY_KP_SUBTRACT;
+            case VK_DECIMAL: return KEY_KP_DECIMAL;
+            case VK_DIVIDE: return KEY_KP_DIVIDE;
+            case VK_F1: return KEY_F1;
+            case VK_F2: return KEY_F2;
+            case VK_F3: return KEY_F3;
+            case VK_F4: return KEY_F4;
+            case VK_F5: return KEY_F5;
+            case VK_F6: return KEY_F6;
+            case VK_F7: return KEY_F7;
+            case VK_F8: return KEY_F8;
+            case VK_F9: return KEY_F9;
+            case VK_F10: return KEY_F10;
+            case VK_F11: return KEY_F11;
+            case VK_F12: return KEY_F12;
+            case VK_F13: return KEY_F13;
+            case VK_F14: return KEY_F14;
+            case VK_F15: return KEY_F15;
+            case VK_F16: return KEY_F16;
+            case VK_F17: return KEY_F17;
+            case VK_F18: return KEY_F18;
+            case VK_F19: return KEY_F19;
+            case VK_F20: return KEY_F20;
+            case VK_F21: return KEY_F21;
+            case VK_F22: return KEY_F22;
+            case VK_F23: return KEY_F23;
+            case VK_F24: return KEY_F24;
+            default:
+                return (vk < 256) ? static_cast<i32>(vk) : KEY_SPECIAL;
+            }
         }
-    }
 #else
     ITF_INLINE i32 TranslateVirtualKey(u32 vk)
-    {
-        return static_cast<i32>(vk);
-    }
+        {
+            return static_cast<i32>(vk);
+        }
 #endif // ITF_WINDOWS
-}
+    }
 
     void CALLBACK InputAdapter::KeyCB(u32 nChar, bool bKeyDown, bool bLAlt, bool bRAlt, bool bLCtrl, bool bRCtrl,
                                       bool bLShift,
@@ -672,7 +570,7 @@ namespace
 
         if (bRAlt) /// ALT.
         {
-            INPUT_ADAPTER->onKey(KEY_RALT, (ITF::InputAdapter::PressStatus)bRAlt);
+            INPUT_ADAPTER->onKey(KEY_RALT, (PressStatus)bRAlt);
         }
         /// Set Keys.
         INPUT_ADAPTER->onKey(TranslateVirtualKey(nChar), status);
@@ -712,68 +610,147 @@ namespace
         }
     }
 #endif // ITF_WINDOWS
+
     void InputAdapter::LoadPlayerControlSettings()
     {
         ResetToDefaultControls();
         SaveInputMapping();
-        // TODO: load control setting from game options
+        //TODO: will be implemented later
         CopyInputMapping();
     }
 
     void InputAdapter::SavePlayerControlSettings()
     {
-        // TODO: save control setting to game options
+        //TODO: will be implemented later
     }
 
     void InputAdapter::InitializeActionStrings()
     {
         static constexpr std::array<const wchar_t*, MAX_ACTIONS> kActionStrings = {
-            L"ActionUp",
-            L"ActionDown",
+            L"ActionJoinLeave",
+            L"ActionSelect",
+            L"ActionDelete",
+            L"ActionShowMenu",
+            L"ActionBack",
             L"ActionLeft",
             L"ActionRight",
-            L"ActionSprint",
+            L"ActionUp",
+            L"ActionDown",
             L"ActionJump",
             L"ActionHit",
-            L"ActionBack",
-            L"ActionShowMenu",
+            L"ActionSprint"
         };
         std::copy(kActionStrings.begin(), kActionStrings.end(), m_actionStrings);
     }
 
     void InputAdapter::CopyInputMapping()
     {
-        memcpy(m_inputMappingTemporary, m_inputMapping, sizeof(m_inputMapping));
+        memcpy(m_inputMappingTemporary, m_inputMapping, JOY_MAX_COUNT * MAX_ACTIONS * sizeof(InputValue));
     }
 
     void InputAdapter::SaveInputMapping()
     {
-        memcpy(m_inputMapping, m_inputMappingTemporary, sizeof(m_inputMappingTemporary));
+        memcpy(m_inputMapping, m_inputMappingTemporary, JOY_MAX_COUNT * MAX_ACTIONS * sizeof(InputValue));
     }
 
     void InputAdapter::ResetToDefaultControls()
     {
-        memset(m_inputMappingTemporary, 0, sizeof(m_inputMappingTemporary));
+        memset(m_inputMappingTemporary, 0, MAX_ACTIONS * JOY_MAX_COUNT * sizeof(InputValue));
 
-        for (u32 playerIndex = 0; playerIndex < JOY_MAX_COUNT; ++playerIndex)
-        {
-            for (const auto& binding : kControllerDefaultBindings)
-            {
-                InputValue& destination = m_inputMappingTemporary[playerIndex][binding.action][0];
-                ApplyControllerDefaultBinding(destination, binding, playerIndex);
-            }
-        }
+        m_inputMappingTemporary[0][ActionBubbleQuit].inputValue = 0x70;
+        m_inputMappingTemporary[0][ActionBubbleQuit].inputType = Keyboard;
+        m_inputMappingTemporary[1][ActionBubbleQuit].inputValue = 0x71;
+        m_inputMappingTemporary[1][ActionBubbleQuit].inputType = Keyboard;
+        m_inputMappingTemporary[2][ActionBubbleQuit].inputValue = 0x72;
+        m_inputMappingTemporary[2][ActionBubbleQuit].inputType = Keyboard;
+        m_inputMappingTemporary[3][ActionBubbleQuit].inputValue = 0x73;
+        m_inputMappingTemporary[3][ActionBubbleQuit].inputType = Keyboard;
 
-#if defined(ITF_WINDOWS)
-        for (const auto& binding : kKeyboardDefaultBindings)
+
+        uint32_t controllerCount = getGamePadCount();
+        for (u32 i = 0; i < controllerCount; i++)
         {
-            InputValue& destination = m_inputMappingTemporary[0][binding.action][1];
-            ApplyKeyboardDefaultBinding(destination, binding.virtualKey);
+            m_inputMappingTemporary[i][ActionUp].inputValue = 1; //left stick Y
+            m_inputMappingTemporary[i][ActionUp].inputType = X360Axis;
+            m_inputMappingTemporary[i][ActionUp].axisPosition = 1; //+
+            m_inputMappingTemporary[i][ActionUp].inputIndex = i;
+
+            m_inputMappingTemporary[i][ActionDown].inputValue = 1; //left stick Y
+            m_inputMappingTemporary[i][ActionDown].inputType = X360Axis;
+            m_inputMappingTemporary[i][ActionDown].axisPosition = 0; //-
+            m_inputMappingTemporary[i][ActionDown].inputIndex = i;
+
+            m_inputMappingTemporary[i][ActionLeft].inputValue = 0; //left stick X
+            m_inputMappingTemporary[i][ActionLeft].inputType = X360Axis;
+            m_inputMappingTemporary[i][ActionLeft].axisPosition = 0; //-
+            m_inputMappingTemporary[i][ActionLeft].inputIndex = i;
+
+            m_inputMappingTemporary[i][ActionRight].inputValue = 0; //left stick X
+            m_inputMappingTemporary[i][ActionRight].inputType = X360Axis;
+            m_inputMappingTemporary[i][ActionRight].axisPosition = 1; //+
+            m_inputMappingTemporary[i][ActionRight].inputIndex = i;
+
+            m_inputMappingTemporary[i][ActionJump].inputValue = 0; //A
+            m_inputMappingTemporary[i][ActionJump].inputType = X360Button;
+            m_inputMappingTemporary[i][ActionJump].inputIndex = i;
+
+            m_inputMappingTemporary[i][ActionHit].inputValue = 2; //X
+            m_inputMappingTemporary[i][ActionHit].inputType = X360Button;
+            m_inputMappingTemporary[i][ActionHit].inputIndex = i;
+
+            m_inputMappingTemporary[i][ActionSprint].inputValue = 5;
+            m_inputMappingTemporary[i][ActionSprint].inputType = X360Axis;
+            m_inputMappingTemporary[i][ActionSprint].axisPosition = 1; //+
+            m_inputMappingTemporary[i][ActionSprint].inputIndex = i;
+
+            m_inputMappingTemporary[i][ActionBack].inputValue = 1; //back
+            m_inputMappingTemporary[i][ActionBack].inputType = X360Button;
+            m_inputMappingTemporary[i][ActionBack].inputIndex = i;
+
+            m_inputMappingTemporary[i][ActionBubbleQuit].inputValue = 6; //back
+            m_inputMappingTemporary[i][ActionBubbleQuit].inputType = X360Button;
+            m_inputMappingTemporary[i][ActionBubbleQuit].inputIndex = i;
+
+            m_inputMappingTemporary[i][ActionShowMenu].inputValue = 7; //start
+            m_inputMappingTemporary[i][ActionShowMenu].inputType = X360Button;
+            m_inputMappingTemporary[i][ActionShowMenu].inputIndex = i;
         }
-#endif // defined(ITF_WINDOWS)
+        if (controllerCount == 0)
+        {
+            //no X360 pads were found
+            //use default keyboard controls for player0
+#ifdef ITF_WINDOWS
+            m_inputMappingTemporary[0][ActionUp].inputValue = VK_UP;
+            m_inputMappingTemporary[0][ActionUp].inputType = Keyboard;
+
+            m_inputMappingTemporary[0][ActionDown].inputValue = VK_DOWN;
+            m_inputMappingTemporary[0][ActionDown].inputType = Keyboard;
+
+            m_inputMappingTemporary[0][ActionLeft].inputValue = VK_LEFT;
+            m_inputMappingTemporary[0][ActionLeft].inputType = Keyboard;
+
+            m_inputMappingTemporary[0][ActionRight].inputValue = VK_RIGHT;
+            m_inputMappingTemporary[0][ActionRight].inputType = Keyboard;
+
+            m_inputMappingTemporary[0][ActionJump].inputValue = VK_SPACE;
+            m_inputMappingTemporary[0][ActionJump].inputType = Keyboard;
+
+            m_inputMappingTemporary[0][ActionHit].inputValue = 'S';
+            m_inputMappingTemporary[0][ActionHit].inputType = Keyboard;
+
+            m_inputMappingTemporary[0][ActionSprint].inputValue = VK_LSHIFT;
+            m_inputMappingTemporary[0][ActionSprint].inputType = Keyboard;
+
+            m_inputMappingTemporary[0][ActionBack].inputValue = VK_BACK;
+            m_inputMappingTemporary[0][ActionBack].inputType = Keyboard;
+
+            m_inputMappingTemporary[0][ActionShowMenu].inputValue = VK_ESCAPE;
+            m_inputMappingTemporary[0][ActionShowMenu].inputType = Keyboard;
+#endif
+        }
     }
 
-#if defined(ITF_WINDOWS)
+#ifdef ITF_WINDOWS
     void InputAdapter::UpdateKeyboard()
     {
         for (u32 keyIndex = 0; keyIndex < KEY_COUNT; ++keyIndex)
@@ -817,196 +794,90 @@ namespace
 #endif
     bbool InputAdapter::UpdateActionForButton(u32 player, ActionType action, JoyButton_Common button)
     {
-        bool hasDoublePress = false;
-        bool hasJustPressed = false;
-        bool hasPressed = false;
-        bool hasJustReleased = false;
+        InputValue val = m_inputMapping[player][action];
 
-        for (u32 binding = 0; binding < MAX_BINDINGS_PER_ACTION; ++binding)
+        if (val.inputType == Keyboard)
         {
-            const InputValue& val = m_inputMapping[player][action][binding];
-            if (!IsBindingConfigured(val))
-                continue;
-
-            PressStatus status = Released;
-
-            switch (val.inputType)
-            {
-            case Keyboard:
-                if (val.inputValue < KEY_COUNT)
-                    status = m_keyStatus[val.inputValue];
-                break;
-            case ControllerButton:
-                if (val.inputValue < JOY_MAX_BUT)
-                    status = GetButtonStatus(val);
-                break;
-            case ControllerAxis:
-                if (val.inputValue < JOY_MAX_AXES)
-                {
-                    const f32 axisValue = GetAxe(val);
-                    if ((val.axisPosition == 0 && axisValue <= -0.65f) ||
-                        (val.axisPosition == 1 && axisValue >= 0.65f))
-                    {
-                        status = Pressed;
-                    }
-                }
-                break;
-            default:
-                break;
-            }
-
-            switch (status)
-            {
-            case Double_Press:
-                hasDoublePress = true;
-                break;
-            case JustPressed:
-                hasJustPressed = true;
-                break;
-            case Pressed:
-                hasPressed = true;
-                break;
-            case JustReleased:
-                hasJustReleased = true;
-                break;
-            default:
-                break;
-            }
+            m_buttons[player][button] = m_keyStatus[val.inputValue];
         }
-
-        PressStatus finalStatus = Released;
-        if (hasDoublePress)
-            finalStatus = Double_Press;
-        else if (hasJustPressed)
-            finalStatus = JustPressed;
-        else if (hasPressed)
-            finalStatus = Pressed;
-        else if (hasJustReleased)
-            finalStatus = JustReleased;
-
-#if defined(ITF_WINDOWS)
-        if (player == 0 && action == ActionShowMenu && finalStatus == Released)
+        else if (val.inputType == X360Button || val.inputType == GenericButton)
         {
-            finalStatus = m_keyStatus[VK_ESCAPE];
-        }
+            m_buttons[player][button] = GetButtonStatus(val);
+            if (m_buttons[player][button] == Released && player == 0 && action == ActionShowMenu)
+            {
+#ifdef ITF_WINDOWS
+                m_buttons[player][button] = m_keyStatus[VK_ESCAPE];
 #endif
+            }
+        }
+        else if (val.inputType == X360Axis || val.inputType == GenericAxis)
+        {
+            f32 axisValue = GetAxe(val);
+            if (axisValue < -.65f && val.axisPosition == 0)
+            {
+                m_buttons[player][button] = Pressed;
+            }
+            if (axisValue > .65f && val.axisPosition == 1)
+            {
+                m_buttons[player][button] = Pressed;
+            }
+        }
 
-        m_buttons[player][button] = finalStatus;
-        return finalStatus == JustPressed;
+        return m_buttons[player][button] == JustPressed;
     }
 
     bbool InputAdapter::UpdateActionForAxis(u32 player, ActionType action, JoyAxis_t axis, f32 axisValue)
     {
-        const f32 previousValue = m_axes[player][axis];
-        bool hasAnalogValue = false;
-        f32 bestAnalogValue = 0.0f;
-        bool digitalSet = false;
-        f32 digitalValue = 0.0f;
+        InputValue val = m_inputMapping[player][action];
 
-        for (u32 binding = 0; binding < MAX_BINDINGS_PER_ACTION; ++binding)
+        if (val.inputType == Keyboard)
         {
-            const InputValue& val = m_inputMapping[player][action][binding];
-            if (!IsBindingConfigured(val))
-                continue;
-
-            switch (val.inputType)
+            if ((m_keyStatus[val.inputValue] == JustPressed || m_keyStatus[val.inputValue] == Pressed) &&
+                m_axesPressTime[player][axis] > m_keyPressTime[val.inputValue])
             {
-            case Keyboard:
-                if (m_inMenu)
-                    break;
-                if (val.inputValue < KEY_COUNT)
-                {
-                    const PressStatus keyStatus = m_keyStatus[val.inputValue];
-                    if (keyStatus == JustPressed || keyStatus == Pressed)
-                    {
-                        if (m_axesPressTime[player][axis] > m_keyPressTime[val.inputValue])
-                        {
-                            m_axesPressTime[player][axis] = m_keyPressTime[val.inputValue];
-                        }
-                        digitalSet = true;
-                        digitalValue = axisValue;
-                    }
-                }
-                break;
-            case ControllerButton:
-                if (IsButtonPressed(val))
-                {
-                    digitalSet = true;
-                    digitalValue = axisValue;
-                }
-                break;
-            case ControllerAxis:
-                if (val.inputValue < JOY_MAX_AXES)
-                {
-                    const f32 value = GetAxe(val);
-                    if (!hasAnalogValue || fabsf(value) > fabsf(bestAnalogValue))
-                    {
-                        bestAnalogValue = value;
-                        hasAnalogValue = true;
-                    }
-                }
-                break;
-            default:
-                break;
+                m_axesPressTime[player][axis] = m_keyPressTime[val.inputValue];
+                m_axes[player][axis] = axisValue;
             }
         }
-
-        const f32 analogThreshold = 0.1f;
-        f32 finalValue = previousValue;
-
-        if (hasAnalogValue && fabsf(bestAnalogValue) >= analogThreshold)
+        else if (val.inputType == X360Button || val.inputType == GenericButton)
         {
-            finalValue = bestAnalogValue;
-        }
-
-        if (digitalSet)
-        {
-            finalValue = digitalValue;
-        }
-        else if (!hasAnalogValue || fabsf(bestAnalogValue) < analogThreshold)
-        {
-            // Only clear if we were contributing on this side or already at rest
-            if ((axisValue > 0.0f && finalValue > 0.0f) ||
-                (axisValue < 0.0f && finalValue < 0.0f) ||
-                finalValue == 0.0f)
+            if (IsButtonPressed(val))
             {
-                finalValue = 0.0f;
+                m_axes[player][axis] = axisValue;
             }
         }
+        else if (val.inputType == X360Axis || val.inputType == GenericAxis)
+        {
+            m_axes[player][axis] = GetAxe(val);
+        }
 
-        m_axes[player][axis] = finalValue;
-        return (fabsf(finalValue) >= .65f);
+        return (fabsf(m_axes[player][axis]) >= .65f);
     }
 
     void InputAdapter::SetInputValue(u32 player, u32 action, InputValue& value)
     {
-        SetInputValue(player, action, 0, value);
-    }
-
-    void InputAdapter::SetInputValue(u32 player, u32 action, u32 bindingIndex, InputValue& value)
-    {
-        if (bindingIndex >= MAX_BINDINGS_PER_ACTION)
-            bindingIndex = 0;
-
         if (value.inputType != Keyboard)
         {
-            value.inputType = GetControllerType(value);
+#ifdef ITF_USE_SDL
+            if (value.inputType == X360Button)
+                value.inputType = GenericButton;
+            else if (value.inputType == X360Axis)
+                value.inputType = GenericAxis;
+#endif
         }
+        value.inputType = GetControllerType(value);
         for (u32 playerIndex = 0; playerIndex < JOY_MAX_COUNT; ++playerIndex)
         {
-            for (u32 actionIndex = 0; actionIndex < MAX_ACTIONS; ++actionIndex)
+            for (u32 actionIndex = ActionBubbleQuit; actionIndex < MAX_ACTIONS; ++actionIndex)
             {
-                for (u32 binding = 0; binding < MAX_BINDINGS_PER_ACTION; ++binding)
+                if (!memcmp(&value, &m_inputMappingTemporary[playerIndex][actionIndex], sizeof(InputValue)))
                 {
-                    if (!memcmp(&value, &m_inputMappingTemporary[playerIndex][actionIndex][binding], sizeof(InputValue)))
-                    {
-                        memset(&m_inputMappingTemporary[playerIndex][actionIndex][binding], 0, sizeof(InputValue));
-                    }
+                    memset(&m_inputMappingTemporary[playerIndex][actionIndex], 0, sizeof(InputValue));
                 }
             }
         }
 
-        m_inputMappingTemporary[player][action][bindingIndex] = value;
+        m_inputMappingTemporary[player][action] = value;
     }
 
     void InputAdapter::ResetInputState()
@@ -1020,38 +891,38 @@ namespace
     {
         for (u32 playerIndex = 0; playerIndex < JOY_MAX_COUNT; ++playerIndex)
         {
-            if (CanUseInputValue(m_inputMapping[playerIndex][ActionJump][0]))
+            if (CanUseInputValue(m_inputMapping[playerIndex][ActionJump]))
             {
                 UpdateActionForButton(playerIndex, ActionJump, m_joyButton_A);
             }
 
-            if (CanUseInputValue(m_inputMapping[playerIndex][ActionBack][0]))
+            if (CanUseInputValue(m_inputMapping[playerIndex][ActionBack]))
             {
                 UpdateActionForButton(playerIndex, ActionBack, m_joyButton_B);
             }
 
-            if (CanUseInputValue(m_inputMapping[playerIndex][ActionLeft][0]))
+            if (CanUseInputValue(m_inputMapping[playerIndex][ActionLeft]))
             {
                 UpdateActionForAxis(playerIndex, ActionLeft, m_joyStickLeft_X, -1);
             }
 
-            if (CanUseInputValue(m_inputMapping[playerIndex][ActionRight][0]))
+            if (CanUseInputValue(m_inputMapping[playerIndex][ActionRight]))
             {
                 UpdateActionForAxis(playerIndex, ActionRight, m_joyStickLeft_X, 1);
             }
 
-            if (CanUseInputValue(m_inputMapping[playerIndex][ActionUp][0]))
+            if (CanUseInputValue(m_inputMapping[playerIndex][ActionUp]))
             {
                 UpdateActionForAxis(playerIndex, ActionUp, m_joyStickLeft_Y, 1);
             }
 
-            if (CanUseInputValue(m_inputMapping[playerIndex][ActionDown][0]))
+            if (CanUseInputValue(m_inputMapping[playerIndex][ActionDown]))
             {
                 UpdateActionForAxis(playerIndex, ActionDown, m_joyStickLeft_Y, -1);
             }
 
             //overwrite current status with default menu controls if they are released
-#if defined(ITF_WINDOWS)
+#ifdef ITF_WINDOWS
             if (m_connectedPlayers[playerIndex] == ePlaying)
             {
                 if (m_buttons[playerIndex][m_joyButton_Y] == Released)
@@ -1095,24 +966,6 @@ namespace
 
     void InputAdapter::UpdateInputForGame()
     {
-        auto hasAxisBinding = [&](u32 player, ActionType action) -> bool
-        {
-            for (u32 binding = 0; binding < MAX_BINDINGS_PER_ACTION; ++binding)
-            {
-                if (IsAxisLikeBinding(m_inputMapping[player][action][binding]))
-                    return true;
-            }
-            return false;
-        };
-
-        auto callAxisOrButton = [&](u32 player, ActionType action, JoyAxis_t axis, f32 axisValue,
-            JoyButton_Common fallbackButton) -> bbool
-        {
-            if (hasAxisBinding(player, action))
-                return UpdateActionForAxis(player, action, axis, axisValue);
-            return UpdateActionForButton(player, action, fallbackButton);
-        };
-
         for (u32 playerIndex = 0; playerIndex < JOY_MAX_COUNT; ++playerIndex)
         {
             if (m_connectedPlayers[playerIndex] == ePlaying || m_connectedPlayers[playerIndex] == eBubble)
@@ -1122,18 +975,55 @@ namespace
                 pressed |= UpdateActionForButton(playerIndex, ActionHit, m_joyButton_X);
                 pressed |= UpdateActionForButton(playerIndex, ActionBack, m_joyButton_B);
                 pressed |= UpdateActionForButton(playerIndex, ActionShowMenu, m_joyButton_Start);
-                callAxisOrButton(playerIndex, ActionLeft, m_joyStickLeft_X, -1, m_joyButton_DPadL);
-                callAxisOrButton(playerIndex, ActionRight, m_joyStickLeft_X, 1, m_joyButton_DPadR);
-                callAxisOrButton(playerIndex, ActionDown, m_joyStickLeft_Y, -1, m_joyButton_DPadD);
-                callAxisOrButton(playerIndex, ActionUp, m_joyStickLeft_Y, 1, m_joyButton_DPadU);
+                (m_inputMapping[playerIndex][ActionLeft].inputType == X360Axis || m_inputMapping[playerIndex][
+                        ActionLeft].inputType == GenericAxis || m_inputMapping[playerIndex][ActionLeft].inputType ==
+                    Keyboard)
+                    ? UpdateActionForAxis(playerIndex, ActionLeft, m_joyStickLeft_X, -1)
+                    : UpdateActionForButton(playerIndex, ActionLeft, m_joyButton_DPadL);
+                (m_inputMapping[playerIndex][ActionRight].inputType == X360Axis || m_inputMapping[playerIndex][
+                        ActionRight].inputType == GenericAxis || m_inputMapping[playerIndex][ActionRight].inputType ==
+                    Keyboard)
+                    ? UpdateActionForAxis(playerIndex, ActionRight, m_joyStickLeft_X, 1)
+                    : UpdateActionForButton(playerIndex, ActionRight, m_joyButton_DPadR);
+                (m_inputMapping[playerIndex][ActionDown].inputType == X360Axis || m_inputMapping[playerIndex][
+                        ActionDown].inputType == GenericAxis || m_inputMapping[playerIndex][ActionDown].inputType ==
+                    Keyboard)
+                    ? UpdateActionForAxis(playerIndex, ActionDown, m_joyStickLeft_Y, -1)
+                    : UpdateActionForButton(playerIndex, ActionDown, m_joyButton_DPadD);
+                (m_inputMapping[playerIndex][ActionUp].inputType == X360Axis || m_inputMapping[playerIndex][ActionUp].
+                    inputType == GenericAxis || m_inputMapping[playerIndex][ActionUp].inputType == Keyboard)
+                    ? UpdateActionForAxis(playerIndex, ActionUp, m_joyStickLeft_Y, 1)
+                    : UpdateActionForButton(playerIndex, ActionUp, m_joyButton_DPadU);
                 UpdateActionForAxis(playerIndex, ActionSprint, m_joyTrigger_Right, 1);
 
                 if (pressed && m_connectedPlayers[playerIndex] == eBubble)
                 {
                     m_connectedPlayers[playerIndex] = ePlaying;
                 }
+#ifdef ITF_WINDOWS
+                if ((m_keyStatus[VK_LMENU] == Released && m_keyStatus[VK_RMENU] == Released &&
+                        m_keyStatus[VK_LCONTROL] == Released && m_keyStatus[VK_RCONTROL] == Released &&
+                        m_keyStatus[VK_LSHIFT] == Released && m_keyStatus[VK_RSHIFT] == Released) ||
+                    m_inputMapping[playerIndex][ActionBubbleQuit].inputType != Keyboard)
+                {
+                    if (UpdateActionForButton(playerIndex, ActionBubbleQuit, m_joyButton_Back))
+                    {
+                        if (m_connectedPlayers[playerIndex] == ePlaying)
+                        //if player press first time on Bubble/Quit button he will be in bubble state
+                        {
+                            m_connectedPlayers[playerIndex] = eBubble;
+                        }
+                        else if (m_connectedPlayers[playerIndex] == eBubble)
+                        //if player press second time on Bubble/Quit button he will be disconnected
+                        {
+                            m_connectedPlayers[playerIndex] = eNotConnected;
+                            setPadConnected(playerIndex, bfalse);
+                        }
+                    }
+                }
+#endif
             }
-            else
+            else //player should join on any pressed key/button/axis
             {
                 bbool pressed = bfalse;
 
@@ -1141,10 +1031,29 @@ namespace
                 pressed |= UpdateActionForButton(playerIndex, ActionHit, m_joyButton_X);
                 pressed |= UpdateActionForButton(playerIndex, ActionBack, m_joyButton_B);
                 pressed |= UpdateActionForButton(playerIndex, ActionShowMenu, m_joyButton_Start);
-                pressed |= callAxisOrButton(playerIndex, ActionLeft, m_joyStickLeft_X, -1, m_joyButton_DPadL);
-                pressed |= callAxisOrButton(playerIndex, ActionRight, m_joyStickLeft_X, 1, m_joyButton_DPadR);
-                pressed |= callAxisOrButton(playerIndex, ActionDown, m_joyStickLeft_Y, -1, m_joyButton_DPadD);
-                pressed |= callAxisOrButton(playerIndex, ActionUp, m_joyStickLeft_Y, 1, m_joyButton_DPadU);
+
+                pressed |= (m_inputMapping[playerIndex][ActionLeft].inputType == X360Axis || m_inputMapping[playerIndex]
+                               [ActionLeft].inputType == GenericAxis || m_inputMapping[playerIndex][ActionLeft].
+                               inputType == Keyboard)
+                               ? UpdateActionForAxis(playerIndex, ActionLeft, m_joyStickLeft_X, -1)
+                               : UpdateActionForButton(playerIndex, ActionLeft, m_joyButton_DPadL);
+                pressed |= (m_inputMapping[playerIndex][ActionRight].inputType == X360Axis || m_inputMapping[
+                               playerIndex][ActionRight].inputType == GenericAxis || m_inputMapping[playerIndex][
+                               ActionRight].inputType == Keyboard)
+                               ? UpdateActionForAxis(playerIndex, ActionRight, m_joyStickLeft_X, 1)
+                               : UpdateActionForButton(playerIndex, ActionRight, m_joyButton_DPadR);
+                pressed |= (m_inputMapping[playerIndex][ActionDown].inputType == X360Axis || m_inputMapping[playerIndex]
+                               [ActionDown].inputType == GenericAxis || m_inputMapping[playerIndex][ActionDown].
+                               inputType == Keyboard)
+                               ? UpdateActionForAxis(playerIndex, ActionDown, m_joyStickLeft_Y, -1)
+                               : UpdateActionForButton(playerIndex, ActionDown, m_joyButton_DPadD);
+                pressed |= (m_inputMapping[playerIndex][ActionUp].inputType == X360Axis || m_inputMapping[playerIndex][
+                                   ActionUp].inputType == GenericAxis || m_inputMapping[playerIndex][ActionUp].inputType
+                               ==
+                               Keyboard)
+                               ? UpdateActionForAxis(playerIndex, ActionUp, m_joyStickLeft_Y, 1)
+                               : UpdateActionForButton(playerIndex, ActionUp, m_joyButton_DPadU);
+
                 pressed |= UpdateActionForAxis(playerIndex, ActionSprint, m_joyTrigger_Right, 1);
 
                 if (pressed)
@@ -1152,6 +1061,7 @@ namespace
                     m_connectedPlayers[playerIndex] = eBubble;
                     setPadConnected(playerIndex, btrue);
 
+                    //reset buttons states to ignore first command
                     m_buttons[playerIndex][m_joyButton_A] = Released;
                     m_buttons[playerIndex][m_joyButton_X] = Released;
                     m_buttons[playerIndex][m_joyButton_B] = Released;
@@ -1163,90 +1073,10 @@ namespace
                 }
             }
         }
-
     }
 
-    const String& InputAdapter::ValidateInputString()
+    const InputValue& InputAdapter::GetInputValue(u32 player, u32 action) const
     {
-        static String output;
-
-        const u16* string = m_inputString.cStr();
-        u32 index = 0;
-        output.setText("");
-
-        while (string[index] && string[index] != '[')
-        {
-            output += string[index++];
-        }
-
-        if (index != m_inputString.getLen())
-        {
-            u32 lineId = 0;
-            ++index;
-
-            while (string[index] && string[index] != ']')
-            {
-                lineId *= 10;
-                lineId += string[index++] - '0';
-            }
-
-            LocalisationId locId;
-            locId = lineId;
-            output += LOCALISATIONMANAGER->getText(locId);
-            output += String(string + index + 1);
-        }
-
-        return output;
+        return m_inputMapping[player][action];
     }
-
-    const InputValue& InputAdapter::GetInputValue(u32 player, u32 action, u32 binding) const
-    {
-        if (binding >= MAX_BINDINGS_PER_ACTION)
-            binding = 0;
-        return m_inputMapping[player][action][binding];
-    }
-
-#if defined(ITF_WINDOWS)
-    void InputAdapter::RecordPrimaryInputSource(u32 player, ControllerType source, const char* deviceName)
-    {
-        if (player >= JOY_MAX_COUNT) return;
-        PadType padType = getPadType(player);
-        if (m_lastPrimaryInputType[player] != source || m_lastPrimaryPadType[player] != padType)
-        {
-            m_lastPrimaryInputType[player] = source;
-            m_lastPrimaryPadType[player] = padType;
-            const char* resolvedName = deviceName;
-            if (!resolvedName)
-                resolvedName = (source == Keyboard) ? "Keyboard" : "Controller";
-            OnPlayerPrimaryInputSourceChanged(player, source, padType, resolvedName);
-        }
-    }
-
-    void InputAdapter::UpdatePrimaryInputSources()
-    {
-        for (u32 player = 0; player < JOY_MAX_COUNT; ++player)
-        {
-            ControllerType controllerSource = ControllerButton;
-            const char* deviceName = nullptr;
-            const bool controllerActive = QueryPadActivity(player, controllerSource, deviceName);
-            bool keyboardActive = false;
-            if (player == 0)
-            {
-                for (u32 key = 0; key < KEY_COUNT && !keyboardActive; ++key)
-                {
-                    auto st = m_keyStatus[key];
-                    if (st == JustPressed || st == Pressed) keyboardActive = true;
-                }
-            }
-            if (controllerActive)
-            {
-                RecordPrimaryInputSource(player, controllerSource, deviceName);
-            }
-            else if (keyboardActive)
-            {
-                RecordPrimaryInputSource(player, Keyboard, "Keyboard");
-            }
-        }
-    }
-#endif
 } // namespace ITF

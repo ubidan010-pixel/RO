@@ -205,8 +205,6 @@ namespace ITF
         ~InputAdapter_DINPUT();
 
         HRESULT getDXPadButton(u32 _pad, PressStatus* _buttons, u32 _numButtons);
-        void getGamePadPosStatus(u32 _environment, u32 _pad, float* _pos, u32 _numAxes) const override;
-        void getGamePadButtonsStatus(u32 _environment, u32 _pad, PressStatus* _buttons, u32 _numButtons) const override;
         u32 getGamePadCount() override;
         const char* GetControllerTypeName(u32 padIndex) const override;
         void padVibration(u32 _numPad, f32 _rightMotorSpeed, f32 _leftMotorSpeed) override;
@@ -217,10 +215,6 @@ namespace ITF
         void setFocus() override;
         void unsetFocus() override;
         void HandleControllerStateChange();
-        bbool isX360Pad(u32 padIndex) override
-        {
-            return DXinput.m_pad[padIndex].m_typePad == DirectInput::CONTROLLER_TYPE::XINPUT;
-        }
         ControllerType GetControllerType(InputValue& value) override;
     private:
         void UpdatePads() override;

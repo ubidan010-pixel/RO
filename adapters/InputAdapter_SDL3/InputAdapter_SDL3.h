@@ -68,7 +68,6 @@ namespace ITF
         bool m_initialized;
 
     private:
-        InputAdapter::PadType detectPadType(const SDLGamepad& pad) const;
         void handleGamepadConnected(SDL_JoystickID instanceId);
         void HandleGamepadDisconnected(SDL_JoystickID instanceId);
         void setGamepadConnected(u32 index, bool connected, InputAdapter::PadType padType);
@@ -80,9 +79,6 @@ namespace ITF
     public:
         InputAdapter_SDL3();
         ~InputAdapter_SDL3() override;
-
-        void getGamePadPosStatus(u32 _environment, u32 _pad, float* _pos, u32 _numAxes) const override;
-        void getGamePadButtonsStatus(u32 _environment, u32 _pad, PressStatus* _buttons, u32 _numButtons) const override;
         u32 getGamePadCount() override;
         void padVibration(u32 _numPad, f32 _rightMotorSpeed, f32 _leftMotorSpeed) override;
         void startRumble(u32 _numPad, f64 _time, f32 _leftMotorSpeed, f32 _rightMotorSpeed) override;
@@ -91,26 +87,8 @@ namespace ITF
         PressStatus GetButtonStatus(InputValue) override;
         float GetAxe(InputValue) override;
         bbool IsButtonPressed(InputValue) override;
-        bbool isX360Pad(u32 padIndex) override
-        {
-            if (padIndex < JOY_MAX_COUNT && m_sdlInput.m_gamepads[padIndex].isConnected())
-            {
-                if (SDL_Gamepad* gamepad = m_sdlInput.m_gamepads[padIndex].getGamepad())
-                {
-                    const char* name = SDL_GetGamepadName(gamepad);
-                    return name && (strstr(name, "Xbox") != nullptr || strstr(name, "XInput") != nullptr);
-                }
-            }
-            return false;
-        }
-
         void UpdatePads() override;
         ControllerType GetControllerType(InputValue& value) override;
-#if defined(ITF_WINDOWS)
-        void OnPlayerPrimaryInputSourceChanged(u32 player, ControllerType source,
-                                               PadType padType, const char* deviceName) override;
-        bool QueryPadActivity(u32 player, ControllerType& outSource, const char*& outDeviceName) const override;
-#endif
     private:
         SDLInput m_sdlInput;
     };
