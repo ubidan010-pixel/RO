@@ -85,13 +85,13 @@
 // $GB 2025/25/02: removed support for network services and tracking:
 // A lot of change is required if we want to support it, like the integration of ubiservices.
 #ifdef ITF_WINDOWS
-#define ITF_SUPPORT_NETWORKSERVICES 1
-#define ITF_SUPPORT_UPLAY 1
-#define ITF_SUPPORT_UBISERVICES 1
-#define ITF_SUPPORT_ONLINETRACKING 1
+// #define ITF_SUPPORT_NETWORKSERVICES 0
+// #define ITF_SUPPORT_UPLAY 0
+// #define ITF_SUPPORT_UBISERVICES 0
+// #define ITF_SUPPORT_ONLINETRACKING 0
 
 // $GS : need to tell apart UPLAY from PC / STEAM / LUNA / GFN later
-#define ITF_UPLAYPC 1
+// #define ITF_UPLAYPC 0
 #endif
 // #define ITF_SUPPORT_ONLINETRACKING 1
 
