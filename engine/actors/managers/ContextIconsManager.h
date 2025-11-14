@@ -43,7 +43,7 @@ public:
     void changeRightIcon(EContextIcon _icon);
     void changeTopLeftIcon(EContextIcon _icon);
     void changeTopRightIcon(EContextIcon _icon);
-
+    bbool canShowIcon() const;
     EContextIconType getType(EContextIcon _icon) const;
 
     const String8& getIconStr(u32 _padType, EContextIconType _context);

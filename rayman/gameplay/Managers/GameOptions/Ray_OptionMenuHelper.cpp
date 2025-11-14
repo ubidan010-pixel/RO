@@ -88,9 +88,7 @@ namespace ITF
     }
 
     Ray_OptionMenuHelper::Ray_OptionMenuHelper()
-        : m_mainListener(nullptr)
-          , m_menu(nullptr)
-          , m_isActive(bfalse)
+        : Ray_BaseMenuHelper()
           , m_menuState(MenuState_Navigate)
           , m_currentEditingOption(StringID::Invalid)
           , m_currentEditingComponent(nullptr)
@@ -111,6 +109,7 @@ namespace ITF
           , m_snapshotSFXVolume(0.0f)
           , m_snapshotIntensity(0.0f)
     {
+        m_menuBaseName = OPTION_MENU_NAME;
     }
 
     Ray_OptionMenuHelper::~Ray_OptionMenuHelper()
@@ -121,6 +120,8 @@ namespace ITF
         if (!UI_MENUMANAGER)
             return;
 
+        hideContextIcons();
+
         m_isActive = btrue;
         s_activeHelper = this;
         m_mainListener = mainListener;
@@ -129,7 +130,13 @@ namespace ITF
         if (!m_menu)
             return;
 
+        onActivate();
         initializeMenuState();
+    }
+
+    void Ray_OptionMenuHelper::onActivate()
+    {
+        // Called after menu is set up, override point for derived classes
     }
 
     void Ray_OptionMenuHelper::onMenuItemAction(UIComponent* component)
@@ -185,14 +192,7 @@ namespace ITF
 
         enterEditMode(component, optionId);
     }
-
-    StringID Ray_OptionMenuHelper::onMenuPageAction(UIMenu* menu, const StringID& action,
-                                                    const StringID& defaultAction)
-    {
-        if (!UI_MENUMANAGER) return defaultAction;
-        return UI_MENUMANAGER->onMenuPageAction_Default1ButtonMenu(menu, action, defaultAction);
-    }
-
+    
     bbool Ray_OptionMenuHelper::onMenuItemOtherAction(UIComponent* component, const StringID& action)
     {
         if (!component)
@@ -320,11 +320,9 @@ namespace ITF
         return btrue;
     }
 
-    void Ray_OptionMenuHelper::closeAndReturn()
+    void Ray_OptionMenuHelper::onClose()
     {
         exitEditMode();
-        m_isActive = bfalse;
-        m_menu = nullptr;
         m_menuState = MenuState_Navigate;
         m_currentEditingOption = StringID::Invalid;
         m_currentEditingComponent = nullptr;
@@ -332,11 +330,6 @@ namespace ITF
         m_timer = 0.0f;
         m_firstPressed = btrue;
         m_hasSnapshot = bfalse;
-        if (UI_MENUMANAGER)
-        {
-            UI_MENUMANAGER->showPreviousMenu();
-            UI_MENUMANAGER->setMenuListener(UI_MENUMANAGER->getCurrentMenuID(), m_mainListener);
-        }
         if (s_activeHelper == this)
             s_activeHelper = nullptr;
     }
@@ -727,7 +720,7 @@ namespace ITF
         f32 step = floatComponent->getCursorSpeed();
         if (step <= 0.0f)
             step = Ray_OptionMenuHelperConstants::SLIDER_DEFAULT_STEP;
-        
+
         step *= Ray_OptionMenuHelperConstants::SLIDER_SPEED_MULTIPLIER;
 
         f32 currentValue = floatOption->getValue();

@@ -8,10 +8,6 @@
 #include "gameplay/components/UI/UIComponent.h"
 #endif
 
-#ifndef _ITF_UIMENU_H_
-#include "gameplay/components/UI/UIMenu.h"
-#endif
-
 #ifndef _ITF_UIMENUMANAGER_H_
 #include "engine/actors/managers/UIMenuManager.h"
 #endif
@@ -23,10 +19,9 @@ namespace ITF
     #define CONTROLSREMAPPING_CANCEL_BUTTON  ITF_GET_STRINGID_CRC(cancel_button,4260770984)
 
     Ray_ControlsRemappingMenuHelper::Ray_ControlsRemappingMenuHelper()
-        : m_mainListener(nullptr)
-        , m_menu(nullptr)
-        , m_isActive(bfalse)
+        : Ray_BaseMenuHelper()
     {
+        m_menuBaseName = "controlremapping";
     }
 
     Ray_ControlsRemappingMenuHelper::~Ray_ControlsRemappingMenuHelper()
@@ -36,6 +31,8 @@ namespace ITF
     {
         if (!UI_MENUMANAGER)
             return;
+
+        hideContextIcons();
 
         m_isActive = btrue;
         m_mainListener = mainListener;
@@ -74,35 +71,5 @@ namespace ITF
 
         closeAndReturn();
         return btrue;
-    }
-
-    void Ray_ControlsRemappingMenuHelper::closeAndReturn()
-    {
-        m_isActive = bfalse;
-        m_menu = nullptr;
-
-        if (UI_MENUMANAGER)
-        {
-            UI_MENUMANAGER->showPreviousMenu();
-            UI_MENUMANAGER->setMenuListener(UI_MENUMANAGER->getCurrentMenuID(), m_mainListener);
-        }
-    }
-
-    StringID Ray_ControlsRemappingMenuHelper::onMenuPageAction(UIMenu* menu, const StringID& action,
-                                                               const StringID& defaultAction)
-    {
-        if (!UI_MENUMANAGER) return defaultAction;
-        return UI_MENUMANAGER->onMenuPageAction_Default1ButtonMenu(menu, action, defaultAction);
-    }
-
-    bbool Ray_ControlsRemappingMenuHelper::onMenuItemOtherAction(UIComponent* component, const StringID& action)
-    {
-        return bfalse;
-    }
-
-    void Ray_ControlsRemappingMenuHelper::UpdateMenuOnSelectionChange(UIComponent* uiComponent, bbool isSelected)
-    {
-        // Handle selection changes if needed
-        // For now, keep it simple
     }
 }

@@ -94,6 +94,7 @@ namespace ITF
             /// @param _UIComponent the menu entry the user activated
             virtual void onMenuItemPressAction (UIComponent* _UIComponent) {}
             virtual void UpdateMenuOnSelectionChange(UIComponent* uiComponent, bbool isSelected) {}
+            virtual bbool isBaseMenuHelper() const { return bfalse; }
         };
 
 		virtual void Receive( u32 player, f32 axis, const StringID& action ) ;
@@ -252,6 +253,7 @@ namespace ITF
         void                        applySelectionChange    (UIMenu* menu, UIComponent* oldSel, UIComponent* newSel);
         UIComponent*                getUIComponentFromFriendly(const StringID& menuID, const String8& friendlyToFind);
         UIComponent*                getUIComponentFromID(const StringID& menuID, const StringID& IDToFind);
+        MenuItemActionListener*     getCurrentMenuActionListener();
     private:
         void                        rememberMainSelectionForMenuStart(UIComponent* oldSel, UIComponent* newSel, UIMenu* menu);
         bbool                       handleMenuStartHorizontalNavigation(UIMenu* menu, UIComponent* selected, f32 joyX, f32 joyY);
@@ -261,7 +263,6 @@ namespace ITF
         void                        updateDBGMenuStatus     ();
 #endif // ITF_SUPPORT_CHEAT
         UIMenu*                     getCurrentMenu          (       );
-        MenuItemActionListener*     getCurrentMenuActionListener();
         ///////////////////////////////////////////////////////////////////////////////////////////
         /// Search which component must be selected
         /// @param _UIComponentsList list of the components

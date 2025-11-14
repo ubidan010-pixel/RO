@@ -28,6 +28,10 @@
 #include "engine/actors/managers/UIMenuManager.h"
 #endif //_ITF_UIMENUMANAGER_H_
 
+#ifndef _ITF_RAY_BASEMENUHELPER_H_
+#include "rayman/gameplay/Managers/GameOptions/Ray_BaseMenuHelper.h"
+#endif //_ITF_RAY_BASEMENUHELPER_H_
+
 namespace ITF {
 
 #define CONTEXTICONSCONFIG_PATH GETPATH_ALIAS("contexticons")
@@ -127,7 +131,7 @@ void ContextIconsManager::show(
     EContextIcon _topRight /*= ContextIcon_Invalid*/
     )
 {
-    if (!GAMEMANAGER->isMenusLoaded())
+    if (!GAMEMANAGER->isMenusLoaded() || !canShowIcon())
     {
         return;
     }
@@ -217,6 +221,22 @@ void ContextIconsManager::changeTopRightIcon(EContextIcon _icon)
     {
         m_topRight = _icon;
     }
+}
+
+//------------------------------------------------------------------------------
+bbool ContextIconsManager::canShowIcon() const
+{
+    if (!UI_MENUMANAGER)
+    {
+        return bfalse;
+    }
+
+    UIMenuManager::MenuItemActionListener* listener = UI_MENUMANAGER->getCurrentMenuActionListener();
+    if (!listener)
+    {
+        return bfalse;
+    }
+    return !listener->isBaseMenuHelper();
 }
 
 //------------------------------------------------------------------------------
