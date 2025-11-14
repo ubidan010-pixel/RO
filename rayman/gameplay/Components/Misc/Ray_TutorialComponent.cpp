@@ -250,6 +250,11 @@ void Ray_TutorialComponent::setup(InputAdapter::PadType _padType)
         lineId = selectFirstValid(getTemplate()->getXBoxLineId(), getTemplate()->getX360LineId());
     }
     break;
+    case InputAdapter::Pad_Keyboard:
+    {
+        lineId = getTemplate()->getX360LineId(); // TODO: add keyboard line ID
+    }
+    break;
     default: ITF_ASSERT_MSG(bfalse, "Unhandled pad type %d", _padType);
     }
 

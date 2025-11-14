@@ -1015,6 +1015,7 @@ namespace ITF
     constexpr const char* gs_pressStartText[] =
     {
         "<N/A>",                        // Pad_Other = 0,
+        "[icon:KEYBOARD_SPACE]",        // Pad_Keyboard,
         "[icon:X360_BUTTON_A]",         // Pad_X360,
         "[icon:PS3_BUTTON_CROSS]",      // Pad_PS3,
         "[icon:WII_BUTTON_2]",          // Pad_WiiSideWay,

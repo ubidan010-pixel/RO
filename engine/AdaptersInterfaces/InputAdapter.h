@@ -308,6 +308,7 @@ namespace ITF
         {
             Pad_Invalid = -1,
             Pad_Other = 0,
+            Pad_Keyboard,
             Pad_X360,
             Pad_PS3,
             Pad_WiiSideWay,
@@ -319,7 +320,7 @@ namespace ITF
             Pad_NX_Joycon,
             Pad_NX_Joycon_Dual,
             Pad_NX_Pro,
-			Pad_GenericXBox,
+            Pad_GenericXBox,
             PadType_Count,
         };
 
@@ -327,7 +328,6 @@ namespace ITF
         {
             ActionBubbleQuit,
             ActionSelect,
-            ActionDelete,
             ActionShowMenu,
             ActionBack,
             ActionLeft,
@@ -647,6 +647,11 @@ namespace ITF
                 }
             }
 #endif
+
+            if (GetActiveInputDevice(_numPad) == InputDevice_KeyboardMouse)
+            {
+                return Pad_Keyboard;
+            }
             return getPadType(_numPad);
         }
 

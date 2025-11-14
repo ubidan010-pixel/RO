@@ -76,6 +76,7 @@ namespace
         case PadType::Pad_NX_Joycon_Dual:    return "Pad_NX_Joycon_Dual";
         case PadType::Pad_NX_Pro:            return "Pad_NX_Pro";
         case PadType::Pad_GenericXBox:       return "Pad_GenericXBox";
+        case PadType::Pad_Keyboard:          return "Pad_Keyboard";
         case PadType::Pad_Other:             return "Pad_Other";
         case PadType::PadType_Count:         return "PadType_Count";
         case PadType::Pad_Invalid:           return "Pad_Invalid";

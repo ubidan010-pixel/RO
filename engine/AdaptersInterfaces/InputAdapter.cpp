@@ -686,7 +686,6 @@ namespace ITF
         static constexpr std::array<const wchar_t*, MAX_ACTIONS> kActionStrings = {
             L"ActionJoinLeave",
             L"ActionSelect",
-            L"ActionDelete",
             L"ActionShowMenu",
             L"ActionBack",
             L"ActionLeft",
