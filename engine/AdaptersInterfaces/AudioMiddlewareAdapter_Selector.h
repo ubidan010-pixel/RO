@@ -5,7 +5,7 @@
 
 
 // --- --- --- --- AUDIO ENGINE CHOICE --- --- --- ---
-#if defined(ITF_PS5) || defined(ITF_WINDOWS) || defined(ITF_NX)
+#if defined(ITF_PS5) || defined(ITF_WINDOWS) || defined(ITF_NX) || defined(ITF_OUNCE)
 
 
 #if defined(ITF_WINDOWS) && defined(ITF_RETAIL)
