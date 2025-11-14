@@ -21,6 +21,10 @@
 #include "engine/localisation/LocalisationManager.h"
 #endif //_ITF_LOCALISATIONMANAGER_H_
 
+#ifndef _ITF_INPUT_TYPES_H_
+#include "engine/input/InputTypes.h"
+#endif //_ITF_INPUT_TYPES_H_
+
 #include <algorithm>
 #include <array>
 
@@ -203,6 +207,13 @@ namespace ITF
         Keyboard,
         ControllerButton,
         ControllerAxis,
+    };
+
+    enum InputDeviceType
+    {
+        InputDevice_None = 0,
+        InputDevice_KeyboardMouse,
+        InputDevice_Controller,
     };
 
     struct InputValue
@@ -430,6 +441,7 @@ namespace ITF
     private:
         bbool m_PadConnected[JOY_MAX_COUNT]{};
         PadType m_PadType[JOY_MAX_COUNT]{};
+        InputDeviceType m_activeInputDevices[JOY_MAX_COUNT]{};
 
 
 
@@ -762,6 +774,14 @@ namespace ITF
 
         virtual void OnControllerConnected(u32 _padIndex,i32 _deviceID= -1,i32 _deviceOutputID =-1,bool isSony = false);
         virtual void OnControllerDisconnected(u32 _padIndex);
+
+        InputDeviceType GetActiveInputDevice(u32 player = 0) const;
+        virtual void OnActiveInputDeviceChanged(u32 player, InputDeviceType newDevice) { ITF_UNUSED(player); ITF_UNUSED(newDevice); }
+
+    protected:
+        void RefreshActiveInputDevices();
+        static InputDeviceType ConvertPhysicalTypeToInputDevice(PhysicalInput::Type type);
+        static const char* InputDeviceTypeToString(InputDeviceType type);
     };
 
 #define INPUT_ADAPTER InputAdapter::getptr()
@@ -813,4 +833,3 @@ namespace ITF
 } // namespace ITF
 
 #endif //_ITF_INPUTADAPTER_H_
-

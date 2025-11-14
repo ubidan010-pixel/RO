@@ -260,6 +260,7 @@ namespace ITF
         }
 
         std::fill(m_PadType, m_PadType + ITF_ARRAY_SIZE(m_PadType), getDefaultPadType());
+        std::fill(m_activeInputDevices, m_activeInputDevices + ITF_ARRAY_SIZE(m_activeInputDevices), InputDevice_None);
     }
 
     void InputAdapter::addListener(Interface_InputListener* _listener, u32 _priority)
@@ -387,13 +388,15 @@ namespace ITF
     void InputAdapter::updateAllInputState()
     {
         ITF_ASSERT(m_inputManagerInitialized && m_inputManager && m_inputManager->IsInitialized());
-        m_inputManager->Update();
 
         ResetInputState();
         UpdatePads();
 #if defined(ITF_WINDOWS) && (defined(ITF_FINAL) || ITF_ENABLE_EDITOR_KEYBOARD)
         UpdateKeyboard();
 #endif // ITF_WINDOWS
+        m_inputManager->Update();
+        RefreshActiveInputDevices();
+
         if (m_focused)
         {
             if (m_inMenu)
@@ -1026,6 +1029,12 @@ namespace ITF
     {
         return m_inputMapping[player][action];
     }
+    InputDeviceType InputAdapter::GetActiveInputDevice(u32 player) const
+    {
+        if (player >= JOY_MAX_COUNT)
+            return InputDevice_None;
+        return m_activeInputDevices[player];
+    }
 
     void InputAdapter::InitializeInputManager()
     {
@@ -1046,6 +1055,52 @@ namespace ITF
         {
             m_inputManager->Initialize();
             m_inputManagerInitialized = btrue;
+        }
+    }
+
+    void InputAdapter::RefreshActiveInputDevices()
+    {
+        ITF_ASSERT(m_inputManagerInitialized && m_inputManager && m_inputManager->IsInitialized());
+
+        const VirtualInputState& virtualState = m_inputManager->GetVirtualInputState();
+        for (u32 player = 0; player < JOY_MAX_COUNT; ++player)
+        {
+            PhysicalInput::Type physicalType = virtualState.GetLastPhysicalInput(player);
+            InputDeviceType device = ConvertPhysicalTypeToInputDevice(physicalType);
+            if (device == InputDevice_None)
+                continue;
+
+            if (m_activeInputDevices[player] != device)
+            {
+                m_activeInputDevices[player] = device;
+                LOG("[InputAdapter] Active input device changed: player %u -> %s", player, InputDeviceTypeToString(device));
+                OnActiveInputDeviceChanged(player, device);
+            }
+        }
+    }
+
+    InputDeviceType InputAdapter::ConvertPhysicalTypeToInputDevice(PhysicalInput::Type type)
+    {
+        switch (type)
+        {
+        case PhysicalInput::Keyboard:
+        case PhysicalInput::Mouse:
+            return InputDevice_KeyboardMouse;
+        case PhysicalInput::ControllerButton:
+        case PhysicalInput::ControllerAxis:
+            return InputDevice_Controller;
+        default:
+            return InputDevice_None;
+        }
+    }
+
+    const char* InputAdapter::InputDeviceTypeToString(InputDeviceType type)
+    {
+        switch (type)
+        {
+        case InputDevice_KeyboardMouse: return "KeyboardMouse";
+        case InputDevice_Controller: return "Controller";
+        default: return "None";
         }
     }
 } // namespace ITF

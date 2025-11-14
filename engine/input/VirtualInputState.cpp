@@ -8,8 +8,16 @@
 
 namespace ITF
 {
+    namespace
+    {
+        constexpr f32 AXIS_ACTIVITY_THRESHOLD = 0.4f;
+    }
     VirtualInputState::VirtualInputState()
     {
+        for (u32 player = 0; player < JOY_MAX_COUNT; ++player)
+        {
+            m_lastPhysicalInput[player] = PhysicalInput::TypeCount;
+        }
         Reset();
     }
 
@@ -50,6 +58,9 @@ namespace ITF
                     InputAdapter::PressStatus keyStatus = source->GetKeyState(keyCode);
                     if (keyStatus == InputAdapter::Released)
                         continue;
+
+                    // Any active state means keyboard became the latest device.
+                    MarkPhysicalInputUsed(0, PhysicalInput::Keyboard);
 
                     bool foundAnyMapping = false;
                     
@@ -105,6 +116,8 @@ namespace ITF
                     if (buttonStatus == InputAdapter::Released)
                         continue;
 
+                    MarkPhysicalInputUsed(deviceId, PhysicalInput::ControllerButton);
+
                     PhysicalInput physical = MakeControllerButtonInput(deviceId, buttonId);
                     VirtualInput virtualInput;
                     if (mapping.GetVirtualInput(physical, virtualInput))
@@ -121,6 +134,11 @@ namespace ITF
                     f32 axisValue = source->GetAxisState(axisId);
                     if (fabsf(axisValue) < 0.01f)
                         continue;
+
+                    if (fabsf(axisValue) >= AXIS_ACTIVITY_THRESHOLD)
+                    {
+                        MarkPhysicalInputUsed(deviceId, PhysicalInput::ControllerAxis);
+                    }
 
                     PhysicalInput physicalForLookup = MakeControllerAxisInput(deviceId, axisId, 0.0f);
                     VirtualInput virtualInput;
@@ -173,6 +191,13 @@ namespace ITF
         {
             axes[i] = m_virtualAxes[player][i];
         }
+    }
+
+    PhysicalInput::Type VirtualInputState::GetLastPhysicalInput(u32 player) const
+    {
+        if (player >= JOY_MAX_COUNT)
+            return PhysicalInput::TypeCount;
+        return m_lastPhysicalInput[player];
     }
 
     void VirtualInputState::UpdateButtonFromPhysicalInput(const PhysicalInput& physical, const VirtualInput& virtualInput, IInputSource* source)
@@ -261,5 +286,12 @@ namespace ITF
         return InputAdapter::Released;
     }
 
-} // namespace ITF
+    void VirtualInputState::MarkPhysicalInputUsed(u32 player, PhysicalInput::Type type)
+    {
+        if (player >= JOY_MAX_COUNT || type >= PhysicalInput::TypeCount)
+            return;
 
+        m_lastPhysicalInput[player] = type;
+    }
+
+} // namespace ITF

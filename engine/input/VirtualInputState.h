@@ -36,13 +36,17 @@ namespace ITF
         f32 GetAxis(u32 player, VirtualAxis axis) const;
         void GetButtons(u32 player, InputAdapter::PressStatus* buttons, u32 numButtons) const;
         void GetAxes(u32 player, f32* axes, u32 numAxes) const;
+        PhysicalInput::Type GetLastPhysicalInput(u32 player) const;
 
     private:
         InputAdapter::PressStatus m_virtualButtons[JOY_MAX_COUNT][VIRTUAL_BUTTON_COUNT];
         f32 m_virtualAxes[JOY_MAX_COUNT][VIRTUAL_AXIS_COUNT];
+        PhysicalInput::Type m_lastPhysicalInput[JOY_MAX_COUNT];
+
         void UpdateButtonFromPhysicalInput(const PhysicalInput& physical, const VirtualInput& virtualInput, IInputSource* source);
         void UpdateAxisFromPhysicalInput(const PhysicalInput& physical, const VirtualInput& virtualInput, IInputSource* source);
         InputAdapter::PressStatus CombinePressStatus(InputAdapter::PressStatus current, InputAdapter::PressStatus newStatus) const;
+        void MarkPhysicalInputUsed(u32 player, PhysicalInput::Type type);
     };
 
 } // namespace ITF
