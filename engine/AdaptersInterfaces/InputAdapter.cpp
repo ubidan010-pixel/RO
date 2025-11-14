@@ -49,12 +49,12 @@ namespace ITF
             physical = MakeKeyboardInput(val.inputValue);
             return true;
         }
-        else if (val.inputType == ControllerButton)
+        if (val.inputType == ControllerButton)
         {
             physical = MakeControllerButtonInput(val.inputIndex, val.inputValue);
             return true;
         }
-        else if (val.inputType == ControllerAxis)
+        if (val.inputType == ControllerAxis)
         {
             f32 axisValue = (val.axisPosition == 1) ? 1.0f : -1.0f;
             physical = MakeControllerAxisInput(val.inputIndex, val.inputValue, axisValue);
@@ -63,13 +63,6 @@ namespace ITF
         return false;
     }
 
-    /**
-     * Convert ActionType to VirtualInput
-     * This maps game actions to virtual inputs based on default mappings
-     * @param action Action type
-     * @param virtualInput Output VirtualInput
-     * @return true if mapping found, false otherwise
-     */
     static bool ConvertActionToVirtualInput(InputAdapter::ActionType action, VirtualInput& virtualInput)
     {
         switch (action)
@@ -104,56 +97,6 @@ namespace ITF
         default:
             return false;
         }
-    }
-
-    /**
-     * Convert VirtualInput to ActionType (reverse of ConvertActionToVirtualInput)
-     * @param virtualInput Virtual input
-     * @param action Output ActionType
-     * @return true if mapping found, false otherwise
-     */
-    static bool ConvertVirtualInputToAction(const VirtualInput& virtualInput, InputAdapter::ActionType& action)
-    {
-        if (virtualInput.type == VirtualInput::Button)
-        {
-            VirtualButton button = static_cast<VirtualButton>(virtualInput.virtualId);
-            switch (button)
-            {
-            case VIRTUAL_BUTTON_A:
-                action = InputAdapter::ActionJump;
-                return true;
-            case VIRTUAL_BUTTON_X:
-                action = InputAdapter::ActionHit;
-                return true;
-            case VIRTUAL_BUTTON_B:
-                action = InputAdapter::ActionBack;
-                return true;
-            case VIRTUAL_BUTTON_START:
-                action = InputAdapter::ActionShowMenu;
-                return true;
-            default:
-                return false;
-            }
-        }
-        else if (virtualInput.type == VirtualInput::Axis)
-        {
-            VirtualAxis axis = static_cast<VirtualAxis>(virtualInput.virtualId);
-            switch (axis)
-            {
-            case VIRTUAL_AXIS_LEFT_STICK_X:
-                action = InputAdapter::ActionLeft;
-                return true;
-            case VIRTUAL_AXIS_LEFT_STICK_Y:
-                action = InputAdapter::ActionUp;
-                return true;
-            case VIRTUAL_AXIS_RIGHT_TRIGGER:
-                action = InputAdapter::ActionSprint;
-                return true;
-            default:
-                return false;
-            }
-        }
-        return false;
     }
 
     bool CanUseInputValue(InputValue val)
