@@ -713,8 +713,9 @@ namespace ITF
         ITF_ASSERT(m_inputManagerInitialized && m_inputManager && m_inputManager->IsInitialized());
 
         m_inputManager->ResetAllRemaps();
+#ifdef ITF_WINDOWS
         InitializeDefaultKeyboardMappings(m_inputManager->GetInputMapping());
-
+#endif
         uint32_t controllerCount = getGamePadCount();
         for (u32 i = 0; i < controllerCount; ++i)
         {
