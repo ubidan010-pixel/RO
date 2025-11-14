@@ -13,6 +13,18 @@
 
 #include "adapters/SystemAdapter_Nintendo/SystemAdapter_Nintendo.h"
 
+#ifndef _ITF_INPUT_MANAGER_H_
+#include "engine/input/InputManager.h"
+#endif
+
+#ifndef _ITF_CONTROLLER_INPUT_SOURCE_H_
+#include "engine/input/ControllerInputSource.h"
+#endif
+
+#ifndef _ITF_INPUT_MAPPING_DEFAULTS_H_
+#include "engine/input/InputMappingDefaults.h"
+#endif
+
 #include "core/math/MathTools.h"
 
 #include <nn/hid.h>
@@ -43,6 +55,9 @@ namespace ITF
           m_activePad(nullptr)
     {
         m_pads.reserve(MAX_PAD_COUNT);
+        InitializeActionStrings();
+        InitializeInputManager();
+        InputAdapter::LoadPlayerControlSettings();
     }
 
     InputAdapter_Nintendo::~InputAdapter_Nintendo()
@@ -221,39 +236,7 @@ void InputAdapter_Nintendo::updateControllers()
 
 void InputAdapter_Nintendo::updateAllInputState()
 {
-    updateControllers();
-    if (m_showControllerAppletRequested && m_enableControllerApplet)
-    {
-        showControllerApplet();
-        updateControllers();
-        m_showControllerAppletRequested = false;  // if new wireless controllers concected during applet, don't consider them
-    }
-    m_enableControllerApplet = true;
-
-    for (u32 padInd = 0; padInd < MAX_PAD_COUNT; padInd++)
-    {
-        const InputPad_Nintendo* pad = getPad(padInd);
-
-        bool isConnected;
-        PadType padType;
-        if (pad != nullptr)
-        {
-            isConnected = pad->isConnected();
-            padType = pad->GetType();
-        }
-        else
-        {
-            isConnected = false;
-            padType = Pad_Invalid;
-        }
-
-        setPadConnected(padInd, isConnected);
-        setPadType(padInd, padType);
-    }
-
-#ifdef INPUT_USE_VKEYBOARD
-    VKeyboardUpdate();
-#endif  // INPUT_USE_VKEYBOARD
+    InputAdapter::updateAllInputState();
 }
 
 #ifdef INPUT_USE_VKEYBOARD
@@ -321,6 +304,97 @@ InputPad_Nintendo* InputAdapter_Nintendo::getPad(u32 _padIndex) const
     }
     ITF_ASSERT_MSG(0, "Pad index %d is too high", _padIndex);
     return nullptr;
+}
+
+void InputAdapter_Nintendo::UpdatePads()
+{
+    initialize();
+    updateControllers();
+    if (m_showControllerAppletRequested && m_enableControllerApplet)
+    {
+        showControllerApplet();
+        updateControllers();
+        m_showControllerAppletRequested = false;
+    }
+    m_enableControllerApplet = true;
+
+    for (u32 padInd = 0; padInd < MAX_PAD_COUNT; padInd++)
+    {
+        const InputPad_Nintendo* pad = getPad(padInd);
+        bool isConnected = (pad != nullptr) ? pad->isConnected() : false;
+        PadType padType = (pad != nullptr) ? pad->GetType() : Pad_Invalid;
+
+        setPadConnected(padInd, isConnected);
+        setPadType(padInd, padType);
+    }
+
+    SyncInputManagerControllers();
+}
+
+void InputAdapter_Nintendo::SyncInputManagerControllers()
+{
+    if (!m_inputManagerInitialized || !m_inputManager || !m_inputManager->IsInitialized())
+        return;
+
+    InputManager* inputManager = m_inputManager;
+
+    for (u32 padIndex = 0; padIndex < MAX_PAD_COUNT; ++padIndex)
+    {
+        InputPad_Nintendo* pad = getPad(padIndex);
+        bool isConnected = (pad != nullptr) && pad->isConnected();
+
+        if (isConnected)
+        {
+            ControllerInputSource* controllerSource = GetOrCreateControllerSource(padIndex);
+            if (!controllerSource)
+                continue;
+
+            controllerSource->SetConnected(true);
+
+            InputAdapter::PressStatus buttons[JOY_MAX_BUT]{};
+            float axes[JOY_MAX_AXES]{};
+            getGamePadButtons(EnvironmentAll, padIndex, buttons, JOY_MAX_BUT);
+            getGamePadPos(EnvironmentAll, padIndex, axes, JOY_MAX_AXES);
+
+            for (u32 button = 0; button < JOY_MAX_BUT; ++button)
+            {
+                InputAdapter::PressStatus status = buttons[button];
+                bool pressed = (status == Pressed || status == JustPressed || status == Double_Press);
+                controllerSource->SetButtonState(button, pressed);
+            }
+
+            for (u32 axis = 0; axis < JOY_MAX_AXES; ++axis)
+            {
+                controllerSource->SetAxisState(axis, axes[axis]);
+            }
+        }
+        else
+        {
+            IInputSource* existing = inputManager->GetInputSource(padIndex);
+            if (existing && existing->GetInputType() == PhysicalInput::ControllerButton)
+            {
+                static_cast<ControllerInputSource*>(existing)->SetConnected(false);
+            }
+        }
+    }
+}
+
+ControllerInputSource* InputAdapter_Nintendo::GetOrCreateControllerSource(u32 padIndex)
+{
+    if (!m_inputManager || !m_inputManager->IsInitialized())
+        return nullptr;
+
+    IInputSource* existing = m_inputManager->GetInputSource(padIndex);
+    if (existing && existing->GetInputType() == PhysicalInput::ControllerButton)
+    {
+        return static_cast<ControllerInputSource*>(existing);
+    }
+
+    auto newSource = std::make_unique<ControllerInputSource>(padIndex);
+    ControllerInputSource* controllerSource = newSource.get();
+    m_inputManager->RegisterInputSource(std::move(newSource));
+    InitializeDefaultControllerMappings(m_inputManager->GetInputMapping(), padIndex);
+    return controllerSource;
 }
 
 
