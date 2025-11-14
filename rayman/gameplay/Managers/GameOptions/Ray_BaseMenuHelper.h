@@ -17,7 +17,7 @@ namespace ITF
         virtual ~Ray_BaseMenuHelper();
 
         bbool isActive() const { return m_isActive; }
-        virtual bbool isBaseMenuHelper() const { return btrue; }
+        bbool isBaseMenuHelper() const override { return btrue; }
         void onMenuItemAction(UIComponent* _UIComponent) override;
         StringID onMenuPageAction(UIMenu* _menu, const StringID& _action, const StringID& _defaultAction) override;
         bbool onMenuItemOtherAction(UIComponent* _UIComponent, const StringID& _action) override;

@@ -229,7 +229,9 @@ namespace ITF
 
     void InputManager::InitializeDefaultMappings()
     {
+#ifdef ITF_WINDOWS
         InitializeDefaultKeyboardMappings(m_inputMapping);
+#endif
         InitializeDefaultActionMappings(m_actionMapping);
     }
 

@@ -8,6 +8,10 @@
 #include "gameplay/components/UI/UIComponent.h"
 #endif
 
+#ifndef _ITF_UIMENU_H_
+#include "gameplay/components/UI/UIMenu.h"
+#endif
+
 #ifndef _ITF_UIMENUMANAGER_H_
 #include "engine/actors/managers/UIMenuManager.h"
 #endif
