@@ -234,7 +234,7 @@ bbool ContextIconsManager::canShowIcon() const
     UIMenuManager::MenuItemActionListener* listener = UI_MENUMANAGER->getCurrentMenuActionListener();
     if (!listener)
     {
-        return bfalse;
+        return btrue;
     }
     return !listener->isBaseMenuHelper();
 }
