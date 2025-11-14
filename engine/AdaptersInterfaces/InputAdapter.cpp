@@ -340,34 +340,19 @@ namespace ITF
     {
         ITF_ASSERT((_key >= 0) && (_key < KEY_COUNT));
         ITF_ASSERT(m_inputManagerInitialized && m_inputManager && m_inputManager->IsInitialized());
-
-        LOG("[InputAdapter] onKey: key=%d, status=%d", _key, _status);
-
         KeyboardInputSource* keyboardSource =
             static_cast<KeyboardInputSource*>(m_inputManager->GetInputSource(KEYBOARD_DEVICE_ID));
         if (!keyboardSource)
         {
-            LOG("[InputAdapter] onKey: ERROR - KeyboardInputSource is null!");
             ITF_ASSERT(keyboardSource != nullptr);
             return;
         }
 
         keyboardSource->OnKeyEvent(_key, _status);
-        LOG("[InputAdapter] onKey: Forwarded to KeyboardInputSource");
-
         switch (_status)
         {
         case Pressed:
             m_keys[_key] = btrue;
-
-            // Disable dbl press detection on keyboard
-            /*
-            if(ELLASPEDTIME - m_keysReleaseTime[_key] < fDoublePressMaxDuration)
-            {
-                _status = Double_Press;
-                m_keysReleaseTime[_key] = ELLASPEDTIME - fDoublePressMaxDuration - MTH_EPSILON;
-            }
-            */
             break;
         case Released:
             m_keys[_key] = bfalse;
@@ -700,7 +685,6 @@ namespace ITF
         }
         /// Set Keys.
         i32 translatedKey = TranslateVirtualKey(nChar);
-        LOG("[InputAdapter] KeyCB: nChar=%u, translatedKey=%d, status=%d", nChar, translatedKey, status);
         INPUT_ADAPTER->onKey(translatedKey, status);
     }
 
@@ -1047,16 +1031,11 @@ namespace ITF
     {
         if (m_inputManagerInitialized)
         {
-            LOG("[InputAdapter] InitializeInputManager: Already initialized");
             return;
         }
-
-        LOG("[InputAdapter] InitializeInputManager: Starting initialization");
-
         static InputManager* s_inputManagerInstance = nullptr;
         if (!s_inputManagerInstance)
         {
-            LOG("[InputAdapter] InitializeInputManager: Creating InputManager instance");
             s_inputManagerInstance = new InputManager();
         }
 
@@ -1065,14 +1044,8 @@ namespace ITF
 
         if (m_inputManager)
         {
-            LOG("[InputAdapter] InitializeInputManager: InputManager instance obtained, calling Initialize()");
             m_inputManager->Initialize();
             m_inputManagerInitialized = btrue;
-            LOG("[InputAdapter] InitializeInputManager: Initialization complete");
-        }
-        else
-        {
-            LOG("[InputAdapter] InitializeInputManager: ERROR - InputManager is null!");
         }
     }
 } // namespace ITF

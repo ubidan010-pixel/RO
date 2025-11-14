@@ -32,30 +32,15 @@ namespace ITF
     {
         if (m_initialized)
         {
-            LOG("[InputManager] Initialize: Already initialized");
             return;
         }
-
-        LOG("[InputManager] Initialize: Starting initialization");
-
         if (!GetInputSource(KEYBOARD_DEVICE_ID))
         {
-            LOG("[InputManager] Initialize: Creating KeyboardInputSource");
             auto keyboardSource = std::make_unique<KeyboardInputSource>();
             RegisterInputSource(std::move(keyboardSource));
-            LOG("[InputManager] Initialize: KeyboardInputSource registered");
         }
-        else
-        {
-            LOG("[InputManager] Initialize: KeyboardInputSource already exists");
-        }
-
-        LOG("[InputManager] Initialize: Initializing default mappings");
         InitializeDefaultMappings();
-        LOG("[InputManager] Initialize: Default mappings initialized");
-
         m_initialized = true;
-        LOG("[InputManager] Initialize: Initialization complete");
     }
 
     void InputManager::Update()
@@ -162,7 +147,7 @@ namespace ITF
             return;
 
         const u32 count = (numButtons < JOY_MAX_BUT) ? numButtons : JOY_MAX_BUT;
-        
+
         static const VirtualButton joyToVirtualMapping[JOY_MAX_BUT] = {
             VIRTUAL_BUTTON_A,
             VIRTUAL_BUTTON_B,
@@ -209,9 +194,9 @@ namespace ITF
     {
         if (!axes || player >= JOY_MAX_COUNT)
             return;
-        
+
         const u32 count = (numAxes < JOY_MAX_AXES) ? numAxes : JOY_MAX_AXES;
-        
+
         static const VirtualAxis joyToVirtualAxisMapping[JOY_MAX_AXES] = {
             VIRTUAL_AXIS_LEFT_STICK_X,
             VIRTUAL_AXIS_LEFT_STICK_Y,
