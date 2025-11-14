@@ -1066,7 +1066,7 @@ namespace ITF
         for (u32 player = 0; player < JOY_MAX_COUNT; ++player)
         {
             PhysicalInput::Type physicalType = virtualState.GetLastPhysicalInput(player);
-            InputDeviceType device = ConvertPhysicalTypeToInputDevice(physicalType);
+            InputDeviceType device = ConvertPhysicalTypeToInputDevice(static_cast<u32>(physicalType));
             if (device == InputDevice_None)
                 continue;
 
@@ -1079,8 +1079,9 @@ namespace ITF
         }
     }
 
-    InputDeviceType InputAdapter::ConvertPhysicalTypeToInputDevice(PhysicalInput::Type type)
+    InputDeviceType InputAdapter::ConvertPhysicalTypeToInputDevice(u32 physicalType)
     {
+        PhysicalInput::Type type = static_cast<PhysicalInput::Type>(physicalType);
         switch (type)
         {
         case PhysicalInput::Keyboard:

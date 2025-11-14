@@ -780,7 +780,7 @@ namespace ITF
 
     protected:
         void RefreshActiveInputDevices();
-        static InputDeviceType ConvertPhysicalTypeToInputDevice(PhysicalInput::Type type);
+        static InputDeviceType ConvertPhysicalTypeToInputDevice(u32 physicalType);
         static const char* InputDeviceTypeToString(InputDeviceType type);
     };
 
