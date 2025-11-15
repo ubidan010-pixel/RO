@@ -96,8 +96,6 @@ namespace ITF
 
     void GFXAdapter_DX12::AFTERFX_ColorRemap(ITF::Texture* _tex)
     {
-        IMPLEMENTED_NOT_TESTED; // not tested
-
         // setColor Ramp to shader custom texture.
         if (_tex == nullptr)
             return;
@@ -248,11 +246,14 @@ namespace ITF
                 AFTERFX_PrepareSwapRTDown2x2(false);
         }
 
-        mp_currentShader->m_selectedTech = 6; // Copy
-        setAlphaBlend(GFX_BLEND_COPY);
-        setRenderTarget(*m_pCurrentSwapRTDest); // first, copy the source buffer
-        setRTAsTexture(0, m_pCurrentSwapRTSource);
-        drawScreenQuad(0, 0, (f32)getScreenWidth(), (f32)getScreenHeight(), 0, COLOR_WHITE); // use full res quad as the matrix is still the full res one
+        if (m_pCurrentSwapRTDest != m_pCurrentSwapRTSource)
+        {
+            mp_currentShader->m_selectedTech = 6; // Copy
+            setAlphaBlend(GFX_BLEND_COPY);
+            setRenderTarget(*m_pCurrentSwapRTDest); // first, copy the source buffer
+            setRTAsTexture(0, m_pCurrentSwapRTSource);
+            drawScreenQuad(0, 0, (f32)getScreenWidth(), (f32)getScreenHeight(), 0, COLOR_WHITE); // use full res quad as the matrix is still the full res one
+        }
 
         if (_quality == GFX_QUALITY_MEDIUM || _quality == GFX_QUALITY_LOW)
             AFTERFX_SwapTargetDown2x2();
@@ -561,10 +562,10 @@ namespace ITF
 
             setShader(prevShader);
 
-            DX12::popMarker(getRenderingContext());
-
             setRenderTarget(*previousRT);
         }
+
+        DX12::popMarker(getRenderingContext());
     }
 
 

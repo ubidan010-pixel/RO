@@ -21,17 +21,11 @@
 #include "engine/localisation/LocalisationManager.h"
 #endif //_ITF_LOCALISATIONMANAGER_H_
 
-#ifndef _ITF_INPUT_TYPES_H_
-#include "engine/input/InputTypes.h"
-#endif //_ITF_INPUT_TYPES_H_
-
 #include <algorithm>
 #include <array>
 
 namespace ITF
 {
-    class InputManager;
-
     enum KeyCode
     {
         KEY_SPACE = 32,
@@ -205,15 +199,10 @@ namespace ITF
     enum ControllerType
     {
         Keyboard,
-        ControllerButton,
-        ControllerAxis,
-    };
-
-    enum InputDeviceType
-    {
-        InputDevice_None = 0,
-        InputDevice_KeyboardMouse,
-        InputDevice_Controller,
+        X360Button,
+        X360Axis,
+        GenericButton,
+        GenericAxis
     };
 
     struct InputValue
@@ -308,7 +297,6 @@ namespace ITF
         {
             Pad_Invalid = -1,
             Pad_Other = 0,
-            Pad_Keyboard,
             Pad_X360,
             Pad_PS3,
             Pad_WiiSideWay,
@@ -320,7 +308,7 @@ namespace ITF
             Pad_NX_Joycon,
             Pad_NX_Joycon_Dual,
             Pad_NX_Pro,
-            Pad_GenericXBox,
+			Pad_GenericXBox,
             PadType_Count,
         };
 
@@ -328,6 +316,7 @@ namespace ITF
         {
             ActionBubbleQuit,
             ActionSelect,
+            ActionDelete,
             ActionShowMenu,
             ActionBack,
             ActionLeft,
@@ -418,8 +407,6 @@ namespace ITF
         void pushMouseWheelEvent(i32 _wheel, i32 _delta);
 
     protected:
-        InputManager* m_inputManager;
-        bbool m_inputManagerInitialized;
         ButtonClassMask m_buttonClasses[JOY_MAX_BUT];
         u32 m_environmentInput;
         ButtonMode m_buttonMode;
@@ -441,9 +428,6 @@ namespace ITF
     private:
         bbool m_PadConnected[JOY_MAX_COUNT]{};
         PadType m_PadType[JOY_MAX_COUNT]{};
-        InputDeviceType m_activeInputDevices[JOY_MAX_COUNT]{};
-
-
 
         bbool m_useShakeAttack;
         f32 m_threshold;
@@ -647,11 +631,6 @@ namespace ITF
                 }
             }
 #endif
-
-            if (GetActiveInputDevice(_numPad) == InputDevice_KeyboardMouse)
-            {
-                return Pad_Keyboard;
-            }
             return getPadType(_numPad);
         }
 
@@ -691,8 +670,6 @@ namespace ITF
         virtual void LoadPlayerControlSettings();
         virtual void SavePlayerControlSettings();
         virtual void ResetToDefaultControls();
-
-        void InitializeInputManager();
 
         void InitializeActionStrings();
         virtual void SetInputValue(u32 player, u32 action, InputValue& value);
@@ -779,14 +756,6 @@ namespace ITF
 
         virtual void OnControllerConnected(u32 _padIndex,i32 _deviceID= -1,i32 _deviceOutputID =-1,bool isSony = false);
         virtual void OnControllerDisconnected(u32 _padIndex);
-
-        InputDeviceType GetActiveInputDevice(u32 player = 0) const;
-        virtual void OnActiveInputDeviceChanged(u32 player, InputDeviceType newDevice) { ITF_UNUSED(player); ITF_UNUSED(newDevice); }
-
-    protected:
-        void RefreshActiveInputDevices();
-        static InputDeviceType ConvertPhysicalTypeToInputDevice(u32 physicalType);
-        static const char* InputDeviceTypeToString(InputDeviceType type);
     };
 
 #define INPUT_ADAPTER InputAdapter::getptr()
@@ -838,3 +807,4 @@ namespace ITF
 } // namespace ITF
 
 #endif //_ITF_INPUTADAPTER_H_
+

@@ -12,18 +12,6 @@
 #include "core/System/Thread.h"
 #include "core/utility.h"
 
-#ifndef _ITF_INPUT_MANAGER_H_
-#include "engine/input/InputManager.h"
-#endif
-
-#ifndef _ITF_CONTROLLER_INPUT_SOURCE_H_
-#include "engine/input/ControllerInputSource.h"
-#endif
-
-#ifndef _ITF_INPUT_MAPPING_DEFAULTS_H_
-#include "engine/input/InputMappingDefaults.h"
-#endif
-
 #include <libsysmodule.h>
 #include <user_service.h>
 #include <algorithm>
@@ -167,9 +155,6 @@ namespace ITF
         fill(m_usersIDs.userId, SCE_USER_SERVICE_USER_ID_INVALID);
 
         ITF_VERIFY_SCE_CALL(scePadInit());
-        InitializeActionStrings();
-        InitializeInputManager();
-        InputAdapter::LoadPlayerControlSettings();
     }
 
     /// Destructor.
@@ -235,44 +220,24 @@ namespace ITF
 
     void InputAdapter_PS5::updateAllInputState()
     {
-        InputAdapter::updateAllInputState();
-    }
-
-    void InputAdapter_PS5::UpdatePads()
-    {
         checkNewConnections();
 
-        for (u32 pad = 0; pad < SCE_USER_SERVICE_MAX_LOGIN_USERS; ++pad)
+        int pad = 0;
+        for(pad = 0; pad < SCE_USER_SERVICE_MAX_LOGIN_USERS; ++pad)
         {
-            bool isEffectivelyConnected = false;
-            if (m_joyPadPort[pad].isConnected())
+            bbool isEffectivelyConnected = bfalse;
+            if(m_joyPadPort[pad].isConnected())
             {
-                JoyPadPort& joyPadPort = m_joyPadPort[pad];
-                InputJoy_PS5* joyPad = joyPadPort.getJoyPad();
-                if (joyPad)
-                {
-                    joyPad->updateInputState();
-                    m_Joys[pad] = joyPad;
-                    isEffectivelyConnected = joyPad->isConnected();
+                JoyPadPort & joyPadPort = m_joyPadPort[pad];
+                joyPadPort.getJoyPad()->updateInputState();
 
-                    if (isEffectivelyConnected)
-                    {
-                        PadType padType = Pad_PS5;
-                        setPadType(pad, padType);
-                        resetOrientation(pad);
-                    }
-                }
-
+                // destroy pad if deconnexion detected
+                isEffectivelyConnected = joyPadPort.getJoyPad()->isConnected();
                 if (!isEffectivelyConnected)
-                {
-                    joyPadPort.checkConnection();
-                }
+                    joyPadPort.checkConnection(); // update port connection to detect deconnection
             }
-
             setPadConnected(pad, isEffectivelyConnected);
         }
-
-        SyncInputManagerControllers();
     }
 
     void InputAdapter_PS5::startRumble( u32 _numPad, f64 _time, f32 _leftMotorSpeed, f32 _rightMotorSpeed )
@@ -390,70 +355,6 @@ namespace ITF
     u32 InputAdapter_PS5::getConnectedPadIndex(u32 _padIndex) const
     {
         return 0;
-    }
-
-    void InputAdapter_PS5::SyncInputManagerControllers()
-    {
-        if (!m_inputManagerInitialized || !m_inputManager || !m_inputManager->IsInitialized())
-            return;
-
-        InputManager* inputManager = m_inputManager;
-
-        for (u32 padIndex = 0; padIndex < SCE_USER_SERVICE_MAX_LOGIN_USERS; ++padIndex)
-        {
-            bool padConnected = isConnected(static_cast<u8>(padIndex));
-
-            if (padConnected)
-            {
-                ControllerInputSource* controllerSource = GetOrCreateControllerSource(padIndex);
-                if (!controllerSource)
-                    continue;
-                controllerSource->SetConnected(true);
-
-                InputAdapter::PressStatus buttons[JOY_MAX_BUT]{};
-                float axes[JOY_MAX_AXES]{};
-                getGamePadButtons(EnvironmentAll, padIndex, buttons, JOY_MAX_BUT);
-                getGamePadPos(EnvironmentAll, padIndex, axes, JOY_MAX_AXES);
-
-                for (u32 button = 0; button < JOY_MAX_BUT; ++button)
-                {
-                    InputAdapter::PressStatus status = buttons[button];
-                    bool pressed = (status == Pressed || status == JustPressed || status == Double_Press);
-                    controllerSource->SetButtonState(button, pressed);
-                }
-
-                for (u32 axis = 0; axis < JOY_MAX_AXES; ++axis)
-                {
-                    controllerSource->SetAxisState(axis, axes[axis]);
-                }
-            }
-            else
-            {
-                IInputSource* existing = inputManager->GetInputSource(padIndex);
-                if (existing && existing->GetInputType() == PhysicalInput::ControllerButton)
-                {
-                    static_cast<ControllerInputSource*>(existing)->SetConnected(false);
-                }
-            }
-        }
-    }
-
-    ControllerInputSource* InputAdapter_PS5::GetOrCreateControllerSource(u32 padIndex)
-    {
-        if (!m_inputManager || !m_inputManager->IsInitialized())
-            return nullptr;
-
-        IInputSource* existing = m_inputManager->GetInputSource(padIndex);
-        if (existing && existing->GetInputType() == PhysicalInput::ControllerButton)
-        {
-            return static_cast<ControllerInputSource*>(existing);
-        }
-
-        auto newSource = std::make_unique<ControllerInputSource>(padIndex);
-        ControllerInputSource* controllerSource = newSource.get();
-        m_inputManager->RegisterInputSource(std::move(newSource));
-        InitializeDefaultControllerMappings(m_inputManager->GetInputMapping(), padIndex);
-        return controllerSource;
     }
 
 } // namespace ITF

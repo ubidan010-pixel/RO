@@ -1,4 +1,7 @@
 ﻿#include "precompiled_InputAdapter_SDL3.h"
+#include <mmdeviceapi.h>
+#include <propkey.h>
+#include "engine/AdaptersInterfaces/AudioMiddlewareAdapter.h"
 #ifdef ITF_USE_SDL
 #ifndef _ITF_INPUTADAPTER_SDL3_H_
 #include "InputAdapter_SDL3.h"
@@ -14,78 +17,6 @@
 #include <pad.h>
 #include <pad_types.h>
 #include <pad_windows_static.h>
-
-#ifndef _ITF_INPUT_MANAGER_H_
-#include "engine/input/InputManager.h"
-#endif //_ITF_INPUT_MANAGER_H_
-
-#ifndef _ITF_KEYBOARD_INPUT_SOURCE_H_
-#include "engine/input/KeyboardInputSource.h"
-#endif //_ITF_KEYBOARD_INPUT_SOURCE_H_
-
-#ifndef _ITF_CONTROLLER_INPUT_SOURCE_H_
-#include "engine/input/ControllerInputSource.h"
-#endif //_ITF_CONTROLLER_INPUT_SOURCE_H_
-
-#ifndef _ITF_INPUT_MAPPING_DEFAULTS_H_
-#include "engine/input/InputMappingDefaults.h"
-#endif //_ITF_INPUT_MAPPING_DEFAULTS_H_
-
-namespace
-{
-    bool ContainsIgnoreCase(const char* haystack, const char* needle)
-    {
-        if (!haystack || !needle || *needle == '\0')
-            return false;
-
-        const size_t needleLen = SDL_strlen(needle);
-        if (needleLen == 0)
-            return false;
-
-        for (const char* current = haystack; *current; ++current)
-        {
-            size_t matched = 0;
-            while (matched < needleLen && current[matched] &&
-                SDL_tolower(static_cast<unsigned char>(current[matched])) ==
-                    SDL_tolower(static_cast<unsigned char>(needle[matched])))
-            {
-                ++matched;
-            }
-
-            if (matched == needleLen)
-                return true;
-        }
-
-        return false;
-    }
-
-    const char* PadTypeToString(ITF::InputAdapter::PadType padType)
-    {
-        using PadType = ITF::InputAdapter::PadType;
-        switch (padType)
-        {
-        case PadType::Pad_X360:              return "Pad_X360";
-        case PadType::Pad_PS3:               return "Pad_PS3";
-        case PadType::Pad_WiiSideWay:        return "Pad_WiiSideWay";
-        case PadType::Pad_WiiNunchuk:        return "Pad_WiiNunchuk";
-        case PadType::Pad_WiiClassic:        return "Pad_WiiClassic";
-        case PadType::Pad_Vita:              return "Pad_Vita";
-        case PadType::Pad_CTR:               return "Pad_CTR";
-        case PadType::Pad_PS5:               return "Pad_PS5";
-        case PadType::Pad_NX_Joycon:         return "Pad_NX_Joycon";
-        case PadType::Pad_NX_Joycon_Dual:    return "Pad_NX_Joycon_Dual";
-        case PadType::Pad_NX_Pro:            return "Pad_NX_Pro";
-        case PadType::Pad_GenericXBox:       return "Pad_GenericXBox";
-        case PadType::Pad_Keyboard:          return "Pad_Keyboard";
-        case PadType::Pad_Other:             return "Pad_Other";
-        case PadType::PadType_Count:         return "PadType_Count";
-        case PadType::Pad_Invalid:           return "Pad_Invalid";
-        default:                             return "Pad_Unknown";
-        }
-    }
-}
-
-
 namespace ITF
 {
     const f32 SDLGamepad::INPUT_DEADZONE = 0.2f;
@@ -401,64 +332,6 @@ namespace ITF
         NotifyDeviceConnectEvent(index,padType,connected);
     }
 
-        InputAdapter::PadType SDLInput::detectPadType(const SDLGamepad& pad) const
-    {
-        SDL_Gamepad* handle = const_cast<SDL_Gamepad*>(pad.getGamepad());
-        if (!handle)
-            return InputAdapter::Pad_Other;
-
-        const SDL_GamepadType type = SDL_GetGamepadType(handle);
-        switch (type)
-        {
-        case SDL_GAMEPAD_TYPE_XBOX360:
-            return InputAdapter::Pad_X360;
-        case SDL_GAMEPAD_TYPE_XBOXONE:
-        case SDL_GAMEPAD_TYPE_STANDARD:
-            return InputAdapter::Pad_GenericXBox;
-        case SDL_GAMEPAD_TYPE_PS5:
-        case SDL_GAMEPAD_TYPE_PS4:
-            return InputAdapter::Pad_PS5;
-        case SDL_GAMEPAD_TYPE_PS3:
-            return InputAdapter::Pad_PS3;
-        case SDL_GAMEPAD_TYPE_NINTENDO_SWITCH_PRO:
-            return InputAdapter::Pad_NX_Pro;
-        case SDL_GAMEPAD_TYPE_NINTENDO_SWITCH_JOYCON_LEFT:
-        case SDL_GAMEPAD_TYPE_NINTENDO_SWITCH_JOYCON_RIGHT:
-            return InputAdapter::Pad_NX_Joycon;
-        case SDL_GAMEPAD_TYPE_NINTENDO_SWITCH_JOYCON_PAIR:
-            return InputAdapter::Pad_NX_Joycon_Dual;
-        default:
-            break;
-        }
-
-        const char* controllerName = SDL_GetGamepadName(handle);
-        if (ContainsIgnoreCase(controllerName, "JOYCON") || ContainsIgnoreCase(controllerName, "SWITCH") ||
-            ContainsIgnoreCase(controllerName, "NX"))
-        {
-            return InputAdapter::Pad_NX_Pro;
-        }
-        if (ContainsIgnoreCase(controllerName, "PS5") || ContainsIgnoreCase(controllerName, "DUALSENSE"))
-        {
-            return InputAdapter::Pad_PS5;
-        }
-        if (ContainsIgnoreCase(controllerName, "PS4") || ContainsIgnoreCase(controllerName, "DUALSHOCK") ||
-            ContainsIgnoreCase(controllerName, "PLAYSTATION"))
-        {
-            return InputAdapter::Pad_PS3;
-        }
-        if (ContainsIgnoreCase(controllerName, "XBOX") || ContainsIgnoreCase(controllerName, "MICROSOFT") ||
-            ContainsIgnoreCase(controllerName, "XINPUT"))
-        {
-            return InputAdapter::Pad_GenericXBox;
-        }
-        if (ContainsIgnoreCase(controllerName, "OUNCE"))
-        {
-            return InputAdapter::Pad_Other;
-        }
-
-        return InputAdapter::Pad_Other;
-    }
-
     void SDLInput::refreshGamepadList()
     {
         for (auto& m_gamepad : m_gamepads)
@@ -472,8 +345,7 @@ namespace ITF
         {
             if (m_gamepads[i].initialize(i))
             {
-                const InputAdapter::PadType padType = detectPadType(m_gamepads[i]);
-                setGamepadConnected(i, true, padType);
+                setGamepadConnected(i, true, InputAdapter::Pad_X360);
             }
             else
             {
@@ -492,8 +364,7 @@ namespace ITF
             {
                 if (m_gamepads[i].initialize(i))
                 {
-                    const InputAdapter::PadType padType = detectPadType(m_gamepads[i]);
-                    setGamepadConnected(i, true, padType);
+                    setGamepadConnected(i, true, InputAdapter::Pad_X360);
                     LOG("[SDL] - Gamepad connected");
                     break;
                 }
@@ -543,7 +414,7 @@ namespace ITF
                             if (GetMMDeviceFromPadHandle(padContainerInfo.containerInfo,io_pMmDevice))
                             {
 #ifdef USE_PAD_HAPTICS
-                                gamepad.deviceOutputID = AUDIO_ADAPTER->getDeviceId(io_pMmDevice);
+                                gamepad.deviceOutputID = AUDIO_ADAPTER->getDeviceId(io_pMmDevice);// FNVHash32(pwszID,260);
 #endif
                             }
 
@@ -570,6 +441,7 @@ namespace ITF
         ScePadInit3Param param;
         memset(&param.reserve, 0x00, sizeof(uint8_t) * 16);
         param.supportBusType = SCE_PAD_SUPPORT_BUS_TYPE_USB_BT;
+        // int ret = scePadInit3(&param);
         int ret = scePadInit();
         if (ret == SCE_OK)
         {
@@ -594,6 +466,8 @@ namespace ITF
     }
     bool SDLInput::GetMMDeviceFromPadHandle(wchar_t const* containerInfo, IMMDevice*& io_pMmDevice)
     {
+
+        // Next, get an MMDeviceEnumerator up, go through the audio endpoints, and find one with a container that matches the pad
         IMMDeviceEnumerator* pEnumerator = nullptr;
         HRESULT hr;
         hr = CoCreateInstance(
@@ -632,6 +506,7 @@ namespace ITF
                 PROPVARIANT propVar;
                 PropVariantInit(&propVar);
 
+                // get the container id for this MMDevice
                 hr = pProps->GetValue(PKEY_Devices_ContainerId, &propVar);
                 if (hr != S_OK)
                 {
@@ -641,17 +516,20 @@ namespace ITF
                 }
                 pProps->Release();
 
+                // render GUID to a string so we can do a string compare
                 const int32_t MmContainerIdStrLength = 64;
                 wchar_t mmContainerIdStr[MmContainerIdStrLength];
                 int ret = StringFromGUID2(*propVar.puuid, mmContainerIdStr, MmContainerIdStrLength);
                 PropVariantClear(&propVar);
 
+                // containerId is lower case, so do a case insensitive comparison
                 if (ret == 0 || _wcsnicmp(containerInfo, mmContainerIdStr, MmContainerIdStrLength) != 0)
                 {
                     pDevice->Release();
                     continue;
                 }
 
+                // Found the device
                 io_pMmDevice = pDevice;
                 bDeviceFound = true;
                 break;
@@ -662,7 +540,6 @@ namespace ITF
 
         return bDeviceFound;
     }
-
     InputAdapter_SDL3::InputAdapter_SDL3()
     {
         auto adapter = static_cast<SystemAdapter_win*>(SYSTEM_ADAPTER);
@@ -677,7 +554,6 @@ namespace ITF
         memset(m_keyPressTime, 0, KEY_COUNT * sizeof(u32));
         memset(m_connectedPlayers, 0, JOY_MAX_COUNT * sizeof(PlayerState));
         m_connectedPlayers[0] = ePlaying;
-        InitializeInputManager();
         InputAdapter::LoadPlayerControlSettings();
     }
 
@@ -700,58 +576,6 @@ namespace ITF
     {
         m_sdlInput.UpdateInputState();
         u32 connectedCount = 0;
-
-        InputManager* inputManager = m_inputManager;
-        if (inputManager && inputManager->IsInitialized())
-        {
-            for (u32 i = 0; i < JOY_MAX_COUNT; ++i)
-            {
-                if (m_sdlInput.m_gamepads[i].isConnected())
-                {
-                    IInputSource* existingSource = inputManager->GetInputSource(i);
-                    ControllerInputSource* controllerSource = nullptr;
-
-                    if (existingSource && existingSource->GetInputType() == PhysicalInput::ControllerButton)
-                    {
-                        controllerSource = static_cast<ControllerInputSource*>(existingSource);
-                    }
-                    else
-                    {
-                        auto newSource = std::make_unique<ControllerInputSource>(i);
-                        controllerSource = newSource.get();
-                        inputManager->RegisterInputSource(std::move(newSource));
-
-                        InitializeDefaultControllerMappings(inputManager->GetInputMapping(), i);
-                    }
-
-                    const SDLGamepad& gamepad = m_sdlInput.m_gamepads[i];
-                    controllerSource->SetConnected(true);
-
-                    for (u32 button = 0; button < JOY_MAX_BUT; ++button)
-                    {
-                        PressStatus buttonStatus = gamepad.getButton(button);
-                        bool pressed = (buttonStatus == Pressed || buttonStatus == JustPressed);
-                        controllerSource->SetButtonState(button, pressed);
-                    }
-
-                    for (u32 axis = 0; axis < JOY_MAX_AXES; ++axis)
-                    {
-                        f32 axisValue = gamepad.getAxis(axis);
-                        controllerSource->SetAxisState(axis, axisValue);
-                    }
-                }
-                else
-                {
-                    IInputSource* existingSource = inputManager->GetInputSource(i);
-                    if (existingSource && existingSource->GetInputType() == PhysicalInput::ControllerButton)
-                    {
-                        ControllerInputSource* controllerSource = static_cast<ControllerInputSource*>(existingSource);
-                        controllerSource->SetConnected(false);
-                    }
-                }
-            }
-        }
-
         for (u32 i = 0; i < JOY_MAX_COUNT && connectedCount < m_sdlInput.m_gamepadCount; ++i)
         {
             if (m_sdlInput.m_gamepads[i].isConnected())
@@ -857,6 +681,13 @@ namespace ITF
 
     ControllerType InputAdapter_SDL3::GetControllerType(InputValue& value)
     {
+        if (value.inputType != Keyboard)
+        {
+            if (value.inputType == X360Button)
+                return value.inputType = GenericButton;
+            if (value.inputType == X360Axis)
+                return value.inputType = GenericAxis;
+        }
         return value.inputType;
     }
 

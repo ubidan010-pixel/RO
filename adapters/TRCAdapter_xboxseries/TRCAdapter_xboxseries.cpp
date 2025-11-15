@@ -64,14 +64,12 @@ namespace ITF
             break;
 
         case Sav_WarningBoot:
-        #if 0
             // Warning not needed, the save system is in memory and secured, we just skip it
             if (SAVEGAME_ADAPTER->IsSaveSystemEnable())
             {
                 pTRCMessage = newAlloc(mId_System, TRCMessage_NoButtonTimer(5.0, errorContext));
                 message = buildText(4026);
             }
-        #endif
             break;
 
         case Sav_AskForDelete:

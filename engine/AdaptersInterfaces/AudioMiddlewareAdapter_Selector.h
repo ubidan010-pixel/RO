@@ -5,7 +5,7 @@
 
 
 // --- --- --- --- AUDIO ENGINE CHOICE --- --- --- ---
-#if defined(ITF_PS5) || defined(ITF_WINDOWS) || defined(ITF_NX) || defined(ITF_OUNCE)
+#if defined(ITF_PS5) || defined(ITF_WINDOWS) || defined(ITF_NX) || defined(ITF_OUNCE) || defined(ITF_XBOX_SERIES)
 
 
 #if defined(ITF_WINDOWS) && defined(ITF_RETAIL)

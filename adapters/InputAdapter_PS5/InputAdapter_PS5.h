@@ -17,7 +17,6 @@
 
 namespace ITF
 {
-    class ControllerInputSource;
 
     class InputAdapter_PS5 : public InputAdapter
     {
@@ -54,9 +53,6 @@ namespace ITF
 
     protected:
         void checkNewConnections();
-        void UpdatePads() override;
-        void SyncInputManagerControllers();
-        ControllerInputSource* GetOrCreateControllerSource(u32 padIndex);
 
     private:
 

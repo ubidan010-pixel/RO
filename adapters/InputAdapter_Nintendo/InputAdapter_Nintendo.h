@@ -12,7 +12,6 @@
 namespace ITF
 {
     class InputPad_Nintendo;
-    class ControllerInputSource;
 
     #ifdef INPUT_USE_VKEYBOARD
         class Task_VKeyboard_Nintendo;
@@ -60,7 +59,6 @@ namespace ITF
         void disableControllerAppletThisFrame() { m_enableControllerApplet = false; }
 
         void updateAllInputState() override;
-        void UpdatePads() override;
     #ifdef INPUT_USE_VKEYBOARD
         void VKeyboardOpen(const VKeyboardOpenParams& _params) override;
         // ITF_PASTA override removed
@@ -86,8 +84,6 @@ namespace ITF
         void getGamePadButtons(u32 _environment, InputPad_Nintendo* _padPtr, PressStatus* _buttons, u32 _numButtons) const;
 
         void updateControllers();
-        void SyncInputManagerControllers();
-        class ControllerInputSource* GetOrCreateControllerSource(u32 padIndex);
     };
 
     #define INPUT_ADAPTER_NINTENDO (static_cast<InputAdapter_Nintendo*>(INPUT_ADAPTER))

@@ -130,7 +130,7 @@
 
 
 
-#if defined ( ITF_WINDOWS ) || defined ( ITF_X360 ) || defined ( ITF_PS3 ) || defined ( ITF_WII ) || ( ( defined ( ITF_PS5 )||  defined ( ITF_NX )||  defined ( ITF_OUNCE )) && defined ( ITF_SUPPORT_WWISE ) )
+#if defined ( ITF_WINDOWS ) || defined ( ITF_X360 ) || defined ( ITF_PS3 ) || defined ( ITF_WII ) || ( ( defined ( ITF_PS5 )||  defined ( ITF_NX )||  defined ( ITF_OUNCE )||  defined ( ITF_XBOX_SERIES )) && defined ( ITF_SUPPORT_WWISE ) )
 #define USE_MUSICINSTANCE // this define must be present until we have music on all platforms...
 #endif // defined ( ITF_WINDOWS ) || defined ( ITF_X360 ) || defined ( ITF_PS3 ) || defined ( ITF_WII )|| defined ( ITF_PS5 )
 
@@ -558,6 +558,7 @@ void MusicInstance::update( f32 _dt )
             if ( m_lastSamplePosition > samplePosition
                 && m_nextVolume != m_currentVolume )
             {
+              //  LOG("0x%x update MusicInstance:ask for a new fade", this);
                 setNewFade(m_nextVolume,0.5f);
             }
 
@@ -910,7 +911,7 @@ void MusicInstance::play( const StringID _node, f32 _fadeTime /*= 0.0f*/, f32 _v
 void MusicInstance::stopVoice()
 {
 #ifdef LOG_MUSICINSTANCE
-    RAKI_OUTPUT( "0x%x MusicInstance::stopVoice", this );
+    LOG( "0x%x MusicInstance::stopVoice", this );
 #endif // LOG_MUSICINSTANCE
 
 #ifdef USE_MUSICINSTANCE
@@ -957,17 +958,26 @@ void MusicInstance::stop(f32 _fadeTime /*= 0.0f*/)
     if ( isPlaying())
     {
 #ifdef LOG_MUSICINSTANCE
-        RAKI_OUTPUT( "0x%x MusicInstance::stop entering isPlaying", this );
+        LOG( "0x%x MusicInstance::stop entering isPlaying", this );
 #endif // LOG_MUSICINSTANCE
         // Start fading
         if ( _fadeTime > 0.0f )
         {
-            if ( !isStopping() )
-                setNewFade( 0.f, _fadeTime );
+            if (m_state != fading)
+            {
+              //  LOG("0x%x MusicInstance::setNewFade", this);
+                if (!isStopping())
+                    setNewFade(0.f, _fadeTime);
+            }
+
         }
         // No fade, then launch stop process
-        else 
+        else
+        {
+            //LOG("0x%x MusicInstance::stop voice", this);
             stopVoice();
+        }
+
     }
     // else : don't do anything as no music is currently playing
 
@@ -995,6 +1005,8 @@ void MusicInstance::setNewFade( f32 _destVolume, f32 _fadeTime )
     ITF_ASSERT( _fadeTime > 0.f );
     ITF_ASSERT( _destVolume >= 0.f );
     ITF_ASSERT( _destVolume <= 1.f );
+    if (m_state == stopped)
+        return;
 
     m_fadeCurrentTime   = 0.0f;
     m_fadeTotalTime     = _fadeTime;
@@ -1311,15 +1323,15 @@ void MusicInstanceSimple::update( f32 _dt )
     {
         m_fadeCurrentTime += _dt;
 
-        if( m_nextNodeToPlay != StringID::Invalid
-            && m_lastSamplePosition > samplePosition)
-        {
-            // Apply short fade to avoid brutal volume increase
-            m_fadeCurrentTime   = 0.0f;
-            m_fadeTotalTime     = 0.5;
-            m_fadeStartVolume   = getLinearVolume();
-            m_fadeEndVolume     = 1.0f;
-        }
+//         if( m_nextNodeToPlay != StringID::Invalid
+//             && m_lastSamplePosition > samplePosition)
+//         {
+//             // Apply short fade to avoid brutal volume increase
+//             m_fadeCurrentTime   = 0.0f;
+//             m_fadeTotalTime     = 0.5;
+//             m_fadeStartVolume   = getLinearVolume();
+//             m_fadeEndVolume     = 1.0f;
+//         }
 
         // Reached end of fade ?
         if (m_fadeCurrentTime >= m_fadeTotalTime)

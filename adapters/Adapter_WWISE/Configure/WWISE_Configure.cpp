@@ -93,7 +93,9 @@ namespace	Wwise
 
         AK_SoundEngine_GetDefaultInitSettings(out_initSettings);
         out_initSettings.pfnAssertHook = Wwise::Hooks::assertHook;
+#ifndef ITF_XBOX_SERIES
         AkSetPlatformProfilerHooks(out_initSettings);
+#endif
         
         
 
