@@ -5294,6 +5294,9 @@ namespace ITF
         {
             // WIN32 + X360 support
             m_inputManager->addX360pad_device(JOY_MAX_COUNT);
+#ifdef ITF_WINDOWS
+            m_inputManager->addKeyboard_device(1);
+#endif
             // PS3 support
             m_inputManager->addPS3pad_device(JOY_MAX_COUNT);
             // WII support
