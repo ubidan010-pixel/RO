@@ -1724,8 +1724,6 @@ namespace ITF
         EHealthModifier getHealthModifier() const;
         void            setHealthModifier(EHealthModifier _modifier);
         void            restoreHealthModifierForAllPlayers();
-        void            clearHealthModifierForAllPlayers();
-
         //==========================================================================
         // Option Menu - Display Options
         //==========================================================================

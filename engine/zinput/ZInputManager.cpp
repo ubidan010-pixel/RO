@@ -237,10 +237,10 @@ namespace ITF
 #endif //ITF_X360 || ITF_WINDOWS
     }
 
-    void ZInputManager::addKeyboard_device(u32 maxPAD)
+    void ZInputManager::addKeyboard_device(u32 /*maxPAD*/)
     {
 #ifdef ITF_WINDOWS
-        FOR_MAXPAD m_devices.push_back(CreateKeyboardDevice(pad));
+        m_devices.push_back(CreateKeyboardDevice(0));
 #endif // ITF_WINDOWS
     }
 

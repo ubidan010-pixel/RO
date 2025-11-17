@@ -144,6 +144,7 @@ void Ray_GameScreen_WorldMap::onWorldLoaded()
 {
     RAY_GAMEMANAGER->spawnPlayerActors(GetClassCRCStatic());
     RAY_GAMEMANAGER->enableBaseScene(btrue);
+
     //update counts
 
     for (u32 i=0; i<GAMEMANAGER->getMaxPlayerCount(); ++i )
@@ -161,7 +162,6 @@ void Ray_GameScreen_WorldMap::onWorldLoaded()
     {
         RAY_GAMEMANAGER->leavePause(bfalse);
     }
-    RAY_GAMEMANAGER->restoreHealthModifierForAllPlayers();
 }
 
 //------------------------------------------------------------------------------
