@@ -127,7 +127,7 @@ namespace ITF
         Texture*        getSkipIconsTexture();
         Texture*        getMenuLogosTexture();
 
-        ITF_INLINE f32  getMenuLogoScale() const { return 0.35f; }
+        ITF_INLINE f32  getMenuLogoScale() const { return 0.28f; }
 
     protected:
 
