@@ -1,8 +1,8 @@
 #ifndef _ITF_INPUTADAPTER_DINPUT_H_
 #define _ITF_INPUTADAPTER_DINPUT_H_
-#ifndef _ITF_WININPUTADAPTER_H_
-#include "engine/AdaptersInterfaces/WinInputAdapter.h"
-#endif //_ITF_WININPUTADAPTER_H_
+#ifndef _ITF_INPUTADAPTER_H_
+#include "engine/AdaptersInterfaces/InputAdapter.h"
+#endif //_ITF_INPUTADAPTER_H_
 
 #ifndef _ITF_VEC3D_H_
 #include "core/math/vec3d.h"
@@ -198,7 +198,7 @@ namespace ITF
         } m_pad[Joy::MAX_PAD];
     };
 
-    class InputAdapter_DINPUT : public WinInputAdapter
+    class InputAdapter_DINPUT : public InputAdapter
     {
     public:
         InputAdapter_DINPUT();
@@ -215,8 +215,12 @@ namespace ITF
         void setFocus() override;
         void unsetFocus() override;
         void HandleControllerStateChange();
+        ControllerType GetControllerType(InputValue& value) override;
     private:
         void UpdatePads() override;
+        PressStatus GetButtonStatus(InputValue) override;
+        float GetAxe(InputValue) override;
+        bbool IsButtonPressed(InputValue) override;
         u32 getConnectedPadIndex(u32 _padIndex) const;
         void getPadAcc(u32 _numPad, Vec3d* _acc);
 

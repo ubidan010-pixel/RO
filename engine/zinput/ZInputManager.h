@@ -35,7 +35,6 @@ namespace  ITF
 
         /// Devices controller 
         void                addX360pad_device(u32 maxPAD);
-        void                addKeyboard_device(u32 maxPAD);
         void                addWiimote_device(u32 maxPAD);
         void                addWiinunchuck_device(u32 maxPAD);
         void                addWiiclassic_device(u32 maxPAD);

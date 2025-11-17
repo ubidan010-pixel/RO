@@ -16,10 +16,6 @@
 // Devices includes
 #include "engine/zinput/PadX360/ZPadX360_common.h"
 
-#ifdef ITF_WINDOWS
-#include "engine/zinput/Keyboard/ZPad_keyboard.h"
-#endif // ITF_WINDOWS
-
 #ifndef _ITF_INPUTDEVICE_CLASSIC_WII_H_
 #include "engine/zinput/wii/ZClassic_wii.h"
 #endif //_ITF_INPUTDEVICE_CLASSIC_WII_H_
@@ -235,13 +231,6 @@ namespace ITF
 #if defined (ITF_X360) || defined(ITF_WINDOWS)
         FOR_MAXPAD m_devices.push_back(newAlloc(mId_System, ZPad_x360(pad)));
 #endif //ITF_X360 || ITF_WINDOWS
-    }
-
-    void ZInputManager::addKeyboard_device(u32 /*maxPAD*/)
-    {
-#ifdef ITF_WINDOWS
-        m_devices.push_back(CreateKeyboardDevice(0));
-#endif // ITF_WINDOWS
     }
 
     void ZInputManager::addWiimote_device(u32 maxPAD)

@@ -549,8 +549,12 @@ namespace ITF
         adapter->SetCallbackMouseButton(MouseButtonCB);
         m_sdlInput.initialize(this);
         setPadConnected(0, btrue);
+        InitializeActionStrings();
+        memset(m_keyStatus, 0, KEY_COUNT * sizeof(PressStatus));
+        memset(m_keyPressTime, 0, KEY_COUNT * sizeof(u32));
         memset(m_connectedPlayers, 0, JOY_MAX_COUNT * sizeof(PlayerState));
         m_connectedPlayers[0] = ePlaying;
+        InputAdapter::LoadPlayerControlSettings();
     }
 
     InputAdapter_SDL3::~InputAdapter_SDL3()
@@ -594,7 +598,12 @@ namespace ITF
             }
             else if (m_connectedPlayers[i] != eNotConnected)
             {
-                m_connectedPlayers[i] = eNotConnected;
+                // Don't disconnect player 0 - keep available for keyboard input on PC
+                if (i != 0)
+                    m_connectedPlayers[i] = eNotConnected;
+                else
+                    m_connectedPlayers[0] = ePlaying; // Keep player 0 for keyboard
+
                 for (u32 axis = 0; axis < JOY_MAX_AXES; ++axis)
                 {
                     m_axes[i][axis] = 0.0f;
@@ -605,6 +614,28 @@ namespace ITF
                 }
             }
         }
+    }
+
+    InputAdapter::PressStatus InputAdapter_SDL3::GetButtonStatus(InputValue inputValue)
+    {
+        if (inputValue.inputIndex >= JOY_MAX_COUNT)
+            return Released;
+        return m_sdlInput.m_gamepads[inputValue.inputIndex].getButton(inputValue.inputValue);
+    }
+
+    float InputAdapter_SDL3::GetAxe(InputValue inputValue)
+    {
+        if (inputValue.inputIndex >= JOY_MAX_COUNT)
+            return 0.0f;
+        return m_sdlInput.m_gamepads[inputValue.inputIndex].getAxis(inputValue.inputValue);
+    }
+
+    bbool InputAdapter_SDL3::IsButtonPressed(InputValue inputValue)
+    {
+        if (inputValue.inputIndex >= JOY_MAX_COUNT)
+            return bfalse;
+        auto state = m_sdlInput.m_gamepads[inputValue.inputIndex].getButton(inputValue.inputValue);
+        return state == JustPressed || state == Pressed;
     }
 
     void InputAdapter_SDL3::padVibration(u32 _numPad, f32 _leftMotorSpeed, f32 _rightMotorSpeed)
@@ -646,6 +677,18 @@ namespace ITF
             }
         }
         return "Disconnected";
+    }
+
+    ControllerType InputAdapter_SDL3::GetControllerType(InputValue& value)
+    {
+        if (value.inputType != Keyboard)
+        {
+            if (value.inputType == X360Button)
+                return value.inputType = GenericButton;
+            if (value.inputType == X360Axis)
+                return value.inputType = GenericAxis;
+        }
+        return value.inputType;
     }
 
 }

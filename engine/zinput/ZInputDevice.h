@@ -33,7 +33,7 @@ typedef ITF_MAP<StringID,int>     ControlTranslateMap;
         void    Update( );
         void    ProcessActions ( ActionMap * actionMap );
         
-        ITF_INLINE virtual bbool IsDeviceValid() const
+        ITF_INLINE bbool IsDeviceValid() const
         {
             return INPUT_ADAPTER->isPadConnected(m_id)
 #ifdef ITF_WII

@@ -1,9 +1,9 @@
 ﻿#ifndef _ITF_INPUTADAPTER_SDL3_H_
 #define _ITF_INPUTADAPTER_SDL3_H_
 #ifdef ITF_USE_SDL
-#ifndef _ITF_WININPUTADAPTER_H_
-#include "engine/AdaptersInterfaces/WinInputAdapter.h"
-#endif //_ITF_WININPUTADAPTER_H_
+#ifndef _ITF_INPUTADAPTER_H_
+#include "engine/AdaptersInterfaces/InputAdapter.h"
+#endif //_ITF_INPUTADAPTER_H_
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_gamepad.h>
 #include <mmdeviceapi.h>
@@ -82,7 +82,7 @@ namespace ITF
         InputAdapter* m_adapter;
     };
 
-    class InputAdapter_SDL3 : public WinInputAdapter
+    class InputAdapter_SDL3 : public InputAdapter
     {
     public:
         InputAdapter_SDL3();
@@ -92,7 +92,11 @@ namespace ITF
         void startRumble(u32 _numPad, f64 _time, f32 _leftMotorSpeed, f32 _rightMotorSpeed) override;
         void stopRumble(u32 _numPad) override;
         const char* GetControllerTypeName(u32 padIndex) const override;
+        PressStatus GetButtonStatus(InputValue) override;
+        float GetAxe(InputValue) override;
+        bbool IsButtonPressed(InputValue) override;
         void UpdatePads() override;
+        ControllerType GetControllerType(InputValue& value) override;
     private:
         SDLInput m_sdlInput;
     };
