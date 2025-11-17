@@ -111,6 +111,15 @@
 #include "rayman/gameplay/Components/Player/Ray_PlayerCostumeComponent.h"
 #endif //_ITF_RAY_PLAYERCOSTUMECOMPONENT_H_
 
+#ifndef _ITF_RAY_CONCEPTGALLERYCOMPONENT_H_
+#include "rayman/gameplay/Components/Gallery/Ray_ConceptGalleryComponent.h"
+#endif //_ITF_RAY_CONCEPTGALLERYCOMPONENT_H_
+
+#ifndef _ITF_RAY_CONCEPTGALLERYPRICECOMPONENT_H_
+#include "rayman/gameplay/Components/Gallery/Ray_ConceptGalleryPriceComponent.h"
+#endif //_ITF_RAY_CONCEPTGALLERYPRICECOMPONENT_H_
+
+
 #ifndef _ITF_RAY_PLAYERCOSTUMEMANAGERCOMPONENT_H_
 #include "rayman/gameplay/Components/Player/Ray_PlayerCostumeManagerComponent.h"
 #endif //_ITF_RAY_PLAYERCOSTUMEMANAGERCOMPONENT_H_
@@ -1522,6 +1531,8 @@ namespace ITF
         actorComponentsFactory->RegisterObject<Ray_PlayerCostumeComponent>(ITF_GET_STRINGID_CRC(Ray_PlayerCostumeComponent,3635797832));
         actorComponentsFactory->RegisterObject<Ray_PlayerCostumeManagerComponent>(ITF_GET_STRINGID_CRC(Ray_PlayerCostumeManagerComponent,3402508516));
         actorComponentsFactory->RegisterObject<Ray_PlayerCostumePriceComponent>(ITF_GET_STRINGID_CRC(Ray_PlayerCostumePriceComponent,760770928));
+        actorComponentsFactory->RegisterObject<Ray_ConceptGalleryComponent>(ITF_GET_STRINGID_CRC(Ray_ConceptGalleryComponent,4291508693));
+        actorComponentsFactory->RegisterObject<Ray_ConceptGalleryPriceComponent>(ITF_GET_STRINGID_CRC(Ray_ConceptGalleryPriceComponent,934131534));
         actorComponentsFactory->RegisterObject<Ray_ChangeRoomDoorComponent>(ITF_GET_STRINGID_CRC(Ray_ChangeRoomDoorComponent,4156471626));
         actorComponentsFactory->RegisterObject<Ray_CharacterDebuggerComponent>(ITF_GET_STRINGID_CRC(Ray_CharacterDebuggerComponent,1706648044));
         actorComponentsFactory->RegisterObject<Ray_PlayerOffScreenIconComponent>(ITF_GET_STRINGID_CRC(Ray_PlayerOffScreenIconComponent,892597551));
@@ -2070,6 +2081,8 @@ namespace ITF
         templatesFactory->RegisterObject<Ray_PlayerCostumeComponent_Template>(ITF_GET_STRINGID_CRC(Ray_PlayerCostumeComponent_Template,823202235));
         templatesFactory->RegisterObject<Ray_PlayerCostumeManagerComponent_Template>(ITF_GET_STRINGID_CRC(Ray_PlayerCostumeManagerComponent_Template,3433372874));
         templatesFactory->RegisterObject<Ray_PlayerCostumePriceComponent_Template>(ITF_GET_STRINGID_CRC(Ray_PlayerCostumePriceComponent_Template,3369407398));
+        templatesFactory->RegisterObject<Ray_ConceptGalleryComponent_Template>(ITF_GET_STRINGID_CRC(Ray_ConceptGalleryComponent_Template,1792344745));
+        templatesFactory->RegisterObject<Ray_ConceptGalleryPriceComponent_Template>(ITF_GET_STRINGID_CRC(Ray_ConceptGalleryPriceComponent_Template,2512516538));
         templatesFactory->RegisterObject<Ray_ChangeRoomDoorComponent_Template>(ITF_GET_STRINGID_CRC(Ray_ChangeRoomDoorComponent_Template,1528141307));
         templatesFactory->RegisterObject<Ray_CharacterDebuggerComponent_Template>(ITF_GET_STRINGID_CRC(Ray_CharacterDebuggerComponent_Template,2645970871));
         templatesFactory->RegisterObject<Ray_SwingComponent_Template>(ITF_GET_STRINGID_CRC(Ray_SwingComponent_Template,190444179));
