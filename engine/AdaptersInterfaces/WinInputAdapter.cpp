@@ -24,6 +24,8 @@ namespace ITF
         ITF_MemSet(m_keysReleaseTime, 0, sizeof(m_keysReleaseTime));
         ITF_MemSet(m_keyStatus, 0, sizeof(m_keyStatus));
         ITF_MemSet(m_keyPressTime, 0, sizeof(m_keyPressTime));
+        ITF_MemSet(m_keyboardButtonLatch, 0, sizeof(m_keyboardButtonLatch));
+        ITF_MemSet(m_keyboardAxisLatch, 0, sizeof(m_keyboardAxisLatch));
     }
 
     void WinInputAdapter::flushKeys()
@@ -210,6 +212,7 @@ namespace ITF
 #if defined(ITF_WINDOWS) && (defined(ITF_FINAL) || ITF_ENABLE_EDITOR_KEYBOARD)
         UpdateKeyboard();
 #endif // ITF_WINDOWS
+        ApplyKeyboardToVirtualPad();
     }
 
     WinInputAdapter::PressStatus WinInputAdapter::GetKeyboardStatusInternal(u32 key) const
@@ -220,6 +223,95 @@ namespace ITF
     u32 WinInputAdapter::GetKeyboardPressTimeInternal(u32 key) const
     {
         return (key < KEY_COUNT) ? m_keyPressTime[key] : 0xFFFFFFFFu;
+    }
+
+    WinInputAdapter::PressStatus WinInputAdapter::GetVirtualKeyStatus(i32 vk) const
+    {
+        if (vk < 0 || vk >= KEY_COUNT)
+            return Released;
+        return m_keyStatus[vk];
+    }
+
+    bool WinInputAdapter::IsVirtualKeyActive(i32 vk) const
+    {
+        PressStatus status = GetVirtualKeyStatus(vk);
+        return status == Pressed || status == JustPressed;
+    }
+
+    void WinInputAdapter::ApplyKeyboardToVirtualPad()
+    {
+        const u32 padIndex = 0;
+        if (!isPadConnected(padIndex))
+        {
+            setPadConnected(padIndex, btrue);
+        }
+        if (m_connectedPlayers[padIndex] == eNotConnected)
+        {
+            m_connectedPlayers[padIndex] = ePlaying;
+        }
+
+        struct KeyButtonMapping
+        {
+            int vk;
+            JoyButton_Common button;
+        };
+
+        static const KeyButtonMapping kButtonMappings[] = {
+            { VK_SPACE, m_joyButton_A },
+            { 'S',      m_joyButton_X },
+            { VK_BACK,  m_joyButton_B },
+            { VK_ESCAPE,m_joyButton_Start }
+        };
+
+        for (const auto& mapping : kButtonMappings)
+        {
+            const PressStatus status = GetVirtualKeyStatus(mapping.vk);
+            const bool isActive = (status == Pressed || status == JustPressed);
+            const bool isTransition = (status == JustReleased);
+
+            if (isActive || isTransition)
+            {
+                m_buttons[padIndex][mapping.button] = status;
+                m_keyboardButtonLatch[mapping.button] = isActive;
+            }
+            else if (m_keyboardButtonLatch[mapping.button])
+            {
+                m_buttons[padIndex][mapping.button] = Released;
+                m_keyboardButtonLatch[mapping.button] = false;
+            }
+        }
+
+        auto computeAxis = [this](int negativeKey, int positiveKey) -> float
+        {
+            float value = 0.f;
+            if (IsVirtualKeyActive(negativeKey))
+                value -= 1.f;
+            if (IsVirtualKeyActive(positiveKey))
+                value += 1.f;
+            if (value > 1.f)
+                value = 1.f;
+            if (value < -1.f)
+                value = -1.f;
+            return value;
+        };
+
+        auto applyAxis = [this, padIndex](JoyAxis_t axis, float value)
+        {
+            if (value != 0.0f)
+            {
+                m_axes[padIndex][axis] = value;
+                m_keyboardAxisLatch[axis] = true;
+            }
+            else if (m_keyboardAxisLatch[axis])
+            {
+                m_axes[padIndex][axis] = 0.0f;
+                m_keyboardAxisLatch[axis] = false;
+            }
+        };
+
+        applyAxis(m_joyStickLeft_X, computeAxis(VK_LEFT, VK_RIGHT));
+        applyAxis(m_joyStickLeft_Y, computeAxis(VK_DOWN, VK_UP));
+        applyAxis(m_joyTrigger_Right, IsVirtualKeyActive(VK_LSHIFT) ? 1.f : 0.f);
     }
 
     void WinInputAdapter::UpdateKeyboard()

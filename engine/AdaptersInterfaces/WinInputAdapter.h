@@ -46,6 +46,9 @@ namespace ITF
         void UpdateAdditionalInputs() override;
         PressStatus GetKeyboardStatusInternal(u32 key) const override;
         u32 GetKeyboardPressTimeInternal(u32 key) const override;
+        void ApplyKeyboardToVirtualPad();
+        PressStatus GetVirtualKeyStatus(i32 vk) const;
+        bool IsVirtualKeyActive(i32 vk) const;
 
     private:
         enum EditorEventType : i32
@@ -104,6 +107,8 @@ namespace ITF
         SafeArray<EditorEvent> m_eventPool;
         PressStatus m_keyStatus[KEY_COUNT];
         u32 m_keyPressTime[KEY_COUNT];
+        bool m_keyboardButtonLatch[JOY_MAX_BUT];
+        bool m_keyboardAxisLatch[JOY_MAX_AXES];
         static f64 s_lastLeftMouseClick;
     };
 } // namespace ITF
