@@ -1,8 +1,8 @@
 #ifndef _ITF_INPUTADAPTER_DINPUT_H_
 #define _ITF_INPUTADAPTER_DINPUT_H_
-#ifndef _ITF_INPUTADAPTER_H_
-#include "engine/AdaptersInterfaces/InputAdapter.h"
-#endif //_ITF_INPUTADAPTER_H_
+#ifndef _ITF_WININPUTADAPTER_H_
+#include "engine/AdaptersInterfaces/WinInputAdapter.h"
+#endif //_ITF_WININPUTADAPTER_H_
 
 #ifndef _ITF_VEC3D_H_
 #include "core/math/vec3d.h"
@@ -198,7 +198,7 @@ namespace ITF
         } m_pad[Joy::MAX_PAD];
     };
 
-    class InputAdapter_DINPUT : public InputAdapter
+    class InputAdapter_DINPUT : public WinInputAdapter
     {
     public:
         InputAdapter_DINPUT();

@@ -526,8 +526,6 @@ namespace ITF
 
         setPadConnected(0, btrue);
         InitializeActionStrings();
-        memset(m_keyStatus, 0, KEY_COUNT * sizeof(PressStatus));
-        memset(m_keyPressTime, 0, KEY_COUNT * sizeof(u32));
         memset(m_connectedPlayers, 0, JOY_MAX_COUNT * sizeof(PlayerState));
         m_connectedPlayers[0] = ePlaying;
         InputAdapter::LoadPlayerControlSettings();
