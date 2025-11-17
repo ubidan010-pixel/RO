@@ -88,6 +88,7 @@ namespace ITF
     class PersistentGameData_Universe;
     class ZInputManager;
     class IInputListener;
+    class GameManagerPauseInputListener;
 
     typedef std::pair<ObjectRef,ObjectRef> WorldCheckpoint;
     typedef ITF_VECTOR<WorldCheckpoint> WorldCheckpointList;
@@ -146,8 +147,6 @@ namespace ITF
         u32                         getNumGameScreens() const { return m_gameScreens.size(); }
         const GameScreenInfo&       getGameScreenInfoAt( u32 _index ) const { return m_gameScreens[_index]; }
         const GameScreenInfo*       getGameScreenInfo( const StringID& _id ) const;
-
-    private:
 
         String8                     m_id;
         String8                     m_family;
@@ -932,6 +931,7 @@ namespace ITF
         typedef void (*CompletionCallback_t)();
         CompletionCallback_t m_onGameSettingLoaded = nullptr;
         void setGameSettingLoadEvent(CompletionCallback_t callback) {m_onGameSettingLoaded = callback;};
+        void QueuePauseRequest(u32 playerIndex);
     protected:
 
         enum GameOperation
@@ -1099,6 +1099,9 @@ namespace ITF
         ZInputManager*                  m_inputManager;
         i32                             m_inputModeMenuCounter, m_inputModeGamePlayCounter;
         TemplateClientHandler           m_templateClientHandler;
+        GameManagerPauseInputListener*  m_pauseInputListener;
+        bbool                           m_pauseActionQueued;
+        u32                             m_pauseActionPlayer;
 
         // Save Notification
         ObjectRef                       m_saveNotificationActor;

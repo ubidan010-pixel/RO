@@ -88,15 +88,15 @@ namespace ITF
             return INPUT_ADAPTER->GetKeyState(static_cast<u32>(vk));
         };
 
-        const InputAdapter::PressStatus stickLeft = keyState('A');
-        const InputAdapter::PressStatus stickRight = keyState('D');
-        const InputAdapter::PressStatus stickUp = keyState('W');
-        const InputAdapter::PressStatus stickDown = keyState('S');
+        const InputAdapter::PressStatus stickLeft = keyState(VK_LEFT);
+        const InputAdapter::PressStatus stickRight = keyState(VK_RIGHT);
+        const InputAdapter::PressStatus stickUp = keyState(VK_UP);
+        const InputAdapter::PressStatus stickDown = keyState(VK_DOWN);
 
-        const InputAdapter::PressStatus dpadLeft = keyState(VK_LEFT);
-        const InputAdapter::PressStatus dpadRight = keyState(VK_RIGHT);
-        const InputAdapter::PressStatus dpadUp = keyState(VK_UP);
-        const InputAdapter::PressStatus dpadDown = keyState(VK_DOWN);
+        const InputAdapter::PressStatus dpadLeft = keyState('A');
+        const InputAdapter::PressStatus dpadRight = keyState('D');
+        const InputAdapter::PressStatus dpadUp = keyState('W');
+        const InputAdapter::PressStatus dpadDown = keyState('S');
         const InputAdapter::PressStatus trigger = keyState(VK_LSHIFT);
 
         deviceInfo.m_inputInfo[PAD_STICK_LX].m_axisInfo.m_axis = ComputeAxis(stickLeft, stickRight);
@@ -109,8 +109,8 @@ namespace ITF
         deviceInfo.m_inputInfo[PAD_DPAD_DOWN].m_buttonInfo.m_status = ConvertKeyStatus(dpadDown);
 
         deviceInfo.m_inputInfo[PAD_BUTTON_A].m_buttonInfo.m_status = ConvertKeyStatus(keyState(VK_SPACE));
-        deviceInfo.m_inputInfo[PAD_BUTTON_X].m_buttonInfo.m_status = ConvertKeyStatus(keyState('F'));
-        deviceInfo.m_inputInfo[PAD_BUTTON_B].m_buttonInfo.m_status = ConvertKeyStatus(keyState('B'));
+        deviceInfo.m_inputInfo[PAD_BUTTON_X].m_buttonInfo.m_status = ConvertKeyStatus(keyState('S'));
+        deviceInfo.m_inputInfo[PAD_BUTTON_B].m_buttonInfo.m_status = ConvertKeyStatus(keyState(VK_BACK));
         deviceInfo.m_inputInfo[PAD_BUTTON_START].m_buttonInfo.m_status = ConvertKeyStatus(keyState(VK_ESCAPE));
     }
 

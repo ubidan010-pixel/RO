@@ -1,7 +1,5 @@
 #include "precompiled_engine.h"
 
-#include "rayman/gameplay/Ray_GameManager.h"
-
 #ifndef _ITF_CHEATMANAGER_H_
 #include "engine/gameplay/CheatManager.h"
 #endif //_ITF_CHEATMANAGER_H_
@@ -168,11 +166,6 @@ bbool CheatManager::onKey( i32 _key, InputAdapter::PressStatus _keyStatus )
                 }
             }
             break;
-        case 'L':
-            {
-                LOG("Lums value: %d", RAY_GAMEMANAGER->computeCompleteMedalCount());
-                break;
-            }
         }
     }
 

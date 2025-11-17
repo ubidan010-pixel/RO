@@ -165,6 +165,10 @@
 #include "engine/zinput/ZInputManager.h"
 #endif //_ITF_ZINPUT_MANAGER_H
 
+#ifndef _ITF_INPUTLISTENER_H_
+#include "engine/zinput/ZInputListener.h"
+#endif //_ITF_INPUTLISTENER_H_
+
 // TEMP -- will be removed soon
 #ifdef ITF_WINDOWS
     #ifndef _ITF_INPUTADAPTER_DINPUT_H_
@@ -195,8 +199,38 @@
 #include "engine/AdaptersInterfaces/AudioMiddlewareAdapter.h"
 
 
+namespace
+{
+    const ITF::StringID& GetPauseActionId()
+    {
+        static const ITF::StringID s_pauseAction("GAME_PAUSE");
+        return s_pauseAction;
+    }
+}
+
 namespace ITF
 {
+    class GameManagerPauseInputListener : public IInputListener
+    {
+    public:
+        explicit GameManagerPauseInputListener(GameManager& owner)
+            : m_owner(owner)
+        {
+        }
+
+        void Receive(u32 deviceID, f32 axis, const StringID& action) override
+        {
+            ITF_UNUSED(axis);
+            if (action == GetPauseActionId())
+            {
+                m_owner.QueuePauseRequest(deviceID);
+            }
+        }
+
+    private:
+        GameManager& m_owner;
+    };
+
     struct ControllerIconPathDescriptor
     {
         const char* key;
@@ -381,6 +415,9 @@ namespace ITF
         , m_loadingMainMenuStarted(bfalse)
         , m_checkpointData(NULL)
         , m_inputManager(NULL)
+        , m_pauseInputListener(NULL)
+        , m_pauseActionQueued(bfalse)
+        , m_pauseActionPlayer(U32_INVALID)
         , m_currentLevelName(StringID::Invalid)
         , m_mainIndexPlayer(U32_INVALID)
         , m_pauseOwnerIndex(U32_INVALID)
@@ -527,7 +564,12 @@ namespace ITF
 		}
 		SF_DEL( m_GameModeParametersFactory );
         SF_DEL(m_checkpointData);
+        if (m_inputManager && m_pauseInputListener)
+        {
+            m_inputManager->RemoveListener(m_pauseInputListener);
+        }
         SF_DEL(m_inputManager);
+        SF_DEL(m_pauseInputListener);
         m_templateClientHandler.freeUsedTemplates();
     }
 
@@ -849,45 +891,33 @@ namespace ITF
                 SYSTEM_ADAPTER->setSystemPauseFlag(bfalse);
             }
 
+            if (!m_pauseMenuRequested)
+            {
+                m_pauseActionQueued = bfalse;
+            }
+
             if (m_pauseMenuRequested)
             {
                 //Pause toggle by any player
                 bbool pauseButtonHit = bfalse;
                 if (!m_cheatIgnoreNextPause)
                 {
-                    for (u32 i = 0; i < getMaxPlayerCount(); i++)
+                    if (m_pauseActionQueued)
                     {
-                        if (!SYSTEM_ADAPTER->isOSUIActive() && getPlayer(i)->getActiveAndPersistent())
+                        const u32 playerIndex = m_pauseActionPlayer;
+                        m_pauseActionQueued = bfalse;
+
+                        if (!SYSTEM_ADAPTER->isOSUIActive() &&
+                            playerIndex < getMaxPlayerCount() &&
+                            getPlayer(playerIndex)->getActiveAndPersistent())
                         {
-                            InputAdapter::PressStatus buttons[JOY_MAX_BUT];
-                            INPUT_ADAPTER->getGamePadButtons(InputAdapter::EnvironmentLua, i, buttons, JOY_MAX_BUT);
-
-                            if (buttons[m_joyButton_Start] == InputAdapter::JustReleased)
+                            if(!m_isInPause)
                             {
-                                if(!m_isInPause)
-                                {
-                                    setIndexPauseOwner(i);
-                                    pauseButtonHit = btrue;
-                                } else if(m_isInPause && getIndexPauseOwner() == i)
-                                {
-                                    pauseButtonHit = btrue;
-                                }
-
-                                if(pauseButtonHit)break;
+                                setIndexPauseOwner(playerIndex);
+                                pauseButtonHit = btrue;
                             }
-                        }
-                    }
-
-                    if (!pauseButtonHit && !SYSTEM_ADAPTER->isOSUIActive())
-                    {
-                        const InputAdapter::PressStatus keyboardStart =
-                            INPUT_ADAPTER->getKeyStatus(InputAdapter::KEY_ESC);
-                        if (keyboardStart == InputAdapter::JustReleased)
-                        {
-                            const u32 keyboardOwner = getMainIndexPlayer();
-                            if (!m_isInPause || getIndexPauseOwner() == keyboardOwner)
+                            else if(m_isInPause && getIndexPauseOwner() == playerIndex)
                             {
-                                setIndexPauseOwner(keyboardOwner);
                                 pauseButtonHit = btrue;
                             }
                         }
@@ -896,6 +926,7 @@ namespace ITF
                 else
                 {
                     m_cheatIgnoreNextPause = bfalse;
+                    m_pauseActionQueued = bfalse;
                 }
                 //
                 if (pauseButtonHit)
@@ -3831,11 +3862,24 @@ namespace ITF
         for (u32 i = 0; i < inputFileCount; i++)
         {
 #ifndef ITF_FINAL
-                LOG("Input file loaded: \"%s\"", m_configTemplate->getInputConfigFilePath()[i].getString8().cStr());
+            LOG("Input file loaded: \"%s\"", m_configTemplate->getInputConfigFilePath()[i].getString8().cStr());
 #endif
-                m_inputManager->load_configFile(m_configTemplate->getInputConfigFilePath()[i]);
-            }
+            m_inputManager->load_configFile(m_configTemplate->getInputConfigFilePath()[i]);
         }
+
+        if (!m_pauseInputListener)
+        {
+            m_pauseInputListener = newAlloc(mId_Gameplay, GameManagerPauseInputListener(*this));
+            addGamePlayInputListener(m_pauseInputListener);
+            addMenuInputListener(m_pauseInputListener);
+        }
+    }
+
+    void GameManager::QueuePauseRequest(u32 playerIndex)
+    {
+        m_pauseActionPlayer = playerIndex;
+        m_pauseActionQueued = btrue;
+    }
 
     void GameManager::updateInputManager()
     {
