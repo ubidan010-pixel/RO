@@ -380,6 +380,8 @@ namespace ITF
         @exception          asserts if  _key is out of the supported range
         */
         virtual bbool isKeyPressed(i32 _key) const;
+        PressStatus getKeyStatus(u32 keyCode) const { return GetKeyboardStatusInternal(keyCode); }
+        u32 getKeyPressTime(u32 keyCode) const { return GetKeyboardPressTimeInternal(keyCode); }
 
         virtual bbool isMousePressed(MouseButton _but) const;
 
@@ -631,6 +633,12 @@ namespace ITF
 
         virtual void OnControllerConnected(u32 _padIndex,i32 _deviceID= -1,i32 _deviceOutputID =-1,bool isSony = false);
         virtual void OnControllerDisconnected(u32 _padIndex);
+
+        virtual PressStatus GetKeyState(u32 virtualKey) const
+        {
+            ITF_UNUSED(virtualKey);
+            return Released;
+        }
     };
 
 #define INPUT_ADAPTER InputAdapter::getptr()

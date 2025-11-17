@@ -877,6 +877,21 @@ namespace ITF
                             }
                         }
                     }
+
+                    if (!pauseButtonHit && !SYSTEM_ADAPTER->isOSUIActive())
+                    {
+                        const InputAdapter::PressStatus keyboardStart =
+                            INPUT_ADAPTER->getKeyStatus(InputAdapter::KEY_ESC);
+                        if (keyboardStart == InputAdapter::JustReleased)
+                        {
+                            const u32 keyboardOwner = getMainIndexPlayer();
+                            if (!m_isInPause || getIndexPauseOwner() == keyboardOwner)
+                            {
+                                setIndexPauseOwner(keyboardOwner);
+                                pauseButtonHit = btrue;
+                            }
+                        }
+                    }
                 }
                 else
                 {

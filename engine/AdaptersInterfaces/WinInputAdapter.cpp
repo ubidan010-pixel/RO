@@ -24,8 +24,6 @@ namespace ITF
         ITF_MemSet(m_keysReleaseTime, 0, sizeof(m_keysReleaseTime));
         ITF_MemSet(m_keyStatus, 0, sizeof(m_keyStatus));
         ITF_MemSet(m_keyPressTime, 0, sizeof(m_keyPressTime));
-        ITF_MemSet(m_keyboardButtonLatch, 0, sizeof(m_keyboardButtonLatch));
-        ITF_MemSet(m_keyboardAxisLatch, 0, sizeof(m_keyboardAxisLatch));
     }
 
     void WinInputAdapter::flushKeys()
@@ -212,7 +210,6 @@ namespace ITF
 #if defined(ITF_WINDOWS) && (defined(ITF_FINAL) || ITF_ENABLE_EDITOR_KEYBOARD)
         UpdateKeyboard();
 #endif // ITF_WINDOWS
-        ApplyKeyboardToVirtualPad();
     }
 
     WinInputAdapter::PressStatus WinInputAdapter::GetKeyboardStatusInternal(u32 key) const
@@ -225,6 +222,20 @@ namespace ITF
         return (key < KEY_COUNT) ? m_keyPressTime[key] : 0xFFFFFFFFu;
     }
 
+    WinInputAdapter::PressStatus WinInputAdapter::GetKeyState(u32 virtualKey) const
+    {
+        i32 keyIndex;
+        if (virtualKey < 256u)
+        {
+            keyIndex = TranslateVirtualKey(virtualKey);
+        }
+        else
+        {
+            keyIndex = static_cast<i32>(virtualKey);
+        }
+        return GetVirtualKeyStatus(keyIndex);
+    }
+
     WinInputAdapter::PressStatus WinInputAdapter::GetVirtualKeyStatus(i32 vk) const
     {
         if (vk < 0 || vk >= KEY_COUNT)
@@ -232,107 +243,41 @@ namespace ITF
         return m_keyStatus[vk];
     }
 
-    bool WinInputAdapter::IsVirtualKeyActive(i32 vk) const
-    {
-        PressStatus status = GetVirtualKeyStatus(vk);
-        return status == Pressed || status == JustPressed;
-    }
-
-    void WinInputAdapter::ApplyKeyboardToVirtualPad()
-    {
-        const u32 padIndex = 0;
-        if (!isPadConnected(padIndex))
-        {
-            setPadConnected(padIndex, btrue);
-        }
-        if (m_connectedPlayers[padIndex] == eNotConnected)
-        {
-            m_connectedPlayers[padIndex] = ePlaying;
-        }
-
-        struct KeyButtonMapping
-        {
-            int vk;
-            JoyButton_Common button;
-        };
-
-        static const KeyButtonMapping kButtonMappings[] = {
-            { VK_SPACE, m_joyButton_A },
-            { 'S',      m_joyButton_X },
-            { VK_BACK,  m_joyButton_B },
-            { VK_ESCAPE,m_joyButton_Start }
-        };
-
-        for (const auto& mapping : kButtonMappings)
-        {
-            const PressStatus status = GetVirtualKeyStatus(mapping.vk);
-            const bool isActive = (status == Pressed || status == JustPressed);
-            const bool isTransition = (status == JustReleased);
-
-            if (isActive || isTransition)
-            {
-                m_buttons[padIndex][mapping.button] = status;
-                m_keyboardButtonLatch[mapping.button] = isActive;
-            }
-            else if (m_keyboardButtonLatch[mapping.button])
-            {
-                m_buttons[padIndex][mapping.button] = Released;
-                m_keyboardButtonLatch[mapping.button] = false;
-            }
-        }
-
-        auto computeAxis = [this](int negativeKey, int positiveKey) -> float
-        {
-            float value = 0.f;
-            if (IsVirtualKeyActive(negativeKey))
-                value -= 1.f;
-            if (IsVirtualKeyActive(positiveKey))
-                value += 1.f;
-            if (value > 1.f)
-                value = 1.f;
-            if (value < -1.f)
-                value = -1.f;
-            return value;
-        };
-
-        auto applyAxis = [this, padIndex](JoyAxis_t axis, float value)
-        {
-            if (value != 0.0f)
-            {
-                m_axes[padIndex][axis] = value;
-                m_keyboardAxisLatch[axis] = true;
-            }
-            else if (m_keyboardAxisLatch[axis])
-            {
-                m_axes[padIndex][axis] = 0.0f;
-                m_keyboardAxisLatch[axis] = false;
-            }
-        };
-
-        applyAxis(m_joyStickLeft_X, computeAxis(VK_LEFT, VK_RIGHT));
-        applyAxis(m_joyStickLeft_Y, computeAxis(VK_DOWN, VK_UP));
-        applyAxis(m_joyTrigger_Right, IsVirtualKeyActive(VK_LSHIFT) ? 1.f : 0.f);
-    }
-
     void WinInputAdapter::UpdateKeyboard()
     {
-        for (u32 keyIndex = 0; keyIndex < KEY_COUNT; ++keyIndex)
+        BYTE keyboardState[256];
+        if (!::GetKeyboardState(keyboardState))
         {
-            const int pressed = GetKeyState(keyIndex) & 0x80;
-            m_keyPressTime[keyIndex] += 1;
+            ITF_MemSet(keyboardState, 0, sizeof(keyboardState));
+        }
 
-            if (pressed)
+        for (u32 vk = 0; vk < 256; ++vk)
+        {
+            const i32 keyIndex = TranslateVirtualKey(vk);
+            if (keyIndex < 0 || keyIndex >= KEY_COUNT)
+                continue;
+
+            const bool isPressed = (keyboardState[vk] & 0x80) != 0;
+            PressStatus& status = m_keyStatus[keyIndex];
+            u32& pressTime = m_keyPressTime[keyIndex];
+
+            if (isPressed)
             {
-                switch (m_keyStatus[keyIndex])
+                switch (status)
                 {
                 case Released:
                 case JustReleased:
-                    m_keyStatus[keyIndex] = JustPressed;
-                    m_keyPressTime[keyIndex] = 0;
+                    status = JustPressed;
+                    pressTime = 0;
                     break;
                 case JustPressed:
+                    status = Pressed;
+                    if (pressTime < 0xFFFFFFFFu)
+                        ++pressTime;
+                    break;
                 case Pressed:
-                    m_keyStatus[keyIndex] = Pressed;
+                    if (pressTime < 0xFFFFFFFFu)
+                        ++pressTime;
                     break;
                 default:
                     break;
@@ -340,15 +285,15 @@ namespace ITF
             }
             else
             {
-                switch (m_keyStatus[keyIndex])
+                switch (status)
                 {
-                case Released:
-                case JustReleased:
-                    m_keyStatus[keyIndex] = Released;
-                    break;
                 case JustPressed:
                 case Pressed:
-                    m_keyStatus[keyIndex] = JustReleased;
+                    status = JustReleased;
+                    pressTime = 0;
+                    break;
+                case JustReleased:
+                    status = Released;
                     break;
                 default:
                     break;
