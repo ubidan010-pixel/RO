@@ -402,8 +402,6 @@ namespace ITF
 
         RAY_GAMEMANAGER->enableBaseScene(bfalse);
         RAY_GAMEMANAGER->enableMedalWorld(bfalse);
-        RAY_GAMEMANAGER->clearHealthModifierForAllPlayers();
-
         RAY_GAMEMANAGER->unspawnMedal();
         Ray_LumMusicManagerAIComponent::destroyAllExisting();
         if (Actor * skipLevel = RAY_GAMEMANAGER->getSkipLevelActor().getActor())

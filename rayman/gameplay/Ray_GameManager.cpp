@@ -3181,7 +3181,6 @@ namespace ITF
         {
             // always reset volatile per-player power-ups on return to world map (RO-11293)
             m_powerUpManager.resetVolatilePerPlayerData();
-            clearHealthModifierForAllPlayers();
             return postGameScreenChange<Ray_GameScreen_WorldMap>(bfalse);
         }
 
@@ -11820,20 +11819,6 @@ namespace ITF
                 // Enable HeartShield component through PowerUpManager
                 m_powerUpManager.setEnabled(Ray_PowerUp_HeartShield, i, btrue);
             }
-        }
-    }
-
-    void Ray_GameManager::clearHealthModifierForAllPlayers()
-    {
-        for (u32 i = 0; i < getMaxPlayerCount(); ++i)
-        {
-            Ray_Player* player = static_cast<Ray_Player*>(getPlayer(i));
-            if (player)
-            {
-                player->setHeartTier(HeartTier_None);
-                player->resetConsecutiveHits();
-            }
-            // m_powerUpManager.setEnabled(Ray_PowerUp_HeartShield, i, bfalse);
         }
     }
 
