@@ -159,12 +159,10 @@ void Ray_ConceptGalleryPriceComponent::Update( f32 _dt )
 
     u32 requiredMedals = m_parentConceptComponent->getMedalRequirement();
     u32 currentMedals = RAY_GAMEMANAGER->computeCompleteMedalCount();
-
-    if (requiredMedals > 0 && currentMedals < requiredMedals)
+    if (requiredMedals > 0)
     {
-        u32 missingMedals = requiredMedals - currentMedals;
-        
-        m_prizeStr.setTextFormat("%u [actor:%s]", missingMedals, m_medalPath.cStr());
+        // Display format: "current/total [medal icon]"
+        m_prizeStr.setTextFormat("%u/%u [actor:%s]", currentMedals, requiredMedals, m_medalPath.cStr());
         if (m_textComponent)
         {
             m_textComponent->setText(getTemplate()->getBoneName(), m_prizeStr);
