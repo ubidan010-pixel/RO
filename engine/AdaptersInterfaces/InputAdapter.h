@@ -22,8 +22,6 @@
 #endif //_ITF_LOCALISATIONMANAGER_H_
 
 #include <algorithm>
-#include <array>
-
 namespace ITF
 {
     enum KeyCode
@@ -205,14 +203,6 @@ namespace ITF
         GenericAxis
     };
 
-    struct InputValue
-    {
-        ControllerType inputType;
-        u32 inputIndex;
-        u32 inputValue;
-        u32 axisPosition;
-    };
-
     // WII SPECIFIC
     const u32 m_joyStick_X = m_joyStickLeft_X;
     const u32 m_joyStick_Y = m_joyStickLeft_Y;
@@ -311,23 +301,6 @@ namespace ITF
             PadType_Count,
         };
 
-        enum ActionType
-        {
-            ActionBubbleQuit,
-            ActionSelect,
-            ActionDelete,
-            ActionShowMenu,
-            ActionBack,
-            ActionLeft,
-            ActionRight,
-            ActionUp,
-            ActionDown,
-            ActionJump,
-            ActionHit,
-            ActionSprint,
-            MAX_ACTIONS
-        };
-
         // ButtonMode is used to determinate which buttons we want when we call getGamePadButtons
         enum ButtonMode
         {
@@ -365,16 +338,9 @@ namespace ITF
         float m_axes[JOY_MAX_COUNT][JOY_MAX_AXES];
         u32 m_axesPressTime[JOY_MAX_COUNT][JOY_MAX_AXES];
         PressStatus m_buttons[JOY_MAX_COUNT][JOY_MAX_BUT];
-        // control remapping
-        InputValue m_inputMapping[JOY_MAX_COUNT][MAX_ACTIONS];
-        InputValue m_inputMappingTemporary[JOY_MAX_COUNT][MAX_ACTIONS];
-        const wchar_t* m_actionStrings[MAX_ACTIONS];
 
         virtual PressStatus GetKeyboardStatusInternal(u32 key) const;
         virtual u32 GetKeyboardPressTimeInternal(u32 key) const;
-        virtual void ApplyMenuKeyboardOverrides(u32 playerIndex);
-        virtual bbool ShouldProcessBubbleQuit(u32 playerIndex) const;
-        virtual PressStatus GetMenuButtonOverride(u32 player, ActionType action, JoyButton_Common button) const;
 
     private:
         bbool m_PadConnected[JOY_MAX_COUNT]{};
@@ -388,7 +354,6 @@ namespace ITF
         bbool m_runUseB;
         bbool m_runUseShake;
         f32 m_runTimerStop;
-        String m_inputString;
 
     public:
         /**
@@ -618,52 +583,17 @@ namespace ITF
         virtual void setFocus() { m_focused = true; }
         virtual void unsetFocus() { m_focused = false; }
 
-        virtual void LoadPlayerControlSettings();
-        virtual void SavePlayerControlSettings();
-        virtual void ResetToDefaultControls();
-
-        void InitializeActionStrings();
-        virtual void SetInputValue(u32 player, u32 action, InputValue& value);
         virtual void UpdateAdditionalInputs();
         virtual void UpdatePads() { ITF_ASSERT_MSG(0, "Not implemented"); }
-        void CopyInputMapping();
-        void SaveInputMapping();
         void SetInMenu(bbool inMenu) { m_inMenu = inMenu; }
 
-        virtual PressStatus GetButtonStatus(InputValue)
-        {
-            ITF_ASSERT_MSG(0, "Not implemented");
-            return Released;
-        }
-
-        virtual float GetAxe(InputValue)
-        {
-            ITF_ASSERT_MSG(0, "Not implemented");
-            return 0.;
-        }
-
-        virtual bbool IsButtonPressed(InputValue)
-        {
-            ITF_ASSERT_MSG(0, "Not implemented");
-            return bfalse;
-        }
-
-        bbool UpdateActionForButton(u32 player, ActionType action, JoyButton_Common button);
-        bbool UpdateActionForAxis(u32 player, ActionType action, JoyAxis_t axis, f32 axisValue);
         virtual void updateAllInputState();
         void ResetInputState();
-        void UpdateInputForMenu();
-        void UpdateInputForGame();
-        virtual  ControllerType GetControllerType(InputValue& value){ return value.inputType;}
         virtual const char* GetControllerTypeName(u32 padIndex) const
         {
             ITF_ASSERT_MSG(0, "Not implemented");
             return nullptr;
         }
-
-        virtual const InputValue& GetInputValue(u32 player, u32 action) const;
-
-        const wchar_t* GetActionString(u32 action) const { return m_actionStrings[action]; }
 
         void setUSEShakeAttack(bbool useAttack) { m_useShakeAttack = useAttack; }
         void setThreshold(f32 threshold) { m_threshold = threshold; }

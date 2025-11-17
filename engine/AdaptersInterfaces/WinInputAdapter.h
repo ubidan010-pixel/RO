@@ -12,7 +12,6 @@ namespace ITF
     class WinInputAdapter : public InputAdapter
     {
     public:
-        using ActionType = InputAdapter::ActionType;
         using MouseButton = InputAdapter::MouseButton;
         using PressStatus = InputAdapter::PressStatus;
 
@@ -47,9 +46,6 @@ namespace ITF
         void UpdateAdditionalInputs() override;
         PressStatus GetKeyboardStatusInternal(u32 key) const override;
         u32 GetKeyboardPressTimeInternal(u32 key) const override;
-        void ApplyMenuKeyboardOverrides(u32 playerIndex) override;
-        bbool ShouldProcessBubbleQuit(u32 playerIndex) const override;
-        PressStatus GetMenuButtonOverride(u32 player, ActionType action, JoyButton_Common button) const override;
 
     private:
         enum EditorEventType : i32

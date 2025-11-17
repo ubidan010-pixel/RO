@@ -50,7 +50,7 @@
         // $GB 2025/25/02: Support of editor and debug features only on windows in not final or retail
         #define ITF_SUPPORT_EDITOR 1
         #define ITF_SUPPORT_DEBUGFEATURE 1
-        #define ITF_ENABLE_EDITOR_KEYBOARD 1
+        #define ITF_ENABLE_EDITOR_KEYBOARD 0
         // $GB 2025/25/02: Support of network connexion for development tools
         #define ITF_SUPPORT_NET 1
         #if !defined(ROBOT_COMPILATION)
@@ -85,13 +85,13 @@
 // $GB 2025/25/02: removed support for network services and tracking:
 // A lot of change is required if we want to support it, like the integration of ubiservices.
 #ifdef ITF_WINDOWS
-#define ITF_SUPPORT_NETWORKSERVICES 0
-#define ITF_SUPPORT_UPLAY 0
-#define ITF_SUPPORT_UBISERVICES 0
-#define ITF_SUPPORT_ONLINETRACKING 0
+#define ITF_SUPPORT_NETWORKSERVICES 1
+#define ITF_SUPPORT_UPLAY 1
+#define ITF_SUPPORT_UBISERVICES 1
+#define ITF_SUPPORT_ONLINETRACKING 1
 
 // $GS : need to tell apart UPLAY from PC / STEAM / LUNA / GFN later
-#define ITF_UPLAYPC 0
+#define ITF_UPLAYPC 1
 #endif
 // #define ITF_SUPPORT_ONLINETRACKING 1
 

@@ -222,53 +222,6 @@ namespace ITF
         return (key < KEY_COUNT) ? m_keyPressTime[key] : 0xFFFFFFFFu;
     }
 
-    void WinInputAdapter::ApplyMenuKeyboardOverrides(u32 playerIndex)
-    {
-        if (m_connectedPlayers[playerIndex] != ePlaying)
-            return;
-
-        auto applyOverride = [this, playerIndex](JoyButton_Common button, i32 keyCode)
-        {
-            if (m_buttons[playerIndex][button] == Released)
-            {
-                m_buttons[playerIndex][button] = GetKeyboardStatusInternal(static_cast<u32>(keyCode));
-            }
-        };
-
-        applyOverride(m_joyButton_Y, VK_DELETE);
-        applyOverride(m_joyButton_A, VK_RETURN);
-        applyOverride(m_joyButton_B, VK_ESCAPE);
-        applyOverride(m_joyButton_DPadL, VK_LEFT);
-        applyOverride(m_joyButton_DPadR, VK_RIGHT);
-        applyOverride(m_joyButton_DPadU, VK_UP);
-        applyOverride(m_joyButton_DPadD, VK_DOWN);
-    }
-
-    bbool WinInputAdapter::ShouldProcessBubbleQuit(u32 playerIndex) const
-    {
-        if (m_inputMapping[playerIndex][ActionBubbleQuit].inputType != Keyboard)
-            return btrue;
-
-        const bool modifiersReleased =
-            GetKeyboardStatusInternal(VK_LMENU) == Released &&
-            GetKeyboardStatusInternal(VK_RMENU) == Released &&
-            GetKeyboardStatusInternal(VK_LCONTROL) == Released &&
-            GetKeyboardStatusInternal(VK_RCONTROL) == Released &&
-            GetKeyboardStatusInternal(VK_LSHIFT) == Released &&
-            GetKeyboardStatusInternal(VK_RSHIFT) == Released;
-        return modifiersReleased ? btrue : bfalse;
-    }
-
-    WinInputAdapter::PressStatus WinInputAdapter::GetMenuButtonOverride(
-        u32 player, ActionType action, JoyButton_Common button) const
-    {
-        if (player == 0 && action == ActionShowMenu && button == m_joyButton_Start)
-        {
-            return GetKeyboardStatusInternal(VK_ESCAPE);
-        }
-        return Released;
-    }
-
     void WinInputAdapter::UpdateKeyboard()
     {
         for (u32 keyIndex = 0; keyIndex < KEY_COUNT; ++keyIndex)
