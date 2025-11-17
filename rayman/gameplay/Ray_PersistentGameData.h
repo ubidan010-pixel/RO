@@ -1001,12 +1001,6 @@ namespace ITF
         void                                addCostumeUsed( const StringID& _id );
         bbool                               isCostumeUsed( const StringID& _id ) const;
 
-        // Concept Gallery
-        void                                addConceptUnlocked( const StringID& _id );
-        bbool                               isConceptUnlocked( const StringID& _id ) const;
-        void                                addConceptRevealed( const StringID& _id );
-        bbool                               isConceptRevealed( const StringID& _id ) const;
-
     private:
         Ray_PersistentGameData_Score        m_score;
         Ray_PersistentGameData_WorldMap     m_worldMapData;
@@ -1021,10 +1015,6 @@ namespace ITF
         StringID                            m_usedPlayerIDInfo;
 
         SafeArray <StringID>                m_costumesUsed;
-
-        // Concept Gallery unlock/reveal state
-        SafeArray <StringID>                m_conceptsUnlocked;
-        SafeArray <StringID>                m_conceptsRevealed;
 
         // was the sprint/chest tutorial displayed once?
         bbool                               m_sprintTutorialDisabled;

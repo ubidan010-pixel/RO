@@ -108,8 +108,6 @@ namespace ITF
         SERIALIZE_MEMBER("sprintTutorialDisabled",m_sprintTutorialDisabled);
         SERIALIZE_MEMBER("costumeLastPrice",m_costumeLastPrice);
         SERIALIZE_CONTAINER("costumesUsed",m_costumesUsed);
-        SERIALIZE_CONTAINER("conceptsUnlocked",m_conceptsUnlocked);
-        SERIALIZE_CONTAINER("conceptsRevealed",m_conceptsRevealed);
     END_SERIALIZATION()
 
 
@@ -249,8 +247,6 @@ namespace ITF
         m_teethReturned = 0;
         m_usedPlayerIDInfo = StringID::Invalid;
         m_costumeLastPrice = 0;
-        m_conceptsUnlocked.clear();
-        m_conceptsRevealed.clear();
 
         Super::clear();
     }
@@ -365,36 +361,6 @@ namespace ITF
     bbool Ray_PersistentGameData_Universe::isCostumeUsed( const StringID& _id ) const
     {
         return m_costumesUsed.find(_id) != -1;
-    }
-
-    void Ray_PersistentGameData_Universe::addConceptUnlocked( const StringID& _id )
-    {
-        i32 index = m_conceptsUnlocked.find(_id);
-
-        if ( index == -1 )
-        {
-            m_conceptsUnlocked.push_back(_id);
-        }
-    }
-
-    bbool Ray_PersistentGameData_Universe::isConceptUnlocked( const StringID& _id ) const
-    {
-        return m_conceptsUnlocked.find(_id) != -1;
-    }
-
-    void Ray_PersistentGameData_Universe::addConceptRevealed( const StringID& _id )
-    {
-        i32 index = m_conceptsRevealed.find(_id);
-
-        if ( index == -1 )
-        {
-            m_conceptsRevealed.push_back(_id);
-        }
-    }
-
-    bbool Ray_PersistentGameData_Universe::isConceptRevealed( const StringID& _id ) const
-    {
-        return m_conceptsRevealed.find(_id) != -1;
     }
 
 #ifdef ITF_SUPPORT_CHEAT
