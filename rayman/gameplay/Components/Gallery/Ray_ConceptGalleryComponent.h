@@ -9,6 +9,15 @@
 #include "gameplay/managers/GameManager.h"
 #endif //_ITF_GAMEMANAGER_H_
 
+#ifndef _ITF_LINKCOMPONENT_H_
+#include "gameplay/Components/Misc/LinkComponent.h"
+#endif //_ITF_LINKCOMPONENT_H_
+
+namespace ITF
+{
+    class Ray_ConceptGalleryPriceComponent;  // Forward declaration
+}
+
 namespace ITF
 {
     class Ray_ConceptGalleryComponent : public ActorComponent
@@ -29,11 +38,15 @@ namespace ITF
         virtual void                onActorLoaded( Pickable::HotReloadType _hotReload );
         virtual void                Update( f32 _dt );
 
+        u32                         getMedalRequirement() const;
+
     private:
         const class Ray_ConceptGalleryComponent_Template* getTemplate() const;
         void                        updateTexture();
+        void                        updatePriceActor();
 
         class TextureGraphicComponent* m_textureComponent;
+        class LinkComponent*        m_linkComponent;
         bbool                       m_isUnlocked;
     };
 

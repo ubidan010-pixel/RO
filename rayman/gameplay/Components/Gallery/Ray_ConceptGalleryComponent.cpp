@@ -24,6 +24,18 @@
 #include "engine/singleton/Singletons.h"
 #endif //_ITF_SINGLETONS_H_
 
+#ifndef _ITF_LINKCOMPONENT_H_
+#include "gameplay/Components/Misc/LinkComponent.h"
+#endif //_ITF_LINKCOMPONENT_H_
+
+#ifndef _ITF_ACTOR_H_
+#include "engine/actors/actor.h"
+#endif //_ITF_ACTOR_H_
+
+#ifndef _ITF_RAY_CONCEPTGALLERYPRICECOMPONENT_H_
+#include "rayman/gameplay/Components/Gallery/Ray_ConceptGalleryPriceComponent.h"
+#endif //_ITF_RAY_CONCEPTGALLERYPRICECOMPONENT_H_
+
 namespace ITF
 {
 //---------------------------------------------------------------------------------------------------------------------------
@@ -38,6 +50,7 @@ END_VALIDATE_COMPONENT()
 
 Ray_ConceptGalleryComponent::Ray_ConceptGalleryComponent()
 : m_textureComponent(NULL)
+, m_linkComponent(NULL)
 , m_isUnlocked(bfalse)
 {
 }
@@ -53,26 +66,28 @@ void Ray_ConceptGalleryComponent::onActorLoaded(Pickable::HotReloadType _hotRelo
     if (m_actor)
     {
         m_textureComponent = m_actor->GetComponent<TextureGraphicComponent>();
-        
+        m_linkComponent = m_actor->GetComponent<LinkComponent>();
+
         // Prefetch both textures to ensure they're loaded
         if (getTemplate())
         {
             Path lockedPath = getTemplate()->getLockedTexturePath();
             Path unlockedPath = getTemplate()->getTexturePath();
-            
+
             if (lockedPath != Path::EmptyPath && lockedPath.getStringID().isValid())
             {
                 m_actor->addResource(Resource::ResourceType_Texture, lockedPath);
             }
-            
+
             if (unlockedPath != Path::EmptyPath && unlockedPath.getStringID().isValid())
             {
                 m_actor->addResource(Resource::ResourceType_Texture, unlockedPath);
             }
         }
-        
+
         // Set initial texture state
         updateTexture();
+        updatePriceActor();
     }
 }
 
@@ -84,15 +99,25 @@ void Ray_ConceptGalleryComponent::Update( f32 _dt )
     {
         u32 currentMedals = RAY_GAMEMANAGER->computeCompleteMedalCount();
         u32 requiredMedals = getTemplate()->getMedalRequirement();
-        
+
         bbool shouldBeUnlocked = (currentMedals >= requiredMedals);
-        
+
         if (shouldBeUnlocked != m_isUnlocked)
         {
             m_isUnlocked = shouldBeUnlocked;
             updateTexture();
+            updatePriceActor();
         }
     }
+}
+
+u32 Ray_ConceptGalleryComponent::getMedalRequirement() const
+{
+    if (getTemplate())
+    {
+        return getTemplate()->getMedalRequirement();
+    }
+    return 0;
 }
 
 void Ray_ConceptGalleryComponent::updateTexture()
@@ -102,8 +127,8 @@ void Ray_ConceptGalleryComponent::updateTexture()
         return;
     }
 
-    Path texturePath = m_isUnlocked ? 
-        getTemplate()->getTexturePath() : 
+    Path texturePath = m_isUnlocked ?
+        getTemplate()->getTexturePath() :
         getTemplate()->getLockedTexturePath();
 
     if (texturePath != Path::EmptyPath && texturePath.getStringID().isValid())
@@ -111,9 +136,47 @@ void Ray_ConceptGalleryComponent::updateTexture()
         // Set new texture file and reload
         String textureFileStr = texturePath.getString();
         m_textureComponent->setTextureFile(textureFileStr);
-        
+
         // Reload the component to load the new texture
         m_textureComponent->onActorLoaded(Pickable::HotReloadType_None);
+    }
+}
+
+void Ray_ConceptGalleryComponent::updatePriceActor()
+{
+    if (!m_linkComponent || !m_actor)
+    {
+        return;
+    }
+
+    // Find price actor in linked children
+    const LinkComponent::ChildrenList& children = m_linkComponent->getChildren();
+    for (LinkComponent::ChildrenList::const_iterator it = children.begin(); it != children.end(); ++it)
+    {
+        BaseObject* childObj = m_linkComponent->getChildObject(it->getPath());
+        if (childObj && childObj->getObjectType() == BaseObject::eActor)
+        {
+            // Safe cast using ObjectType check (no RTTI needed)
+            Actor* childActor = static_cast<Actor*>(childObj);
+            if (childActor)
+            {
+                // Check if this is a price actor (has Ray_ConceptGalleryPriceComponent)
+                Ray_ConceptGalleryPriceComponent* priceComp = childActor->GetComponent<Ray_ConceptGalleryPriceComponent>();
+                if (priceComp)
+                {
+                    // Enable when locked, disable when unlocked
+                    if (m_isUnlocked)
+                    {
+                        childActor->disable();
+                    }
+                    else
+                    {
+                        childActor->enable();
+                    }
+                    break;
+                }
+            }
+        }
     }
 }
 
