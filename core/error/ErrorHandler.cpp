@@ -26,16 +26,12 @@
 #define _CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES 0
 #endif
 
-#include <iostream>
-#include <cstdarg>
-#include <cstdio>
-
 namespace ITF
 {
 #ifndef ITF_FINAL
     static const u32 ErrorBufferSize = 131072; // buffer is pre-allocated to avoir huge stack allocations deep in call stack
     char error_str_buffer[ErrorBufferSize];
-#endif
+#endif 
 
 /////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
@@ -105,9 +101,9 @@ void ErrorHandler::FatalError(const char* _szFormat, ...)
 
     OutputDebugger dbg;
     dbg << buffer << "\n";
-
+    
     ITF_ASSERT(SYSTEM_ADAPTER);
-
+    
     if(SYSTEM_ADAPTER)
 	{
 		if(SYSTEM_ADAPTER->IsSilent() && m_FatalErrorCB != nullptr)
@@ -166,7 +162,7 @@ void ErrorHandler::Error(bbool _showMessage, const char* _szFormat, ...)
 #ifdef ITF_WINDOWS
         HANDLE hConsole = GetStdHandle(STD_ERROR_HANDLE);
         SetConsoleTextAttribute(hConsole, 0x0c);
-#endif
+#endif 
         MSG_AddString(buffer);
         MSG_Display(btrue);
     }
@@ -182,7 +178,7 @@ void ErrorHandler::Error(bbool _showMessage, const char* _szFormat, ...)
 		if(SYSTEM_ADAPTER->IsSilent() && m_ErrorCB)
 		{
             m_ErrorCB(buffer);
-		}
+		}		
         SYSTEM_ADAPTER->messageBox("ERROR", m_szMessage, ITF_MSG_ICONERROR | ITF_MSG_OK,ITF_IDYES);
 	}
     if (m_LogFile)
@@ -204,36 +200,6 @@ void ErrorHandler::Error(bbool _showMessage, const char* _szFormat, ...)
 */
 void ErrorHandler::Log(const char* _szFormat, ...)
 {
-    // Print immediately to console output and exit early
-    va_list args0;
-    va_start(args0, _szFormat);
-    char localBuffer[4096];
-#if _CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES
-    if (::vsprintf_s(localBuffer, sizeof(localBuffer), _szFormat, args0) >= 0)
-#else
-    if (::vsprintf(localBuffer, _szFormat, args0) >= 0)
-#endif
-    {
-        #if defined(ITF_PS5)
-            ::fprintf(stderr, "%s\n", localBuffer);
-            ::fflush(stderr);
-        #elif defined(ITF_NINTENDO)
-            // ::fprintf(stderr, "%s\n", localBuffer);
-            // ::fflush(stderr);
-            NN_LOG("%s\n", localBuffer);
-            std::cout << localBuffer << '\n';
-            std::cout.flush();
-        #elif defined(ITF_WINDOWS)
-            std::cout << localBuffer << '\n';
-            std::cout.flush();
-        #else
-            ::fprintf(stderr, "%s\n", localBuffer);
-            ::fflush(stderr);
-        #endif
-    }
-    va_end(args0);
-    return;
-
 #ifndef ITF_FINAL
     csAutoLock cs(m_csLog);
     MSG_Reset();
@@ -343,7 +309,7 @@ void ErrorHandler::LogCooker(const char* _szFormat, ...)
         HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
         SetConsoleTextAttribute(hConsole, 0x0f);
         MSG_AddString(buffer);
-
+        
         if (m_LogCookerCB)
             m_LogCookerCB(buffer);
 

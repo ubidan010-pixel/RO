@@ -108,14 +108,14 @@ namespace ITF
         /// @param result
         void getString(PathChar_t result[PATH_C_BUFFERSIZE]) const;
 
-// #ifndef ITF_FINAL
+#ifndef ITF_FINAL
         ///////////////////////////////////////////////////////////////////////////////////////////
         /// get the string representation. CAUTION : this is not a simple accessor, it may be relatively slow.
         /// Forbidden in ITF_FINAL!!!
         PathString_t getString() const {PathString_t r; getString(r); return r;}
 
         PathString8_t getString8() const { PathString8_t r; getString(r); return r; }
-// #endif
+#endif
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         /// getDirectory part
