@@ -123,7 +123,8 @@ void Ray_ConceptGalleryComponent::updateTexture()
 
     if (texturePath != Path::EmptyPath && texturePath.getStringID().isValid())
     {
-        String textureFileStr = texturePath.getString();
+        String textureFileStr;
+        texturePath.getString(textureFileStr);
         m_textureComponent->setTextureFile(textureFileStr);
         m_textureComponent->onActorLoaded(Pickable::HotReloadType_None);
     }
