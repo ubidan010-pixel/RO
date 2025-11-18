@@ -24,14 +24,12 @@ written agreement between you and Audiokinetic Inc.
 
 void AkPlatformProfilerPushTimer(AkPluginID in_uPluginID, const char* in_pszZoneName)
 {
-	nn::Result result = nn::profiler::PushCodeBlock(in_pszZoneName);
-	(void)result;
+	nn::profiler::PushCodeBlock(in_pszZoneName);
 }
 
 void AkPlatformProfilerPopTimer()
 {
-	nn::Result result = nn::profiler::PopCodeBlock();
-	(void)result;
+	nn::profiler::PopCodeBlock();
 }
 
 void AkPlatformProfilerPostMarker(AkPluginID in_uPluginID, const char* in_pszMarkerName)

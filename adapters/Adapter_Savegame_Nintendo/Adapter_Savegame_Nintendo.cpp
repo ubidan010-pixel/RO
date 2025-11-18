@@ -165,7 +165,6 @@ namespace ITF
 
     void Adapter_Savegame_Nintendo::processLoadOperation(SaveDataEntry& dataLoaded)
     {
-        LOG("[SAVE_ADAPTER] processLoadOperation() - Starting load from: %s", getSaveFilePath().cStr());
         nn::fs::FileHandle fileHandle{};
         nn::Result result = nn::fs::OpenFile(&fileHandle, getSaveFilePath().cStr(), nn::fs::OpenMode_Read);
 
@@ -173,44 +172,34 @@ namespace ITF
 
         if (result.IsSuccess())
         {
-            LOG("[SAVE_ADAPTER] processLoadOperation() - File opened successfully");
             auto fileCloser = finally([&]()
             {
-                LOG("[SAVE_ADAPTER] processLoadOperation() - Closing file");
                 nn::fs::CloseFile(fileHandle);
             });
 
             u8 sizeIn4Bytes[4]{};
 
             size_t readSize = 0;
-            LOG("[SAVE_ADAPTER] processLoadOperation() - Reading size header");
             result = nn::fs::ReadFile(&readSize, fileHandle, 0, &sizeIn4Bytes, sizeof(sizeIn4Bytes));
 
             ITF_ASSERT_MSG(result.IsSuccess(), "[SAVE ADAPTER] Size read failed");
-            LOG("[SAVE_ADAPTER] processLoadOperation() - Size header read: %zu bytes", readSize);
 
             u32 size = readBytesAsU32(sizeIn4Bytes);
             ITF_ASSERT(size < MAX_SAVE_DATA_MEMORY_SIZE);
-            LOG("[SAVE_ADAPTER] processLoadOperation() - Data size: %u bytes", size);
 
             Vector<u8> loadedData;
             loadedData.resize(size);
 
             if (loadedData.size() > 0)
             {
-                LOG("[SAVE_ADAPTER] processLoadOperation() - Reading content data");
                 result = nn::fs::ReadFile(&readSize, fileHandle, sizeof(sizeIn4Bytes), loadedData.data(), loadedData.size());
                 ITF_ASSERT_MSG(result.IsSuccess(), "[SAVE ADAPTER] Content read failed");
-                LOG("[SAVE_ADAPTER] processLoadOperation() - Content read: %zu bytes", readSize);
             }
 
-            LOG("[SAVE_ADAPTER] processLoadOperation() - Loading data from buffer");
             dataLoaded.loadFromBuffer(loadedData);
-            LOG("[SAVE_ADAPTER] processLoadOperation() - Load completed successfully");
         }
         else
         {
-            LOG("[SAVE_ADAPTER] processLoadOperation() - File not found, creating empty entry");
             // If the file does not exist, we create an empty entry
             dataLoaded.loadFromBuffer(Vector<u8>{});
         }
@@ -220,27 +209,22 @@ namespace ITF
     {
         Vector<u8> saveData;
         _dataToSave.saveToBuffer(saveData);
-        LOG("[SAVE_ADAPTER] processSaveOperation() - Starting save to: %s, size: %zu bytes", getSaveFilePath().cStr(), saveData.size());
 
         nn::fs::FileHandle fileHandle{};
         nn::Result result = nn::fs::CreateFile(getSaveFilePath().cStr(), 0); // at first call, ensure to create the file.
         ITF_ASSERT_MSG(result.IsSuccess() || nn::fs::ResultPathAlreadyExists::Includes(result), "[SAVE ADAPTER] Cannot create %s", getSaveFilePath().cStr());
-        LOG("[SAVE_ADAPTER] processSaveOperation() - CreateFile completed");
         result = nn::fs::OpenFile(&fileHandle, getSaveFilePath().cStr(), nn::fs::OpenMode_Write);
 
         ITF_ASSERT_MSG(result.IsSuccess(), "[SAVE ADAPTER] Cannot open %s", getSaveFilePath().cStr());
 
         if (!result.IsSuccess())
         {
-            LOG("[SAVE_ADAPTER] processSaveOperation() - Failed to open file");
             return;
         }
 
-        LOG("[SAVE_ADAPTER] processSaveOperation() - File opened successfully");
         {
             auto fileCloser = finally([&]()
             {
-                LOG("[SAVE_ADAPTER] processSaveOperation() - Closing file");
                 nn::fs::CloseFile(fileHandle);
             });
 
@@ -248,50 +232,23 @@ namespace ITF
             writeU32ToBytes(saveData.size(), sizeIn4Bytes);
 
             // Change the file size first so the write will succeed
-            LOG("[SAVE_ADAPTER] processSaveOperation() - Setting file size to %zu bytes", sizeof(sizeIn4Bytes) + saveData.size());
             result = nn::fs::SetFileSize(fileHandle, sizeof(sizeIn4Bytes) + saveData.size());
 
             ITF_ASSERT_MSG(result.IsSuccess(), "[SAVE ADAPTER] Cannot resize %s", getSaveFilePath().cStr());
-            if (!result.IsSuccess())
-            {
-                LOG("[SAVE_ADAPTER] processSaveOperation() - SetFileSize failed");
-                return;
-            }
-            LOG("[SAVE_ADAPTER] processSaveOperation() - SetFileSize succeeded");
+            if (!result.IsSuccess()) return;
 
-            LOG("[SAVE_ADAPTER] processSaveOperation() - Writing size header");
             result = nn::fs::WriteFile(fileHandle, 0, sizeIn4Bytes, sizeof(sizeIn4Bytes), nn::fs::WriteOption{});
 
             ITF_ASSERT_MSG(result.IsSuccess(), "[SAVE ADAPTER] Cannot write size header to %s", getSaveFilePath().cStr());
-            if (!result.IsSuccess())
-            {
-                LOG("[SAVE_ADAPTER] processSaveOperation() - Write size header failed");
-                return;
-            }
-            LOG("[SAVE_ADAPTER] processSaveOperation() - Size header written");
+            if (!result.IsSuccess()) return;
 
-            LOG("[SAVE_ADAPTER] processSaveOperation() - Writing content data (%zu bytes)", saveData.size());
             result = nn::fs::WriteFile(fileHandle, sizeof(sizeIn4Bytes), saveData.data(), saveData.size(), nn::fs::WriteOption::MakeValue(nn::fs::WriteOptionFlag_Flush));
             ITF_ASSERT_MSG(result.IsSuccess(), "[SAVE ADAPTER] Cannot write content of %s", getSaveFilePath().cStr());
-            if (!result.IsSuccess())
-            {
-                LOG("[SAVE_ADAPTER] processSaveOperation() - Write content failed");
-                return;
-            }
-            LOG("[SAVE_ADAPTER] processSaveOperation() - Save completed successfully");
+            if (!result.IsSuccess()) return;
         }
 
-        LOG("[SAVE_ADAPTER] processSaveOperation() - Committing save data");
         result = nn::fs::Commit(getSaveMountPoint().cStr());
         ITF_ASSERT_MSG(result.IsSuccess(), "[SAVE ADAPTER] Failed to commit mount point %s", getSaveMountPoint().cStr());
-        if (result.IsSuccess())
-        {
-            LOG("[SAVE_ADAPTER] processSaveOperation() - Commit succeeded");
-        }
-        else
-        {
-            LOG("[SAVE_ADAPTER] processSaveOperation() - Commit failed");
-        }
     }
 
 
