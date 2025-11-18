@@ -50,7 +50,7 @@
         // $GB 2025/25/02: Support of editor and debug features only on windows in not final or retail
         #define ITF_SUPPORT_EDITOR 1
         #define ITF_SUPPORT_DEBUGFEATURE 1
-        #define ITF_ENABLE_EDITOR_KEYBOARD 1
+        #define ITF_ENABLE_EDITOR_KEYBOARD 0
         // $GB 2025/25/02: Support of network connexion for development tools
         #define ITF_SUPPORT_NET 1
         #if !defined(ROBOT_COMPILATION)
@@ -599,6 +599,36 @@ namespace ITF
 
 #ifndef ITF_FINAL
 #define ITF_SUPPORT_NINTENDO_PROFILER
+#endif
+
+#ifndef ITF_ENABLE_LOG_IN_FINAL
+#define ITF_ENABLE_LOG_IN_FINAL 0
+#endif
+#if defined(ITF_PS5)
+    #define ITF_OUTPUT_LOG_TO_CONSOLE(buffer) \
+        do { \
+            ::fprintf(stderr, "%s\n", (buffer)); \
+            ::fflush(stderr); \
+        } while(0)
+#elif defined(ITF_NINTENDO)
+    #define ITF_OUTPUT_LOG_TO_CONSOLE(buffer) \
+        do { \
+            NN_LOG("%s\n", (buffer)); \
+            std::cout << (buffer) << '\n'; \
+            std::cout.flush(); \
+        } while(0)
+#elif defined(ITF_WINDOWS)
+    #define ITF_OUTPUT_LOG_TO_CONSOLE(buffer) \
+        do { \
+            std::cout << (buffer) << '\n'; \
+            std::cout.flush(); \
+        } while(0)
+#else
+    #define ITF_OUTPUT_LOG_TO_CONSOLE(buffer) \
+        do { \
+            ::fprintf(stderr, "%s\n", (buffer)); \
+            ::fflush(stderr); \
+        } while(0)
 #endif
 
 #endif //ITF_CORE_MACROS_H_

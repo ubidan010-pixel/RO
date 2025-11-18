@@ -74,7 +74,9 @@ private:
 #define ERROR_HANDLER ErrorHandler::getptr()
 
 #if defined (ITF_FINAL) || defined (ITF_DISABLE_LOG)
-#if defined(ITF_WII)
+#if defined(ITF_PS5) || defined(ITF_NINTENDO)
+    #define LOG(_format, ...)                           ITF::ERROR_HANDLER->Log(_format, ## __VA_ARGS__)
+#elif defined(ITF_WII)
 #define LOG(...) {}
 #define ITF_FATAL_ERROR(...) {}
 #define ITF_ERROR(...) {}
