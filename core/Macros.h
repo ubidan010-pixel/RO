@@ -605,7 +605,7 @@ namespace ITF
     #ifndef ITF_RELEASE
         #define ITF_ENABLE_LOG 1
     #else
-        #define ITF_ENABLE_LOG 0
+        #define ITF_ENABLE_LOG 1
     #endif
 #endif
 #if defined(ITF_PS5)

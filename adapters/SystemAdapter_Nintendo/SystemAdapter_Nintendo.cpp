@@ -39,36 +39,47 @@ namespace ITF
 
     void SystemAdapter_Nintendo::preInitialize()
     {
+        SYS_LOG("[SYSTEM] preInitialize() - Starting");
         nn::Result result = nn::time::Initialize();
         (void)result;
         timerStart();
+        SYS_LOG("[SYSTEM] preInitialize() - Time initialized");
 
         nn::oe::Initialize();
         nn::oe::SetFocusHandlingMode(nn::oe::FocusHandlingMode_InFocusOnly); // let the system handle game pause and resume
         nn::oe::SetOperationModeChangedNotificationEnabled(true); // to receive MessageOperationModeChanged
         nn::oe::SetPerformanceModeChangedNotificationEnabled(true); // to receive MessagePerformanceModeChanged
+        SYS_LOG("[SYSTEM] preInitialize() - OE initialized");
 
         registerNotificationListener(this);
 
         updateDisplayResolution(); // Set the GFX_ADAPTER resolution based on the current performance mode
+        SYS_LOG("[SYSTEM] preInitialize() - Display resolution updated");
 
         static_cast<GFXAdapter_NVN*>(GFX_ADAPTER)->preInit();
+        SYS_LOG("[SYSTEM] preInitialize() - GFX preInit completed");
     }
 
     bbool SystemAdapter_Nintendo::initialize()
     {
+        SYS_LOG("[SYSTEM] initialize() - Starting");
         auto* inputAdapter = new (MemoryId::mId_System) InputAdapter_Nintendo();
         Singletons::get().setInputAdapter(inputAdapter);
         inputAdapter->initialize();
+        SYS_LOG("[SYSTEM] initialize() - Input adapter initialized");
 
         initUsers();
+        SYS_LOG("[SYSTEM] initialize() - Users initialized");
 
+        SYS_LOG("[SYSTEM] initialize() - Completed");
         return btrue;
     }
 
     void SystemAdapter_Nintendo::initUsers()
     {
+        SYS_LOG("[SYSTEM] initUsers() - Starting");
         nn::account::Initialize();
+        SYS_LOG("[SYSTEM] initUsers() - Account initialized");
 
         // more efforts has to be done later to handle multiple users
 
@@ -115,6 +126,10 @@ namespace ITF
     {
     #ifndef ITF_FINAL
         m_nbUpdateCalled++;
+        if (m_nbUpdateCalled % 60 == 0) // Log every 60 frames to avoid spam
+        {
+            SYS_LOG("[SYSTEM] update() - Frame %d", m_nbUpdateCalled);
+        }
     #endif // ITF_FINAL
 
         updateNintendoSystemMessages();
@@ -284,25 +299,42 @@ namespace ITF
         const String& _name,
         bbool _waitVBL)
     {
+        SYS_LOG("[SYSTEM] initGFX() - Initializing VI");
         nn::vi::Initialize();
 
         ITF_VERIFY_NN_CALL(nn::vi::OpenDefaultDisplay(&m_display));
+        SYS_LOG("[SYSTEM] initGFX() - Display opened");
         ITF_VERIFY_NN_CALL(nn::vi::CreateLayer(&m_layer, m_display));
+        SYS_LOG("[SYSTEM] initGFX() - Layer created");
         ITF_VERIFY_NN_CALL(nn::vi::GetNativeWindow(&m_hwnd, m_layer));
+        SYS_LOG("[SYSTEM] initGFX() - Native window obtained");
 
         GFX_ADAPTER->setWaitVBL(_waitVBL);
 
+        SYS_LOG("[SYSTEM] initGFX() - Creating device");
         if (!static_cast<GFXAdapter_NVN*>(GFX_ADAPTER)->createDevice(m_hwnd))
         {
+            SYS_LOG("[SYSTEM] initGFX() - createDevice failed");
             return bfalse;
         }
+        SYS_LOG("[SYSTEM] initGFX() - Device created");
 
+        SYS_LOG("[SYSTEM] initGFX() - Initializing GFX adapter");
         GFX_ADAPTER->init();
+        SYS_LOG("[SYSTEM] initGFX() - GFX adapter initialized");
         return btrue;
     }
 
     void SystemAdapter_Nintendo::present()
     {
+    #ifndef ITF_FINAL
+        static int presentCount = 0;
+        presentCount++;
+        if (presentCount % 60 == 0) // Log every 60 frames to avoid spam
+        {
+            SYS_LOG("[SYSTEM] present() - Frame %d", presentCount);
+        }
+    #endif
         GFX_ADAPTER->endRendering();
         GFX_ADAPTER->present();
 

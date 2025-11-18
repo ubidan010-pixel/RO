@@ -215,12 +215,8 @@ namespace ITF
         void setFocus() override;
         void unsetFocus() override;
         void HandleControllerStateChange();
-        ControllerType GetControllerType(InputValue& value) override;
     private:
         void UpdatePads() override;
-        PressStatus GetButtonStatus(InputValue) override;
-        float GetAxe(InputValue) override;
-        bbool IsButtonPressed(InputValue) override;
         u32 getConnectedPadIndex(u32 _padIndex) const;
         void getPadAcc(u32 _numPad, Vec3d* _acc);
 

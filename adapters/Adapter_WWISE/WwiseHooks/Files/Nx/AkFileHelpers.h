@@ -30,6 +30,10 @@ written agreement between you and Audiokinetic Inc.
 
 #include <nn/fs.h>
 
+#ifndef _ITF_ERRORHANDLER_H_
+#include "core/error/ErrorHandler.h"
+#endif
+
 class CAkFileHelpers : public CAkFileHelpersBase
 {
 public:
@@ -43,22 +47,35 @@ public:
 
 	static inline AKRESULT Init()
 	{
+		LOG("[WWISE_FILE] Init() - Starting file system mount");
 		// Mount host root first
 		nn::Result result = nn::fs::MountHostRoot();
 		if (result.IsFailure())
+		{
+			LOG("[WWISE_FILE] Init() - MountHostRoot failed");
 			return AK_Fail;
+		}
+		LOG("[WWISE_FILE] Init() - MountHostRoot succeeded");
 
 		// Mount file system on the local PC
 		AkOSChar mountPath[AK_MAX_PATH] = {};
 		JoinPath(mountPath, AK_MAX_PATH, kDefaultHostDrive, kDefaultHostFolder);
 		result = nn::fs::MountHost(kDefaultMountName, mountPath);
-		return result.IsSuccess() ? AK_Success : AK_Fail;
+		if (result.IsSuccess())
+		{
+			LOG("[WWISE_FILE] Init() - MountHost succeeded");
+			return AK_Success;
+		}
+		LOG("[WWISE_FILE] Init() - MountHost failed");
+		return AK_Fail;
 	}
 
 	static inline void Term()
 	{
+		LOG("[WWISE_FILE] Term() - Unmounting file system");
 		nn::fs::UnmountHostRoot();
 		nn::fs::Unmount(kDefaultMountName);
+		LOG("[WWISE_FILE] Term() - Unmount completed");
 	}
 
 	static inline AKRESULT OpenFile(
@@ -70,20 +87,30 @@ public:
 		AKASSERT(in_pszFilename != NULL);
 		AKASSERT(strlen(in_pszFilename) < AK_MAX_PATH);
 
+		LOG("[WWISE_FILE] OpenFile() - Opening file: %s, mode: %s", in_pszFilename, (in_eOpenMode == AK_OpenModeRead) ? "Read" : "Write");
+
 		if (in_eOpenMode == AK_OpenModeRead)
 		{
 			nn::Result result = nn::fs::OpenFile(&out_fileDesc.hFile, in_pszFilename, nn::fs::OpenMode_Read);
 			if (!result.IsSuccess())
 			{
 				if (nn::fs::ResultPathNotFound::Includes(result))
+				{
+					LOG("[WWISE_FILE] OpenFile() - File not found: %s", in_pszFilename);
 					return AK_FileNotFound;
-
+				}
+				LOG("[WWISE_FILE] OpenFile() - Open failed: %s", in_pszFilename);
 				return AK_UnknownFileError;
 			}
+			LOG("[WWISE_FILE] OpenFile() - File opened successfully: %s", in_pszFilename);
 
-			nn::Result sizeResult = nn::fs::GetFileSize(&out_fileDesc.iFileSize, out_fileDesc.hFile);
-			if (!sizeResult.IsSuccess())
-				return AK_UnknownFileError;
+		nn::Result sizeResult = nn::fs::GetFileSize(&out_fileDesc.iFileSize, out_fileDesc.hFile);
+		if (!sizeResult.IsSuccess())
+		{
+			LOG("[WWISE_FILE] OpenFile() - GetFileSize failed for file: %s", in_pszFilename);
+			return AK_UnknownFileError;
+		}
+		LOG("[WWISE_FILE] OpenFile() - GetFileSize succeeded, size: %llu", out_fileDesc.iFileSize);
 		}
 		else if ((in_eOpenMode == AK_OpenModeWriteOvrwr) || (in_eOpenMode == AK_OpenModeWrite))
 		{
@@ -136,11 +163,13 @@ public:
 
 	static inline AKRESULT CloseFile( AkFileHandle in_hFile )
 	{
+		LOG("[WWISE_FILE] CloseFile() - Closing file");
 		nn::Result flushResult = nn::fs::FlushFile(in_hFile);
 		(void)flushResult;
 
 		nn::fs::CloseFile(in_hFile);
 		in_hFile.handle = nullptr;
+		LOG("[WWISE_FILE] CloseFile() - File closed");
 
 		return AK_Success;
 	}
@@ -182,13 +211,16 @@ public:
 		AkUInt32 &		out_uSizeRead		// Returned size read.        
 		)
 	{
-		nn::Result result = nn::fs::ReadFile(in_hFile, in_uPosition, in_pBuffer, in_uSizeToRead);
+		size_t bytesRead = 0;
+		LOG("[WWISE_FILE] ReadBlocking() - Reading %u bytes from position %u", in_uSizeToRead, in_uPosition);
+		nn::Result result = nn::fs::ReadFile(&bytesRead, in_hFile, in_uPosition, in_pBuffer, in_uSizeToRead);
 		if (result.IsSuccess())
 		{
-			out_uSizeRead = in_uSizeToRead;
+			out_uSizeRead = static_cast<AkUInt32>(bytesRead);
+			LOG("[WWISE_FILE] ReadBlocking() - Read succeeded, bytes read: %zu", bytesRead);
 			return AK_Success;
 		}
-		
+		LOG("[WWISE_FILE] ReadBlocking() - Read failed");
 		return AK_Fail;
 	}
 
@@ -209,8 +241,15 @@ public:
 		AkUInt64		in_uPosition,		// Position from which to start writing.
 		AkUInt32		in_uSizeToWrite)
 	{
+		LOG("[WWISE_FILE] WriteBlocking() - Writing %u bytes to position %llu", in_uSizeToWrite, in_uPosition);
 		nn::Result result = nn::fs::WriteFile(in_hFile, in_uPosition, in_pData, in_uSizeToWrite, nn::fs::WriteOption());
-		return result.IsSuccess() ? AK_Success : AK_Fail;
+		if (result.IsSuccess())
+		{
+			LOG("[WWISE_FILE] WriteBlocking() - Write succeeded");
+			return AK_Success;
+		}
+		LOG("[WWISE_FILE] WriteBlocking() - Write failed");
+		return AK_Fail;
 	}
 
 	/// Returns AK_Success if the directory is valid, AK_Fail if not.

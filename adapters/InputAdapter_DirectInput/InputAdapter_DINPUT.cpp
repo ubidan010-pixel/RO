@@ -524,11 +524,8 @@ namespace ITF
             }
         }
 
-        setPadConnected(0, btrue);
-        InitializeActionStrings();
         memset(m_connectedPlayers, 0, JOY_MAX_COUNT * sizeof(PlayerState));
         m_connectedPlayers[0] = ePlaying;
-        InputAdapter::LoadPlayerControlSettings();
 #ifdef USE_WIIMOTE_LIB
         if(CONFIG->m_enableWiiRemoteonPC)
 		    KPinput.InitKPadInput();
@@ -606,27 +603,6 @@ namespace ITF
             }
         }
     }
-
-
-
-
-
-    InputAdapter::PressStatus InputAdapter_DINPUT::GetButtonStatus(InputValue inputValue)
-    {
-        return DXinput.m_pad[inputValue.inputIndex].m_joy.getButton(inputValue.inputValue);
-    }
-
-    float InputAdapter_DINPUT::GetAxe(InputValue inputValue)
-    {
-        return DXinput.m_pad[inputValue.inputIndex].m_joy.getAxe(inputValue.inputValue);
-    }
-
-    bbool InputAdapter_DINPUT::IsButtonPressed(InputValue inputValue)
-    {
-        auto state = DXinput.m_pad[inputValue.inputIndex].m_joy.getButton(inputValue.inputValue);
-        return state == JustPressed || state == Pressed;
-    }
-
     void InputAdapter_DINPUT::updateAllInputState()
     {
         InputAdapter::updateAllInputState();
@@ -1325,15 +1301,11 @@ namespace ITF
 
         if (connectedCount == 0)
         {
-            // No controllers connected - but keep player 0 available for keyboard input
-            for (u32 i = 1; i < JOY_MAX_COUNT; ++i)
+            for (u32 i = 0; i < JOY_MAX_COUNT; ++i)
             {
                 m_connectedPlayers[i] = eNotConnected;
                 setPadConnected(i, bfalse);
             }
-            // Always keep player 0 available for keyboard on PC
-            m_connectedPlayers[0] = ePlaying;
-            setPadConnected(0, bfalse); // No physical pad, but keyboard is available
         }
         else
         {
@@ -1343,18 +1315,6 @@ namespace ITF
                 m_connectedPlayers[0] = ePlaying;
             }
         }
-    }
-
-    ControllerType InputAdapter_DINPUT::GetControllerType(InputValue& value)
-    {
-        if (value.inputType != Keyboard)
-        {
-            if (IsDirectInput(DXinput.m_pad[value.inputIndex].m_typePad))
-            {
-                return value.inputType == X360Button ? GenericButton : GenericAxis;
-            }
-        }
-        return value.inputType;
     }
 
     const char* InputAdapter_DINPUT::GetControllerTypeName(u32 padIndex) const

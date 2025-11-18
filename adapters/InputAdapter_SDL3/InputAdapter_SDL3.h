@@ -92,11 +92,7 @@ namespace ITF
         void startRumble(u32 _numPad, f64 _time, f32 _leftMotorSpeed, f32 _rightMotorSpeed) override;
         void stopRumble(u32 _numPad) override;
         const char* GetControllerTypeName(u32 padIndex) const override;
-        PressStatus GetButtonStatus(InputValue) override;
-        float GetAxe(InputValue) override;
-        bbool IsButtonPressed(InputValue) override;
         void UpdatePads() override;
-        ControllerType GetControllerType(InputValue& value) override;
     private:
         SDLInput m_sdlInput;
     };
