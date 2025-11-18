@@ -39,8 +39,7 @@ namespace ITF
 
     void SystemAdapter_Nintendo::preInitialize()
     {
-        nn::Result result = nn::time::Initialize();
-        (void)result;
+        nn::time::Initialize();
         timerStart();
 
         nn::oe::Initialize();
@@ -309,8 +308,7 @@ namespace ITF
         GFX_ADAPTER->setfPs(getfPs());
 
     #ifdef ITF_SUPPORT_NINTENDO_PROFILER
-        nn::Result result = nn::profiler::RecordHeartbeat(nn::profiler::Heartbeats_Main);
-        (void)result;
+        nn::profiler::RecordHeartbeat(nn::profiler::Heartbeats_Main);
     #endif
     }
 
@@ -442,12 +440,10 @@ namespace ITF
     void SystemAdapter_Nintendo::getTime(Time& _time) const
     {
         nn::time::PosixTime posixTime;
-        nn::Result result = nn::time::StandardUserSystemClock::GetCurrentTime(&posixTime);
-        (void)result;
+        nn::time::StandardUserSystemClock::GetCurrentTime(&posixTime);
 
         nn::time::CalendarTime calendarTime;
-        result = nn::time::ToCalendarTime(&calendarTime, nullptr, posixTime);
-        (void)result;
+        nn::time::ToCalendarTime(&calendarTime, nullptr, posixTime);
 
         _time.m_year = (calendarTime.year >= 2016) ? calendarTime.year : 2016;
         _time.m_month = calendarTime.month;
