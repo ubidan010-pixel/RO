@@ -3472,7 +3472,7 @@ namespace ITF
 
     u32 Ray_GameManager::computeCompleteMedalCount() const
     {
-        u32 result = 0;
+        u32 result = 6;
         //for each level in level list,
         const ITF_VECTOR<Ray_GameManagerConfig_Template::MapConfig>& mapConfigs = m_configTemplate->getLevelsInfo();
 
