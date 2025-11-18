@@ -50,7 +50,7 @@
         // $GB 2025/25/02: Support of editor and debug features only on windows in not final or retail
         #define ITF_SUPPORT_EDITOR 1
         #define ITF_SUPPORT_DEBUGFEATURE 1
-        #define ITF_ENABLE_EDITOR_KEYBOARD 0
+        #define ITF_ENABLE_EDITOR_KEYBOARD 1
         // $GB 2025/25/02: Support of network connexion for development tools
         #define ITF_SUPPORT_NET 1
         #if !defined(ROBOT_COMPILATION)
@@ -405,7 +405,7 @@
         #define ITF_VERIFY_NN_CALL_NAMED(call_, name_) [&](){ ::nn::Result res_ = (call_); ITF_ASSERT_MSG(res_.IsSuccess(), "NN call failed %s with error code 0x%08x", name_, res_.GetInnerValueForDebug()); }()
         #define ITF_ASSERT_NN_RESULT_NAMED(res_, name_) ITF_VERIFY_NN_CALL_NAMED(res_, name_)
     #else
-        #define ITF_VERIFY_NN_CALL_NAMED(call_, name_) call_
+        #define ITF_VERIFY_NN_CALL_NAMED(call_, name_) do { ::nn::Result res_ = (call_); (void)res_; } while(0)
         #define ITF_ASSERT_NN_RESULT_NAMED(res_, name_) do { (void)sizeof(res_); } while(0)
     #endif
     #define ITF_VERIFY_NN_CALL(call_) ITF_VERIFY_NN_CALL_NAMED(call_, #call_)

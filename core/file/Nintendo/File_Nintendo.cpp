@@ -195,7 +195,8 @@ namespace ITF
         {
             if(nn::fs::GetFileOpenMode(m_Handle) & (nn::fs::OpenMode_Write| nn::fs::OpenMode_AllowAppend) )
             {
-                nn::fs::FlushFile(m_Handle);
+                nn::Result result = nn::fs::FlushFile(m_Handle);
+                (void)result;
             }
             nn::fs::CloseFile(m_Handle);
             m_Handle = {};
