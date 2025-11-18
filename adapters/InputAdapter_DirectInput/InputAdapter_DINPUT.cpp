@@ -499,10 +499,10 @@ namespace ITF
 #endif //DX_KEYBOARD
 
         auto adapter = static_cast<SystemAdapter_win*>(SYSTEM_ADAPTER);
-        adapter->SetCallbackKeyboard(KeyCB);
-        adapter->SetCallbackMousePos(MousePosCB);
-        adapter->SetCallbackMouseWheel(MouseWheelCB);
-        adapter->SetCallbackMouseButton(MouseButtonCB);
+        adapter->SetCallbackKeyboard(WinInputAdapter::KeyCB);
+        adapter->SetCallbackMousePos(WinInputAdapter::MousePosCB);
+        adapter->SetCallbackMouseWheel(WinInputAdapter::MouseWheelCB);
+        adapter->SetCallbackMouseButton(WinInputAdapter::MouseButtonCB);
 
         DXinput.InitDirectInput(adapter->m_hwnd);
         for (u32 i = 0; i < DXinput.m_numberpad; i++)
@@ -526,8 +526,6 @@ namespace ITF
 
         setPadConnected(0, btrue);
         InitializeActionStrings();
-        memset(m_keyStatus, 0, KEY_COUNT * sizeof(PressStatus));
-        memset(m_keyPressTime, 0, KEY_COUNT * sizeof(u32));
         memset(m_connectedPlayers, 0, JOY_MAX_COUNT * sizeof(PlayerState));
         m_connectedPlayers[0] = ePlaying;
         InputAdapter::LoadPlayerControlSettings();

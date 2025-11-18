@@ -543,15 +543,13 @@ namespace ITF
     InputAdapter_SDL3::InputAdapter_SDL3()
     {
         auto adapter = static_cast<SystemAdapter_win*>(SYSTEM_ADAPTER);
-        adapter->SetCallbackKeyboard(KeyCB);
-        adapter->SetCallbackMousePos(MousePosCB);
-        adapter->SetCallbackMouseWheel(MouseWheelCB);
-        adapter->SetCallbackMouseButton(MouseButtonCB);
+        adapter->SetCallbackKeyboard(WinInputAdapter::KeyCB);
+        adapter->SetCallbackMousePos(WinInputAdapter::MousePosCB);
+        adapter->SetCallbackMouseWheel(WinInputAdapter::MouseWheelCB);
+        adapter->SetCallbackMouseButton(WinInputAdapter::MouseButtonCB);
         m_sdlInput.initialize(this);
         setPadConnected(0, btrue);
         InitializeActionStrings();
-        memset(m_keyStatus, 0, KEY_COUNT * sizeof(PressStatus));
-        memset(m_keyPressTime, 0, KEY_COUNT * sizeof(u32));
         memset(m_connectedPlayers, 0, JOY_MAX_COUNT * sizeof(PlayerState));
         m_connectedPlayers[0] = ePlaying;
         InputAdapter::LoadPlayerControlSettings();

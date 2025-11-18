@@ -9,10 +9,6 @@
 #include "core/types.h"
 #endif //_ITF_CORETYPES_H_
 
-#ifndef _ITF_SAFEARRAY_H_
-#include "core/container/SafeArray.h"
-#endif //_ITF_SAFEARRAY_H_
-
 #ifndef _ITF_SYSTEMADAPTER_
 #include "core/AdaptersInterfaces/SystemAdapter.h"
 #endif //_ITF_SYSTEMADAPTER_
@@ -23,6 +19,7 @@
 
 #include <algorithm>
 #include <array>
+#include <limits>
 
 namespace ITF
 {
@@ -248,7 +245,6 @@ namespace ITF
     {
     public:
         static const f32 fDoublePressMaxDuration;
-        static f64 DINPUT_lastLeftMouseClick;
         ///////////////////////////////////////////////////////////////////////////////////////////
         ///Button classes. Each button can belong to several classes, we can combine them with OR binary operator
         typedef u8 ButtonClassMask;
@@ -346,66 +342,6 @@ namespace ITF
         };
 
     private:
-        typedef struct ListenerEntry
-        {
-            Interface_InputListener* m_listener;
-            u32 m_priority;
-        } ListenerEntry;
-
-
-        SafeArray<ListenerEntry> m_listeners;
-        i32 m_lastWheelValue;
-        i32 m_lastMouseX, m_lastMouseY;
-        bbool m_keys[KEY_COUNT];
-        f32 m_keysReleaseTime[KEY_COUNT];
-        bbool m_leftMBIsPressed, m_rightMBIsPressed, m_middleMBIsPressed;
-
-
-        enum EditorEventType : i32
-        {
-            IA_EventKey = 0,
-            IA_EventMouseButton,
-            IA_EventMousePos,
-            IA_EventMouseWheel,
-        };
-
-        typedef struct EventKeyPress
-        {
-            i32 m_key;
-            PressStatus m_status;
-        } EventKeyPress;
-
-        typedef struct EventMouseButton
-        {
-            MouseButton m_but;
-            PressStatus m_status;
-        } EventMouseButton;
-
-        typedef struct EventMouseChange
-        {
-            i32 m_x;
-            i32 m_y;
-        } EventMouseChange;
-
-        typedef struct EditorEvent
-        {
-            EditorEventType m_eventType;
-
-            union
-            {
-                EventKeyPress m_key;
-                EventMouseButton m_but;
-                EventMouseChange m_val;
-            };
-        } MouseEvent;
-
-        SafeArray<EditorEvent> m_eventPool;
-
-        void pushKeyEvent(i32 _key, PressStatus _status);
-        void pushMouseButtonEvent(MouseButton _but, PressStatus _status);
-        void pushMousePosEvent(i32 _x, i32 _y);
-        void pushMouseWheelEvent(i32 _wheel, i32 _delta);
-
     protected:
         ButtonClassMask m_buttonClasses[JOY_MAX_BUT];
         u32 m_environmentInput;
@@ -421,10 +357,6 @@ namespace ITF
         InputValue m_inputMapping[JOY_MAX_COUNT][MAX_ACTIONS];
         InputValue m_inputMappingTemporary[JOY_MAX_COUNT][MAX_ACTIONS];
         const wchar_t* m_actionStrings[MAX_ACTIONS];
-        // mouse/keyboard
-        PressStatus m_keyStatus[KEY_COUNT];
-        u32 m_keyPressTime[KEY_COUNT];
-
     private:
         bbool m_PadConnected[JOY_MAX_COUNT]{};
         PadType m_PadType[JOY_MAX_COUNT]{};
@@ -447,7 +379,7 @@ namespace ITF
         @param      _priority   listener update order (ascending)
         @exception              asserts if  _listener is null.
         */
-        void addListener(Interface_InputListener* _listener, u32 _priority);
+        virtual void addListener(Interface_InputListener* _listener, u32 _priority);
 
         /**
         Unregisters an existing listener for input events.
@@ -455,7 +387,7 @@ namespace ITF
         @param      _priority   listener update order (ascending)
         @exception              asserts if  _listener is null.
         */
-        void removeListener(Interface_InputListener* _listener);
+        virtual void removeListener(Interface_InputListener* _listener);
 
         /**
         Note: No need to register listeners to call this method.
@@ -463,16 +395,16 @@ namespace ITF
         @return             btrue if the key is currently pressed
         @exception          asserts if  _key is out of the supported range
         */
-        bbool isKeyPressed(i32 _key) const;
+        virtual bbool isKeyPressed(i32 _key) const;
 
-        bbool isMousePressed(MouseButton _but) const;
+        virtual bbool isMousePressed(MouseButton _but) const;
 
         /**
         Note: No need to register listeners to call this method.
         @param      _x        mouse X destination variable
         @param      _y        mouse Y destination variable
         */
-        void getMousePos(i32& _x, i32& _y) const;
+        virtual void getMousePos(i32& _x, i32& _y) const;
 
         /**
         @return                the number of connected game pads
@@ -480,7 +412,7 @@ namespace ITF
         virtual u32 getGamePadCount() { return 0; }
 
 
-        void flushKeys();
+        virtual void flushKeys();
 
         /**
         Queries the current position of one or more axes of a GamePad. The positional values are
@@ -655,12 +587,12 @@ namespace ITF
         InputAdapter();
         virtual ~InputAdapter(); // always declare virtual destructor for adapters
 
-        void onMouseButton(InputAdapter::MouseButton _but, InputAdapter::PressStatus _status);
-        void onKey(i32 _key, InputAdapter::PressStatus _status);
-        void onMouseWheel(i32 _wheelValue);
-        void onMousePos(i32 _x, i32 _y);
+        virtual void onMouseButton(InputAdapter::MouseButton _but, InputAdapter::PressStatus _status);
+        virtual void onKey(i32 _key, InputAdapter::PressStatus _status);
+        virtual void onMouseWheel(i32 _wheelValue);
+        virtual void onMousePos(i32 _x, i32 _y);
 
-        void dispatchEventsToListeners();
+        virtual void dispatchEventsToListeners();
         void disableEnvironment(u32 _flag) { m_environmentInput = m_environmentInput & (~_flag); }
         void enableEnvironment(u32 _flag) { m_environmentInput |= _flag; }
 
@@ -673,7 +605,7 @@ namespace ITF
 
         void InitializeActionStrings();
         virtual void SetInputValue(u32 player, u32 action, InputValue& value);
-        void UpdateKeyboard();
+        virtual void platformUpdateKeyboardState();
         virtual void UpdatePads() { ITF_ASSERT_MSG(0, "Not implemented"); }
         void CopyInputMapping();
         void SaveInputMapping();
@@ -714,12 +646,6 @@ namespace ITF
 
         const wchar_t* GetActionString(u32 action) const { return m_actionStrings[action]; }
 
-#ifdef ITF_WINDOWS
-        static void CALLBACK KeyCB(u32, bool, bool, bool, bool, bool, bool, bool, void*);
-        static void CALLBACK MousePosCB(i32 xPos, i32 yPos, void* pUserContext);
-        static void CALLBACK MouseWheelCB(i32 nMouseWheelDelta, void* pUserContext);
-        static void CALLBACK MouseButtonCB(u32 _Button, u32 _action, void* pUserContext);
-#endif
         void setUSEShakeAttack(bbool useAttack) { m_useShakeAttack = useAttack; }
         void setThreshold(f32 threshold) { m_threshold = threshold; }
         void setDelay(f32 delay) { m_delay = delay; }
@@ -756,6 +682,10 @@ namespace ITF
 
         virtual void OnControllerConnected(u32 _padIndex,i32 _deviceID= -1,i32 _deviceOutputID =-1,bool isSony = false);
         virtual void OnControllerDisconnected(u32 _padIndex);
+
+    protected:
+        virtual PressStatus getKeyboardStatus(i32 key) const;
+        virtual u32 getKeyboardPressTime(i32 key) const;
     };
 
 #define INPUT_ADAPTER InputAdapter::getptr()

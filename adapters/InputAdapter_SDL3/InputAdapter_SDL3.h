@@ -1,9 +1,9 @@
 ﻿#ifndef _ITF_INPUTADAPTER_SDL3_H_
 #define _ITF_INPUTADAPTER_SDL3_H_
 #ifdef ITF_USE_SDL
-#ifndef _ITF_INPUTADAPTER_H_
-#include "engine/AdaptersInterfaces/InputAdapter.h"
-#endif //_ITF_INPUTADAPTER_H_
+#ifndef _ITF_WININPUTADAPTER_H_
+#include "engine/AdaptersInterfaces/WinInputAdapter.h"
+#endif //_ITF_WININPUTADAPTER_H_
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_gamepad.h>
 #include <mmdeviceapi.h>
@@ -82,7 +82,7 @@ namespace ITF
         InputAdapter* m_adapter;
     };
 
-    class InputAdapter_SDL3 : public InputAdapter
+    class InputAdapter_SDL3 : public WinInputAdapter
     {
     public:
         InputAdapter_SDL3();
