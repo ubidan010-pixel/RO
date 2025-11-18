@@ -26,7 +26,7 @@
 #define _CRT_SECURE_CPP_OVERLOAD_SECURE_NAMES 0
 #endif
 
-#if ITF_ENABLE_LOG_IN_FINAL
+#if ITF_ENABLE_LOG
 #include <iostream>
 #include <cstdarg>
 #include <cstdio>
@@ -206,7 +206,7 @@ void ErrorHandler::Error(bbool _showMessage, const char* _szFormat, ...)
 */
 void ErrorHandler::Log(const char* _szFormat, ...)
 {
-#if ITF_ENABLE_LOG_IN_FINAL
+#if ITF_ENABLE_LOG
     va_list args0;
     va_start(args0, _szFormat);
     char localBuffer[4096];

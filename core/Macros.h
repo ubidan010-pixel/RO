@@ -601,8 +601,12 @@ namespace ITF
 #define ITF_SUPPORT_NINTENDO_PROFILER
 #endif
 
-#ifndef ITF_ENABLE_LOG_IN_FINAL
-#define ITF_ENABLE_LOG_IN_FINAL 0
+#ifndef ITF_ENABLE_LOG
+    #ifndef ITF_RELEASE
+        #define ITF_ENABLE_LOG 1
+    #else
+        #define ITF_ENABLE_LOG 0
+    #endif
 #endif
 #if defined(ITF_PS5)
     #define ITF_OUTPUT_LOG_TO_CONSOLE(buffer) \
