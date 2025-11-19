@@ -1,5 +1,4 @@
 #include "precompiled_engine.h"
-
 #ifndef _ITF_UIMENUMANAGER_H_
 #include "engine/actors/managers/UIMenuManager.h"
 #endif //_ITF_UIMENUMANAGER_H_

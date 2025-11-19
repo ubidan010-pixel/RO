@@ -547,10 +547,17 @@ namespace ITF
         adapter->SetCallbackMousePos(WinInputAdapter::MousePosCB);
         adapter->SetCallbackMouseWheel(WinInputAdapter::MouseWheelCB);
         adapter->SetCallbackMouseButton(WinInputAdapter::MouseButtonCB);
+
         m_sdlInput.initialize(this);
+
         setPadConnected(0, btrue);
         memset(m_connectedPlayers, 0, JOY_MAX_COUNT * sizeof(PlayerState));
         m_connectedPlayers[0] = ePlaying;
+
+        for (u32 i = 0; i < JOY_MAX_COUNT; ++i)
+        {
+            m_slotGamepad[i] = -1;
+        }
     }
 
     InputAdapter_SDL3::~InputAdapter_SDL3()
@@ -571,63 +578,127 @@ namespace ITF
     void InputAdapter_SDL3::UpdatePads()
     {
         m_sdlInput.UpdateInputState();
-        // Remap controllers according to keyboard/controller sharing option
-        const u32 baseIndex = IsKeyboardControllerSharingEnabled() ? 0u : 1u;
-        u32 mapped = 0;
 
-        // Clear target slots first (controller range only)
-        for (u32 t = baseIndex; t < JOY_MAX_COUNT; ++t)
+        bbool share = IsKeyboardControllerSharingEnabled();
+        bbool connectedGamepad[JOY_MAX_COUNT];
+        for (u32 i = 0; i < JOY_MAX_COUNT; ++i)
         {
-            for (u32 axis = 0; axis < JOY_MAX_AXES; ++axis) m_axes[t][axis] = 0.0f;
-            for (u32 button = 0; button < JOY_MAX_BUT; ++button) m_buttons[t][button] = Released;
-            if (t > 0) setPadConnected(t, bfalse);
+            connectedGamepad[i] = m_sdlInput.m_gamepads[i].isConnected();
         }
 
-        for (u32 i = 0; i < JOY_MAX_COUNT && mapped < m_sdlInput.m_gamepadCount; ++i)
+        for (u32 slot = 0; slot < JOY_MAX_COUNT; ++slot)
         {
-            if (m_sdlInput.m_gamepads[i].isConnected())
+            i32 idx = m_slotGamepad[slot];
+            if (idx < 0 || idx >= static_cast<i32>(JOY_MAX_COUNT) || !connectedGamepad[idx])
             {
-                const u32 target = baseIndex + mapped++;
-                const SDLGamepad& gamepad = m_sdlInput.m_gamepads[i];
-                for (u32 axis = 0; axis < JOY_MAX_AXES; ++axis)
-                {
-                    m_axes[target][axis] = gamepad.getAxis(axis);
-                }
-                for (u32 button = 0; button < JOY_MAX_BUT; ++button)
-                {
-                    m_buttons[target][button] = gamepad.getButton(button);
-                }
-
-                if (m_connectedPlayers[target] == eNotConnected)
-                {
-                    m_connectedPlayers[target] = ePlaying;
-                }
-                setPadConnected(target, btrue);
-                setPadType(target, Pad_X360);
+                m_slotGamepad[slot] = -1;
             }
         }
 
-        // Any remaining target slots after mapped controllers remain released; keep player 0 for keyboard
-        for (u32 t = baseIndex + mapped; t < JOY_MAX_COUNT; ++t)
+        for (u32 i = 0; i < JOY_MAX_COUNT; ++i)
         {
-            if (m_connectedPlayers[t] != eNotConnected)
+            if (!connectedGamepad[i])
+                continue;
+
+            bbool alreadyMapped = bfalse;
+            for (u32 s = 0; s < JOY_MAX_COUNT; ++s)
             {
-                // Don't disconnect player 0 - keep available for keyboard input on PC
-                if (t != 0)
-                    m_connectedPlayers[t] = eNotConnected;
+                if (m_slotGamepad[s] == static_cast<i32>(i))
+                {
+                    alreadyMapped = btrue;
+                    break;
+                }
+            }
+            if (alreadyMapped)
+                continue;
+
+            if (share)
+            {
+                if (m_slotGamepad[0] == -1)
+                {
+                    m_slotGamepad[0] = static_cast<i32>(i);
+                }
                 else
-                    m_connectedPlayers[0] = ePlaying; // Keep player 0 for keyboard
-
-                for (u32 axis = 0; axis < JOY_MAX_AXES; ++axis)
                 {
-                    m_axes[t][axis] = 0.0f;
+                    for (u32 s = 1; s < JOY_MAX_COUNT; ++s)
+                    {
+                        if (m_slotGamepad[s] == -1)
+                        {
+                            m_slotGamepad[s] = static_cast<i32>(i);
+                            break;
+                        }
+                    }
                 }
-                for (u32 button = 0; button < JOY_MAX_BUT; ++button)
+            }
+            else
+            {
+                for (u32 s = 1; s < JOY_MAX_COUNT; ++s)
                 {
-                    m_buttons[t][button] = Released;
+                    if (m_slotGamepad[s] == -1)
+                    {
+                        m_slotGamepad[s] = static_cast<i32>(i);
+                        break;
+                    }
                 }
             }
         }
+        for (u32 t = 0; t < JOY_MAX_COUNT; ++t)
+        {
+            for (u32 axis = 0; axis < JOY_MAX_AXES; ++axis)
+            {
+                m_axes[t][axis] = 0.0f;
+            }
+            for (u32 button = 0; button < JOY_MAX_BUT; ++button)
+            {
+                m_buttons[t][button] = Released;
+            }
+
+            if (t > 0)
+            {
+                setPadConnected(t, bfalse);
+            }
+        }
+
+        for (u32 slot = 0; slot < JOY_MAX_COUNT; ++slot)
+        {
+            i32 idx = m_slotGamepad[slot];
+            if (idx < 0 || idx >= static_cast<i32>(JOY_MAX_COUNT))
+                continue;
+            if (!connectedGamepad[idx])
+                continue;
+
+            const SDLGamepad& gamepad = m_sdlInput.m_gamepads[idx];
+            for (u32 axis = 0; axis < JOY_MAX_AXES; ++axis)
+            {
+                m_axes[slot][axis] = gamepad.getAxis(axis);
+            }
+            for (u32 button = 0; button < JOY_MAX_BUT; ++button)
+            {
+                m_buttons[slot][button] = gamepad.getButton(button);
+            }
+
+            if (m_connectedPlayers[slot] == eNotConnected)
+            {
+                m_connectedPlayers[slot] = ePlaying;
+            }
+            setPadConnected(slot, btrue);
+            setPadType(slot, Pad_X360);
+        }
+
+        for (u32 slot = 1; slot < JOY_MAX_COUNT; ++slot)
+        {
+            if (m_slotGamepad[slot] == -1)
+            {
+                if (m_connectedPlayers[slot] != eNotConnected)
+                    m_connectedPlayers[slot] = eNotConnected;
+            }
+        }
+
+        if (m_slotGamepad[0] == -1)
+        {
+            m_connectedPlayers[0] = ePlaying;
+        }
+        setPadConnected(0, btrue);
     }
 
 

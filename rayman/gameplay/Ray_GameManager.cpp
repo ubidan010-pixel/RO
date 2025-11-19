@@ -12035,7 +12035,7 @@ namespace ITF
 
     void Ray_GameManager::setKeyboardControllerSharing(bbool enabled)
     {
-        m_gameOptionManager.setListOptionIndex(OPTION_PC_KEYBOARD_CONTROLLER_SHARING, enabled);
+        m_gameOptionManager.setBoolOption(OPTION_PC_KEYBOARD_CONTROLLER_SHARING, enabled);
     }
 #endif
 

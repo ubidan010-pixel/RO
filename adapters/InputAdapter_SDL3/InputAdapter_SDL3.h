@@ -95,6 +95,7 @@ namespace ITF
         void UpdatePads() override;
     private:
         SDLInput m_sdlInput;
+        i32 m_slotGamepad[JOY_MAX_COUNT];
     };
 }
 #endif
