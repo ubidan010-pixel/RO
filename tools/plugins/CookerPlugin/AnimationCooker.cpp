@@ -122,8 +122,8 @@ bbool animSkeletonCooker::cookForced(const String& _szPlatform,const String& _sz
 
         LOG_COOKER("[ANIMATION_COOKER] %ls",result.cStr());
         return bResult;
-    } 
- 
+    }
+
     return bResult;
 }
 
@@ -166,7 +166,7 @@ bbool animPatchBankCooker::cookForced(const String& _szPlatform,const String& _s
 
          LOG_COOKER("[ANIMATION_COOKER] %ls",result.cStr());
     }
-    
+
     return bresult;
 }
 
@@ -184,6 +184,11 @@ bbool animTrackCooker::cook(const String& _szPlatform,const String& _szFilename,
 bbool animTrackCooker::cookForced(const String& _szPlatform,const String& _szFilename, bbool _bRaiseError, bbool _forceCook)
 {
     String normalizedPath   = FilePath::normalizePath(_szFilename);
+    if (!FILEMANAGER->fileExists(normalizedPath))
+    {
+        LOG_COOKER("[ANIMATION_COOKER] NOT FOUND %ls",normalizedPath.cStr());
+        return false;
+    }
     String cookFile         = FILESERVER->getCookedNamePlatform(_szFilename,_szPlatform);
     Path   dependencyFile   = AnimationDependenciesMap::getDependenciesFile(_szFilename,_szPlatform);
 
@@ -212,7 +217,7 @@ bbool animTrackCooker::cookForced(const String& _szPlatform,const String& _szFil
     {
         // first update dependencies
         {
-            String        skeletonPath      = dep->getSkeletonPath(mapDep->getPathMap());            
+            String        skeletonPath      = dep->getSkeletonPath(mapDep->getPathMap());
             AnimSkeleton *skeleton          = NULL;
             bbool         needSkeletonDelete= bfalse;
 
@@ -280,7 +285,7 @@ bbool animTrackCooker::cookForced(const String& _szPlatform,const String& _szFil
         LOG_COOKER("[ANIMATION_COOKER] %ls",result.cStr());
         return bResult;
     }
-    
+
     return bResult;
 }
 
@@ -356,7 +361,7 @@ bbool animTrackCooker::dependencyFiles( const String& cacheKey, const String& _v
     resolvePatchDep( patchDep, _vDependencies );
 
     String animDep( COOKED_DIRNAME );
-    
+
     animDep += _vPlatform;
     animDep += '/';
     animDep += FilePath::getDirectory( _szFilename );
