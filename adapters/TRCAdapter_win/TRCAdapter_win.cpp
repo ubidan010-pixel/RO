@@ -48,27 +48,28 @@ namespace ITF
 
         switch(errorContext)
         {
-        case Pad_DisconnectingDuringTitleScreen:
-            message = "A pad is required to play Rayman Origins.";
-            pTRCMessage = new TRCMessage_OneButtonWithCB(
-                new TRCMessage_Callback_WaitforPadState(TRCMessage_Callback_WaitforPadState::connected, 0));
-            pTRCMessage->SetForceOverPauseMenu();
-            break;
-        case Pad_DisconnectingDuringMenu:
-        case Pad_DisconnectingDuringGameplay:
-            ITF_ASSERT(_u32_customParam != U32_INVALID);
-            message = "Communications with the Pad have been interrupted.";
-            pTRCMessage = new TRCMessage_OneButtonWithCB(
-                new TRCMessage_Callback_WaitforPadState(TRCMessage_Callback_WaitforPadState::connected, _u32_customParam));
-
-            pTRCMessage->SetForceOverPauseMenu();
-            pTRCMessage->changeDisplayPriority(TRCMessage_Base::High);
-            if(errorContext==Pad_DisconnectingDuringGameplay && _u32_customParam != GAMEMANAGER->getMainIndexPlayer())
-            {
-                ((TRCMessage_OneButtonWithCB*)pTRCMessage)->setButton(buildText(4164, ContextIconType_Select), input_actionID_Back);
-            }
-            pTRCMessage->setActivePlayer(_u32_customParam);
-            break;
+        // COMMENTED OUT: Pad disconnection popups disabled on PC platform because keyboard is always available as an input source
+        // case Pad_DisconnectingDuringTitleScreen:
+        //     message = "A pad is required to play Rayman Origins.";
+        //     pTRCMessage = new TRCMessage_OneButtonWithCB(
+        //         new TRCMessage_Callback_WaitforPadState(TRCMessage_Callback_WaitforPadState::connected, 0));
+        //     pTRCMessage->SetForceOverPauseMenu();
+        //     break;
+        // case Pad_DisconnectingDuringMenu:
+        // case Pad_DisconnectingDuringGameplay:
+        //     ITF_ASSERT(_u32_customParam != U32_INVALID);
+        //     message = "Communications with the Pad have been interrupted.";
+        //     pTRCMessage = new TRCMessage_OneButtonWithCB(
+        //         new TRCMessage_Callback_WaitforPadState(TRCMessage_Callback_WaitforPadState::connected, _u32_customParam));
+        //
+        //     pTRCMessage->SetForceOverPauseMenu();
+        //     pTRCMessage->changeDisplayPriority(TRCMessage_Base::High);
+        //     if(errorContext==Pad_DisconnectingDuringGameplay && _u32_customParam != GAMEMANAGER->getMainIndexPlayer())
+        //     {
+        //         ((TRCMessage_OneButtonWithCB*)pTRCMessage)->setButton(buildText(4164, ContextIconType_Select), input_actionID_Back);
+        //     }
+        //     pTRCMessage->setActivePlayer(_u32_customParam);
+        //     break;
         case Pad_LowBattery:
             message = "The battery charge is running low.";//temp
             pTRCMessage = new TRCMessage_NoButtonTimer(2.2, errorContext);
@@ -109,6 +110,13 @@ namespace ITF
         case Sav_ErrorDuringLoad:
             pTRCMessage = new TRCMessage_OneButton(errorContext);
             message = buildText(4017);
+
+            ((TRCMessage_OneButton*)pTRCMessage)->setButton(buildText(4061, ContextIconType_Invalid), input_actionID_Valid);
+            break;
+
+        case UPC_ConnectionLost:
+            pTRCMessage = new TRCMessage_OneButton(errorContext);
+            message = buildText(6949);
 
             ((TRCMessage_OneButton*)pTRCMessage)->setButton(buildText(4061, ContextIconType_Invalid), input_actionID_Valid);
             break;
