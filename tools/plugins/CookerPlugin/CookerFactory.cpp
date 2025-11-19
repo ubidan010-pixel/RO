@@ -52,7 +52,7 @@ namespace ITF
     u32 WINAPI Cook_Run(void* user)
     {
         cookerFactory* cookFactory = (cookerFactory*)(user);
-      
+
         cookFactory->runInBackground();
         return 0;
     }
@@ -69,7 +69,7 @@ namespace ITF
 
         if (modeAsync)
         {
-        
+
             Synchronize::createEvent(&m_cookEvent,NULL);
             Synchronize::resetEvent(&m_cookEvent);
 
@@ -108,7 +108,7 @@ namespace ITF
 
     void cookerFactory::getDependencyFiles( const String& _filename, const String& _platform, DepCollector& _dependencies )
     {
-        DepCollection   col;
+         DepCollection   col;
 #ifdef ITF_WINDOWS
         u32             timer = GetTickCount();
 #endif
@@ -181,9 +181,9 @@ namespace ITF
             String currentFile;
             {
                 csAutoLock cs(m_cs);
-                currentFile = m_currentCook; 
+                currentFile = m_currentCook;
             }
-            
+
             if (!currentFile.isEmpty())
             {
                 String ext = FilePath::getExtension(currentFile);
@@ -242,7 +242,7 @@ namespace ITF
             Synchronize::destroyCriticalSection(&m_cs);
 			Synchronize::destroyCriticalSection(&m_csCooking);
             Synchronize::destroyCriticalSection(&m_csCookingNaming);
-			
+
             for (ITF_MAP<String,cookerFilter*> ::iterator iter = m_Factory.begin();iter!=m_Factory.end();++iter)
             {
                 delete (*iter).second;
@@ -267,13 +267,13 @@ namespace ITF
 
         if (m_listCookPending.size() && m_currentCook.isEmpty())
         {
-            //send the last for cooking 
+            //send the last for cooking
             m_currentCook =  m_listCookPending.front();
             m_listCookPending.erase(m_listCookPending.begin());
 
             Synchronize::setEvent(&m_cookEvent);
         }
-        
+
     }
 
     bbool cookerFactory::isCookable(const String& _filename)
@@ -304,7 +304,7 @@ namespace ITF
             return ptrCookerFilter->call(_platform,_filename);
 
         }
-            
+
         return bfalse;
     }
 
@@ -321,7 +321,7 @@ namespace ITF
     }
 
     void cookerFactory::cook(const String& _platform,const String& _filename)
-    {        
+    {
         f64  beginCook = SYSTEM_ADAPTER->getTime();
         String ext = FilePath::getExtension(_filename);
 
@@ -329,7 +329,7 @@ namespace ITF
         if (iter!=m_Factory.end())
         {
             cookerFilter* ptrCookerFilter = ((*iter).second);
-  
+
             if (ptrCookerFilter->getCookInformation().m_delayedCook)
             {
                 csAutoLock cs(m_cs);
@@ -398,15 +398,15 @@ namespace ITF
 		const u32 factorySize = m_Factory.size();
 		ITF_MAP<String,cookerFilter*> ::const_iterator iter = m_Factory.begin();
 		for (iter;iter!=m_Factory.end();iter++)
-		{	
+		{
 			tmp.setStringFormat("*.%ls",((*iter).first).cStr());
-			
+
 			count++;
 			if (count!=factorySize)
 				tmp+=";";
 
 			pattern +=tmp;
-			
+
 		}
 
 		return pattern;
@@ -442,7 +442,7 @@ namespace ITF
         if (!file)
             return 0;
 
-        u32 version = 0;           
+        u32 version = 0;
         lenght = sizeof(version);
         pBuffer = new_array(u8,lenght,mId_System);
         file->read(pBuffer,lenght);
@@ -475,7 +475,7 @@ namespace ITF
             if (version != _version)
                 return btrue;
         }
-      
+
         return bfalse;
     }
 
