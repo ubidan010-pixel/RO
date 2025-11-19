@@ -193,6 +193,9 @@ namespace ITF
 			RangeContexte	= 100,
 			Gen_NoEnoughSpaceToPlay,
 
+            // UPC
+            UPC_ConnectionLost = 400,
+
             Pad_enum		= 500,
             Pad_DisconnectingDuringTitleScreen,
             Pad_DisconnectingDuringGameplay,
@@ -241,7 +244,9 @@ namespace ITF
             // Rewards
             Rwd_enum        = 800,
             Rwd_CheckSpaceBoot,
-            Rwd_NoEnoughSpace
+            Rwd_NoEnoughSpace,
+
+            // Online
         };
 
         enum IOError

@@ -13,11 +13,9 @@
 #endif // ITF_MICROSOFT
 #define ITF_USE_SDL
 #if defined(ITF_WINDOWS) && !defined(ITF_FINAL) && !defined(ITF_RETAIL)
-    //#define DAN_TEXTURE_SELECTOR
-    #ifdef DAN_TEXTURE_SELECTOR
-        #define SAMPLERSEQUENCE "rsampler","sampler","usamepler","ESRGAN"
-        #define TEXTUREFORMATS "tga","png"
-    #endif
+// ONLY USE FOR INTERNAL ARTIST
+// ENABLE FOR QUICK REVIEW SUPPORTED SAMPLER IN EDITOR
+//#define DAN_TEXTURE_SELECTOR
 #endif
 // Everything that is not windows is a console for the moment
 #if !defined(ITF_WINDOWS)

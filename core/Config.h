@@ -109,7 +109,7 @@ namespace ITF
             , m_enableNetwork(bfalse)
 #endif // ITF_SUPPORT_NETWORKSERVICES
 #ifdef ITF_SUPPORT_UPLAY
-            , m_enableUplay(bfalse)
+            , m_enableUplay(btrue)
 #endif // ITF_SUPPORT_UPLAY
 #ifdef ITF_SUPPORT_UBISERVICES
             , m_enableUbiServices(bfalse)

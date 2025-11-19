@@ -8,6 +8,8 @@
 #include "core/error/ErrorHandler.h"
 #endif //_ITF_ERRORHANDLER_H_
 
+#include "engine/AdaptersInterfaces/TRCManager_Adapter.h"
+
 #if defined(ITF_SUPPORT_UPLAY) && defined(ITF_WINDOWS)
 namespace ITF
 {
@@ -31,6 +33,9 @@ namespace ITF
         if (result != UPC_Result_Ok)
         {
             LOG("[UPlay] UPC_Update unexpected result:%d", result);
+
+            // stop updates
+            m_isInitialized = false;
         }
 
         return result;
