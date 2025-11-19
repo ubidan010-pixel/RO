@@ -268,7 +268,6 @@ namespace ITF
             m_isMenuReady = bfalse;
             m_canExecuteMenuItemAction = bfalse;
         }
-		INPUT_ADAPTER->SetInMenu(GAMEMANAGER->isInPause() || !GAMEMANAGER->isPlayableScreen() || RAY_GAMEMANAGER->isInGameplayPause());
         // Check for pads
         for (u32 i = 0; i < GAMEMANAGER->getMaxPlayerCount(); i++)
         {

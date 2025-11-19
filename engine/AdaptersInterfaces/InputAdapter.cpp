@@ -15,10 +15,13 @@
 #ifndef _ITF_INPUTADAPTER_H_
 #include "engine/AdaptersInterfaces/InputAdapter.h"
 #endif //_ITF_INPUTADAPTER_H_
-#include <cmath>
+#ifdef ITF_WINDOWS
+#include <windows.h>
+#endif
 namespace ITF
 {
     const f32 InputAdapter::fDoublePressMaxDuration = 0.2f;
+
 
 
     static InputAdapter::PadType getDefaultPadType()
@@ -40,13 +43,7 @@ namespace ITF
 #endif
     }
 
-    namespace
-    {
-        constexpr float kAxisActivationThreshold = 0.65f;
-    }
-
     InputAdapter::InputAdapter() :
-        m_inMenu(btrue),
         m_focused(true),
         m_useShakeAttack(bfalse),
         m_threshold(0.0f),
@@ -157,17 +154,6 @@ namespace ITF
         ResetInputState();
         UpdatePads();
         platformUpdateKeyboardState();
-        if (m_focused)
-        {
-            if (m_inMenu)
-            {
-                UpdateInputForMenu();
-            }
-            else
-            {
-                UpdateInputForGame();
-            }
-        }
     }
 
     void InputAdapter::getGamePadPos(u32 _environment, u32 _pad, float* _pos, u32 _numAxes) const
@@ -249,6 +235,7 @@ namespace ITF
     void InputAdapter::dispatchEventsToListeners()
     {
     }
+
     void InputAdapter::platformUpdateKeyboardState()
     {
     }
@@ -259,93 +246,7 @@ namespace ITF
         memset(m_buttons, 0, JOY_MAX_COUNT * JOY_MAX_BUT * sizeof(PressStatus));
     }
 
-    void InputAdapter::UpdateInputForMenu()
-    {
-        // Menu input now relies directly on the raw pad states populated in UpdatePads().
-    }
 
-    void InputAdapter::UpdateInputForGame()
-    {
-        auto buttonJustPressed = [this](u32 playerIndex, JoyButton_Common button)
-        {
-            PressStatus status = m_buttons[playerIndex][button];
-            return status == JustPressed;
-        };
-
-        auto hasAnalogMovement = [this](u32 playerIndex)
-        {
-            return std::fabs(m_axes[playerIndex][m_joyStickLeft_X]) >= kAxisActivationThreshold ||
-                   std::fabs(m_axes[playerIndex][m_joyStickLeft_Y]) >= kAxisActivationThreshold;
-        };
-
-        auto hasAnyDirection = [&](u32 playerIndex)
-        {
-            if (buttonJustPressed(playerIndex, m_joyButton_DPadL) ||
-                buttonJustPressed(playerIndex, m_joyButton_DPadR) ||
-                buttonJustPressed(playerIndex, m_joyButton_DPadU) ||
-                buttonJustPressed(playerIndex, m_joyButton_DPadD))
-            {
-                return true;
-            }
-            return hasAnalogMovement(playerIndex);
-        };
-
-        auto hasSprintInput = [this](u32 playerIndex)
-        {
-            return m_axes[playerIndex][m_joyTrigger_Right] >= kAxisActivationThreshold;
-        };
-
-        auto hasGameplayInput = [&](u32 playerIndex)
-        {
-            return buttonJustPressed(playerIndex, m_joyButton_A) ||
-                   buttonJustPressed(playerIndex, m_joyButton_X) ||
-                   buttonJustPressed(playerIndex, m_joyButton_B) ||
-                   buttonJustPressed(playerIndex, m_joyButton_Start) ||
-                   hasAnyDirection(playerIndex) ||
-                   hasSprintInput(playerIndex);
-        };
-
-        for (u32 playerIndex = 0; playerIndex < JOY_MAX_COUNT; ++playerIndex)
-        {
-            const bool pressed = hasGameplayInput(playerIndex);
-
-            if (m_connectedPlayers[playerIndex] == ePlaying || m_connectedPlayers[playerIndex] == eBubble)
-            {
-                if (pressed && m_connectedPlayers[playerIndex] == eBubble)
-                {
-                    m_connectedPlayers[playerIndex] = ePlaying;
-                }
-
-                if (buttonJustPressed(playerIndex, m_joyButton_Back))
-                {
-                    if (m_connectedPlayers[playerIndex] == ePlaying)
-                    {
-                        m_connectedPlayers[playerIndex] = eBubble;
-                    }
-                    else
-                    {
-                        m_connectedPlayers[playerIndex] = eNotConnected;
-                        setPadConnected(playerIndex, bfalse);
-                    }
-                }
-            }
-            else if (pressed)
-            {
-                m_connectedPlayers[playerIndex] = eBubble;
-                setPadConnected(playerIndex, btrue);
-
-                // Reset buttons states to ignore the very first command after joining.
-                m_buttons[playerIndex][m_joyButton_A] = Released;
-                m_buttons[playerIndex][m_joyButton_X] = Released;
-                m_buttons[playerIndex][m_joyButton_B] = Released;
-                m_buttons[playerIndex][m_joyButton_DPadL] = Released;
-                m_buttons[playerIndex][m_joyButton_DPadR] = Released;
-                m_buttons[playerIndex][m_joyButton_DPadU] = Released;
-                m_buttons[playerIndex][m_joyButton_DPadD] = Released;
-                m_buttons[playerIndex][m_joyButton_Start] = Released;
-            }
-        }
-    }
 
     void InputAdapter:: OnControllerConnected(u32 _padIndex,i32 _deviceID,i32 _deviceOutputID,bool isSony)
     {
@@ -359,6 +260,7 @@ namespace ITF
         HAPTICS_MANAGER->onControllerDisconnected(_padIndex);
 #endif
     }
+
     InputAdapter::PressStatus InputAdapter::getKeyboardStatus(i32 key) const
     {
         ITF_UNUSED(key);

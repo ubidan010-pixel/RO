@@ -524,6 +524,7 @@ namespace ITF
             }
         }
 
+        setPadConnected(0, btrue);
         memset(m_connectedPlayers, 0, JOY_MAX_COUNT * sizeof(PlayerState));
         m_connectedPlayers[0] = ePlaying;
 #ifdef USE_WIIMOTE_LIB
@@ -603,6 +604,7 @@ namespace ITF
             }
         }
     }
+
     void InputAdapter_DINPUT::updateAllInputState()
     {
         InputAdapter::updateAllInputState();
@@ -1296,26 +1298,28 @@ namespace ITF
 
     void InputAdapter_DINPUT::HandleControllerStateChange()
     {
-        // This method can be called by the TRC system when controller state needs to be checked
         u32 connectedCount = getGamePadCount();
 
         if (connectedCount == 0)
         {
-            for (u32 i = 0; i < JOY_MAX_COUNT; ++i)
+            for (u32 i = 1; i < JOY_MAX_COUNT; ++i)
             {
                 m_connectedPlayers[i] = eNotConnected;
                 setPadConnected(i, bfalse);
             }
+
+            m_connectedPlayers[0] = ePlaying;
+            setPadConnected(0, bfalse);
         }
         else
         {
-            // At least one controller connected - ensure player 0 is set to playing
             if (m_connectedPlayers[0] == eNotConnected && isPadConnected(0))
             {
                 m_connectedPlayers[0] = ePlaying;
             }
         }
     }
+
 
     const char* InputAdapter_DINPUT::GetControllerTypeName(u32 padIndex) const
     {

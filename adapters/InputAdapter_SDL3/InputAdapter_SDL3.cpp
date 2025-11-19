@@ -548,6 +548,7 @@ namespace ITF
         adapter->SetCallbackMouseWheel(WinInputAdapter::MouseWheelCB);
         adapter->SetCallbackMouseButton(WinInputAdapter::MouseButtonCB);
         m_sdlInput.initialize(this);
+        setPadConnected(0, btrue);
         memset(m_connectedPlayers, 0, JOY_MAX_COUNT * sizeof(PlayerState));
         m_connectedPlayers[0] = ePlaying;
     }
@@ -611,6 +612,7 @@ namespace ITF
         }
     }
 
+
     void InputAdapter_SDL3::padVibration(u32 _numPad, f32 _leftMotorSpeed, f32 _rightMotorSpeed)
     {
         if (_numPad < JOY_MAX_COUNT)
@@ -651,6 +653,7 @@ namespace ITF
         }
         return "Disconnected";
     }
+
 
 }
 #endif

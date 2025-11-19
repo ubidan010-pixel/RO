@@ -13,9 +13,6 @@
 #include "core/AdaptersInterfaces/SystemAdapter.h"
 #endif //_ITF_SYSTEMADAPTER_
 
-#include <algorithm>
-#include <limits>
-
 namespace ITF
 {
     enum KeyCode
@@ -334,7 +331,6 @@ namespace ITF
         bbool m_runUseB;
         bbool m_runUseShake;
         f32 m_runTimerStop;
-
     public:
         /**
         Registers a new listener for input events. you must create a class that inherits from Interface_InputListener
@@ -551,8 +547,8 @@ namespace ITF
         InputAdapter();
         virtual ~InputAdapter(); // always declare virtual destructor for adapters
 
-        virtual void onMouseButton(InputAdapter::MouseButton _but, InputAdapter::PressStatus _status);
-        virtual void onKey(i32 _key, InputAdapter::PressStatus _status);
+        virtual void onMouseButton(MouseButton _but, PressStatus _status);
+        virtual void onKey(i32 _key, PressStatus _status);
         virtual void onMouseWheel(i32 _wheelValue);
         virtual void onMousePos(i32 _x, i32 _y);
 
@@ -565,17 +561,13 @@ namespace ITF
 
         virtual void platformUpdateKeyboardState();
         virtual void UpdatePads() { ITF_ASSERT_MSG(0, "Not implemented"); }
-        void SetInMenu(bbool inMenu) { m_inMenu = inMenu; }
         virtual void updateAllInputState();
         void ResetInputState();
-        void UpdateInputForMenu();
-        void UpdateInputForGame();
         virtual const char* GetControllerTypeName(u32 padIndex) const
         {
             ITF_ASSERT_MSG(0, "Not implemented");
             return nullptr;
         }
-
         void setUSEShakeAttack(bbool useAttack) { m_useShakeAttack = useAttack; }
         void setThreshold(f32 threshold) { m_threshold = threshold; }
         void setDelay(f32 delay) { m_delay = delay; }

@@ -110,6 +110,8 @@ namespace ITF
         u32 m_keyPressTime[KEY_COUNT];
 
         static f64 s_lastLeftMouseClick;
+        
+        void updateKeyboardForPlayer0();
     };
 } // namespace ITF
 

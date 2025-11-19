@@ -310,6 +310,8 @@ namespace ITF
                 }
             }
         }
+
+        updateKeyboardForPlayer0();
 #endif
     }
 
@@ -451,6 +453,36 @@ namespace ITF
             }
         }
         adapter->onMouseButton(but, status);
+    }
+    
+    void WinInputAdapter::updateKeyboardForPlayer0()
+    {
+        if (m_connectedPlayers[0] != eNotConnected)
+        {
+            if (m_buttons[0][m_joyButton_DPadU] == Released)
+                m_buttons[0][m_joyButton_DPadU] = getKeyboardStatus(VK_UP);
+            if (m_buttons[0][m_joyButton_DPadD] == Released)
+                m_buttons[0][m_joyButton_DPadD] = getKeyboardStatus(VK_DOWN);
+            if (m_buttons[0][m_joyButton_DPadL] == Released)
+                m_buttons[0][m_joyButton_DPadL] = getKeyboardStatus(VK_LEFT);
+            if (m_buttons[0][m_joyButton_DPadR] == Released)
+                m_buttons[0][m_joyButton_DPadR] = getKeyboardStatus(VK_RIGHT);
+
+            if (m_buttons[0][m_joyButton_A] == Released)
+                m_buttons[0][m_joyButton_A] = getKeyboardStatus(VK_SPACE);
+            if (m_buttons[0][m_joyButton_X] == Released)
+                m_buttons[0][m_joyButton_X] = getKeyboardStatus('S');
+            if (m_buttons[0][m_joyButton_B] == Released)
+                m_buttons[0][m_joyButton_B] = getKeyboardStatus(VK_BACK);
+            if (m_buttons[0][m_joyButton_Start] == Released)
+                m_buttons[0][m_joyButton_Start] = getKeyboardStatus(VK_ESCAPE);
+
+            if (m_axes[0][m_joyTrigger_Right] == 0.0f)
+            {
+                const bbool sprintPressed = (getKeyboardStatus(VK_LSHIFT) == Pressed || getKeyboardStatus(VK_LSHIFT) == JustPressed);
+                m_axes[0][m_joyTrigger_Right] = sprintPressed ? 1.0f : 0.0f;
+            }
+        }
     }
 } // namespace ITF
 
