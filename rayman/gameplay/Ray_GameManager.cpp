@@ -12121,7 +12121,12 @@ namespace ITF
 #if defined(ITF_WINDOWS)
     void Ray_GameManager::applyPCKeyboardControllerSharingOption()
     {
-        LOG("[OptionMenu] input mode Mode: %s", IsKeyboardControllerSharingEnabled() ? "ON" : "OFF");
+        const bbool enabled = IsKeyboardControllerSharingEnabled();
+        LOG("[OptionMenu] input mode Mode: %s", enabled ? "ON" : "OFF");
+        if (INPUT_ADAPTER)
+        {
+            INPUT_ADAPTER->SetKeyboardControllerSharing(enabled);
+        }
     }
 #endif
 

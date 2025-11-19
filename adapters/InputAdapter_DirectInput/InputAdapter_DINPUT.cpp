@@ -613,6 +613,42 @@ namespace ITF
         ITF_ASSERT(!FAILED(res));
 #endif // DX_KEYBOARD
 
+        // Remap and copy controller states from DirectInput/XInput into adapter state
+        const u32 baseIndex = IsKeyboardControllerSharingEnabled() ? 0u : 1u;
+        u32 mapped = 0;
+
+        // Clear target ranges (controller slots)
+        for (u32 t = baseIndex; t < JOY_MAX_COUNT; ++t)
+        {
+            for (u32 axis = 0; axis < JOY_MAX_AXES; ++axis) m_axes[t][axis] = 0.0f;
+            for (u32 button = 0; button < JOY_MAX_BUT; ++button) m_buttons[t][button] = Released;
+            if (t > 0) setPadConnected(t, bfalse);
+        }
+
+        for (u32 src = 0; src < DXinput.m_numberpad && mapped + baseIndex < JOY_MAX_COUNT; ++src)
+        {
+            Joy* joy = &DXinput.m_pad[src].m_joy;
+            const bool isXInput = (DXinput.m_pad[src].m_typePad == DXinput.CONTROLLER_TYPE::XINPUT);
+            const bool connected = isXInput ? joy->isConnected(src) : (joy->getDevice() != nullptr);
+            if (!connected)
+                continue;
+
+            const u32 target = baseIndex + mapped++;
+            for (u32 axis = 0; axis < JOY_MAX_AXES; ++axis)
+            {
+                m_axes[target][axis] = joy->getAxe(axis);
+            }
+            for (u32 button = 0; button < JOY_MAX_BUT; ++button)
+            {
+                m_buttons[target][button] = joy->getButton(button);
+            }
+
+            if (m_connectedPlayers[target] == eNotConnected)
+                m_connectedPlayers[target] = ePlaying;
+            setPadConnected(target, btrue);
+            setPadType(target, Pad_X360);
+        }
+
 #ifdef USE_WIIMOTE_LIB
         if(CONFIG->m_enableWiiRemoteonPC)
         {

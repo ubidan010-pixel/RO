@@ -322,6 +322,7 @@ namespace ITF
     private:
         bbool m_PadConnected[JOY_MAX_COUNT]{};
         PadType m_PadType[JOY_MAX_COUNT]{};
+        bbool m_keyboardShareEnabled;
 
         bbool m_useShakeAttack;
         f32 m_threshold;
@@ -604,6 +605,8 @@ namespace ITF
 
         virtual void OnControllerConnected(u32 _padIndex,i32 _deviceID= -1,i32 _deviceOutputID =-1,bool isSony = false);
         virtual void OnControllerDisconnected(u32 _padIndex);
+        void SetKeyboardControllerSharing(bbool enabled) { m_keyboardShareEnabled = enabled; }
+        bbool IsKeyboardControllerSharingEnabled() const { return m_keyboardShareEnabled; }
 
     protected:
         virtual PressStatus getKeyboardStatus(i32 key) const;

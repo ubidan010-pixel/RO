@@ -45,6 +45,7 @@ namespace ITF
 
     InputAdapter::InputAdapter() :
         m_focused(true),
+        m_keyboardShareEnabled(btrue),
         m_useShakeAttack(bfalse),
         m_threshold(0.0f),
         m_delay(0.0f),

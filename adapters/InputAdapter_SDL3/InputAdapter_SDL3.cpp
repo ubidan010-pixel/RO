@@ -571,42 +571,60 @@ namespace ITF
     void InputAdapter_SDL3::UpdatePads()
     {
         m_sdlInput.UpdateInputState();
-        u32 connectedCount = 0;
-        for (u32 i = 0; i < JOY_MAX_COUNT && connectedCount < m_sdlInput.m_gamepadCount; ++i)
+        // Remap controllers according to keyboard/controller sharing option
+        const u32 baseIndex = IsKeyboardControllerSharingEnabled() ? 0u : 1u;
+        u32 mapped = 0;
+
+        // Clear target slots first (controller range only)
+        for (u32 t = baseIndex; t < JOY_MAX_COUNT; ++t)
+        {
+            for (u32 axis = 0; axis < JOY_MAX_AXES; ++axis) m_axes[t][axis] = 0.0f;
+            for (u32 button = 0; button < JOY_MAX_BUT; ++button) m_buttons[t][button] = Released;
+            if (t > 0) setPadConnected(t, bfalse);
+        }
+
+        for (u32 i = 0; i < JOY_MAX_COUNT && mapped < m_sdlInput.m_gamepadCount; ++i)
         {
             if (m_sdlInput.m_gamepads[i].isConnected())
             {
-                connectedCount++;
+                const u32 target = baseIndex + mapped++;
                 const SDLGamepad& gamepad = m_sdlInput.m_gamepads[i];
                 for (u32 axis = 0; axis < JOY_MAX_AXES; ++axis)
                 {
-                    m_axes[i][axis] = gamepad.getAxis(axis);
+                    m_axes[target][axis] = gamepad.getAxis(axis);
                 }
                 for (u32 button = 0; button < JOY_MAX_BUT; ++button)
                 {
-                    m_buttons[i][button] = gamepad.getButton(button);
+                    m_buttons[target][button] = gamepad.getButton(button);
                 }
 
-                if (m_connectedPlayers[i] == eNotConnected)
+                if (m_connectedPlayers[target] == eNotConnected)
                 {
-                    m_connectedPlayers[i] = ePlaying;
+                    m_connectedPlayers[target] = ePlaying;
                 }
+                setPadConnected(target, btrue);
+                setPadType(target, Pad_X360);
             }
-            else if (m_connectedPlayers[i] != eNotConnected)
+        }
+
+        // Any remaining target slots after mapped controllers remain released; keep player 0 for keyboard
+        for (u32 t = baseIndex + mapped; t < JOY_MAX_COUNT; ++t)
+        {
+            if (m_connectedPlayers[t] != eNotConnected)
             {
                 // Don't disconnect player 0 - keep available for keyboard input on PC
-                if (i != 0)
-                    m_connectedPlayers[i] = eNotConnected;
+                if (t != 0)
+                    m_connectedPlayers[t] = eNotConnected;
                 else
                     m_connectedPlayers[0] = ePlaying; // Keep player 0 for keyboard
 
                 for (u32 axis = 0; axis < JOY_MAX_AXES; ++axis)
                 {
-                    m_axes[i][axis] = 0.0f;
+                    m_axes[t][axis] = 0.0f;
                 }
                 for (u32 button = 0; button < JOY_MAX_BUT; ++button)
                 {
-                    m_buttons[i][button] = Released;
+                    m_buttons[t][button] = Released;
                 }
             }
         }
