@@ -81,7 +81,7 @@ public:
 				return AK_UnknownFileError;
 			}
 
-			(void)nn::fs::GetFileSize(&out_fileDesc.iFileSize, out_fileDesc.hFile);
+			nn::fs::GetFileSize(&out_fileDesc.iFileSize, out_fileDesc.hFile);
 		}
 		else if ((in_eOpenMode == AK_OpenModeWriteOvrwr) || (in_eOpenMode == AK_OpenModeWrite))
 		{
@@ -134,7 +134,7 @@ public:
 
 	static inline AKRESULT CloseFile( AkFileHandle in_hFile )
 	{
-		(void)nn::fs::FlushFile(in_hFile);
+		nn::fs::FlushFile(in_hFile);
 
 		nn::fs::CloseFile(in_hFile);
 		in_hFile.handle = nullptr;
