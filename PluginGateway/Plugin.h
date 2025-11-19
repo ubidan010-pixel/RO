@@ -20,7 +20,11 @@
 #ifndef _ITF_EDITOR_TYPES_H_
 #include "editor/Editor_Types.h"
 #endif //_ITF_EDITOR_TYPES_H_
-
+#ifdef DAN_TEXTURE_SELECTOR
+#include "core/AdaptersInterfaces/FileManager.h"
+#include "core/file/filepath.h"
+#include "core/file/FileServer.h"
+#endif
 namespace ITF
 {
 
@@ -76,7 +80,7 @@ public:
     ///
     /// Called every frame (except if plugin is paused)
     virtual void update         (               ){}
-    
+
     //////////////////////////////////////////////////////////////////////////
     ///
     /// Called every frame
@@ -176,7 +180,7 @@ public:
     virtual void  onDeleteWorld(World* /*_pWorld*/) {}
     virtual void  onObjectCreated (BaseObject* /*_pObject*/) {}                                    // Called when an object is added by edition
     virtual void  onObjectDeleted (BaseObject* /*_pObject*/) {}                                    // Called when an object is removed by edition
-    virtual void  onObjectChanged (BaseObject* /*_pObject*/) {}                                    // called when an object is changed 
+    virtual void  onObjectChanged (BaseObject* /*_pObject*/) {}                                    // called when an object is changed
     virtual void  onObjectSpawned (const BaseObject* /*_newObject*/) {}                            // called when an object is spawned at runtime
     virtual void  onObjectsDuplicated (const SafeArray<BaseObject*>& /*_from*/, const SafeArray <BaseObject*>& /*_to*/) {}   // called when an object is duplicated at runtime
     virtual void  onPickableRenamed(Pickable* /*_pObj*/, const String8& /*_previousUserFriendly*/) {} // called when a pickable is manually renamed
@@ -202,9 +206,135 @@ public:
     virtual void  OnBootstrapFile(const char* filename){}
     virtual void  OnWorldUpdated(){}
 };
+#ifdef DAN_TEXTURE_SELECTOR
+    class SamplerPlugin : public Plugin
+    {
+    protected:
+        enum SAMPLER_TYPE
+        {
+            RSAMPLER, // 0
+            SAMPLER, // 1
+            USAMPLER, //2
+            ESRGAN // 3
+        };
 
+        bool deleteFileIfExists(const String& _fileToDelete)
+        {
+            if (_fileToDelete.isEmpty())
+                return false;
+
+            // Check that file exist using GetFileAttributesW
+            DWORD fileAttributes = ::GetFileAttributesW((LPCWSTR)_fileToDelete.cStr());
+            if (fileAttributes == INVALID_FILE_ATTRIBUTES)
+                return true;
+
+            return deleteFile(_fileToDelete);
+        }
+
+        bool deleteFile(String _fileToDelete)
+        {
+            BOOL res = 0;
+            u32 retrymax = 5;
+            u32 retry = 0;
+
+            while (res == 0)
+            {
+                res = ::DeleteFileW((LPCWSTR)_fileToDelete.cStr());
+                if (retry > retrymax)
+                    break;
+
+                if (res == 0)
+                {
+                    retry++;
+                    Sleep(100);
+                }
+            }
+            if (retry > retrymax)
+            {
+                DWORD error = GetLastError();
+                // LOG("[TEXTURE COOKER] Failed to delete file '%ls' after %d retries (error: 0x%X)",
+                //            _fileToDelete.cStr(),
+                //            retry,
+                //            error);
+                return false;
+            }
+            else if (retry > 0)
+            {
+                // LOG("[TEXTURE COOKER] Successfully deleted file '%ls' after %d retries", _fileToDelete.cStr(),
+                //            retry);
+            }
+            return true;
+        }
+
+        bool renameFile(const String& _srcFileName, const String& _newFileName,
+                                bool _deleteIfDstExists = true)
+        {
+            if (_srcFileName.isEmpty() || _newFileName.isEmpty())
+                return false;
+
+            if (_deleteIfDstExists)
+            {
+                if (!deleteFileIfExists(_newFileName))
+                {
+                    // LOG("[TEXTURE COOKER] Failed to delete existing file '%ls' before renaming",
+                    //            _newFileName.cStr());
+                    return false;
+                }
+            }
+
+            BOOL success = ::MoveFileW(
+                (LPCWSTR)_srcFileName.cStr(),
+                (LPCWSTR)_newFileName.cStr()
+            );
+
+            if (!success)
+            {
+                DWORD error = GetLastError();
+                // LOG("[TEXTURE COOKER] Failed to rename file from '%ls' to '%ls' (error: 0x%X)",
+                //            _srcFileName.cStr(),
+                //            _newFileName.cStr(),
+                //            error);
+                return false;
+            }
+
+            return true;
+        }
+        String samplerFiles[4] = {"rsampler","sampler","usampler","ESRGAN"};
+        String samplerExtensions[2]={"tga","png"};
+        void RecookReset(Vector<String> _paths)
+        {
+            for (u32 u = 0; u < _paths.size(); u++)
+            {
+                if (FILEMANAGER->fileExists(_paths[u]))
+                {
+                    String folderPath = FilePath::getDirectory(_paths[u]);
+                    String fileNameWithoutExtension = FilePath::getFilenameWithoutExtension(_paths[u]);
+
+                    for (const String& extension : samplerExtensions)
+                    {
+                        for (const String& samplerfile : samplerFiles)
+                        {
+                            String relativePath = folderPath + fileNameWithoutExtension + "_" + samplerfile + "." + extension;
+                            String relativeDeletedPath = relativePath + ".delete";
+
+                            if (FILEMANAGER->fileExists(relativeDeletedPath))
+                            {
+                                String absoluteDeletePath, originPath;
+                                FILESERVER->getAbsolutePath(relativeDeletedPath, absoluteDeletePath);
+                                FILESERVER->getAbsolutePath(relativePath, originPath);
+                                renameFile(absoluteDeletePath, originPath, false);
+                            }
+                        }
+                    }
+
+                    FILEMANAGER->flushTimeWriteAccess(_paths[u], true);
+                }
+            }
+        }
+    };
+
+#endif
 } // namespace ITF
-
 
 
 #endif // _ITF_PLUGIN_H_

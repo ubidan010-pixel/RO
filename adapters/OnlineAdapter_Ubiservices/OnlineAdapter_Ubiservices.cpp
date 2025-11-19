@@ -145,9 +145,24 @@ namespace ITF
         m_initialized = true;
     }
 
+    const char* OnlineAdapter_Ubiservices::GetUSApplicationId()
+    {
+#ifdef ITF_WINDOWS
+        return "1e243814-1c99-4b7d-a2dd-e67c84712812";
+#elif ITF_PS5
+        return "4b29c383-6e72-48cf-b5bd-f0e8742b5b59";
+#elif ITF_NX
+        return "681b13a3-ec1a-4ebe-86da-ccf274cb1f59";
+#elif ITF_OUNCE
+        return "aac7c0a4-ea46-4561-b1c9-84c3bd4c3cfd";
+#elif ITF_XBOX_SERIES
+        return "12009240-ba52-40f5-aa4f-97b6841060a6";
+#endif
+    }
+
     void OnlineAdapter_Ubiservices::configureUbiservices(const ubiservices::String& _buildId)
     {
-        const US_NS::ApplicationId applicationId("4be81211-c3b6-427b-ab0a-5e2264da4529");
+        const US_NS::ApplicationId applicationId(GetUSApplicationId());
         US_NS::String applicationBuildId(_buildId);
         US_NS::OnlineAccessContext onlineAccessContext = US_NS::OnlineAccessContext::Standard;
         US_NS::ProfilePolicy profilePolicy = US_NS::ProfilePolicy::UseUplayProfile;

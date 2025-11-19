@@ -105,6 +105,14 @@
 #include "tools/plugins/Plugin_KatanaCut/Plugin_KatanaCut.h"
 #endif //_ITF_PLUGIN_KATANACUT_H_
 
+#ifdef DAN_TEXTURE_SELECTOR
+#ifndef _ITF_ANIMATIONMANAGER_H_
+#include "engine/animation/AnimationManager.h"
+#endif//_ITF_ANIMATIONMANAGER_H_
+#ifndef _ITF_ANIMATIONRES_H_
+#include "engine/animation/AnimationRes.h"
+#endif //_ITF_ANIMATIONRES_H_
+#endif //DAN_TEXTURE_SELECTOR
 namespace ITF
 {
 
@@ -2862,7 +2870,7 @@ void FriezeEditor::onContextMenuItemSelected(ContextMenuItem* _item, ObjectRef _
             }
         case EditorContextMenu::ItemID_ReCook_Reset:
             {
-                RecookReset(target);
+                RecookReset(GetTexturePathFromFrise(target));
                 break;
             }
 #endif
@@ -2872,13 +2880,13 @@ void FriezeEditor::onContextMenuItemSelected(ContextMenuItem* _item, ObjectRef _
     }
 }
 #ifdef DAN_TEXTURE_SELECTOR
-    String              FriezeEditor::samplerFiles[] = { SAMPLERSEQUENCE};
-    String              FriezeEditor::samplerExtensions[] = { TEXTUREFORMATS };
+
     void FriezeEditor::RecookWithSampler(Frise* target,String& sampler)
     {
         if (!target) return;
-        RecookReset(target);
         Vector<String> paths = GetTexturePathFromFrise(target);
+        RecookReset(paths);
+        bbool foundSampler = bfalse;
         for (u32 u = 0; u < paths.size();u++)
         {
             if (FILEMANAGER->fileExists(paths[u]))
@@ -2886,6 +2894,19 @@ void FriezeEditor::onContextMenuItemSelected(ContextMenuItem* _item, ObjectRef _
 
                 String folderPath = FilePath::getDirectory(paths[u]);
                 String fileNameWithoutExtension =FilePath::getFilenameWithoutExtension(paths[u]);
+                bbool hasExitSamplerFile = bfalse;
+                for (const String& extension : samplerExtensions)
+                {
+                    if (FILEMANAGER->fileExists(folderPath + fileNameWithoutExtension +"_"+ sampler +"."+extension))
+                    {
+                        hasExitSamplerFile = btrue;
+                    }
+                }
+                if (!hasExitSamplerFile)
+                {
+                    continue;
+                }
+                foundSampler = btrue;
                 for (const String& extension : samplerExtensions)
                 {
                     for (const String& samplerfile : samplerFiles)
@@ -2900,38 +2921,11 @@ void FriezeEditor::onContextMenuItemSelected(ContextMenuItem* _item, ObjectRef _
                 FILEMANAGER->flushTimeWriteAccess(paths[u],true);
             }
         }
-        PLUGINGATEWAY->onObjectChanged(target);
-    }
-    void FriezeEditor::RecookReset(Frise* target)
-    {
-        if (!target) return;
-        Vector<String> paths = GetTexturePathFromFrise(target);
-        for (u32 u = 0; u < paths.size();u++)
+        if (!foundSampler)
         {
-            if (FILEMANAGER->fileExists(paths[u]))
-            {
-
-                String folderPath = FilePath::getDirectory(paths[u]);
-                String fileNameWithoutExtension =FilePath::getFilenameWithoutExtension(paths[u]);
-                for (const String& extension : samplerExtensions)
-                {
-                    for (const String& samplerfile : samplerFiles)
-                    {
-                        String relativePath,relativeDeletedPath;
-                        relativePath =folderPath + fileNameWithoutExtension +"_"+ samplerfile+"." + extension;
-                        relativeDeletedPath = relativePath + ".delete";
-                        if (FILEMANAGER->fileExists(relativeDeletedPath))
-                        {
-                            String asoluteDeletePath,originPath;
-                            FILESERVER->getAbsolutePath(relativeDeletedPath,asoluteDeletePath);
-                            FILESERVER->getAbsolutePath(relativePath,originPath);
-                            renameFile(asoluteDeletePath,originPath,false);
-                        }
-                    }
-                }
-                FILEMANAGER->flushTimeWriteAccess(paths[u],true);
-            }
+            ITF_ERROR_SHOW(true, "sampler %ls not found !", sampler.cStr());
         }
+        PLUGINGATEWAY->onObjectChanged(target);
     }
     ITF_VECTOR<String> FriezeEditor::GetTexturePathFromFrise(Frise* target)
     {
@@ -2947,9 +2941,25 @@ void FriezeEditor::onContextMenuItemSelected(ContextMenuItem* _item, ObjectRef _
                 {
                     FriseTextureConfig textureConfig = res->m_textureConfigs[i];
                     String texturePath =  textureConfig.getPath();
+
                     if (!texturePath.isEmpty() && FILEMANAGER->fileExists(texturePath))
                     {
-                        paths.push_back(texturePath);
+                        const String ext = FilePath::getExtension(texturePath);
+                        if (ext =="anm")
+                        {
+                            if (auto resource = static_cast<AnimTrackResource*>(textureConfig.m_textureData.getResource()))
+                            {
+                                for (auto pathID : resource->m_texturePathList)
+                                {
+                                    paths.push_back(ANIM_MANAGER->getString(pathID));
+                                }
+                            }
+                        }
+                        else
+                        {
+                            paths.push_back(texturePath);
+                        }
+
                     }
                 }
             }
@@ -2957,84 +2967,6 @@ void FriezeEditor::onContextMenuItemSelected(ContextMenuItem* _item, ObjectRef _
         return paths;
     }
 
-    bool FriezeEditor::deleteFileIfExists(const String & _fileToDelete)
-    {
-        if (_fileToDelete.isEmpty())
-            return false;
-
-        // Check that file exist using GetFileAttributesW
-        DWORD fileAttributes = ::GetFileAttributesW((LPCWSTR)_fileToDelete.cStr());
-        if (fileAttributes == INVALID_FILE_ATTRIBUTES)
-            return true;
-
-        return deleteFile(_fileToDelete);
-    }
-
-    bool FriezeEditor::deleteFile(String _fileToDelete)
-    {
-        BOOL res = 0;
-        u32 retrymax = 5;
-        u32 retry = 0;
-
-        while (res == 0)
-        {
-            res = ::DeleteFileW((LPCWSTR)_fileToDelete.cStr());
-            if (retry > retrymax)
-                break;
-
-            if (res == 0)
-            {
-                retry++;
-                Sleep(100);
-            }
-        }
-        if (retry > retrymax)
-        {
-            DWORD error = GetLastError();
-            LOG_COOKER("[TEXTURE COOKER] Failed to delete file '%ls' after %d retries (error: 0x%X)",
-                _fileToDelete.cStr(),
-                retry,
-                error);
-            return false;
-        }
-        else if (retry > 0)
-        {
-            LOG_COOKER("[TEXTURE COOKER] Successfully deleted file '%ls' after %d retries", _fileToDelete.cStr(), retry);
-        }
-        return true;
-    }
-
-    bool FriezeEditor::renameFile(const String & _srcFileName, const String & _newFileName, bool _deleteIfDstExists = true)
-{
-    if (_srcFileName.isEmpty() || _newFileName.isEmpty())
-        return false;
-
-    if (_deleteIfDstExists)
-    {
-        if (!deleteFileIfExists(_newFileName))
-        {
-            LOG_COOKER("[TEXTURE COOKER] Failed to delete existing file '%ls' before renaming", _newFileName.cStr());
-            return false;
-        }
-    }
-
-    BOOL success = ::MoveFileW(
-        (LPCWSTR)_srcFileName.cStr(),
-        (LPCWSTR)_newFileName.cStr()
-    );
-
-    if (!success)
-    {
-        DWORD error = GetLastError();
-        LOG_COOKER("[TEXTURE COOKER] Failed to rename file from '%ls' to '%ls' (error: 0x%X)",
-            _srcFileName.cStr(),
-            _newFileName.cStr(),
-            error);
-        return false;
-    }
-
-    return true;
-}
 #endif
 void FriezeEditor::setSwitchTextureMode(ObjectRef _target)
 {

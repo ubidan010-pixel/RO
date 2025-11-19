@@ -22,20 +22,8 @@ namespace ITF
 {
     TrackingService_Ubiservices::TrackingService_Ubiservices()
         :TrackingService()
-        , m_currentTagName()
-        , m_jsonWriter()
-        , m_isStandardEvent(false)
-        , m_standardEventtType(EVENT_TYPE_NONE)
-        , m_achievementId(0)
-        , m_contextName()
-        , m_contextType()
-        , m_progressionValue()
-        , m_progressionType()
-        , m_gameLanguage()
-        , m_subtitlesLanguage()
-        , m_subtitleEnabled(ubiservices::SubtitlesActivation::Enabled)
+        , m_playTime(0)
     {
-
     }
 
     TrackingService_Ubiservices::~TrackingService_Ubiservices()
@@ -51,12 +39,6 @@ namespace ITF
     void TrackingService_Ubiservices::term() {}
     void TrackingService_Ubiservices::update() {}
 
-    void TrackingService_Ubiservices::startTag(const char* _name)
-    {
-        m_currentTagName = _name;
-        m_jsonWriter.reset(US_NEW(ubiservices::JsonWriter));  // Reset the JSON writer
-    }
-
     void TrackingService_Ubiservices::updatePlayTime(u32 _sessionTime)
     {
         if (m_playTime == _sessionTime)
@@ -71,77 +53,102 @@ namespace ITF
         PlayerEventModule& module = PlayerEventModule::module(*session);
         module.updatePlayTimeClock(m_playTime);
     }
-    
-    void TrackingService_Ubiservices::appendAttribute(const char* _attributeName, const char* _value, const ATTRIBUTE_DATATYPE dataType)
-    { }
 
-    
-    void TrackingService_Ubiservices::sendTag()
+    void TrackingService_Ubiservices::setAttributeBool(const char* attr, bool val)
+    {
+        ITF_ASSERT(attr);
+
+        auto session = ONLINE_ADAPTER_UBISERVICES->getSession();
+        if (!session)
+        {
+            return;
+        }
+
+        PlayerEventModule& module = PlayerEventModule::module(*session);
+        module.setAttributeBoolean(attr, val);
+    }
+
+    void TrackingService_Ubiservices::setAttributeInt(const char* attr, i32 val)
+    {
+        ITF_ASSERT(attr);
+
+        auto session = ONLINE_ADAPTER_UBISERVICES->getSession();
+        if (!session)
+        {
+            return;
+        }
+
+        PlayerEventModule& module = PlayerEventModule::module(*session);
+        module.setAttributeInt(attr, val);
+    }
+
+    void TrackingService_Ubiservices::setAttributeLong(const char* attr, i64 val)
+    {
+        ITF_ASSERT(attr);
+
+        auto session = ONLINE_ADAPTER_UBISERVICES->getSession();
+        if (!session)
+        {
+            return;
+        }
+
+        PlayerEventModule& module = PlayerEventModule::module(*session);
+        module.setAttributeLong(attr, val);
+    }
+
+    void TrackingService_Ubiservices::setAttributeFloat(const char* attr, f32 val)
+    {
+        ITF_ASSERT(attr);
+
+        auto session = ONLINE_ADAPTER_UBISERVICES->getSession();
+        if (!session)
+        {
+            return;
+        }
+
+        PlayerEventModule& module = PlayerEventModule::module(*session);
+        module.setAttributeFloat(attr, val);
+    }
+
+    void TrackingService_Ubiservices::setAttributeDouble(const char* attr, f64 val)
+    {
+        ITF_ASSERT(attr);
+
+        auto session = ONLINE_ADAPTER_UBISERVICES->getSession();
+        if (!session)
+        {
+            return;
+        }
+
+        PlayerEventModule& module = PlayerEventModule::module(*session);
+        module.setAttributeDouble(attr, val);
+    }
+    void TrackingService_Ubiservices::setAttributeString(const char* attr, const char* val)
+    {
+        ITF_ASSERT(attr);
+        ITF_ASSERT(val);
+
+        auto session = ONLINE_ADAPTER_UBISERVICES->getSession();
+        if (!session)
+        {
+            return;
+        }
+
+        PlayerEventModule& module = PlayerEventModule::module(*session);
+        module.setAttributeString(attr, val);
+    }
+
+    int TrackingService_Ubiservices::sendSignal(const char* signal)
     {
         auto session = ONLINE_ADAPTER_UBISERVICES->getSession();
         if (!session)
-            return;
+        {
+            LOG("[TrackingService] sendSignal NO ubi session for (%s)", signal);
+            return -1;
+        }
 
         PlayerEventModule& module = PlayerEventModule::module(*session);
-
-        ubiservices::PushEventResult pushResult;
-        ubiservices::Json eventAttributes = m_jsonWriter->getJson();
-
-        if (m_isStandardEvent)
-        {
-            std::unique_ptr<ubiservices::EventInfoBase> event(nullptr);
-
-            switch (m_standardEventtType)
-            {
-            case GAME_LOCALIZATION:
-                event.reset(US_NEW(ubiservices::EventInfoGameLocalization, "", m_gameLanguage, m_subtitleEnabled, m_subtitlesLanguage, eventAttributes.renderContent()));
-                break;
-            case PLAYER_PROGRESSION:
-                event.reset(US_NEW(ubiservices::EventInfoPlayerProgression, m_progressionType, m_progressionValue, eventAttributes.renderContent()));
-                break;
-            case CONTEXT_START:
-                event.reset(US_NEW(ubiservices::EventInfoContextStart, m_contextType, m_contextName, eventAttributes.renderContent()));
-                break;
-            case CONTEXT_STOP:
-                event.reset(US_NEW(ubiservices::EventInfoContextStop, m_contextType, m_contextName, eventAttributes.renderContent()));
-                break;
-            case ACHIEVEMENT_UNLOCK:
-                event.reset(US_NEW(ubiservices::EventInfoPlayerAchievement, m_achievementId, eventAttributes.renderContent()));
-                break;
-            default:
-                break;
-            }
-
-            if (event.get())
-            {
-                pushResult = module.pushEvent(*event);
-            }
-            else
-            {
-                LOG("[TrackingService] Unsupported standard event (%d)", m_standardEventtType);
-                pushResult = ubiservices::PushEventResult::ENUM_END;
-            }
-        }
-        else
-        {
-            ubiservices::EventInfoCustom event(m_currentTagName, eventAttributes.renderContent());
-            pushResult = module.pushEvent(event);
-        }
-
-        if (pushResult != ubiservices::PushEventResult::Success)
-        {
-            LOG("[Tracking] Custom event %s could not be queued", m_currentTagName.getUtf8());
-        }
-        else
-        {
-            LOG("[Tracking] Custom event % s was queued", m_currentTagName.getUtf8());
-        }
-
-
-        // reset string accumulators
-        m_isStandardEvent = false;
-        m_standardEventtType = EVENT_TYPE_NONE;
-        m_currentTagName = ubiservices::String();
+        return (int)module.sendSignal(signal);
     }
 } // namespace ITF
 

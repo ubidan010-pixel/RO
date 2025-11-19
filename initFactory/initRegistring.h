@@ -117,7 +117,8 @@ REGISTER_ITF_PARENT(Adapter_Savegame_PS5, Adapter_Savegame)
 REGISTER_ITF_PARENT(SoundAdapter_Dummy, SoundAdapter)
 #endif
 REGISTER_ITF_PARENT(TRCManagerAdapter_PS5, TRCManagerAdapter)
-REGISTER_ITF_PARENT(RewardAdapter_Dummy, RewardAdapter)
+REGISTER_ITF_PARENT(RewardAdapter_PS5, RewardAdapter)
+REGISTER_ITF_PARENT(AccountAdapter_PS5, AccountAdapter)
 #endif
 
 #ifdef ITF_NX

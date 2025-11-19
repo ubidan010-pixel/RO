@@ -180,9 +180,18 @@ namespace ITF
 
 		    StringConverter c(msg);
 
-		    if (ONLINETRACKING_ADAPTER)
+            auto trk = ONLINETRACKING_ADAPTER;
+		    if (trk)
 		    {
-			    ONLINETRACKING_ADAPTER->sendTag("BUBBLE_EXIT",c.getChar() );
+			    //trk->sendTag("BUBBLE_EXIT",c.getChar() );
+
+                trk->setAttributeInt("numPlayer", num_player);
+                trk->setAttributeString("numPlayer", StringToUTF8(levelName).get());
+                trk->setAttributeString("checkPoint", checkPointStr.c_str());
+                trk->setAttributeInt("playerId", m_parent->getPlayerIndex() + 1);
+                trk->setAttributeFloat("time", duration);
+
+                trk->sendSignal("BubbleExit");
 		    }
 		}
 #endif // ITF_SUPPORT_ONLINETRACKING

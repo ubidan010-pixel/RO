@@ -136,8 +136,9 @@
 #include "adapters/RewardAdapter_PS3/RewardAdapter_PS3.h"
 #include "adapters/RewardAdapter_x360/RewardAdapter_x360.h"
 #include "adapters/RewardAdapter_Dummy/RewardAdapter_Dummy.h"
+#include "adapters/RewardAdapter_PS5/RewardAdapter_PS5.h"
 
-
+#include "adapters/AccountAdapter_PS5/AccountAdapter_PS5.h"
 namespace ITF
 {
 
@@ -153,7 +154,7 @@ namespace ITF
 #ifndef _ITF_INITFACTORY_H_
 #include "initfactory.h"
 #endif //_ITF_INITFACTORY_H_
-    
+
     InitFactory* InitFactory::m_pInstance = NULL;
 
     InitFactory::InitFactory()
@@ -331,7 +332,7 @@ namespace ITF
         {
             String newModuleName;
             convertModuleToPlatform(moduleNameLower,newModuleName);
-          
+
             func = getInitFunction(newModuleName,btrue);
             if (func)
             {

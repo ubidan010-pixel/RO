@@ -185,8 +185,13 @@ namespace ITF
 
         virtual ~Interface_ActorEditorListener(){};
     };
+#ifdef DAN_TEXTURE_SELECTOR
+    using BasePlugin = SamplerPlugin;
+#else
+    using BasePlugin = Plugin;
+#endif
 
-    class ActorEditor : public Plugin
+    class ActorEditor : public BasePlugin
     {
     public:
 
@@ -373,20 +378,8 @@ namespace ITF
         ObjectRefList               m_addedActiveActorsLastFrame; // used to create picking shapes the next frame at their creation when modified by engine process
 #ifdef DAN_TEXTURE_SELECTOR
     private :
-        static String              samplerFiles[];
-        static String              samplerExtensions[];
-        Vector<String> GetTexturePathFromFrise(Actor* target);
-        bool deleteFileIfExists(const String& _fileToDelete);
-        bool deleteFile(String _fileToDelete);
-        bool renameFile(const String& _srcFileName, const String& _newFileName, bool _deleteIfDstExists);
+        Vector<String> GetTexturePathFromActor(Actor* target);
         void RecookWithSampler(Actor* target, String& sampler);
-        void RecookReset(Actor* target);
-        enum SAMPLER_TYPE {
-            RSAMPLER,     // 0
-            SAMPLER,   // 1
-            USAMPLER,//2
-            ESRGAN// 3
-        };
 #endif
     };
 

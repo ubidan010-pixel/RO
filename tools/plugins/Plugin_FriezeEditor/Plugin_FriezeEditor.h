@@ -43,9 +43,14 @@ union FriezeExtraInfo
         u32 m_isEdge:1;
     } m_flags;
 };
+#ifdef DAN_TEXTURE_SELECTOR
+    using BasePlugin = SamplerPlugin;
+#else
+    using BasePlugin = Plugin;
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-class FriezeEditor : public Plugin
+class FriezeEditor : public BasePlugin
 {
 public:
     //////////////////////////////////////////////////////////////////////////
@@ -242,20 +247,8 @@ private:
 
     ObjectRefList               m_addedActiveFriezesLastFrame; // used to create picking shapes the next frame at their creation when modified by engine process
 #ifdef DAN_TEXTURE_SELECTOR
-    void RecookWithSampler(Frise* target, String& sampler);
-    void RecookReset(Frise* target);
-    enum SAMPLER_TYPE {
-        RSAMPLER,     // 0
-        SAMPLER,   // 1
-        USAMPLER,//2
-        ESRGAN// 3
-    };
+    void RecookWithSampler(Frise* target, String& sampler);;
     Vector<String> GetTexturePathFromFrise(Frise* target);
-    static bool deleteFileIfExists(const String& _fileToDelete);
-    static bool deleteFile(String _fileToDelete);
-    static bool renameFile(const String& _srcFileName, const String& _newFileName, bool _deleteIfDstExists);
-    static String             samplerFiles[];
-    static String              samplerExtensions[];
 #endif
 };
 

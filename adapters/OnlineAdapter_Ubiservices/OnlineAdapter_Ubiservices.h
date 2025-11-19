@@ -34,6 +34,7 @@ namespace ITF
         void closeSession();
 
         String8 generateBuildId();
+        const char* GetUSApplicationId();
 
         // EAL area
         eal_log_dll_interface m_ealLogInterface;

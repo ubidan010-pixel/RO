@@ -1,7 +1,7 @@
 #ifndef ITF_RAYONLINETRACKING_MANAGER_H
 #define ITF_RAYONLINETRACKING_MANAGER_H
 
-#define PLAYER_INTERVAL_TIME				600.0f
+#define PLAYER_INTERVAL_TIME				60.0f
 
 #ifdef ITF_SUPPORT_ONLINETRACKING
 
@@ -58,6 +58,9 @@ namespace ITF
         ITF_INLINE void										addString(const ITF::String8& key, const ITF::String8& value)
 		{
 			m_trackingData[key] = value;
+
+            if (ONLINETRACKING_ADAPTER)
+                ONLINETRACKING_ADAPTER->setAttributeString(key.cStr(), value.cStr());
 		};
 
 		ITF_INLINE void										addUint32(const ITF::String8& key,ITF::u32	    value)
@@ -65,20 +68,34 @@ namespace ITF
 			ITF::String8 data;
 			data.setTextFormat("%d",value);
 			m_trackingData[key] = data.cStr();
+
+            if (ONLINETRACKING_ADAPTER)
+                ONLINETRACKING_ADAPTER->setAttributeInt(key.cStr(), int(value));
 		};
 
-		
+        ITF_INLINE void										addInt64(const ITF::String8& key, ITF::i64	    value)
+        {
+            ITF::String8 data;
+            data.setTextFormat("%d", value);
+            m_trackingData[key] = data.cStr();
+
+            if (ONLINETRACKING_ADAPTER)
+                ONLINETRACKING_ADAPTER->setAttributeLong(key.cStr(), value);
+        };		
 
 		ITF_INLINE void										addf32(const ITF::String8& key,ITF::f32	    value)
 		{
 			ITF::String8 data;
 			data.setTextFormat("%.3f",value);
 			m_trackingData[key] = data.cStr();
+
+            if (ONLINETRACKING_ADAPTER)
+                ONLINETRACKING_ADAPTER->setAttributeFloat(key.cStr(), value);
 		};
 
 		
 		void												sendTag(const char* tag_key,bbool sendVersionTag= btrue);
-
+        void                                                sendSignal(const char* signalName); // new API
 
 		/// post launch										//////////////////////////////////
 
@@ -128,6 +145,7 @@ namespace ITF
 		f32													m_PlayTimeForPlayerIndex[4];
 
 		f32													m_currentLevelTime;
+        f32													m_absolutePlayTime;
 		u32													m_currentLevelGameOverCount;
 
 		u32													m_Paf2Players;

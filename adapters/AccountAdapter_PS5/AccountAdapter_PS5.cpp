@@ -35,8 +35,8 @@ namespace ITF
     void AccountAdapter_PS5::update()
     {
         handleUserEvents();
-        sceNpCheckCallback();
-
+        //@TODO Temporary comment for alpha
+      //  sceNpCheckCallback();
         AccountAdapter::update();
     }
 

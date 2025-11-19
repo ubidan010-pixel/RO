@@ -2763,7 +2763,7 @@ namespace ITF
 #ifdef DAN_TEXTURE_SELECTOR
         case EditorContextMenu::ItemID_FindFriseLocation:
             {
-                ITF_VECTOR<String> paths = GetTexturePathFromFrise(actor);
+                ITF_VECTOR<String> paths = GetTexturePathFromActor(actor);
                 for (u32 u = 0; u < paths.size();u++)
                 {
                     String& path = paths[u];
@@ -2797,7 +2797,7 @@ namespace ITF
                 }
             case EditorContextMenu::ItemID_ReCook_Reset:
             {
-                RecookReset(actor);
+                RecookReset(GetTexturePathFromActor(actor));
                 break;
             }
 #endif
@@ -2807,13 +2807,11 @@ namespace ITF
         }
     }
 #ifdef DAN_TEXTURE_SELECTOR
-    String              ActorEditor::samplerFiles[] = { SAMPLERSEQUENCE};
-    String              ActorEditor::samplerExtensions[] = { TEXTUREFORMATS };
     void ActorEditor::RecookWithSampler(Actor* target,String& sampler)
     {
         if (target == nullptr) return;
-        RecookReset(target);
-        Vector<String> paths = GetTexturePathFromFrise(target);
+        Vector<String> paths = GetTexturePathFromActor(target);
+        RecookReset(paths);
         for (u32 u = 0; u < paths.size();u++)
         {
             if (FILEMANAGER->fileExists(paths[u]))
@@ -2837,6 +2835,7 @@ namespace ITF
         }
         PLUGINGATEWAY->onObjectChanged(target);
     }
+    /*
     void ActorEditor::RecookReset(Actor* target)
     {
         if (target == nullptr) return;
@@ -2845,7 +2844,6 @@ namespace ITF
         {
             if (FILEMANAGER->fileExists(paths[u]))
             {
-
                 String folderPath = FilePath::getDirectory(paths[u]);
                 String fileNameWithoutExtension =FilePath::getFilenameWithoutExtension(paths[u]);
                 for (const String& extension : samplerExtensions)
@@ -2865,14 +2863,14 @@ namespace ITF
 
                     }
                 }
-
                 FILEMANAGER->flushTimeWriteAccess(paths[u],true);
             }
         }
     }
-    ITF_VECTOR<String> ActorEditor::GetTexturePathFromFrise(Actor* target)
+    */
+    Vector<String> ActorEditor::GetTexturePathFromActor(Actor* target)
     {
-        ITF_VECTOR<String> paths;
+        Vector<String> paths;
         if (target == nullptr) return paths;
         ResourceGroup::ResourceList list = target->getResourceGroup()->getResourcesList();
         for (u32 u = 0; u < list.size();u++)
@@ -2883,7 +2881,7 @@ namespace ITF
                 auto group = res->getGroup();
                 if (group != NULL)
                 {
-                    const ITF_VECTOR<ResourceID>& listResourceInActor = res->getGroup()->getResourcesList();
+                    const Vector<ResourceID>& listResourceInActor = res->getGroup()->getResourcesList();
                     for (u32 i = 0; i < listResourceInActor.size();i++)
                     {
                         const ResourceID& resource = listResourceInActor[i];
@@ -2925,85 +2923,6 @@ namespace ITF
             }
         }
         return paths;
-    }
-
-    bool ActorEditor::deleteFileIfExists(const String & _fileToDelete)
-    {
-        if (_fileToDelete.isEmpty())
-            return false;
-
-        // Check that file exist using GetFileAttributesW
-        DWORD fileAttributes = ::GetFileAttributesW((LPCWSTR)_fileToDelete.cStr());
-        if (fileAttributes == INVALID_FILE_ATTRIBUTES)
-            return true;
-
-        return deleteFile(_fileToDelete);
-    }
-
-    bool ActorEditor::deleteFile(String _fileToDelete)
-    {
-        BOOL res = 0;
-        u32 retrymax = 5;
-        u32 retry = 0;
-
-        while (res == 0)
-        {
-            res = ::DeleteFileW((LPCWSTR)_fileToDelete.cStr());
-            if (retry > retrymax)
-                break;
-
-            if (res == 0)
-            {
-                retry++;
-                Sleep(100);
-            }
-        }
-        if (retry > retrymax)
-        {
-            DWORD error = GetLastError();
-            LOG_COOKER("[TEXTURE COOKER] Failed to delete file '%ls' after %d retries (error: 0x%X)",
-                _fileToDelete.cStr(),
-                retry,
-                error);
-            return false;
-        }
-        else if (retry > 0)
-        {
-            LOG_COOKER("[TEXTURE COOKER] Successfully deleted file '%ls' after %d retries", _fileToDelete.cStr(), retry);
-        }
-        return true;
-    }
-
-    bool ActorEditor::renameFile(const String & _srcFileName, const String & _newFileName, bool _deleteIfDstExists = true)
-    {
-        if (_srcFileName.isEmpty() || _newFileName.isEmpty())
-            return false;
-
-        if (_deleteIfDstExists)
-        {
-            if (!deleteFileIfExists(_newFileName))
-            {
-                LOG_COOKER("[TEXTURE COOKER] Failed to delete existing file '%ls' before renaming", _newFileName.cStr());
-                return false;
-            }
-        }
-
-        BOOL success = ::MoveFileW(
-            (LPCWSTR)_srcFileName.cStr(),
-            (LPCWSTR)_newFileName.cStr()
-        );
-
-        if (!success)
-        {
-            DWORD error = GetLastError();
-            LOG_COOKER("[TEXTURE COOKER] Failed to rename file from '%ls' to '%ls' (error: 0x%X)",
-                _srcFileName.cStr(),
-                _newFileName.cStr(),
-                error);
-            return false;
-        }
-
-        return true;
     }
 #endif
     void ActorEditor::onObjectSpawned(const BaseObject* _newObject)

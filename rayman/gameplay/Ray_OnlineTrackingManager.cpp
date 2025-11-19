@@ -64,6 +64,7 @@ Ray_OnlineTrackingManager::Ray_OnlineTrackingManager():
 , m_awardUnlockCount(0)
 , m_levelStopCount(0)
 , m_currentLevelTime(0.0f)
+, m_absolutePlayTime(0.0f)
 , m_runCount(0)
 , m_challengeTimeAttackCount(0)
 , m_currentLevelGameOverCount(0)
@@ -500,10 +501,10 @@ void Ray_OnlineTrackingManager::SendLevelStop(CheckPointTag _CP_Tag)
 		else
 		{
 			addString("CHK","NA");
-		}
-		
+		}		
 
 		sendTag("LEVEL_STOP",bfalse);
+        sendSignal("LevelStop");
 
 		m_levelStopCount++;
 
@@ -588,71 +589,90 @@ void Ray_OnlineTrackingManager::onReachedCheckpoint(CheckPointTag _CP_Tag)
 
 			startNewTag();
 
-			addUint32("NUMPLAYERS",num_players);
-			addString("LEVELNAME",level_name);
-			addString("CHECKPOINT",ITF::String8(checkPointStr.c_str()));
-			addUint32("CHECKPOINTORDER", m_checkPointOrderSinceLevelBegin );
-			
-			addUint32("LUMS",total_lums);//LUMS
-			addUint32("COINS",RAY_GAMEMANAGER->getTotalTakenToothCount());
-			addUint32("CAGE",RAY_GAMEMANAGER->getBrokenCageCount());
+            String8 checkPointType;
+            switch (_CP_Tag)
+            {
+            case CP_Normal:
+                checkPointType = "CP_Normal";
+                break;
+            case CP_EndOfLevel:
+                checkPointType = "CP_EndOfLevel";
+                break;
+            case CP_ExitLevel:
+                checkPointType = "CP_ExitLevel";
+                break;
+            case CP_RestartLevel:
+                checkPointType = "CP_RestartLevel";
+                break;
+            case CP_EndOfTimeAttack:
+                checkPointType = "CP_EndOfTimeAttack";
+                break;
+            default: "CP_Normal";
+            };
 
+            addString("checkPointType", checkPointType);
+
+			addUint32("numPlayers", num_players);
+			addString("levelName", level_name);
+			addString("checkPoint", ITF::String8(checkPointStr.c_str()));
+			addUint32("checkPointOrder", m_checkPointOrderSinceLevelBegin );
 			
-            
+			addUint32("lums", total_lums);//LUMS
+			addUint32("coins", RAY_GAMEMANAGER->getTotalTakenToothCount());
+			addUint32("brokenCages", RAY_GAMEMANAGER->getBrokenCageCount());
+
 			if (_CP_Tag == CP_Normal)
 			{
 				
-				addUint32("P1DEATHCOUNT",m_deathCountSinceLastCheckPoint[0]);
-				addUint32("P2DEATHCOUNT",m_deathCountSinceLastCheckPoint[1]);
-				addUint32("P3DEATHCOUNT",m_deathCountSinceLastCheckPoint[2]);
-				addUint32("P4DEATHCOUNT",m_deathCountSinceLastCheckPoint[3]);
-				addUint32("JUMPCOUNT",m_jumpCount);
-				addUint32("ATTACKCOUNT",m_attackCount);
-				addf32("TIME",m_timeElapsedSinceLastCheckPoint);
+				addUint32("deathCountPlayer1", m_deathCountSinceLastCheckPoint[0]);
+				addUint32("deathCountPlayer2", m_deathCountSinceLastCheckPoint[1]);
+				addUint32("deathCountPlayer3", m_deathCountSinceLastCheckPoint[2]);
+				addUint32("deathCountPlayer4", m_deathCountSinceLastCheckPoint[3]);
+				addUint32("jumpCount", m_jumpCount);
+				addUint32("attackCount", m_attackCount);
+				addf32("time", m_timeElapsedSinceLastCheckPoint);
 
 			}
 			else
 			{
 			
-				addUint32("P1DEATHCOUNT", m_LdeathCountSinceLastCheckPoint[0]);
-				addUint32("P2DEATHCOUNT", m_LdeathCountSinceLastCheckPoint[1]);
-				addUint32("P3DEATHCOUNT", m_LdeathCountSinceLastCheckPoint[2]);
-				addUint32("P4DEATHCOUNT", m_LdeathCountSinceLastCheckPoint[3]);
-				addUint32("JUMPCOUNT"	, m_LjumpCount);
-				addUint32("ATTACKCOUNT"	, m_LattackCount);
-				addf32("TIME"			, m_fLevelTime);
+				addUint32("deathCountPlayer1", m_LdeathCountSinceLastCheckPoint[0]);
+				addUint32("deathCountPlayer2", m_LdeathCountSinceLastCheckPoint[1]);
+				addUint32("deathCountPlayer3", m_LdeathCountSinceLastCheckPoint[2]);
+				addUint32("deathCountPlayer4", m_LdeathCountSinceLastCheckPoint[3]);
+				addUint32("jumpCount" , m_LjumpCount);
+				addUint32("attackCount", m_LattackCount);
+				addf32("time", m_fLevelTime);
 
 			}
 
             if(_CP_Tag == CP_EndOfLevel)
-                addString("COMPLETED", "COMPLETED");
+                addString("completed", "completed");
             else if (_CP_Tag == CP_ExitLevel)
-                addString("COMPLETED", "QUIT");
+                addString("completed", "quit");
 
             sendTag(_CP_Tag == CP_Normal ? "CHECK_POINT" : "LEVEL_STOP2",btrue);
-
 
 			if (_CP_Tag == CP_EndOfLevel)
 			{
 				startNewTag();
-				addUint32("NUMPLAYERS",num_players);
-				addString("LEVELNAME",level_name);
-				addString("CHECKPOINT",ITF::String8(checkPointStr.c_str()));
-				addUint32("CHECKPOINTORDER", m_checkPointOrderSinceLevelBegin );
+				addUint32("numPlayers",num_players);
+				addString("levelName",level_name);
+				addString("checkPoint", ITF::String8(checkPointStr.c_str()));
+				addUint32("checkPointOrder", m_checkPointOrderSinceLevelBegin );
 				
-				addUint32("LUMS",total_lums);//LUMS
-				addUint32("COINS",RAY_GAMEMANAGER->getTotalTakenToothCount());
-				addUint32("CAGE",RAY_GAMEMANAGER->getBrokenCageCount());
-				addUint32("P1DEATHCOUNT",m_deathCountSinceLastCheckPoint[0]);
-				addUint32("P2DEATHCOUNT",m_deathCountSinceLastCheckPoint[1]);
-				addUint32("P3DEATHCOUNT",m_deathCountSinceLastCheckPoint[2]);
-				addUint32("P4DEATHCOUNT",m_deathCountSinceLastCheckPoint[3]);
-				addUint32("JUMPCOUNT",m_jumpCount);
-				addUint32("ATTACKCOUNT",m_attackCount);
-				addf32("TIME",m_timeElapsedSinceLastCheckPoint);
-				sendTag("CHECK_POINT",btrue);
+				addUint32("lums",total_lums);//LUMS
+				addUint32("coins",RAY_GAMEMANAGER->getTotalTakenToothCount());
+				addUint32("brokenCages",RAY_GAMEMANAGER->getBrokenCageCount());
+				addUint32("deathCountPlayer1",m_deathCountSinceLastCheckPoint[0]);
+				addUint32("deathCountPlayer2",m_deathCountSinceLastCheckPoint[1]);
+				addUint32("deathCountPlayer3",m_deathCountSinceLastCheckPoint[2]);
+				addUint32("deathCountPlayer4",m_deathCountSinceLastCheckPoint[3]);
+				addUint32("jumpCount",m_jumpCount);
+				addUint32("attackCount",m_attackCount);
+				addf32("time",m_timeElapsedSinceLastCheckPoint);
+				sendTag("CheckPoint",btrue);
 			}
-
             else if(_CP_Tag == CP_Normal)
             {
                 m_checkPointOrderSinceLevelBegin++; 
@@ -670,6 +690,8 @@ void Ray_OnlineTrackingManager::onReachedCheckpoint(CheckPointTag _CP_Tag)
 				resetStats(btrue);
 				ResetDeathCountTimers(btrue);
             }
+
+            sendSignal("CheckPoint");
 		}
 	}
 
@@ -727,6 +749,14 @@ void Ray_OnlineTrackingManager::sendTag(const char* tag_key,bbool sendVersionTag
 	}
 }
 
+void Ray_OnlineTrackingManager::sendSignal(const char* signalName)
+{
+    if (ONLINETRACKING_ADAPTER)
+    {
+        ONLINETRACKING_ADAPTER->sendSignal(signalName);
+    }
+}
+
 void Ray_OnlineTrackingManager::update(f32 _dt)
 {
 
@@ -743,6 +773,7 @@ void Ray_OnlineTrackingManager::update(f32 _dt)
 		m_PlayTimeForPlayerIndex[numplayers-1]	+= _dt;
 		m_currentLevelTime						+= _dt;
 		m_persistantTimer						+= _dt;
+        m_absolutePlayTime                      += _dt;
 
 		if (m_persistantTimer>5.0f)
 		{
@@ -768,6 +799,13 @@ void Ray_OnlineTrackingManager::update(f32 _dt)
 					pUniverseData->setPafCounter(m_Paf4Players,2);
 				}
 
+
+                if (ONLINETRACKING_ADAPTER)
+                {
+                    u32 playTime = (u32)floorf(m_absolutePlayTime);
+                    ONLINETRACKING_ADAPTER->updatePlayTime(playTime);
+                }
+
 				//LOG("save persistant timers %.1f",m_PlayTimeForPlayerIndex[0] );
 			}
 
@@ -775,13 +813,16 @@ void Ray_OnlineTrackingManager::update(f32 _dt)
 
 		}
 
-		if (m_PlayerIntervalTime>PLAYER_INTERVAL_TIME)
+		if (m_PlayerIntervalTime > PLAYER_INTERVAL_TIME)
 		{
-				SendPlayerIntervalTag();
+            SendPlayerIntervalTag();
 		}
 
 
-		// pre launch tracking /////////////////////////////////////////
+		// $GS: player.position since is a dangerous high freq event; skip it.
+        // https://confluence.ubisoft.com/display/UbisoftDataOffice/player.position
+        // "Can only be used in Prod if set in a very low sampling Population (under 1%)."
+#if defined(TRACKING_PLAYER_POS)
 		if (CONFIG->m_enableonlineTracking==btrue)
 			{
 
@@ -856,10 +897,8 @@ void Ray_OnlineTrackingManager::update(f32 _dt)
 					}
 
 			}
-
-			
 			}
-
+#endif
 	}
 
 }
@@ -927,11 +966,18 @@ void Ray_OnlineTrackingManager::AwardUnlock(ITF::u32 awardIdu32)
 {
 	startNewTag();
 
-	addUint32("AWDNAME" , awardIdu32);
-	addUint32("PLAYTIME"   , (int)floorf(m_PlayTimeForPlayerIndex[0]+m_PlayTimeForPlayerIndex[1]+m_PlayTimeForPlayerIndex[2]+m_PlayTimeForPlayerIndex[3]));
+    addUint32("awardId" , awardIdu32);
+	addUint32("totalPlaytime"   , (int)floorf(m_PlayTimeForPlayerIndex[0]+m_PlayTimeForPlayerIndex[1]+m_PlayTimeForPlayerIndex[2]+m_PlayTimeForPlayerIndex[3]));
 	sendTag("AWARD_UNLOCK",bfalse);
 
 	m_awardUnlockCount++;
+
+    // player.progression.achievementUnlock
+    String8 progressValue;
+    progressValue.setTextFormat("%s/%s", awardIdu32, REWARD_ADAPTER->getRewardsCount());
+    addString("progressionType", "UplayActionUnlock");
+    addString("progressionValue", progressValue);
+    sendSignal("AchievementUnlock");
 
 	SavePersistant();
 
@@ -942,36 +988,38 @@ void Ray_OnlineTrackingManager::SendPlayerIntervalTag()
 
 	u32 num_players = GAMEMANAGER->getNumActivePlayers();
 
-	if (GAMEMANAGER->isInPause()==bfalse && RAY_GAMEMANAGER->getCurrentGameScreen() == m_gamePlayId && num_players>0)
-	{
+    if (GAMEMANAGER->isInPause() == bfalse && RAY_GAMEMANAGER->getCurrentGameScreen() == m_gamePlayId && num_players > 0)
+    {
+        // dont send in menus etc....
 
-	// dont send in menus etc....
+        //LOG("sending PlayerInterval m_PlayerIntervalTime : %.1f", m_PlayerIntervalTime);
 
-	//LOG("sending PlayerInterval m_PlayerIntervalTime : %.1f", m_PlayerIntervalTime);
+        startNewTag();
 
-	startNewTag();
+        u32 slotId = RAY_GAMEMANAGER->getCurrentSlotIndex();
 
-	u32 slotId = RAY_GAMEMANAGER->getCurrentSlotIndex();
-	
-	addUint32("NUMPLAYERS"   , num_players );
-	addUint32("TIME"		 , (int)floorf(m_PlayTimeForPlayerIndex[0]+m_PlayTimeForPlayerIndex[1]+m_PlayTimeForPlayerIndex[2]+m_PlayTimeForPlayerIndex[3]));
-	addUint32("TIME1PLAYER"  , (int)floorf(m_PlayTimeForPlayerIndex[0]));
-	addUint32("TIME2PLAYERS" , (int)floorf(m_PlayTimeForPlayerIndex[1]));
-	addUint32("TIME3PLAYERS" , (int)floorf(m_PlayTimeForPlayerIndex[2]));
-	addUint32("TIME4PLAYERS" , (int)floorf(m_PlayTimeForPlayerIndex[3]));
-	
-	addUint32("PAF2PLAYERS", m_Paf2Players);
-	addUint32("PAF3PLAYERS", m_Paf3Players);
-	addUint32("PAF4PLAYERS", m_Paf4Players);
+        // can overflow but it's non critical tracking
+        u32 totalPlaytime = (u32)floorf(m_PlayTimeForPlayerIndex[0] + m_PlayTimeForPlayerIndex[1] + m_PlayTimeForPlayerIndex[2] + m_PlayTimeForPlayerIndex[3]);
+        addUint32("numPlayers", num_players);
+        addUint32("totalPlaytime", totalPlaytime);
+        addUint32("player1Playtime", (i32)floorf(m_PlayTimeForPlayerIndex[0]));
+        addUint32("player2Playtime", (i32)floorf(m_PlayTimeForPlayerIndex[1]));
+        addUint32("player3Playtime", (i32)floorf(m_PlayTimeForPlayerIndex[2]));
+        addUint32("player4Playtime", (i32)floorf(m_PlayTimeForPlayerIndex[3]));
 
-	addUint32("SLOT", slotId);
+        addUint32("paf2Players", m_Paf2Players);
+        addUint32("paf3Players", m_Paf3Players);
+        addUint32("paf4Players", m_Paf4Players);
 
-	sendTag("PLAYER_INTERVAL",bfalse);
+        addUint32("slot", slotId);
 
-	m_playerIntervalCount++;
-	m_PlayerIntervalTime = 0.0f;
+        sendTag("PLAYER_INTERVAL", bfalse);
 
-	}
+        sendSignal("PlayerInterval");
+
+        m_playerIntervalCount++;
+        m_PlayerIntervalTime = 0.0f;
+    }
 
 	//SavePersistant();
 	

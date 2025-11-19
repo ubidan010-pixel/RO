@@ -18,7 +18,7 @@ class GUIAdapter;
 class CodecImageAdapter;
 class SystemAdapter;
 class SoundAdapter;
-class Adapter_AudioMiddleware; 
+class Adapter_AudioMiddleware;
 class FileManager;
 class ThreadManager;
 class SoundManager;
@@ -27,6 +27,7 @@ class TRCManagerAdapter;
 class OnlineTrackingAdapter;
 class OnlineAdapter;
 class RewardAdapter;
+    class AccountAdapter;
 class RewardManager;
 
 // Handlers
@@ -125,6 +126,7 @@ private:
 #endif // ITF_SUPPORT_UBISERVICES
             RewardAdapter*          m_RewardAdapter;
             RewardManager*          m_RewardManager;
+            AccountAdapter*        m_AccountAdapter;
 
 #ifdef ITF_SUPPORT_LUA
             // Handlers
@@ -196,7 +198,7 @@ private:
             LogicDataBase*          m_LogicDatabase;
             FileCacheManager*       m_FileCacheManager;
 #endif //ITF_SUPPORT_LOGICDATABASE
-            
+
             WorldManager*           m_WorldManager;
 #ifdef ITF_SUPPORT_DEBUGFEATURE
             DebugInfo*              m_DebugInfo;
@@ -281,7 +283,7 @@ public:
 #else
             ITF_INLINE   void                   setAdapter_AudioMiddleware(Adapter_AudioMiddleware* _adapter) { m_Adapter_AudioMiddleware = _adapter; }
             ITF_INLINE   Adapter_AudioMiddleware* getAdapter_AudioMiddleware() { return m_Adapter_AudioMiddleware; }
-#endif // ITF_SUPPORT_RAKI           
+#endif // ITF_SUPPORT_RAKI
 
             ITF_INLINE   void                   setFileManager      (   FileManager* _adapter  )    { m_FileManager = _adapter; }
             ITF_INLINE   FileManager*           getFileManager     (                           )    {return m_FileManager; }
@@ -312,6 +314,8 @@ public:
 #endif // ITF_SUPPORT_UBISERVICES
             ITF_INLINE   void                   setRewardAdapter (   RewardAdapter* _adapter  ){ m_RewardAdapter = _adapter; }
             ITF_INLINE   RewardAdapter*         getRewardAdapter (                           )   {return m_RewardAdapter; }
+    ITF_INLINE   void                   setAccountAdapter (   AccountAdapter* _adapter  ){ m_AccountAdapter = _adapter; }
+    ITF_INLINE   AccountAdapter*         getAccountAdapter (                           )   {return m_AccountAdapter; }
             ITF_INLINE   void                   setRewardManager (   RewardManager* _adapter  ){ m_RewardManager = _adapter; }
             ITF_INLINE   RewardManager*         getRewardManager (                           )   {return m_RewardManager; }
 
@@ -363,14 +367,14 @@ public:
             ITF_INLINE  Editor*                    getEditor           (                           )   { return m_Editor; }
             ITF_INLINE  XMLConfig*                 getConfig           (                           )   { return m_Config; }
             ITF_INLINE  FileServer*                getFileServer       (                           )   { return m_FileServer;}
-            
+
             ITF_INLINE  GameInterface*             getGameInterface    (                           )   { return m_GameInterface; }
 #ifdef ITF_SUPPORT_EDITOR
             ITF_INLINE  GameEditorInterface*       getGameEditorInterface    (                      )   { return m_GameEditorInterface; }
-            
+
             ITF_INLINE  SingletonConfigListener*   getSingletonConfigListener (                    )   { return m_SingletonConfigListener; }
 #endif // ITF_SUPPORT_EDITOR
-            
+
             ITF_INLINE  ActorsManager*             getActorsManager    (                           )   { return m_ActorsManager; }
             ITF_INLINE  TemplateDatabase*          getTemplateDatabase (                           )   { return m_TemplateDatabase; }
             ITF_INLINE  StimsManager*              getStimsManager     (                           )   { return m_StimsManager; }
@@ -387,7 +391,7 @@ public:
 #endif // ITF_FINAL
 			ITF_INLINE  FeedbackFXManager*         getFeedbackFXManager(                           )   { return m_FeedbackFXManager; }
             ITF_INLINE  void                       setFeedbackFXManager( FeedbackFXManager* _mng   )   { m_FeedbackFXManager = _mng; }
-			ITF_INLINE  LoadingScreen*             getLoadingScreen    (                           )   { return m_LoadingScreen;} 
+			ITF_INLINE  LoadingScreen*             getLoadingScreen    (                           )   { return m_LoadingScreen;}
 			ITF_INLINE  MenuManager*			   getMenuManager      (                           )   { return m_MenuManager; }
 			ITF_INLINE  UIMenuManager*             getUIMenuManager    (                           )   { return m_UIMenuManager; }
             ITF_INLINE  UITextManager*             getUITextManager    (                           )   { return m_UITextManager; }
@@ -408,7 +412,7 @@ public:
             ITF_INLINE  DebugInfo*                 getDebugInfo()                                      { return m_DebugInfo;}
 #endif // ITF_SUPPORT_DEBUGFEATURE
 
-			
+
             ITF_INLINE  void                       setCommandHandler   ( CommandHandler* _ch       )   { m_commandHandler = _ch; }
             ITF_INLINE  CommandHandler*            getCommandHandler   (                           )   { return m_commandHandler; }
 

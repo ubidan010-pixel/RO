@@ -3,14 +3,12 @@
 
 #if defined(ITF_SUPPORT_UBISERVICES) && defined(ITF_SUPPORT_ONLINETRACKING)
 #include <ubiservices/ubiservices.h>
-#include <ubiservices/facade.h>
-
-#include <ealmem.h>
-#include <eallog.h>
+#include <ubiservices/common/config.h>
 
 #include "core/Macros.h"
 #include "engine/AdaptersInterfaces/OnlineAdapter/TrackingService.h"
-#include <ubiservices/services/event/subtitlesActivation.h>
+
+using namespace ubiservices;
 
 namespace ITF
 {
@@ -24,41 +22,19 @@ namespace ITF
         virtual void term() override;
         virtual void update() override;
 
-        // create a new tag, attributes need to be added to that tag
-        virtual void startTag(const char* _name) override;
-        virtual void updatePlayTime(u32 _sessionTime) override;
-        // add as many attributes as needed for a tag
-        virtual void appendAttribute(const char* _attributeName, const char* _value, const ATTRIBUTE_DATATYPE dataType) override;
+        virtual void updatePlayTime(u32 _sessionTime);
 
-        // fire-and-forget
-        virtual void sendTag() override;
+        virtual void setAttributeBool(const char* attr, bool val);
+        virtual void setAttributeInt(const char* attr, i32 val);
+        virtual void setAttributeLong(const char* attr, i64 val);
+        virtual void setAttributeFloat(const char* attr, f32 val);
+        virtual void setAttributeDouble(const char* attr, f64 val);
+        virtual void setAttributeString(const char* attr, const char* val);
+
+        virtual int sendSignal(const char* signal);
+
     private:
-        ubiservices::TimeSeconds m_playTime;
-        ubiservices::String m_currentTagName;
-        std::unique_ptr<ubiservices::JsonWriter> m_jsonWriter;
-
-        bool m_isStandardEvent;
-
-        enum EVENT_TYPE
-        {
-            EVENT_TYPE_NONE = 0,
-            GAME_LOCALIZATION,
-            PLAYER_PROGRESSION,
-            CONTEXT_START,
-            CONTEXT_STOP,
-            ACHIEVEMENT_UNLOCK
-        };
-
-        EVENT_TYPE m_standardEventtType;
-
-        ubiservices::uint32 m_achievementId;
-        ubiservices::String m_contextName;
-        ubiservices::String m_contextType;
-        ubiservices::String m_progressionValue;
-        ubiservices::String m_progressionType;
-        ubiservices::String m_gameLanguage;
-        ubiservices::String m_subtitlesLanguage;
-        ubiservices::SubtitlesActivation m_subtitleEnabled;
+        US_NS::TimeSeconds m_playTime;
     };
 
 } // namespace ITF
