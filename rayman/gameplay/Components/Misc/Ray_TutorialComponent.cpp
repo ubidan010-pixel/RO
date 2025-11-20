@@ -448,12 +448,7 @@ void Ray_TutorialComponent::updateSetup(f32 _dt)
     }
     else
     {
-        u32 mainPlayer = 0;
-        if (GAMEMANAGER && GAMEMANAGER->getPlayer(0))
-        {
-            mainPlayer = 0;
-        }
-        InputAdapter::PadType padType = INPUT_ADAPTER->getLastUsedPadType(mainPlayer);
+        InputAdapter::PadType padType = INPUT_ADAPTER->getLastUsedPadType(0);
         setup(padType);
     }
 }

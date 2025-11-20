@@ -1,6 +1,5 @@
 #ifndef _ITF_INPUTADAPTER_H_
 #define _ITF_INPUTADAPTER_H_
-#include <iostream>
 
 #ifndef _ITF_TEMPLATESINGLETON_H_
 #include "core/templateSingleton.h"
@@ -612,7 +611,6 @@ namespace ITF
         void SetKeyboardControllerSharing(bbool enabled) { m_keyboardShareEnabled = enabled; }
         bbool IsKeyboardControllerSharingEnabled() const { return m_keyboardShareEnabled; }
 
-        // Track last used input device per player for proper icon display
         ITF_INLINE InputDeviceType getLastUsedInputDevice(u32 _player) const
         {
             return (_player < JOY_MAX_COUNT) ? m_lastUsedInputDevice[_player] : InputDevice_None;
@@ -626,7 +624,6 @@ namespace ITF
             }
         }
 
-        // Get the appropriate PadType based on last used input (keyboard or actual gamepad type)
         PadType getLastUsedPadType(u32 _player) const;
 
     protected:

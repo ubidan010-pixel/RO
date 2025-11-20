@@ -56,7 +56,6 @@ namespace ITF
         m_environmentInput = EnvironmentEngine | EnvironmentLua;
         m_buttonMode = MixedMode;
 
-        // Initialize last used input device tracking
         for (u32 i = 0; i < JOY_MAX_COUNT; ++i)
         {
             m_lastUsedInputDevice[i] = InputDevice_None;
