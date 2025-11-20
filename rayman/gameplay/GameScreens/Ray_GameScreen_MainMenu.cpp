@@ -1182,6 +1182,8 @@ namespace ITF
         const StringID pressControlsRemapping = ITF_GET_STRINGID_CRC(controls, 1174371653);
         const StringID quitGame = ITF_GET_STRINGID_CRC(QUITGAME,4257843919);
         const StringID pressUbiconnect = ITF_GET_STRINGID_CRC(ubiconnect_button, 3233676773);
+        const StringID pressNew1Button = ITF_GET_STRINGID_CRC(news1_button, 1178697612);
+        const StringID pressNew2Button = ITF_GET_STRINGID_CRC(news2_button, 4067685073);
         if(m_state==State_Exited || m_state==State_ShowingMainMenu_Load_WaitLoaded || m_state==State_ShowingMainMenu_NewGame_PlayingVideo || m_state==State_PressingStart)
             return;
 
@@ -1215,6 +1217,14 @@ namespace ITF
 #ifdef ITF_SUPPORT_UPLAY
             UPLAYSERVICE->showOverlay();
 #endif
+        }
+        else if (id == pressNew1Button)
+        {
+            LOG("[NEWS] - Ray_GameScreen_MainMenu: News1 button pressed");
+        }
+        else if (id == pressNew2Button)
+        {
+            LOG("[NEWS] - Ray_GameScreen_MainMenu: News2 button pressed");
         }
         else if (id == quitGame)
         {
