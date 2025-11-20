@@ -250,6 +250,11 @@ void Ray_TutorialComponent::setup(InputAdapter::PadType _padType)
         lineId = selectFirstValid(getTemplate()->getXBoxLineId(), getTemplate()->getX360LineId());
     }
     break;
+    case InputAdapter::Pad_Keyboard:
+    {
+        lineId = getTemplate()->getX360LineId();
+    }
+    break;
     default: ITF_ASSERT_MSG(bfalse, "Unhandled pad type %d", _padType);
     }
 
@@ -443,8 +448,13 @@ void Ray_TutorialComponent::updateSetup(f32 _dt)
     }
     else
     {
-        // $GB : todo replace by generic XBox
-        setup(InputAdapter::Pad_X360);
+        u32 mainPlayer = 0;
+        if (GAMEMANAGER && GAMEMANAGER->getPlayer(0))
+        {
+            mainPlayer = 0;
+        }
+        InputAdapter::PadType padType = INPUT_ADAPTER->getLastUsedPadType(mainPlayer);
+        setup(padType);
     }
 }
 
