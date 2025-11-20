@@ -13,6 +13,9 @@
 #include "core/AdaptersInterfaces/SystemAdapter.h"
 #endif //_ITF_SYSTEMADAPTER_
 
+#include <algorithm>
+#include <limits>
+
 namespace ITF
 {
     enum KeyCode
@@ -183,15 +186,6 @@ namespace ITF
         m_joyTrigger_Right,
 
         JOY_MAX_AXES
-    };
-
-    enum ControllerType
-    {
-        Keyboard,
-        X360Button,
-        X360Axis,
-        GenericButton,
-        GenericAxis
     };
 
     // WII SPECIFIC

@@ -177,19 +177,25 @@ namespace ITF
         // store template
         m_template = const_cast<UITextManager_Template*>(config);
 
-        // copy button icons info
-        const ITF_VECTOR<String8>& buttonNames = m_template->getButtonNames();
-        i32 buttonNamesCount = i32(buttonNames.size());
-
-        i32 controllerIconIndices[IconSlot_Count];
-        ITF_MemSet(controllerIconIndices, 0, sizeof(controllerIconIndices));
-
-        for (i32 i=0; i<buttonNamesCount; ++i)
+        const ControllerIconSlot platformSlots[] = {
+            IconSlot_Wii, IconSlot_PS3, IconSlot_PS5, IconSlot_Switch, IconSlot_Ounce,
+            IconSlot_X360, IconSlot_Vita, IconSlot_CTR, IconSlot_XboxSeries, IconSlot_Keyboard
+        };
+        
+        for (u32 slotIdx = 0; slotIdx < ITF_ARRAY_SIZE(platformSlots); ++slotIdx)
         {
-            const String8& name = buttonNames[i];
-            ControllerIconSlot slot = ControllerSlotFromIconName(name);
+            ControllerIconSlot slot = platformSlots[slotIdx];
+            const ITF_VECTOR<String8>& buttonNames = m_template->getButtonNamesForSlot(slot);
+            
+            if (buttonNames.empty())
+                continue;
+                
             u32 slotIndex = ControllerSlotToIndex(slot);
-            m_controllerButtonMaps[slotIndex][name] = controllerIconIndices[slotIndex]++;
+            
+            for (i32 i = 0; i < (i32)buttonNames.size(); ++i)
+            {
+                m_controllerButtonMaps[slotIndex][buttonNames[i]] = i;
+            }
         }
 
         // copy GPE icons info
@@ -731,6 +737,16 @@ namespace ITF
         SERIALIZE_MEMBER("iconYOffset", m_iconYOffset);
         SERIALIZE_MEMBER("iconXOffset", m_iconXOffset);
         SERIALIZE_CONTAINER("buttonNames", m_buttonNames);
+        SERIALIZE_CONTAINER("buttonNamesWII", m_buttonNamesWII);
+        SERIALIZE_CONTAINER("buttonNamesPS3", m_buttonNamesPS3);
+        SERIALIZE_CONTAINER("buttonNamesPS5", m_buttonNamesPS5);
+        SERIALIZE_CONTAINER("buttonNamesNX", m_buttonNamesNX);
+        SERIALIZE_CONTAINER("buttonNamesOunce", m_buttonNamesOunce);
+        SERIALIZE_CONTAINER("buttonNamesX360", m_buttonNamesX360);
+        SERIALIZE_CONTAINER("buttonNamesVita", m_buttonNamesVita);
+        SERIALIZE_CONTAINER("buttonNamesCTR", m_buttonNamesCTR);
+        SERIALIZE_CONTAINER("buttonNamesXboxSeries", m_buttonNamesXboxSeries);
+        SERIALIZE_CONTAINER("buttonNamesKeyboard", m_buttonNamesKeyboard);
         SERIALIZE_MEMBER("gpePath", m_gpePath);
         SERIALIZE_CONTAINER("gpeNames", m_gpeNames);
     END_SERIALIZATION()

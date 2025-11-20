@@ -19,6 +19,36 @@
 #include <pad_windows_static.h>
 namespace ITF
 {
+     static InputAdapter::PadType MapSDLGamepadTypeToPadType(const SDL_Gamepad* gamepad)
+     {
+         if (!gamepad)
+             return InputAdapter::Pad_Other;
+
+         SDL_GamepadType type = SDL_GetGamepadType(const_cast<SDL_Gamepad*>(gamepad));
+         switch (type)
+         {
+         case SDL_GAMEPAD_TYPE_PS5:
+             return InputAdapter::Pad_PS5;
+         case SDL_GAMEPAD_TYPE_PS4:
+             return InputAdapter::Pad_PS5;
+         case SDL_GAMEPAD_TYPE_PS3:
+             return InputAdapter::Pad_PS3;
+         case SDL_GAMEPAD_TYPE_XBOX360:
+             return InputAdapter::Pad_X360;
+        case SDL_GAMEPAD_TYPE_XBOXONE:
+             return InputAdapter::Pad_GenericXBox;
+         case SDL_GAMEPAD_TYPE_NINTENDO_SWITCH_PRO:
+             return InputAdapter::Pad_NX_Pro;
+         case SDL_GAMEPAD_TYPE_NINTENDO_SWITCH_JOYCON_LEFT:
+         case SDL_GAMEPAD_TYPE_NINTENDO_SWITCH_JOYCON_RIGHT:
+             return InputAdapter::Pad_NX_Joycon;
+         case SDL_GAMEPAD_TYPE_NINTENDO_SWITCH_JOYCON_PAIR:
+             return InputAdapter::Pad_NX_Joycon_Dual;
+         default:
+             return InputAdapter::Pad_Other;
+         }
+     }
+
     const f32 SDLGamepad::INPUT_DEADZONE = 0.2f;
 
     SDLGamepad::SDLGamepad()
@@ -345,7 +375,8 @@ namespace ITF
         {
             if (m_gamepads[i].initialize(i))
             {
-                setGamepadConnected(i, true, InputAdapter::Pad_X360);
+                 InputAdapter::PadType padType = MapSDLGamepadTypeToPadType(m_gamepads[i].getGamepad());
+                 setGamepadConnected(i, true, padType);
             }
             else
             {
@@ -364,7 +395,8 @@ namespace ITF
             {
                 if (m_gamepads[i].initialize(i))
                 {
-                    setGamepadConnected(i, true, InputAdapter::Pad_X360);
+                     InputAdapter::PadType padType = MapSDLGamepadTypeToPadType(m_gamepads[i].getGamepad());
+                     setGamepadConnected(i, true, padType);
                     LOG("[SDL] - Gamepad connected");
                     break;
                 }
@@ -682,7 +714,7 @@ namespace ITF
                 m_connectedPlayers[slot] = ePlaying;
             }
             setPadConnected(slot, btrue);
-            setPadType(slot, Pad_X360);
+             setPadType(slot, MapSDLGamepadTypeToPadType(gamepad.getGamepad()));
         }
 
         for (u32 slot = 1; slot < JOY_MAX_COUNT; ++slot)

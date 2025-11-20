@@ -22,8 +22,6 @@ namespace ITF
 {
     const f32 InputAdapter::fDoublePressMaxDuration = 0.2f;
 
-
-
     static InputAdapter::PadType getDefaultPadType()
     {
 #if defined(ITF_X360)
@@ -221,10 +219,11 @@ namespace ITF
 #endif //USE_WIIMOTE_LIB
     }
 
-    // Speed between 0-1
     void InputAdapter::padVibration(u32 _numPad, f32 _leftMotorSpeed, f32 _rightMotorSpeed)
     {
-        // default implementation: ?
+        ITF_UNUSED(_numPad);
+        ITF_UNUSED(_leftMotorSpeed);
+        ITF_UNUSED(_rightMotorSpeed);
     }
 
     bbool InputAdapter::isMousePressed(MouseButton _but) const
@@ -247,14 +246,13 @@ namespace ITF
         memset(m_buttons, 0, JOY_MAX_COUNT * JOY_MAX_BUT * sizeof(PressStatus));
     }
 
-
-
-    void InputAdapter:: OnControllerConnected(u32 _padIndex,i32 _deviceID,i32 _deviceOutputID,bool isSony)
+    void InputAdapter::OnControllerConnected(u32 _padIndex,i32 _deviceID,i32 _deviceOutputID,bool isSony)
     {
 #ifdef USE_PAD_HAPTICS
         HAPTICS_MANAGER->onControllerConnected(_padIndex,_deviceID,_deviceOutputID,isSony);
 #endif
     }
+
     void InputAdapter::OnControllerDisconnected(u32 _padIndex)
     {
 #ifdef USE_PAD_HAPTICS

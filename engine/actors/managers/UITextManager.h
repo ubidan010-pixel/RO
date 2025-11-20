@@ -212,6 +212,23 @@ namespace ITF
         ITF_INLINE f32 getIconYOffset() const { return m_iconYOffset; }
         ITF_INLINE f32 getIconXOffset() const { return m_iconXOffset; }
         ITF_INLINE const ITF_VECTOR<String8>& getButtonNames() const { return m_buttonNames; }
+        ITF_INLINE const ITF_VECTOR<String8>& getButtonNamesForSlot(ControllerIconSlot slot) const 
+        { 
+            switch(slot)
+            {
+            case IconSlot_Wii: return m_buttonNamesWII;
+            case IconSlot_PS3: return m_buttonNamesPS3;
+            case IconSlot_PS5: return m_buttonNamesPS5;
+            case IconSlot_Switch: return m_buttonNamesNX;
+            case IconSlot_Ounce: return m_buttonNamesOunce;
+            case IconSlot_X360: return m_buttonNamesX360;
+            case IconSlot_Vita: return m_buttonNamesVita;
+            case IconSlot_CTR: return m_buttonNamesCTR;
+            case IconSlot_XboxSeries: return m_buttonNamesXboxSeries;
+            case IconSlot_Keyboard: return m_buttonNamesKeyboard;
+            default: return m_buttonNames;
+            }
+        }
         ITF_INLINE const Path& getGpePath() const { return m_gpePath; }
         ITF_INLINE const ITF_VECTOR<String8>& getGpeNames() const { return m_gpeNames; }
 
@@ -221,6 +238,16 @@ namespace ITF
         f32 m_iconXOffset;
         Path m_buttonPath;
         ITF_VECTOR<String8> m_buttonNames;
+        ITF_VECTOR<String8> m_buttonNamesWII;
+        ITF_VECTOR<String8> m_buttonNamesPS3;
+        ITF_VECTOR<String8> m_buttonNamesPS5;
+        ITF_VECTOR<String8> m_buttonNamesNX;
+        ITF_VECTOR<String8> m_buttonNamesOunce;
+        ITF_VECTOR<String8> m_buttonNamesX360;
+        ITF_VECTOR<String8> m_buttonNamesVita;
+        ITF_VECTOR<String8> m_buttonNamesCTR;
+        ITF_VECTOR<String8> m_buttonNamesXboxSeries;
+        ITF_VECTOR<String8> m_buttonNamesKeyboard;
         Path m_gpePath;
         ITF_VECTOR<String8> m_gpeNames;
     };
