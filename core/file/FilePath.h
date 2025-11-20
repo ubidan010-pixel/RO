@@ -22,8 +22,8 @@ namespace ITF
         /// @param _destDir Destination buffer containing the directory (will include trailing /, or be empty).  Gets rid of double slashes
         /// @param _destBasename Destination buffer containing the basename
         /// @param _destBasenameBufferSize Size, ***IN ITEMS*** of the destination buffer
-        static void         splitPathAndNormalize(const u16 *_path, u16 _destDir[256], u16 _destBasename[], u32 _destBasenameBufferSize);
-        static void         splitPathAndNormalize(const char *_path, char _destDir[256], char _destBasename[], u32 _destBasenameBufferSize);
+        static void         splitPathAndNormalize(const u16 *_path, u16 (&_destDir)[256], u16 _destBasename[], u32 _destBasenameBufferSize);
+        static void         splitPathAndNormalize(const char *_path, char (&_destDir)[256], char _destBasename[], u32 _destBasenameBufferSize);
 
         /// @return btrue if the path is normalized
         static bbool        isNormalized(const String& path);

@@ -133,6 +133,8 @@ namespace	ITF
             virtual const SoundConfig_Template* getConfig() const = 0;
             virtual void setBusVolume(StringID _bus, Volume _volume, f32 _time) =0;
             virtual void setMasterVolume(Volume _volume) = 0;
+            virtual void setMenuMusicVolume(Volume _volume) = 0;
+            virtual void setMenuSFXVolume(Volume _volume) = 0;
 
             virtual SoftwareBus* getBus(const StringID _name) = 0;
 

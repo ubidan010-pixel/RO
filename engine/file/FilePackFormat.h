@@ -27,6 +27,7 @@ namespace ITF
             PS5     = 7,
             NSwitch = 8, // aka. NX (but is a define)
             NSwitch2 = 9, // aka. Ounce
+            XBOXSERIES = 10,
         };
     };
 

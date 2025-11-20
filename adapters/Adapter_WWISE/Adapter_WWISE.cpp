@@ -93,6 +93,48 @@ namespace	ITF
 
     }
 
+    void Adapter_WWISE::setMenuMusicVolume(Volume _volume)
+    {
+        if (isRunning() == false)
+            return;
+
+        StringID guidRTPCVol = m_guidRtpc.m_MenuMusicGUID;
+        if (guidRTPCVol.isValid())
+        {
+            SoundRtpcID	rtpcVolumeID = AUDIO_ADAPTER->getIDFromGUID(guidRTPCVol);
+            if (rtpcVolumeID != ITF_INVALID_SOUND_RTPC_ID)
+                AUDIO_ADAPTER->setRtpc(rtpcVolumeID, _volume.ratio(), ITF_INVALID_OBJREF); 
+            else
+                AUDIO_ERROR("Sound : rtpcMenuVolume on Music is not defined.");
+
+        }
+        else
+            AUDIO_ERROR("Sound : rtpcMenuVolume on Music is not defined.");
+
+    }
+
+
+    void Adapter_WWISE::setMenuSFXVolume(Volume _volume)
+    {
+        if (isRunning() == false)
+            return;
+
+        StringID guidRTPCVol = m_guidRtpc.m_MenuSFXGUID;
+        if (guidRTPCVol.isValid())
+        {
+            SoundRtpcID	rtpcVolumeID = AUDIO_ADAPTER->getIDFromGUID(guidRTPCVol);
+            if (rtpcVolumeID != ITF_INVALID_SOUND_RTPC_ID)
+                AUDIO_ADAPTER->setRtpc(rtpcVolumeID, _volume.ratio(), ITF_INVALID_OBJREF); 
+            else
+                AUDIO_ERROR("Sound : rtpcMenuVolume on SFX is not defined.");
+
+        }
+        else
+            AUDIO_ERROR("Sound : rtpcMenuVolume on SFX is not defined.");
+
+    }
+
+
 	//
 	// ===================================================================================================================
 	// ===================================================================================================================

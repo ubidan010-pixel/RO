@@ -23,6 +23,8 @@ namespace ITF
         StringID m_lowpassGUID;
         StringID m_highpassGUID;
         StringID m_MenuGlobalGUID;
+        StringID m_MenuMusicGUID;
+        StringID m_MenuSFXGUID;
     };
 
     class SoundConfig_Template : public TemplateObj

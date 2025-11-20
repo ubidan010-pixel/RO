@@ -18,6 +18,8 @@ namespace ITF
     SERIALIZE_MEMBER("lowpassRtpcGuid", m_lowpassGUID);
     SERIALIZE_MEMBER("highpassRtpcGuid", m_highpassGUID);
     SERIALIZE_MEMBER("MenuVolumeGlobalRtpcGuid", m_MenuGlobalGUID);
+    SERIALIZE_MEMBER("MenuVolumeMusicRtpcGuid", m_MenuMusicGUID);
+    SERIALIZE_MEMBER("MenuVolumeSFXRtpcGuid", m_MenuSFXGUID);
     END_SERIALIZATION()
 
     IMPLEMENT_OBJECT_RTTI(SoundConfig_Template)

@@ -46,7 +46,7 @@ namespace ITF
 
 
     bbool Filepack::readFromCompressed(u8* _pBufferDst,u32 _bytesToRead,u32 _lenghtCompressed)
-    { 
+    {
         BUNDLEMANAGER->lockAccess();
         ITF_ASSERT(m_CurrentPosition + _bytesToRead <= _lenghtCompressed);
 
@@ -67,37 +67,47 @@ namespace ITF
     }
 
 
-    bbool Filepack::read(void* _buffer,u32 _bytesToRead,u32* _readBytes)
+    bbool Filepack::read(void* _buffer, u32 _bytesToRead, u32* _readBytes)
     {
         if (Synchronize::getCurrentThreadId() == ThreadSettings::m_settings[eThreadId_mainThread].m_threadID)
         {
             LOG("Bundle read on main thread of %s", StringToUTF8(m_szFilename).get());
+            // LOG ADDED: Log detailed information for debugging
+            LOG("Filepack::read details: Filename='%s', bytesToRead=%u, currentPos=%u, totalLength=%u", StringToUTF8(m_szFilename).get(), _bytesToRead, m_CurrentPosition, m_Length);
         }
 
-
         BUNDLEMANAGER->lockAccess();
-        u32 readlocal;
+        u32 readlocal = 0; // Initialized to 0
 
         ITF_ASSERT(_bytesToRead <= m_Length);
         ITF_ASSERT(m_CurrentPosition + _bytesToRead <= m_Length);
 
         if (m_pBuffer)
         {
-            ITF_Memcpy(_buffer,m_pBuffer+m_CurrentPosition,_bytesToRead);
+            // LOG ADDED: Reading from in-memory buffer
+            LOG("[FILEPACK][READ_MEM] Reading %u bytes from memory for %s", _bytesToRead, StringToUTF8(m_szFilename).get());
+            ITF_Memcpy(_buffer, m_pBuffer + m_CurrentPosition, _bytesToRead);
             readlocal = _bytesToRead;
+            // LOG ADDED: Finished reading from memory
+            LOG("[FILEPACK][READ_MEM] Memcpy finished for %s", StringToUTF8(m_szFilename).get());
         }
         else
         {
-#ifndef ITF_NO_BUNDLE_TRACKING
-            LOG( "[FILEPACK][READ][%s] %s %s (%d)", ThreadSettings::getCurrentThreadName(), StringToUTF8(m_BundleParent->getFilename()).get(), m_szFilename.isEmpty() ? "Unknown file" : StringToUTF8(m_szFilename).get(), _bytesToRead );
-#endif
-            PROFILE_BUNDLE(m_globalPositionOnFile + m_CurrentPosition,_bytesToRead,this->getLength(),m_szFilename,m_BundleParent->getFilename());
-            m_BundleParent->fileRead(m_globalPositionOnFile + m_CurrentPosition,_buffer,_bytesToRead,readlocal);
+    #ifndef ITF_NO_BUNDLE_TRACKING
+            LOG("[FILEPACK][READ][%s] %s %s (%d)", ThreadSettings::getCurrentThreadName(), StringToUTF8(m_BundleParent->getFilename()).get(), m_szFilename.isEmpty() ? "Unknown file" : StringToUTF8(m_szFilename).get(), _bytesToRead);
+    #endif
+            // LOG ADDED: About to read from parent bundle
+            LOG("[FILEPACK][READ_PARENT] Reading from parent bundle for %s", StringToUTF8(m_szFilename).get());
+            PROFILE_BUNDLE(m_globalPositionOnFile + m_CurrentPosition, _bytesToRead, this->getLength(), m_szFilename, m_BundleParent->getFilename());
+            m_BundleParent->fileRead(m_globalPositionOnFile + m_CurrentPosition, _buffer, _bytesToRead, readlocal);
+            // LOG ADDED: Finished reading from parent bundle
+            LOG("[FILEPACK][READ_PARENT] Parent fileRead finished for %s. Bytes read: %u", StringToUTF8(m_szFilename).get(), readlocal);
         }
 
         m_CurrentPosition += readlocal;
         if (_readBytes)
             *_readBytes = readlocal;
+
         ITF_ASSERT(m_CurrentPosition <= m_Length);
         BUNDLEMANAGER->unlockAccess();
         return btrue;
@@ -108,7 +118,7 @@ namespace ITF
         m_pBuffer = _pBuffer;
     }
 
-    u64 Filepack::seek(i64 _seekPos,u16 _from) 
+    u64 Filepack::seek(i64 _seekPos,u16 _from)
     {
         switch (_from)
         {

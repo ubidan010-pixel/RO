@@ -54,8 +54,11 @@ namespace ITF
         } while (val);
     }
 
-    void FilePath::splitPathAndNormalize(const u16 *_path, u16 _destDir[256], u16 _destBasename[], u32 _destBasenameBufferSize)
+    void FilePath::splitPathAndNormalize(const u16 *_path, u16 (&_destDir)[256], u16 _destBasename[], u32 _destBasenameBufferSize)
     {
+        const u32 maxDirSize = u32(ITF_ARRAY_SIZE(_destDir));
+        const u16* srcPathBase = _path;
+        ITF_UNUSED(srcPathBase);
         u16 *destDirPos = _destDir;
         u16 *destBasenamePos = _destBasename;
         u16 *destBasenameEnd = _destBasename + _destBasenameBufferSize;
@@ -85,6 +88,12 @@ namespace ITF
             lastChar = val;
             *destDirPos = val;
             destDirPos++;
+            if (u32(destDirPos - _destDir) >= maxDirSize)
+            {
+                ITF_ASSERT_CRASH(false, "Path %s is too long (max %u)", srcPathBase, maxDirSize);
+                destDirPos[-1] = 0;
+                break;
+            }
         } while (val);
         if (lastSlash)
         {
@@ -105,6 +114,7 @@ namespace ITF
             destBasenamePos++;
             if (destBasenamePos==destBasenameEnd)
             {
+                ITF_ASSERT_CRASH(false, "Filename of %s is too long (max %u)", srcPathBase, _destBasenameBufferSize);
                 destBasenameEnd[-1]=0;
                 if (lastSlash)
                 {
@@ -123,8 +133,11 @@ namespace ITF
             _destDir[0] = 0;
     }
 
-    void FilePath::splitPathAndNormalize(const char *_path, char _destDir[256], char _destBasename[], u32 _destBasenameBufferSize)
+    void FilePath::splitPathAndNormalize(const char *_path, char (&_destDir)[256], char _destBasename[], u32 _destBasenameBufferSize)
     {
+        const u32 maxDirSize = u32(ITF_ARRAY_SIZE(_destDir));
+        const char* srcPathBase = _path;
+        ITF_UNUSED(srcPathBase);
         char *destDirPos = _destDir;
         char *destBasenamePos = _destBasename;
         char *destBasenameEnd = _destBasename + _destBasenameBufferSize;
@@ -154,6 +167,12 @@ namespace ITF
             lastChar = val;
             *destDirPos = val;
             destDirPos++;
+            if (u32(destDirPos - _destDir) >= maxDirSize)
+            {
+                ITF_ASSERT_CRASH(false, "Path %s is too long (max %u)", srcPathBase, maxDirSize);
+                destDirPos[-1] = 0;
+                break;
+            }
         } while (val);
         if (lastSlash)
         {
@@ -174,6 +193,7 @@ namespace ITF
             destBasenamePos++;
             if (destBasenamePos==destBasenameEnd)
             {
+                ITF_ASSERT_CRASH(false, "Filename of %s is too long (max %u)", srcPathBase, _destBasenameBufferSize);
                 destBasenameEnd[-1]=0;
                 if (lastSlash)
                 {

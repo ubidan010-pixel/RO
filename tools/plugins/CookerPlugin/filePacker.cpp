@@ -126,6 +126,10 @@ static BundlePlatform::Enum getBundlePlatformFromString(const String & _strPlatf
     {
         uPlatform = BundlePlatform::NSwitch2;
     }
+    else if (_strPlatform == "XBOXSERIES")
+    {
+        uPlatform = BundlePlatform::XBOXSERIES;
+    }
     return uPlatform;
 }
 

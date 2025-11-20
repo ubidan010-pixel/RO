@@ -28,7 +28,7 @@ namespace ITF
     {
     public:
         static Path EmptyPath;
-        static const int maxBasenameLength = 48; //Size, in character, of the basename. Includes the 0 character.
+        static const int maxBasenameLength = 256; //Size, in character, of the basename. Includes the 0 character.
 
         ///////////////////////////////////////////////////////////////////////////////////////////
         /// Empty constructor
