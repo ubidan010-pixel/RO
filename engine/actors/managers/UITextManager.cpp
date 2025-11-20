@@ -181,17 +181,17 @@ namespace ITF
             IconSlot_Wii, IconSlot_PS3, IconSlot_PS5, IconSlot_Switch, IconSlot_Ounce,
             IconSlot_X360, IconSlot_Vita, IconSlot_CTR, IconSlot_XboxSeries, IconSlot_Keyboard
         };
-        
+
         for (u32 slotIdx = 0; slotIdx < ITF_ARRAY_SIZE(platformSlots); ++slotIdx)
         {
             ControllerIconSlot slot = platformSlots[slotIdx];
             const ITF_VECTOR<String8>& buttonNames = m_template->getButtonNamesForSlot(slot);
-            
+
             if (buttonNames.empty())
                 continue;
-                
+
             u32 slotIndex = ControllerSlotToIndex(slot);
-            
+
             for (i32 i = 0; i < (i32)buttonNames.size(); ++i)
             {
                 m_controllerButtonMaps[slotIndex][buttonNames[i]] = i;
@@ -736,7 +736,6 @@ namespace ITF
         SERIALIZE_MEMBER("iconSize", m_iconSize);
         SERIALIZE_MEMBER("iconYOffset", m_iconYOffset);
         SERIALIZE_MEMBER("iconXOffset", m_iconXOffset);
-        SERIALIZE_CONTAINER("buttonNames", m_buttonNames);
         SERIALIZE_CONTAINER("buttonNamesWII", m_buttonNamesWII);
         SERIALIZE_CONTAINER("buttonNamesPS3", m_buttonNamesPS3);
         SERIALIZE_CONTAINER("buttonNamesPS5", m_buttonNamesPS5);

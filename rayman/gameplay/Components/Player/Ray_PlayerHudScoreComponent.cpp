@@ -1026,7 +1026,8 @@ namespace ITF
         "<N/A>",                        // Pad_NX_Joycon,
         "<N/A>",                        // Pad_NX_Joycon_Dual,
         "<N/A>",                        // Pad_NX_Pro,
-        "<N/A>"                         // Pad_GenericXBox,
+        "<N/A>",                        // Pad_GenericXBox,
+        "[icon:KEYBOARD_SPACE]"         // Pad_Keyboard
     };
 
     static_assert(ITF_ARRAY_SIZE(gs_pressStartText) == ITF::uSize(InputAdapter::PadType_Count));
@@ -1037,7 +1038,7 @@ namespace ITF
         String8 pressStartText;
         if (m_playerIndex!=U32_INVALID)
         {
-            InputAdapter::PadType padType = INPUT_ADAPTER->getDebugInputPadType(m_playerIndex);
+            InputAdapter::PadType padType = INPUT_ADAPTER->getLastUsedPadType(m_playerIndex);
             pressStartText = gs_pressStartText[padType];
         }
 

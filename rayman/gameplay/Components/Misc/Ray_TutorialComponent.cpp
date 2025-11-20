@@ -267,11 +267,11 @@ void Ray_TutorialComponent::setupWii(f32 _dt)
         {
             if (player->getActive())
             {
-                InputAdapter::PadType padType = INPUT_ADAPTER->getDebugInputPadType(i);
+                InputAdapter::PadType padType = INPUT_ADAPTER->getLastUsedPadType(i);
                 PadTypeList::iterator check = std::find(newPadTypes.begin(), newPadTypes.end(), padType);
                 if (check == newPadTypes.end())
                 {
-                    newPadTypes.push_back(INPUT_ADAPTER->getDebugInputPadType(i));
+                    newPadTypes.push_back(INPUT_ADAPTER->getLastUsedPadType(i));
                 }
             }
         }
@@ -332,11 +332,11 @@ void Ray_TutorialComponent::setupSwitch(f32 _dt)
         {
             if (player->getActive())
             {
-                InputAdapter::PadType padType = INPUT_ADAPTER->getDebugInputPadType(i);
+                InputAdapter::PadType padType = INPUT_ADAPTER->getLastUsedPadType(i);
                 PadTypeList::iterator check = std::find(newPadTypes.begin(), newPadTypes.end(), padType);
                 if (check == newPadTypes.end())
                 {
-                    newPadTypes.push_back(INPUT_ADAPTER->getDebugInputPadType(i));
+                    newPadTypes.push_back(INPUT_ADAPTER->getLastUsedPadType(i));
                 }
             }
         }

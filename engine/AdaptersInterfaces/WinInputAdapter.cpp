@@ -171,6 +171,7 @@ namespace ITF
         {
         case Pressed:
             m_keys[_key] = btrue;
+            setLastUsedInputDevice(0, InputDevice_Keyboard);
             break;
         case Released:
             m_keys[_key] = bfalse;
@@ -273,6 +274,8 @@ namespace ITF
     void WinInputAdapter::platformUpdateKeyboardState()
     {
 #if defined(ITF_FINAL) || ITF_ENABLE_EDITOR_KEYBOARD
+        bbool hasKeyboardInput = bfalse;
+        
         for (u32 keyIndex = 0; keyIndex < KEY_COUNT; ++keyIndex)
         {
             const int pressed = GetKeyState(keyIndex) & 0x80;
@@ -286,10 +289,12 @@ namespace ITF
                 case JustReleased:
                     m_keyStatus[keyIndex] = JustPressed;
                     m_keyPressTime[keyIndex] = 0;
+                    hasKeyboardInput = btrue;
                     break;
                 case JustPressed:
                 case Pressed:
                     m_keyStatus[keyIndex] = Pressed;
+                    hasKeyboardInput = btrue;
                     break;
                 default: ;
                 }
@@ -309,6 +314,11 @@ namespace ITF
                 default: ;
                 }
             }
+        }
+
+        if (hasKeyboardInput)
+        {
+            setLastUsedInputDevice(0, InputDevice_Keyboard);
         }
 
         updateKeyboardForPlayer0();
@@ -459,28 +469,68 @@ namespace ITF
     {
         if (m_connectedPlayers[0] != eNotConnected)
         {
+            bbool keyboardUsed = bfalse;
+            
             if (m_buttons[0][m_joyButton_DPadU] == Released)
-                m_buttons[0][m_joyButton_DPadU] = getKeyboardStatus(VK_UP);
+            {
+                PressStatus status = getKeyboardStatus(VK_UP);
+                m_buttons[0][m_joyButton_DPadU] = status;
+                if (status == Pressed || status == JustPressed) keyboardUsed = btrue;
+            }
             if (m_buttons[0][m_joyButton_DPadD] == Released)
-                m_buttons[0][m_joyButton_DPadD] = getKeyboardStatus(VK_DOWN);
+            {
+                PressStatus status = getKeyboardStatus(VK_DOWN);
+                m_buttons[0][m_joyButton_DPadD] = status;
+                if (status == Pressed || status == JustPressed) keyboardUsed = btrue;
+            }
             if (m_buttons[0][m_joyButton_DPadL] == Released)
-                m_buttons[0][m_joyButton_DPadL] = getKeyboardStatus(VK_LEFT);
+            {
+                PressStatus status = getKeyboardStatus(VK_LEFT);
+                m_buttons[0][m_joyButton_DPadL] = status;
+                if (status == Pressed || status == JustPressed) keyboardUsed = btrue;
+            }
             if (m_buttons[0][m_joyButton_DPadR] == Released)
-                m_buttons[0][m_joyButton_DPadR] = getKeyboardStatus(VK_RIGHT);
+            {
+                PressStatus status = getKeyboardStatus(VK_RIGHT);
+                m_buttons[0][m_joyButton_DPadR] = status;
+                if (status == Pressed || status == JustPressed) keyboardUsed = btrue;
+            }
 
             if (m_buttons[0][m_joyButton_A] == Released)
-                m_buttons[0][m_joyButton_A] = getKeyboardStatus(VK_SPACE);
+            {
+                PressStatus status = getKeyboardStatus(VK_SPACE);
+                m_buttons[0][m_joyButton_A] = status;
+                if (status == Pressed || status == JustPressed) keyboardUsed = btrue;
+            }
             if (m_buttons[0][m_joyButton_X] == Released)
-                m_buttons[0][m_joyButton_X] = getKeyboardStatus('S');
+            {
+                PressStatus status = getKeyboardStatus('S');
+                m_buttons[0][m_joyButton_X] = status;
+                if (status == Pressed || status == JustPressed) keyboardUsed = btrue;
+            }
             if (m_buttons[0][m_joyButton_B] == Released)
-                m_buttons[0][m_joyButton_B] = getKeyboardStatus(VK_BACK);
+            {
+                PressStatus status = getKeyboardStatus(VK_BACK);
+                m_buttons[0][m_joyButton_B] = status;
+                if (status == Pressed || status == JustPressed) keyboardUsed = btrue;
+            }
             if (m_buttons[0][m_joyButton_Start] == Released)
-                m_buttons[0][m_joyButton_Start] = getKeyboardStatus(VK_ESCAPE);
+            {
+                PressStatus status = getKeyboardStatus(VK_ESCAPE);
+                m_buttons[0][m_joyButton_Start] = status;
+                if (status == Pressed || status == JustPressed) keyboardUsed = btrue;
+            }
 
             if (m_axes[0][m_joyTrigger_Right] == 0.0f)
             {
                 const bbool sprintPressed = (getKeyboardStatus(VK_LSHIFT) == Pressed || getKeyboardStatus(VK_LSHIFT) == JustPressed);
                 m_axes[0][m_joyTrigger_Right] = sprintPressed ? 1.0f : 0.0f;
+                if (sprintPressed) keyboardUsed = btrue;
+            }
+            
+            if (keyboardUsed)
+            {
+                setLastUsedInputDevice(0, InputDevice_Keyboard);
             }
         }
     }

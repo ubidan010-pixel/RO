@@ -55,7 +55,7 @@ namespace ITF
     {
         m_environmentInput = EnvironmentEngine | EnvironmentLua;
         m_buttonMode = MixedMode;
-        
+
         // Initialize last used input device tracking
         for (u32 i = 0; i < JOY_MAX_COUNT; ++i)
         {
@@ -276,5 +276,28 @@ namespace ITF
     {
         ITF_UNUSED(key);
         return std::numeric_limits<u32>::max();
+    }
+
+    InputAdapter::PadType InputAdapter::getLastUsedPadType(u32 _player) const
+    {
+        if (_player >= JOY_MAX_COUNT)
+        {
+            return getDebugInputPadType(_player);
+        }
+
+        InputDeviceType deviceType = m_lastUsedInputDevice[_player];
+        if (deviceType == InputDevice_Keyboard)
+        {
+            return Pad_Keyboard;
+        }
+        else if (deviceType == InputDevice_Gamepad)
+        {
+            return getDebugInputPadType(_player);
+        }
+        if (isPadConnected(_player))
+        {
+            return getDebugInputPadType(_player);
+        }
+        return Pad_Keyboard;
     }
 } // namespace ITF

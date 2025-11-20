@@ -700,13 +700,35 @@ namespace ITF
                 continue;
 
             const SDLGamepad& gamepad = m_sdlInput.m_gamepads[idx];
-            for (u32 axis = 0; axis < JOY_MAX_AXES; ++axis)
-            {
-                m_axes[slot][axis] = gamepad.getAxis(axis);
-            }
+            
+            bbool hasGamepadInput = bfalse;
+            
             for (u32 button = 0; button < JOY_MAX_BUT; ++button)
             {
-                m_buttons[slot][button] = gamepad.getButton(button);
+                PressStatus status = gamepad.getButton(button);
+                m_buttons[slot][button] = status;
+                
+                if (status == Pressed || status == JustPressed)
+                {
+                    hasGamepadInput = btrue;
+                }
+            }
+            
+            const f32 axisThreshold = 0.3f;
+            for (u32 axis = 0; axis < JOY_MAX_AXES; ++axis)
+            {
+                f32 axisValue = gamepad.getAxis(axis);
+                m_axes[slot][axis] = axisValue;
+                
+                if (!hasGamepadInput && (axisValue > axisThreshold || axisValue < -axisThreshold))
+                {
+                    hasGamepadInput = btrue;
+                }
+            }
+            
+            if (hasGamepadInput)
+            {
+                setLastUsedInputDevice(slot, InputDevice_Gamepad);
             }
 
             if (m_connectedPlayers[slot] == eNotConnected)
@@ -714,7 +736,7 @@ namespace ITF
                 m_connectedPlayers[slot] = ePlaying;
             }
             setPadConnected(slot, btrue);
-             setPadType(slot, MapSDLGamepadTypeToPadType(gamepad.getGamepad()));
+            setPadType(slot, MapSDLGamepadTypeToPadType(gamepad.getGamepad()));
         }
 
         for (u32 slot = 1; slot < JOY_MAX_COUNT; ++slot)

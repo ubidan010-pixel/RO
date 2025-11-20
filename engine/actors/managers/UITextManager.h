@@ -194,7 +194,6 @@ namespace ITF
             , m_iconSize(32.0f)
             , m_iconYOffset(0.0f)
             , m_iconXOffset(0.f)
-            , m_buttonNames()
             , m_gpePath()
             , m_gpeNames()
             {}
@@ -203,7 +202,6 @@ namespace ITF
             , m_iconSize(32.0f)
             , m_iconYOffset(0.0f)
             , m_iconXOffset(0.f)
-            , m_buttonNames()
             , m_gpePath()
             , m_gpeNames()
             {}
@@ -211,9 +209,8 @@ namespace ITF
         ITF_INLINE f32 getIconSize() const { return m_iconSize; }
         ITF_INLINE f32 getIconYOffset() const { return m_iconYOffset; }
         ITF_INLINE f32 getIconXOffset() const { return m_iconXOffset; }
-        ITF_INLINE const ITF_VECTOR<String8>& getButtonNames() const { return m_buttonNames; }
-        ITF_INLINE const ITF_VECTOR<String8>& getButtonNamesForSlot(ControllerIconSlot slot) const 
-        { 
+        ITF_INLINE const ITF_VECTOR<String8>& getButtonNamesForSlot(ControllerIconSlot slot) const
+        {
             switch(slot)
             {
             case IconSlot_Wii: return m_buttonNamesWII;
@@ -226,7 +223,7 @@ namespace ITF
             case IconSlot_CTR: return m_buttonNamesCTR;
             case IconSlot_XboxSeries: return m_buttonNamesXboxSeries;
             case IconSlot_Keyboard: return m_buttonNamesKeyboard;
-            default: return m_buttonNames;
+            default: return m_buttonNamesX360;
             }
         }
         ITF_INLINE const Path& getGpePath() const { return m_gpePath; }
@@ -237,7 +234,6 @@ namespace ITF
         f32 m_iconYOffset;
         f32 m_iconXOffset;
         Path m_buttonPath;
-        ITF_VECTOR<String8> m_buttonNames;
         ITF_VECTOR<String8> m_buttonNamesWII;
         ITF_VECTOR<String8> m_buttonNamesPS3;
         ITF_VECTOR<String8> m_buttonNamesPS5;

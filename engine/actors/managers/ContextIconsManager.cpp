@@ -404,7 +404,7 @@ void ContextIconsManager::setupIcon(EContextIcon _icon, UIComponent* _iconUI, UI
                 iconType = ContextIconType_Select;
         }
 
-        InputAdapter::PadType padType = INPUT_ADAPTER->getDebugInputPadType(mainPlayer);
+        InputAdapter::PadType padType = INPUT_ADAPTER->getLastUsedPadType(mainPlayer);
         if (padType == InputAdapter::Pad_Invalid) return;
         String8 content = m_template->getButtonNames()[padType][iconType];
         _iconUI->forceContent(content);
