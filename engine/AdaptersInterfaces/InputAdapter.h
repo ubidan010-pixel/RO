@@ -92,6 +92,13 @@ namespace ITF
 
     class Interface_InputListener;
 
+    // Input device type for tracking last used input
+    enum InputDeviceType : u32
+    {
+        InputDevice_None = 0,
+        InputDevice_Keyboard,
+        InputDevice_Gamepad,
+    };
 
     // *** BUTTONS ***
     // XBOX SPECIFIC + COMMON
