@@ -1646,7 +1646,8 @@ void UIMenuManager::applySelectionChange(UIMenu* menu, UIComponent* oldSel, UICo
     bbool UIMenuManager::IsCurrentMenuVerticalScrolling() const
     {
         const u32 menuValue = m_currentMenuID.GetValue();
-        return menuValue == PROFILE_SELECTION_MENU_ID || menuValue == MAIN_MENU_MENU_ID;
+        // ROE-711: main menu has vertical + horizontal now
+        return menuValue == PROFILE_SELECTION_MENU_ID /* || menuValue == MAIN_MENU_MENU_ID*/;
     }
 
     bbool UIMenuManager::onMouseButton( InputAdapter::MouseButton but, InputAdapter::PressStatus status )
@@ -1730,7 +1731,9 @@ void UIMenuManager::applySelectionChange(UIMenu* menu, UIComponent* oldSel, UICo
 				{
 					break;
 				}
-				while (pMenu->getUIComponentSelected() != componentUnderMouse)
+
+                // ROE-711: there shouldn't be infinite looping in UI logic, in case we add an extra component
+                for (int i = 0; i < 1000 && (pMenu->getUIComponentSelected() != componentUnderMouse); i++)
 				{
 					selectMenuItem(scrollDirectionX, scrollDirectionY);
 				}
