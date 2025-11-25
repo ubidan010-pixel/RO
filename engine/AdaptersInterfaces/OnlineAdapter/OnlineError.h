@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/Macros.h"
 
 namespace ITF
 {

@@ -23,6 +23,8 @@
 #include "core/system/Synchronize.h"
 #endif //_ITF_SYNCHRONIZE_H_
 
+#include <algorithm>
+
 #include "core/UnicodeTools.h"
 
 namespace ITF
@@ -625,23 +627,34 @@ public:
     static void clearFullDictionaryFlag_DEBUG()  {if (m_staticThreadData) m_staticThreadData->DataReserve[ThreadInfo::m_threadEngineIndex.getValue()].m_dictionaryWasFull = bfalse;}
 
     template <typename Operator>
-    static void tokenize(Operator& op, const wchar_t* input, const wchar_t* delimiters)
-    {  
-        const wchar_t* s = input;   
-        const wchar_t* e = s;   
+    void tokenize(Operator&& op, u16 _delimiter) const
+    {
+        if (isEmpty())
+            return;
 
-        while (*e != 0) 
-        { 
-            e = s;     
-            while (*e != 0 && wcschr(delimiters, *e) == 0) ++e;   
-            if (e - s > 0) 
+        const u16* tokenBegin = m_szContent_;
+        const u16* current = m_szContent_;
+        const u16* const strEnd = m_szContent_ + m_length;
+
+        while (current != strEnd)
+        {
+            current = std::find(current, strEnd, _delimiter);
+            op(tokenBegin, u32(current - tokenBegin));
+            if (current != strEnd)
             {
-                op(s, u32(e - s));    
-            } 
-
-            s = e + 1;   
+                ++current; // skip delimiter
+                tokenBegin = current;
+            }
         }
-    } 
+    }
+
+#ifdef ITF_WCHAR_IS_16BIT
+    template <typename Operator>
+    void tokenize(Operator&& op, wchar_t _delimiter) const
+    {
+        tokenize([&op](const u16* token, u32 length) { op(reinterpret_cast<const wchar_t*>(token), length); }, static_cast<u16>(_delimiter));
+    }
+#endif
 
 private:
 

@@ -938,6 +938,12 @@ namespace ITF
 
         bbool res = (m_state!=State_ShowingPressStart);
 #ifdef ITF_SUPPORT_NETWORKSERVICES
+        if (!NETWORKSERVICES || !CONFIG->m_enableNetwork)
+        {
+            LOG("[NetworkServices] Not init or disabled!");
+            return res;
+        }
+
         //if (!_isOnlineStatusChange && (m_state!=State_ShowingPressStart))
         {
             /*
@@ -1150,11 +1156,15 @@ namespace ITF
 
         updatePlayerIndex();
 #ifdef ITF_SUPPORT_NETWORKSERVICES
-        if(!m_validUser)
+        if (NETWORKSERVICES && CONFIG->m_enableNetwork)
         {
-            m_validUser = newAlloc(mId_Gameplay, NetworkServices::User);
+            if (!m_validUser)
+            {
+                m_validUser = newAlloc(mId_Gameplay, NetworkServices::User);
+            }
+
+            NETWORKSERVICES->getUserFromControllerIndex(getPlayerIndex(), m_validUser);
         }
-        NETWORKSERVICES->getUserFromControllerIndex(getPlayerIndex(), m_validUser);
 #endif // ITF_SUPPORT_NETWORKSERVICES
 
         // Last play time already calculated and logged in onWorldLoaded
@@ -1215,7 +1225,10 @@ namespace ITF
         {
             LOG("[UBICONNECT] - Ray_GameScreen_MainMenu: Ubisoft Connect button pressed");
 #ifdef ITF_SUPPORT_UPLAY
-            UPLAYSERVICE->showOverlay();
+            if (UPLAYSERVICE && !UPLAYSERVICE->isOverlayActive())
+            {
+                UPLAYSERVICE->showOverlay();
+            }
 #endif
         }
         else if (id == pressNew1Button)

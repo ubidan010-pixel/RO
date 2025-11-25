@@ -21,7 +21,7 @@
 #include "engine/AdaptersInterfaces/OnlineAdapter/TrackingService.h"
 #endif //_ITF_ONLINEADAPTER_H_
 
-#if defined(ITF_SUPPORT_UBISERVICES)
+#if defined(ITF_SUPPORT_UBISERVICES) && defined(ITF_SUPPORT_ONLINETRACKING)
 namespace ITF
 {
     OnlineTrackingAdapter::OnlineTrackingAdapter()

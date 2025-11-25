@@ -23,12 +23,16 @@ namespace ITF
         virtual void terminate();
         virtual i32 showOverlay();
         virtual String8 getToken();
+        inline virtual bbool isOverlayActive() { return m_isOverlayActive; }
 
     private:
         UPC_Context* m_Context;
         bbool m_isInitialized;
+        bbool m_isOverlayActive;
 
         String8 m_language;
+
+        static void showOverlayCallback(UPC_Event* inEvent, void* inData);
     };
 
 } // namespace ITF

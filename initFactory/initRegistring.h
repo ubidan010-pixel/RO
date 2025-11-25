@@ -69,7 +69,7 @@ REGISTER_ITF_PARENT(SystemAdapter_win, SystemAdapter)
 REGISTER_ITF_PARENT(Adapter_Savegame_win, Adapter_Savegame)
 REGISTER_ITF_PARENT(TRCManagerAdapter_win, TRCManagerAdapter)
 #ifdef ITF_SUPPORT_NETWORKSERVICES
-REGISTER_ITF(NetworkServices)
+REGISTER_ITF_PARENT(NetworkServices_Win, NetworkServices)
 #endif
 #ifdef ITF_SUPPORT_UPLAY
 REGISTER_ITF_PARENT(UPlayService_Win, UPlayService)
@@ -113,6 +113,7 @@ REGISTER_ITF_PARENT(GFXAdapter_PS5, GFXAdapter)
 REGISTER_ITF_PARENT(FileManager_ITF, FileManager)
 REGISTER_ITF_PARENT(SystemAdapter_PS5, SystemAdapter)
 REGISTER_ITF_PARENT(Adapter_Savegame_PS5, Adapter_Savegame)
+REGISTER_ITF_PARENT(NetworkServices_PS5, NetworkServices)
 #ifdef ITF_SUPPORT_RAKI
 REGISTER_ITF_PARENT(SoundAdapter_Dummy, SoundAdapter)
 #endif
@@ -154,7 +155,8 @@ REGISTER_ITF_PARENT(Adapter_Savegame_XBoxSeries, Adapter_Savegame)
 REGISTER_ITF_PARENT(SoundAdapter_Dummy, SoundAdapter)
 #endif
 REGISTER_ITF_PARENT(TRCManagerAdapter_XBoxSeries, TRCManagerAdapter)
-REGISTER_ITF_PARENT(RewardAdapter_Dummy, RewardAdapter)
+REGISTER_ITF_PARENT(AccountAdapter_xboxseries, AccountAdapter)
+REGISTER_ITF_PARENT(RewardAdapter_xboxseries, RewardAdapter)
 #endif
 
 

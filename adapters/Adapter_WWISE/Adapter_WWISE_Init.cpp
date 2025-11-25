@@ -205,14 +205,13 @@ namespace	ITF
 
 		// Set the path to the SoundBank Files. root
 		// set bank path
-		AkOSChar	root[512];
-
+		AkOSChar	root[512] = AKTEXT("");
         AudioSDK::safeStringCopy(root, Wwise::Helper::getUAFDataRoot());
 		AudioSDK::safeStringCat(root, Wwise::Configure::c_bankRootPath);
 		AudioSDK::safeStringCat(root, Wwise::Helper::getWwisePlatformName(Wwise::Helper::CURRENT_PLATFORM));
 		AudioSDK::safeStringCat(root, AKTEXT("/"));
 #if defined( ITF_PS5) || defined( ITF_NX) || defined( ITF_OUNCE)
-        String finalPath;
+        String finalPath= "";
         FILEMANAGER->TranslatePath(finalPath, root);
         const AkOSChar* consoleroot = { AKTEXT(finalPath.getCharCopy()) };
         m_pLowLevelIO->SetBasePath(consoleroot);
@@ -220,9 +219,6 @@ namespace	ITF
 
         m_pLowLevelIO->SetBasePath(root);
 #endif
-
-
-
 
 		//
 		// Set global language. Low-level I/O devices can use this string to find
@@ -241,10 +237,6 @@ namespace	ITF
         AK::SoundEngine::RegisterGlobalCallback(&Adapter_WWISE::WwiseAudioThreadCallbackFunc,
             AkGlobalCallbackLocation_BeginRender,
             this);
-
-        //
-
-
 
 
         // override Wwise log
@@ -456,17 +448,15 @@ namespace	ITF
 //             }
 //         }
 #endif
-    //
-    // Create and initialize an instance of the default memory manager.
-    //
 
+        //
+        // Create and initialize an instance of the default memory manager.
+        //
 
         if (AK::MemoryMgr::Init(&in_memSettings) != AK_Success)
         {
             return false;
         }
-
-
 
 		//
 		// Create and initialize an instance of the default streaming manager. Note that
@@ -496,8 +486,6 @@ namespace	ITF
 		{
 			return false;
 		}
-
-
 
         if (m_jobWorkerSettings.uNumWorkerThreads > 0)
         {
@@ -539,7 +527,6 @@ namespace	ITF
         AK::SoundEngine::RegisterResourceMonitorCallback(ResourceMonitorDataCallback);
 
         AK::Monitor::SetLocalOutput(AK::Monitor::ErrorLevel_All, LocalErrorCallback);
-
 
 		return true;
 	}

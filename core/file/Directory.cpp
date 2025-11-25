@@ -293,9 +293,12 @@ namespace ITF
 
         String searchPath;
         searchPath =  rootDir;
+        if (!searchPath.endsWith("\\") && !searchPath.endsWith("/"))
+            searchPath += FilePath::Separator;
         searchPath += subDir;
+        if (!searchPath.endsWith("\\") && !searchPath.endsWith("/"))
+            searchPath += FilePath::Separator;
         searchPath += wildcard;
-        
 
         h_Find = FindFirstFileStr(searchPath, &t_Data);
 

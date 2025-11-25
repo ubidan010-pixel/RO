@@ -3880,17 +3880,23 @@ namespace ITF
     void GameManager::updateRichPresenceForActivePlayers( u32 _richPresenceIndex, bbool _forceAllPlayers )
     {
 #ifdef ITF_SUPPORT_NETWORKSERVICES
+        if (!NETWORKSERVICES || !CONFIG->m_enableNetwork)
+        {
+            LOG("[NetworkServices] Not init or disabled!");
+            return;
+        }
+
         for (u32 i = 0; i < getMaxPlayerCount(); ++i)
         {
-            if(m_players[i]->getIndex() == getMainIndexPlayer_Internal()
+            if (m_players[i]->getIndex() == getMainIndexPlayer_Internal()
                 || m_players[i]->getActiveAndPersistent() || _forceAllPlayers)
             {
-                if(NETWORKSERVICES && m_lastRichPresenceIndex != _richPresenceIndex)
+                if (m_lastRichPresenceIndex != _richPresenceIndex)
                     NETWORKSERVICES->setPresenceInfo_State(_richPresenceIndex, m_players[i]->getIndex());
-            } else
+            }
+            else
             {
-                if(NETWORKSERVICES)
-                    NETWORKSERVICES->setPresenceInfo_State(m_inactiveRichPresenceIndex, m_players[i]->getIndex());
+                NETWORKSERVICES->setPresenceInfo_State(m_inactiveRichPresenceIndex, m_players[i]->getIndex());
             }
         }
 

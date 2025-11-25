@@ -1792,6 +1792,14 @@ namespace ITF
         void            saveGameOptions();
         void            loadGameOptions();
 
+        //==========================================================================
+        // Ubiservices Authentication Flow
+        //==========================================================================
+        bbool           getAuthAlreadyLinked() const;
+        void            setAuthAlreadyLinked(bbool already);
+        bbool           getAuthSecondBoot() const;
+        void            setAuthSecondBoot(bbool secondBoot);
+
         //CASA::VITA::TARIK::Fresco
         ITF_INLINE const ITF_VECTOR<Vec2d>& getFrescoGamePlayProgressionInfo() const { return m_configTemplate->getFrescoGamePlayProgressionInfo(); }
         void									PickUpAllRelics();
@@ -1850,6 +1858,8 @@ namespace ITF
         void            registerSFXVolumeOption();
         void            registerIntensityOption();
         void            registerLastPlayTime();
+        void            registerAuthAlreadyLinked();
+        void            registerAuthSecondBoot();
 #if defined(ITF_WINDOWS)
         void            registerPCKeyboardControllerSharingOption();
 #endif

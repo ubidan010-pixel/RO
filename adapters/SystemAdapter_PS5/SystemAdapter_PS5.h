@@ -74,6 +74,7 @@ public:
 
 private:
     void initUsers();
+    void initTitleId();
 
     LARGE_INTEGER GetAdjustedCurrentTime() const;
     void updateSystemServiceEvents();

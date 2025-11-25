@@ -2,6 +2,7 @@
 
 #include "adapters/OnlineAdapter_Ubiservices/OnlineAdapter_Ubiservices.h"
 #include "adapters/OnlineAdapter_Ubiservices/TrackingService_Ubiservices.h"
+#include "adapters/OnlineAdapter_Ubiservices/SessionService_Ubiservices.h"
 
 #ifdef ITF_SUPPORT_UBISERVICES
 
@@ -81,6 +82,8 @@ namespace ITF
 #if defined(ITF_SUPPORT_ONLINETRACKING)
         m_trackingService = newAlloc(mId_OnlineServices, TrackingService_Ubiservices);
 #endif
+
+        m_sessionService = newAlloc(mId_OnlineServices, SessionService_Ubiservices);
     }
 
     OnlineAdapter_Ubiservices::~OnlineAdapter_Ubiservices()
@@ -118,9 +121,101 @@ namespace ITF
 #if defined(ITF_SUPPORT_ONLINETRACKING)
             m_trackingService->term();
 #endif
+            m_sessionService->terminate();
             terminateUbiservices();
             m_initialized = false;
         }
+    }
+
+    bool OnlineAdapter_Ubiservices::convertITFtoUSLanguage(ITF_LANGUAGE _itfLang, String8& _lang, String8& _locale)
+    {
+        bool knownLang = true;
+
+        switch (_itfLang)
+        {
+        case ITF_LANGUAGE_ENGLISH:
+            _lang = "en";
+            _locale = "US";
+            break;
+
+        case ITF_LANGUAGE_FRENCH:
+            _lang = "fr";
+            _locale = "FR";
+            break;
+
+        case ITF_LANGUAGE_ITALIAN:
+            _lang = "it";
+            _locale = "IT";
+            break;
+
+        case ITF_LANGUAGE_GERMAN:
+            _lang = "de";
+            _locale = "DE";
+            break;
+
+        case ITF_LANGUAGE_SPANISH:
+            _lang = "es";
+            _locale = "ES";
+            break;
+
+        case ITF_LANGUAGE_PORTUGUESE:
+            _lang = "pt";
+            _locale = "BR";
+            break;
+
+        case ITF_LANGUAGE_JAPANESE:
+            _lang = "ja";
+            _locale = "JP";
+            break;
+
+        case ITF_LANGUAGE_TRADITIONALCHINESE:
+            _lang = "zh";
+            _locale = "TW";
+            break;
+
+        case ITF_LANGUAGE_SIMPLIFIEDCHINESE:
+            _lang = "zh";
+            _locale = "CN";
+            break;
+
+        case ITF_LANGUAGE_RUSSIAN:
+            _lang = "ru";
+            _locale = "RU";
+            break;
+
+        case ITF_LANGUAGE_POLISH:
+            _lang = "pl";
+            _locale = "PL";
+            break;
+
+        case ITF_LANGUAGE_KOREAN:
+            _lang = "ko";
+            _locale = "KO";
+            break;
+
+        case ITF_LANGUAGE_DUTCH:
+            _lang = "nl";
+            _locale = "NL";
+            break;
+
+        case ITF_LANGUAGE_CZECH:
+            _lang = "cs";
+            _locale = "CZ";
+            break;
+
+        case ITF_LANGUAGE_HUNGARIAN:
+            _lang = "hu";
+            _locale = "HU";
+            break;
+
+        default:
+            _lang = "en";
+            _locale = "US";
+            knownLang = false;
+            break;
+        };
+
+        return knownLang;
     }
 
     void OnlineAdapter_Ubiservices::initializeUbiservices()
@@ -137,15 +232,18 @@ namespace ITF
         // Set the locale so Uplay actions are localized nicely
         String8 lang = "en";
         String8 locale = "US";
-        //LOCALISATIONMANAGER->getCurrentLocaleString(lang, locale);
+        ITF::ITF_LANGUAGE itfLang = LOCALISATIONMANAGER->getCurrentLanguage();
+        bool bOk = convertITFtoUSLanguage(itfLang, lang, locale);
+
+        LOG("[Ubiservices] localize language %s / %s. itfknown: %d", lang.cStr(), locale.cStr(), bOk);
         US_NS::LocalizationHelper::setLocaleCode(US_NS::String::formatText("%s-%s", lang.cStr(), locale.cStr()));
 
-        createSession();
+        m_sessionService->initialize();
 
         m_initialized = true;
     }
 
-    const char* OnlineAdapter_Ubiservices::GetUSApplicationId()
+    const char* OnlineAdapter_Ubiservices::getUSApplicationId()
     {
 #ifdef ITF_WINDOWS
         return "1e243814-1c99-4b7d-a2dd-e67c84712812";
@@ -162,7 +260,7 @@ namespace ITF
 
     void OnlineAdapter_Ubiservices::configureUbiservices(const ubiservices::String& _buildId)
     {
-        const US_NS::ApplicationId applicationId(GetUSApplicationId());
+        const US_NS::ApplicationId applicationId(getUSApplicationId());
         US_NS::String applicationBuildId(_buildId);
         US_NS::OnlineAccessContext onlineAccessContext = US_NS::OnlineAccessContext::Standard;
         US_NS::ProfilePolicy profilePolicy = US_NS::ProfilePolicy::UseUplayProfile;
@@ -186,8 +284,29 @@ namespace ITF
                 , isExtendedEventPlayerSessionEnabled
         );
 
+#if defined(ITF_WINDOWS)
         US_NS::UplayPCPolicy uplayPCPolicy = US_NS::UplayPCPolicy::UseUplayPC;
+#endif
+
+#if defined(ITF_WINDOWS)
         const US_NS::GameConfigConsole gameConfigConsole(uplayPCPolicy);
+#elif defined(ITF_PS5)
+        const US_NS::String titleId("CUSA001234_00");
+        const US_NS::String clientId("11111111-2222-3333-4444-555555555555");
+        const US_NS::uint32 titleStoreServiceLabel = 0;
+        const US_NS::String clientSecret("ClientSecret");
+        const bool isSceNpCheckCallbackManagedBySdk = true;
+
+        const US_NS::GameConfigConsole gameConfigConsole(titleId, clientId, titleStoreServiceLabel, clientSecret, isSceNpCheckCallbackManagedBySdk);
+#elif defined(ITF_NX) || defined(ITF_OUNCE)
+        // This is the primary store id given to the game in the first party publishing tool
+        const US_NS::String applicationId("a11a1a1a-1111-11aa-111a-1a1111a11aaa");
+        const US_NS::GameConfigConsole gameConfigConsole(applicationId);
+#elif defined(ITF_SCARLETT)
+        const US_NS::String productId("a11a1a1a-1111-11aa-111a-1a1111a11aaa"); // This is the primary store id given to the game in the first party publishing tool
+        const US_NS::PartyMultiplayerPrivilegeModel model = US_NS::PartyMultiplayerPrivilegeModel::Standard; // Xbox title payment model used to check party multiplayer privileges.
+        const US_NS::GameConfigConsole gameConfigConsole(productId, model);
+#endif
 
         const US_NS::GameConfig gameConfig(applicationId
             , applicationBuildId
@@ -205,112 +324,18 @@ namespace ITF
 
     void OnlineAdapter_Ubiservices::terminateUbiservices()
     {
-        if (m_session)
-        {
-            closeSession();
-        }
     }
 
-    void OnlineAdapter_Ubiservices::createSession()
+    US_NS::SharedPtr<US_NS::Session> OnlineAdapter_Ubiservices::getSession()
     {
-        // Get/Create the UbiServices session instance (assuming there is only one player).
-        // This object must remain alive as long as the player is connected.
-        m_session = US_NS::Session::create(*m_sdk);
+        if (!m_sdk)
+            return US_NS::SharedPtr<US_NS::Session>();
 
-        // Create a NotificationUbiServices Handler to receive UbiServices notifications
-        US_NS::ListenerHandler<PlayerNotificationUbiServices> handler = US_NS::PlayerNotificationsModule::module(*m_session).createNotificationListenerUbiServices();
-
-        // Fill up the player credentials. This step is platform dependent.
-        // This object can be deleted once the create session method returns.
-        US_NS::AsyncResult<US_NS::Empty> openResult;
-
-        const US_NS::Vector<US_NS::String> parametersGroupApplication;
-        const US_NS::Vector<US_NS::String> parametersGroupSpace;
-
-        if (!CONFIG->m_onlineLogin.isEmpty() && !CONFIG->m_onlinePassword.isEmpty())
-        {
-            const US_NS::PlayerCredentials playerCredentials = US_NS::PlayerCredentials(CONFIG->m_onlineLogin.cStr(), CONFIG->m_onlinePassword.cStr());
-            openResult = m_session->open(playerCredentials, parametersGroupApplication, parametersGroupSpace);
-        }
-#if ITF_SUPPORT_UPLAY
-        else
-        {
-            const US_NS::PlayerCredentials playerCredentials = US_NS::PlayerCredentials(UPLAYSERVICE->getToken().cStr(), CredentialsType::UplayPC);
-            openResult = m_session->open(playerCredentials, parametersGroupApplication, parametersGroupSpace);
-        }
-#endif
-
-        // Simulate a pooling loop waiting for the process to complete.
-        while (openResult.isProcessing())
-        {
-            // (Game loop)
-        }
-
-        if (openResult.hasFailed())
-        {
-            LOG("[Ubiservices] error creating session");
-        }
-
-        // Wait for notification confirming if the websocket is connected or not
-        while (openResult.hasSucceeded() && !handler.isNotificationAvailable())
-        {
-            sleep(10);
-        }
-
-        const US_NS::PlayerNotificationUbiServices notification = handler.popNotification();
-        if (notification.m_type == US_NS::PlayerNotificationUbiServicesType::NotificationThrottled)
-        {
-            // Handle throttling..
-            LOG("[Ubiservices] Websocket creation has been throttled, deleting session!");
-
-            // Set a default wait time before retry. Time in seconds       
-            uint32 waitTimeBeforeRetry = 30;
-
-            // Check if time to wait before retry has been provided
-            if (!notification.m_content.isEmpty())
-            {
-                waitTimeBeforeRetry = US_NS::String::convertToInt(notification.m_content);
-                LOG("[Ubiservices] Retry websocket in %d", waitTimeBeforeRetry);
-            }
-
-            // Start waiting for at least waitTimeBeforeRetry      
-            // Delete Session
-            AsyncResult<Empty> closeResult = m_session->close();
-            // Wait for session deletion
-            closeResult.wait();
-            // Wait time finished. Try creating session again
-        }
-        else if (notification.m_type == US_NS::PlayerNotificationUbiServicesType::NotificationConnectionFailed)
-        {
-            // Handle connection failed..
-            LOG("[Ubiservices] Websocket creation has failed, deleting session!");
-            AsyncResult<Empty> closeResult = m_session->close();
-        }
-        else if (notification.m_type == US_NS::PlayerNotificationUbiServicesType::NotificationConnect)
-        {
-            // You are connected and all is good!
-            LOG("[Ubiservices] Session connected");
-        }
-    }
-
-    void OnlineAdapter_Ubiservices::closeSession()
-    {
         if (!m_session)
-            return;
+            m_session = US_NS::Session::create(*m_sdk);
 
-        LOG("[Ubiservices] Closing session");
-
-        // Now closing, delete player session
-        AsyncResult<Empty> closeResult = m_session->close();
-        // Wait for the delete session completion. Wait is a blocking call.
-        closeResult.wait();
-        if (!closeResult.hasSucceeded())
-        {
-            // Error
-            LOG("[Ubiservices] Error closing session");
-        }
+        return m_session;
     }
-
 } // namespace ITF
 
 #endif // ITF_SUPPORT_UBISERVICES

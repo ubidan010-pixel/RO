@@ -1,7 +1,6 @@
 #include "precompiled_engine.h"
 
 #include "engine/AdaptersInterfaces/OnlineAdapter/OnlineError.h"
-#include "core/Macros.h"
 
 namespace ITF
 {

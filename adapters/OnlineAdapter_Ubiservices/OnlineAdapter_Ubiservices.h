@@ -10,6 +10,7 @@
 #include <eallog.h>
 
 #include "core/Macros.h"
+#include "core/AdaptersInterfaces/SystemAdapter.h"
 #include "engine/AdaptersInterfaces/OnlineAdapter/OnlineAdapter.h"
 
 namespace ITF
@@ -24,17 +25,16 @@ namespace ITF
         virtual void update();
         virtual void terminate();
 
-        US_NS::SharedPtr<US_NS::Session> getSession() { return m_session; }
+        US_NS::SharedPtr<US_NS::Session> getSession();
 
     private:
         void initializeUbiservices();
         void configureUbiservices(const ubiservices::String& _buildId);
         void terminateUbiservices();
-        void createSession();
-        void closeSession();
 
         String8 generateBuildId();
-        const char* GetUSApplicationId();
+        const char* getUSApplicationId();
+        bool convertITFtoUSLanguage(ITF_LANGUAGE _itfLang, String8& _lang, String8& _locale);
 
         // EAL area
         eal_log_dll_interface m_ealLogInterface;

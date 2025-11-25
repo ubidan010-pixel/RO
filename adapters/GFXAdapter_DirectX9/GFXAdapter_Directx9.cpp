@@ -24,6 +24,8 @@
 #include "core/file/FileServer.h"
 #endif //_ITF_FILESERVER_H_
 
+#include "engine/aliasmanager/aliasmanager.h"
+
 #ifdef ITF_WINDOWS
 #include "../../../extern/CaptureJpeg/Source/INTERFCE.h"
 #include <shlobj.h>
@@ -4625,16 +4627,31 @@ void GFXAdapter_Directx9::releaseShader( ITF_shader* _shaderGroup )
 	}
 }
 
-void* GFXAdapter_Directx9::loadBinPShader( const String& _name )
+
+static String getShaderFullPath(const String& _name)
 {
     String shaderpath;
 
 #ifdef ITF_X360
-    shaderpath.setTextFormat("Shaders/compiled/x360/%ls", _name.cStr());
+    shaderpath = GETPATH_GROUP_ALIAS("shaders_compiled", "X360");
 #else
-    shaderpath.setTextFormat("Shaders/compiled/win32/%ls", _name.cStr());
+    shaderpath = GETPATH_GROUP_ALIAS("shaders_compiled", "PC");
 #endif
+    if (shaderpath.isEmpty())
+    {
+        shaderpath = "Shaders/compiled/win32";
+    }
+    if (!shaderpath.endsWith("/") && !shaderpath.endsWith("\\"))
+        shaderpath += "/";
+    shaderpath += _name;
     shaderpath += ".ckd";
+    return shaderpath;
+}
+
+
+void* GFXAdapter_Directx9::loadBinPShader( const String& _name )
+{
+    String shaderpath = getShaderFullPath(_name);
 
     u8* pCode;
     DWORD dwSize;
@@ -4661,14 +4678,7 @@ void* GFXAdapter_Directx9::loadBinPShader( const String& _name )
 
 void* GFXAdapter_Directx9::loadBinVShader(const String& _name )
 {
-    String shaderpath;
-
-#ifdef ITF_X360
-    shaderpath.setTextFormat("Shaders/compiled/x360/%ls", _name.cStr());
-#else
-    shaderpath.setTextFormat("Shaders/compiled/win32/%ls", _name.cStr());
-#endif
-    shaderpath += ".ckd";
+    String shaderpath = getShaderFullPath(_name);
 
     u8* pCode;
     DWORD dwSize;
@@ -4719,7 +4729,13 @@ bbool GFXAdapter_Directx9::loadShader( ITF_shader* _shaderGroup )
     shadername = _shaderGroup->m_name.cStr();
 
 #ifndef USE_SHADER_BIN
-    shaderpath = "Shaders/unified/";
+    shaderpath = GETPATH_GROUP_ALIAS("shaders", "PC");
+    if (shaderpath.isEmpty())
+    {
+        shaderpath = "Shaders/Unified";
+    }
+    if (!shaderpath.endsWith("/") && !shaderpath.endsWith("\\"))
+        shaderpath += "/";
     shaderpath += shadername;
 
     HRESULT res = LoadFile( (LPCSTR)StringConverter(shaderpath.cStr()).getChar(), &pCode, &dwSize );
@@ -4727,7 +4743,7 @@ bbool GFXAdapter_Directx9::loadShader( ITF_shader* _shaderGroup )
     {
         ITF_FATAL_ERROR("Error loading shader %ls ",shaderpath.cStr());
         return bfalse;
-	}
+    }
 #endif
 
 	bbool createeffect = btrue;

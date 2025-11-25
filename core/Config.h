@@ -103,16 +103,16 @@ namespace ITF
             , m_enableEpilepsyScreen(btrue)
 #endif //ITF_WII
 #ifdef ITF_SUPPORT_ONLINETRACKING
-			, m_enableonlineTracking(bfalse)
+			, m_enableonlineTracking(btrue)
 #endif // ITF_SUPPORT_ONLINETRACKING
 #ifdef ITF_SUPPORT_NETWORKSERVICES
-            , m_enableNetwork(bfalse)
+            , m_enableNetwork(btrue)
 #endif // ITF_SUPPORT_NETWORKSERVICES
 #ifdef ITF_SUPPORT_UPLAY
             , m_enableUplay(btrue)
 #endif // ITF_SUPPORT_UPLAY
 #ifdef ITF_SUPPORT_UBISERVICES
-            , m_enableUbiServices(bfalse)
+            , m_enableUbiServices(btrue)
 #endif
 /*
 		_config->m_BGColor[0]       = XML.readFloatAttribute("BGColor/R", 0.1f);

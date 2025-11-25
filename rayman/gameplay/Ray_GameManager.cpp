@@ -11737,6 +11737,16 @@ namespace ITF
         m_gameOptionManager.registerFloatOption(LAST_PLAY_TIME, 0.0f, 0.0f, FLT_MAX);
     }
 
+    void Ray_GameManager::registerAuthAlreadyLinked()
+    {
+        m_gameOptionManager.registerBoolOption(AUTH_ALREADY_LINKED, 0);
+    }
+
+    void Ray_GameManager::registerAuthSecondBoot()
+    {
+        m_gameOptionManager.registerBoolOption(AUTH_SECOND_BOOT, 0);
+    }
+
 #if defined(ITF_WINDOWS)
     void Ray_GameManager::registerPCKeyboardControllerSharingOption()
     {
@@ -11759,6 +11769,8 @@ namespace ITF
         registerSFXVolumeOption();
         registerIntensityOption();
         registerLastPlayTime();
+        registerAuthAlreadyLinked();
+        registerAuthSecondBoot();
 #if defined(ITF_WINDOWS)
         registerPCKeyboardControllerSharingOption();
 #endif
@@ -12190,6 +12202,28 @@ namespace ITF
         }
     }
 
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    // Ubiservices Authentication Flow
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    bbool Ray_GameManager::getAuthAlreadyLinked() const
+    {
+        return m_gameOptionManager.getBoolOption(AUTH_ALREADY_LINKED, 0);
+    }
+
+    void Ray_GameManager::setAuthAlreadyLinked(bbool already)
+    {
+        m_gameOptionManager.setBoolOption(AUTH_ALREADY_LINKED, already);
+    }
+
+    bbool Ray_GameManager::getAuthSecondBoot() const
+    {
+        return m_gameOptionManager.getBoolOption(AUTH_SECOND_BOOT, 0);
+    }
+
+    void Ray_GameManager::setAuthSecondBoot(bbool secondBoot)
+    {
+        m_gameOptionManager.setBoolOption(AUTH_SECOND_BOOT, secondBoot);
+    }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     // Save/Load Options

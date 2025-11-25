@@ -17,9 +17,11 @@ public:
 
     enum ESessionStatus
     {
+        ESessionStatus_Idle,
         ESessionStatus_Preparing,
         ESessionStatus_Valid,
         ESessionStatus_Error,
+        ESessionStatus_Offline,
         ESessionStatus_Count
     };
 
@@ -29,6 +31,9 @@ public:
     virtual OnlineError getSessionError() = 0;
     virtual const ITF_VECTOR<PopulationInfo>& getPopulations() const = 0;
     virtual bool isInPopulation(const String8& _subject, const String8& _popName) const = 0;
+
+    virtual bool isClubFeatureSwitchEnabled() const = 0;
+    virtual bool isNewsFeatureSwitchEnabled() const = 0;
 
     virtual bool getConstantValue(String8 _parameterGroupName, StringID _parameterName, StringID _fieldName, f32 &_fieldValue) const = 0;
     virtual bool getConstantValue(String8 _parameterGroupName, StringID _parameterName, StringID _fieldName, u32 &_fieldValue) const = 0;
@@ -46,7 +51,7 @@ public:
     // Apply the request without any restriction (warning: don't use by default and be sure you are NX compliant)
     virtual void forceRequestRefresh() {}
 
-    enum SessionSuccessResult {};
+    enum SessionResult {};
 
     virtual void initialize() = 0;
     virtual void terminate() = 0;

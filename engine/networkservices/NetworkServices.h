@@ -18,8 +18,8 @@ public:
         u64    id; 
     };
 
-
-	NetworkServices() {}
+    NetworkServices();
+    virtual ~NetworkServices();
 
 	virtual u32 update() { return 0; }
 	virtual void initialize(u32 dwMinUsers,u32 dwMaxUsers, bbool  bRequireOnlineUsers,u32 dwSignInPanes ) {}
@@ -58,11 +58,31 @@ public:
     /// Get the user ID
     virtual bbool getUserFromControllerIndex( u32 dwController, User* user ) { return bfalse; }
     virtual bbool compareUsers(const User * user1, const User* user2) { return bfalse; }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    /// NetworkAdapter typical API
+    enum ENetworkStatus
+    {
+        ENetworkStatus_Preparing,
+        ENetworkStatus_Ready,
+        ENetworkStatus_Error,
+    };
+
+    inline ENetworkStatus getNetworkStatus() { return m_networkStatus; }
+    inline bool isNetworkReady() { return (getNetworkStatus() == ENetworkStatus_Ready); }
+
+    // mostly used for Nintendo platforms
+    virtual u32 getPlatformSpecificErrorCode() { return 0; }
+
+    virtual void requestRefresh() {}
+    const String8& getIPAddress() const { return m_ipAddress; }
+
 protected:
+    virtual void setNetworkStatus(ENetworkStatus _networkStatus);
+    String8 m_ipAddress;
 
 private:
-
-    
+    ENetworkStatus m_networkStatus;
 };
 
 

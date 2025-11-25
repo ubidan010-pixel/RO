@@ -5,6 +5,9 @@
 #include "core/error/ErrorHandler.h"
 #include "core/XML/PugiXMLWrap.h"
 #include "engine/common/WarningManager.h"
+
+#include "engine/aliasmanager/aliasmanager.h"
+
 #include "GFXAdapter_DX12.h"
 #include "Technique_DX12.h"
 
@@ -84,10 +87,21 @@ namespace ITF
     bool GFXAdapter_DX12::loadShader(const char* _shaderName)
     {
     #ifdef ITF_XBOX_SERIES
-        static const String shadersFolder("Shaders/Compiled/XBoxSeries/");
+        String shadersFolder = GETPATH_GROUP_ALIAS("shaders_compiled", "XBOXSERIES");
+        if (shadersFolder.isEmpty())
+        {
+            shadersFolder = "Shaders/Compiled/XBoxSeries";
+        }
     #else
-        static const String shadersFolder("Shaders/Compiled/DX12/");
+        String shadersFolder = GETPATH_GROUP_ALIAS("shaders_compiled_dx12", "PC");
+        if (shadersFolder.isEmpty())
+        {
+            shadersFolder = "Shaders/Compiled/DX12";
+        }
     #endif
+        if (!shadersFolder.endsWith("/") && !shadersFolder.endsWith("\\"))
+            shadersFolder += "/";
+
         String fullPathShaderName = shadersFolder + _shaderName;
         ITF_shader* shaderFound = mp_shaderManager.getShaderByName(fullPathShaderName);
         if (shaderFound)

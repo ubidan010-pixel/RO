@@ -10,7 +10,7 @@
 
 aliasContainerWrapper::aliasContainerWrapper()
 {
-    m_aliasContainer = new ITF::aliasContainer();
+    m_aliasContainer = new ITF::AliasContainer();
 }
 
 aliasContainerWrapper::~aliasContainerWrapper()
@@ -19,19 +19,25 @@ aliasContainerWrapper::~aliasContainerWrapper()
     m_aliasContainer = NULL;
 }
 
-void aliasContainerWrapper::getAllAlias(Hashtable^ _aliasMap)
+void aliasContainerWrapper::getAllAliases(ICollection<aliasSlotWrapper^> ^ _aliasMap)
 {
-    ITF_MAP<ITF::String,ITF::aliasSlot> mAlias = m_aliasContainer->getAllAlias();
     _aliasMap->Clear();
 
-    ITF_MAP<ITF::String,ITF::aliasSlot> ::iterator iter;
-    for (iter= mAlias.begin();iter!= mAlias.end();iter++)
+    const auto & aliases = m_aliasContainer->getAllAliases();
+
+    for (auto & [strGroup, groupAliases] : aliases)
     {
-        String^ key =  gcnew String((wchar_t*)(*iter).first.cStr());
-        const ITF::aliasSlot& slot = (*iter).second;
-        const ITF::String& slotPath = slot.getPath();
-        String^ path =  gcnew String((wchar_t*)slotPath.cStr());
-        _aliasMap[key] = path;
+        System::String^ group = gcnew System::String(strGroup.wcharCStr());
+
+        for (auto & [key, pathAndWildcard] : groupAliases)
+        {
+            aliasSlotWrapper^ slot = gcnew aliasSlotWrapper();
+            slot->group = group;
+            slot->key = gcnew System::String(key.wcharCStr());
+            slot->path = gcnew System::String(pathAndWildcard.getPath().wcharCStr());
+            slot->wildcardPattern = gcnew System::String(pathAndWildcard.getWildCardPattern().wcharCStr());
+            _aliasMap->Add(slot);
+        }
     }
 }
 
@@ -48,9 +54,12 @@ void aliasContainerWrapper::load(String^ _filename)
     m_aliasContainer->load(str_filename);
 }
 
-void aliasContainerWrapper::addAlias(String^ _key,String^ _path)
+void aliasContainerWrapper::addAlias(String^ _group, String^ _key, String^ _path, String^ _wildcardPattern)
 {
-    ITF::String str_key     = utils::getITFString(_key);
-    ITF::String str_path    = utils::getITFString(_path);
-    m_aliasContainer->addSlot(str_key,str_path);
+    ITF::String str_group = utils::getITFString(_group);
+    ITF::String str_key = utils::getITFString(_key);
+    ITF::String str_path = utils::getITFString(_path);
+    ITF::String str_wildcard = utils::getITFString(_wildcardPattern);
+
+    m_aliasContainer->addSlot(str_key, str_path, str_group, str_wildcard);
 }

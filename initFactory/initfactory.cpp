@@ -78,6 +78,9 @@
 #include "engine/NetworkServices/X360/NetworkServices_x360.h"
 #include "engine/NetworkServices/PS3/NetworkServices_PS3.h"
 #include "engine/NetworkServices/Win/NetworkServices_Win.h"
+#include "engine/NetworkServices/PS5/NetworkServices_PS5.h"
+#include "engine/NetworkServices/Nintendo/NetworkServices_Nintendo.h"
+#include "engine/NetworkServices/XboxSeries/NetworkServices_xboxseries.h"
 
 #include "engine/NetworkServices/NetworkServices.h"
 
@@ -137,8 +140,12 @@
 #include "adapters/RewardAdapter_x360/RewardAdapter_x360.h"
 #include "adapters/RewardAdapter_Dummy/RewardAdapter_Dummy.h"
 #include "adapters/RewardAdapter_PS5/RewardAdapter_PS5.h"
+#include "adapters/RewardAdapter_xboxseries/RewardAdapter_xboxseries.h"
+
 
 #include "adapters/AccountAdapter_PS5/AccountAdapter_PS5.h"
+#include "adapters/AccountAdapter_xboxseries/AccountAdapter_xboxseries.h"
+
 namespace ITF
 {
 

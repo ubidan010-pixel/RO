@@ -1,5 +1,9 @@
 #include "precompiled_engine.h"
 
+#ifndef _ITF_RAY_GAMEMANAGER_H_
+#include "rayman/gameplay/Ray_GameManager.h"
+#endif //_ITF_RAY_GAMEMANAGER_H_
+
 #ifndef _ITF_STANDEECOMPONENT_H_
 #include "engine/actors/components/StandeeComponent.h"
 #endif //_ITF_STANDEECOMPONENT_H_
@@ -52,9 +56,21 @@ namespace ITF
 
     void StandeeComponent::onActorLoaded(Pickable::HotReloadType _hotReload)
     {
+        StringID worldMapTag = RAY_GAMEMANAGER->getWMCurrentWorldTag();
+        auto standees = getTemplate()->m_standeeMapping;
+        for (auto standee : standees)
+        {
+            if (standee == worldMapTag)
+            {
+                if (FILEMANAGER->fileExists(standee.m_StandeePath))
+                {
+                    setTextureFile(standee.m_StandeePath);
+                    break;
+                }
+            }
+        }
         Super::onActorLoaded(_hotReload);
     }
-
     void StandeeComponent::Draw()
     {
         Super::Draw();
@@ -64,9 +80,11 @@ namespace ITF
     {
         Super::Update(_deltaTime);
     }
-
+    // Unused for Alpha version
+    //
     void StandeeComponent::ChangeStandee(StringID& _levelName)
     {
+        /*
         auto standees = getTemplate()->m_standeeMapping;
         for (auto standee : standees)
         {
@@ -77,6 +95,7 @@ namespace ITF
                 break;
             }
         }
+        */
     }
 
 #ifdef ITF_SUPPORT_EDITOR
@@ -89,7 +108,7 @@ namespace ITF
 #endif // ITF_SUPPORT_EDITOR
     void StandeeComponent::ReloadStandee()
     {
-        onActorLoaded(Pickable::HotReloadType_Checkpoint); 
+        onActorLoaded(Pickable::HotReloadType_Checkpoint);
     }
     //-------------------------------------------------------------------------------------
     IMPLEMENT_OBJECT_RTTI(StandeeComponent_Template)

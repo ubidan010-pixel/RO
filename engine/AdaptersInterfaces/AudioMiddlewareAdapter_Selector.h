@@ -8,7 +8,7 @@
 #if defined(ITF_PS5) || defined(ITF_WINDOWS) || defined(ITF_NX) || defined(ITF_OUNCE) || defined(ITF_XBOX_SERIES)
 
 
-#if defined(ITF_WINDOWS) && defined(ITF_RETAIL)
+#if defined(ITF_WINDOWS) && defined(ITF_FINAL) && !defined(ITF_RETAIL)
 #define ITF_WWISE_PROFILE
 #endif
 

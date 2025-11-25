@@ -8,6 +8,7 @@
 #include <np/np_entitlement_access.h>
 #include <system_service.h>
 #include <rtc.h>
+#include <ult.h>
 
 #include "adapters/SystemAdapter_PS5/SystemAdapter_PS5.h"
 #include "core/system/PS5/Synchronize_ps5.h"
@@ -29,8 +30,15 @@ namespace ITF
 
         timerStart();
 
+        // from Ubiservices 1st Party list
+        ITF_VERIFY_SCE_CALL(sceSysmoduleLoadModule(SCE_SYSMODULE_JSON2));
+        ITF_VERIFY_SCE_CALL(sceSysmoduleLoadModule(SCE_SYSMODULE_NP_AUTH));
+        ITF_VERIFY_SCE_CALL(sceSysmoduleLoadModule(SCE_SYSMODULE_ULT));
+        ITF_VERIFY_SCE_CALL(sceUltInitialize());
+
         // load user message dialog dynamic libraries
         ITF_VERIFY_SCE_CALL(sceSysmoduleLoadModule(SCE_SYSMODULE_MESSAGE_DIALOG));
+        ITF_VERIFY_SCE_CALL(sceSysmoduleLoadModule(SCE_SYSMODULE_WEB_BROWSER_DIALOG));
         ITF_VERIFY_SCE_CALL(sceCommonDialogInitialize());
         m_messageBoxLibInit = btrue;
 
@@ -44,6 +52,7 @@ namespace ITF
         ITF_VERIFY_SCE_CALL(sceAppContentAppParamGetInt(SCE_APP_CONTENT_APPPARAM_ID_USER_DEFINED_PARAM_3, &m_userDefinedAppParam3));
         ITF_VERIFY_SCE_CALL(sceAppContentAppParamGetInt(SCE_APP_CONTENT_APPPARAM_ID_USER_DEFINED_PARAM_4, &m_userDefinedAppParam4));
 
+        ITF_VERIFY_SCE_CALL(sceSysmoduleLoadModule(SCE_SYSMODULE_NP_CPP_WEB_API));
         ITF_VERIFY_SCE_CALL(sceSysmoduleLoadModule(SCE_SYSMODULE_NP_ENTITLEMENT_ACCESS));
         SceNpEntitlementAccessInitParam initParam2{};
         SceNpEntitlementAccessBootParam	bootParam2{};
@@ -55,7 +64,16 @@ namespace ITF
     SystemAdapter_PS5::~SystemAdapter_PS5()
     {
         ITF_VERIFY_SCE_CALL(sceMsgDialogTerminate());
+        ITF_VERIFY_SCE_CALL(sceUltFinalize());
+
+        ITF_VERIFY_SCE_CALL(sceSysmoduleUnloadModule(SCE_SYSMODULE_NP_ENTITLEMENT_ACCESS));
+        ITF_VERIFY_SCE_CALL(sceSysmoduleUnloadModule(SCE_SYSMODULE_NP_CPP_WEB_API));
+        ITF_VERIFY_SCE_CALL(sceSysmoduleUnloadModule(SCE_SYSMODULE_APP_CONTENT));
+        ITF_VERIFY_SCE_CALL(sceSysmoduleUnloadModule(SCE_SYSMODULE_WEB_BROWSER_DIALOG));
         ITF_VERIFY_SCE_CALL(sceSysmoduleUnloadModule(SCE_SYSMODULE_MESSAGE_DIALOG));
+        ITF_VERIFY_SCE_CALL(sceSysmoduleUnloadModule(SCE_SYSMODULE_ULT));
+        ITF_VERIFY_SCE_CALL(sceSysmoduleUnloadModule(SCE_SYSMODULE_NP_AUTH));
+        ITF_VERIFY_SCE_CALL(sceSysmoduleUnloadModule(SCE_SYSMODULE_JSON2));
     }
 
     bbool SystemAdapter_PS5::initialize()
@@ -63,6 +81,7 @@ namespace ITF
         m_inputAdapter = new InputAdapter_PS5();
         Singletons::get().setInputAdapter(m_inputAdapter);
 
+        initTitleId();
         initUsers();
         return btrue;
     }
@@ -72,6 +91,31 @@ namespace ITF
         ITF_VERIFY_SCE_CALL(sceUserServiceGetInitialUser(&m_initialUserId));
 
         updateUsers();
+    }
+
+    static SceNpTitleId gs_TitleId_SCEE = { "PPSA34569_00", {0} };
+    //static SceNpTitleId gs_TitleId_SCEA = { "xyz", {0} };
+    //static SceNpTitleId gs_TitleId_SCEJ = { "xyz", {0} };
+
+    static const SceNpTitleSecret gs_NpTitleSecret_SCEE = { 0xac,0x28,0xc5,0x55,0x2f,0x09,0x86,0x9f,0xf8,0x1b,0x47,0x98,0x03,0x68,0xc7,0x0d,0xa7,0xa5,0xec,0x4c,0x52,0x90,0x8b,0xa8,0xc4,0x45,0x3c,0x4a,0x3c,0xfb,0x1d,0xe1,0xa0,0x92,0xa4,0x5b,0xcb,0x9d,0x1f,0x89,0x00,0xad,0xc6,0x8b,0xa1,0xda,0xc1,0xda,0xa1,0xa1,0xd5,0x0d,0xc8,0xe6,0xb5,0xc5,0xd0,0xe9,0x70,0xd2,0x64,0xb1,0x64,0xc7,0x03,0xfa,0xd7,0xe7,0xb2,0x59,0x69,0xe0,0x8b,0x24,0x49,0xea,0xaf,0x2d,0x61,0xb4,0xb3,0xc1,0xd5,0x93,0x39,0x33,0xc6,0x98,0xc8,0x37,0xc3,0xaf,0xc6,0x87,0x0b,0x8a,0x09,0x78,0x4e,0x03,0xc4,0xde,0x73,0x85,0x49,0x50,0x4d,0xb5,0x57,0x63,0x33,0xe3,0xd9,0xfb,0x19,0x81,0xdc,0x31,0xb4,0xb2,0xe7,0xb7,0x66,0x48,0x50,0xcc,0x44,0x23 };
+    //static const SceNpTitleSecret gs_NpTitleSecret_SCEA = {};
+    //static const SceNpTitleSecret gs_NpTitleSecret_SCEJ = {};
+
+    void SystemAdapter_PS5::initTitleId()
+    {
+        SceNpTitleId npTitleId;
+        SceNpTitleSecret npTitleSecret;
+
+        ITF_MEMCOPY(&npTitleId, &gs_TitleId_SCEE, sizeof(npTitleId));
+        ITF_MEMCOPY(&npTitleSecret, &gs_NpTitleSecret_SCEE, sizeof(npTitleSecret));
+
+        int result = sceNpSetNpTitleId(&npTitleId, &npTitleSecret);
+        if (result != SCE_OK)
+        {
+            LOG("[SystemAdapter_PS5] sceNpSetNpTitleId failed with error code %x", result);
+        }
+
+        LOG("[SystemAdapter_PS5] initTitleId %s OK", npTitleId.id);
     }
 
     bbool SystemAdapter_PS5::openGraphics(int _width, int _height, int _alphaBits, int _depthBits, int _stencilBits, bbool _fullscreen, bbool _mouseCursor, const String& _name, bbool _waitVBL)
@@ -195,7 +239,7 @@ namespace ITF
             }
 
 #ifdef ITF_SUPPORT_NETWORKSERVICES
-            NETWORKSERVICES->getLoginModule()->onUserLogEvent(event);
+            //NETWORKSERVICES->getLoginModule()->onUserLogEvent(event);
 #endif // ITF_SUPPORT_NETWORKSERVICES
         }
 

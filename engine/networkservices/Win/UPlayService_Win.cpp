@@ -16,6 +16,7 @@ namespace ITF
     UPlayService_Win::UPlayService_Win()
         : m_Context(NULL)
         , m_isInitialized(bfalse)
+        , m_isOverlayActive(bfalse)
     {
     }
 
@@ -85,6 +86,15 @@ namespace ITF
         LOG("[UPlay] Language is: % s", m_language.cStr());
 #endif //ITF_UPLAYPC
 
+        result = UPC_EventRegisterHandler(m_Context, UPC_Event_OverlayShown, showOverlayCallback, this);
+        result |= UPC_EventRegisterHandler(m_Context, UPC_Event_OverlayHidden, showOverlayCallback, this);
+
+        if (result != UPC_Result_Ok)
+        {
+            LOG("[UPlay] UPC_EventRegisterHandler failed: %d", result);
+            return UPC_InitResult_Failed + 300;
+        }
+
         LOG("[UPlay] initialized OK");
 
         m_isInitialized = btrue;
@@ -92,10 +102,29 @@ namespace ITF
         return UPC_InitResult_Ok;
     }
 
+    void UPlayService_Win::showOverlayCallback(UPC_Event* inEvent, void* inData)
+    {
+        UPlayService_Win* pThis = (UPlayService_Win*)inData;
+        if (!inEvent || !pThis)
+            return;
+
+        if (inEvent->type == UPC_Event_OverlayShown)
+        {
+            pThis->m_isOverlayActive = true;
+        }
+        else if (inEvent->type == UPC_Event_OverlayHidden)
+        {
+            pThis->m_isOverlayActive = false;
+        }
+    }
+
     void UPlayService_Win::terminate()
     {
         if (m_isInitialized)
         {
+            UPC_EventUnregisterHandler(m_Context, UPC_Event_OverlayShown);
+            UPC_EventUnregisterHandler(m_Context, UPC_Event_OverlayHidden);
+
             if (m_Context != NULL)
             {
                 UPC_ContextFree(m_Context);

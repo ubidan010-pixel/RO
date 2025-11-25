@@ -34,6 +34,11 @@ namespace ITF
 
 static const f32	f32_Inv255	= 1.f / 255.f;
 
+#if defined(ITF_PS5)
+// E2798: use of the 'register' storage class specifier is not allowed
+#define register 
+#endif
+
 extern ITF_INLINE f32 f32_Sel(register f32 _selector, register f32 _posSelected, register f32 _negSelected)
 {
 #if defined(ITF_PS3)

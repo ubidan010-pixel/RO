@@ -193,9 +193,9 @@ namespace	ITF
 		case ITF_LANGUAGE_ENGLISH:				return Wwise::Helper::ENGLISH_US;
 		case ITF_LANGUAGE_FRENCH:				return Wwise::Helper::FRENCH_FRANCE;
 		case ITF_LANGUAGE_JAPANESE:				return Wwise::Helper::ENGLISH_US;
-		case ITF_LANGUAGE_GERMAN:				return Wwise::Helper::GERMAN; 
-		case ITF_LANGUAGE_SPANISH:				return Wwise::Helper::SPANISH_SPAIN; 
-		case ITF_LANGUAGE_ITALIAN:				return Wwise::Helper::ITALIAN; 
+		case ITF_LANGUAGE_GERMAN:				return Wwise::Helper::GERMAN;
+		case ITF_LANGUAGE_SPANISH:				return Wwise::Helper::SPANISH_SPAIN;
+		case ITF_LANGUAGE_ITALIAN:				return Wwise::Helper::ITALIAN;
 		case ITF_LANGUAGE_KOREAN:				return Wwise::Helper::ENGLISH_US;
 		case ITF_LANGUAGE_TRADITIONALCHINESE:	return Wwise::Helper::ENGLISH_US;
 		case ITF_LANGUAGE_PORTUGUESE:			return Wwise::Helper::ENGLISH_US;
@@ -273,10 +273,11 @@ namespace	ITF
 	const AkOSChar *Helper::getUAFDataRoot()
 	{
 		// root
-		static AkOSChar s_root[512];
-        AudioSDK::safeStringCopy(s_root, StringToCharType<AkOSChar>(FILESERVER->getDataDepot()).get());
-		
-		return s_root;
+        static AkOSChar s_root[512] = AKTEXT("");
+        String  file = FILESERVER->getDataDepot();
+        if(!file.isEmpty())
+            AudioSDK::safeStringCopy(s_root, StringToCharType<AkOSChar>(file).get());
+        return s_root;
 	}
 
 	//

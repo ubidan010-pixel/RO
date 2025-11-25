@@ -4,6 +4,7 @@
 #include "core/file/File.h"
 #include "core/XML/PugiXMLWrap.h"
 #include "engine/common/WarningManager.h"
+#include "engine/aliasmanager/aliasmanager.h"
 #include "GFXAdapter_PS5.h"
 #include "Technique_PS5.h"
 
@@ -66,7 +67,14 @@ namespace ITF
     // load a shader from it's name, assuming default directory
     bool GFXAdapter_PS5::loadShader(const char* _shaderName)
     {
-        static const String shadersFolder("Shaders/Compiled/PS5/");
+        String shadersFolder = GETPATH_GROUP_ALIAS("shaders_compiled", "PS5");
+        if (shadersFolder.isEmpty())
+        {
+            shadersFolder = "Shaders/Compiled/PS5";
+        }
+        if (!shadersFolder.endsWith("/") && !shadersFolder.endsWith("\\"))
+            shadersFolder += "/";
+
         String fullPathShaderName = shadersFolder + _shaderName;
         ITF_shader* shaderFound = mp_shaderManager.getShaderByName(fullPathShaderName);
         if (shaderFound)
