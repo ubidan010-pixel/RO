@@ -83,7 +83,6 @@ namespace ITF
         void adjustListOption(UIListOptionComponent* listComponent, const StringID& optionId, i32 direction);
         void adjustFloatOption(UIFloatOptionComponent* floatComponent, const StringID& optionId, i32 direction);
         void updateListOptionDisplay(UIListOptionComponent* listComponent, const StringID& optionId, i32 index) const;
-        void applyOptionChange(const StringID& optionId) const;
         bbool processEditingInput(UIComponent* component, const StringID& action);
         void captureSnapshot();
         void restoreSnapshot();

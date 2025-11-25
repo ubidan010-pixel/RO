@@ -11893,7 +11893,6 @@ namespace ITF
     {
         m_gameOptionManager.setListOptionIndex(OPTION_LANGUAGE, index);
 
-        // Apply language change immediately
         ITF_LANGUAGE newLanguage = static_cast<ITF_LANGUAGE>(m_gameOptionManager.getIntListOptionValue(OPTION_LANGUAGE));
         if (LOCALISATIONMANAGER && LOCALISATIONMANAGER->getCurrentLanguage() != newLanguage)
         {
@@ -11938,6 +11937,7 @@ namespace ITF
     void Ray_GameManager::setStartWithHeartIndex(i32 index)
     {
         m_gameOptionManager.setListOptionIndex(OPTION_START_WITH_HEART, index);
+        LOG("[OptionMenu] Start With Heart: %s (index: %d, modifier: %d)", getStartWithHeartDisplayName(index), index, getHealthModifier());
     }
 
     const char* Ray_GameManager::getStartWithHeartDisplayName(i32 index) const
@@ -11972,6 +11972,7 @@ namespace ITF
     void Ray_GameManager::setRunButtonMode(i32 mode)
     {
         m_gameOptionManager.setListOptionIndex(OPTION_RUN_BUTTON, mode);
+        LOG("[OptionMenu] Run Button Mode: %s (value: %d)", getRunButtonDisplayName(mode), mode);
     }
 
     const char* Ray_GameManager::getRunButtonDisplayName(i32 index) const
@@ -11997,6 +11998,7 @@ namespace ITF
     void Ray_GameManager::setMurfyAssist(bbool enabled)
     {
         m_gameOptionManager.setBoolOption(OPTION_MURFY_ASSIST, enabled);
+        LOG("[OptionMenu] Murfy's Assist: %s", enabled ? "ON" : "OFF");
     }
 
     i32 Ray_GameManager::getVibrationMode() const
@@ -12007,6 +12009,7 @@ namespace ITF
     void Ray_GameManager::setVibrationMode(i32 mode)
     {
         m_gameOptionManager.setListOptionIndex(OPTION_VIBRATIONS, mode);
+        LOG("[OptionMenu] Vibrations: %s", mode == VibrationMode_On ? "ON" : "OFF");
     }
 
     const char* Ray_GameManager::getVibrationDisplayName(i32 index) const
@@ -12037,6 +12040,7 @@ namespace ITF
     void Ray_GameManager::setVibrations(bbool enabled)
     {
         m_gameOptionManager.setListOptionIndex(OPTION_VIBRATIONS, enabled ? VibrationMode_On : VibrationMode_Off);
+        LOG("[OptionMenu] Vibrations: %s", enabled ? "ON" : "OFF");
     }
 
 #if defined(ITF_WINDOWS)
@@ -12048,6 +12052,11 @@ namespace ITF
     void Ray_GameManager::setKeyboardControllerSharing(bbool enabled)
     {
         m_gameOptionManager.setBoolOption(OPTION_PC_KEYBOARD_CONTROLLER_SHARING, enabled);
+        LOG("[OptionMenu] input mode Mode: %s", enabled ? "ON" : "OFF");
+        if (INPUT_ADAPTER)
+        {
+            INPUT_ADAPTER->SetKeyboardControllerSharing(enabled);
+        }
     }
 #endif
 
@@ -12065,6 +12074,13 @@ namespace ITF
         volume = std::max(volume, 0.0f);
         volume = std::min(volume, 1.0f);
         m_gameOptionManager.setFloatOption(OPTION_MASTER_VOLUME, volume);
+        const f32 applied = m_gameOptionManager.getFloatOption(OPTION_MASTER_VOLUME, volume);
+        LOG("[OptionMenu] Master Volume: %.2f (%.0f%%)", applied, applied * 100.0f);
+#if defined(ITF_SUPPORT_WWISE)
+        Adapter_AudioMiddleware *audioAdapter = Adapter_AudioMiddleware::getptr();
+        if (audioAdapter)
+            audioAdapter->setMasterVolume(Volume(applied, false));
+#endif
     }
 
     f32 Ray_GameManager::getMusicVolume() const
@@ -12077,6 +12093,13 @@ namespace ITF
         volume = std::max(volume, 0.0f);
         volume = std::min(volume, 1.0f);
         m_gameOptionManager.setFloatOption(OPTION_MUSIC_VOLUME, volume);
+        const f32 applied = m_gameOptionManager.getFloatOption(OPTION_MUSIC_VOLUME, volume);
+        LOG("[OptionMenu] Music Volume: %.2f (%.0f%%)", applied, applied * 100.0f);
+#if defined(ITF_SUPPORT_WWISE)
+        Adapter_AudioMiddleware* audioAdapter = Adapter_AudioMiddleware::getptr();
+        if (audioAdapter)
+            audioAdapter->setMenuMusicVolume(Volume(applied, false));
+#endif
     }
 
     f32 Ray_GameManager::getSFXVolume() const
@@ -12089,6 +12112,13 @@ namespace ITF
         volume = std::max(volume, 0.0f);
         volume = std::min(volume, 1.0f);
         m_gameOptionManager.setFloatOption(OPTION_SFX_VOLUME, volume);
+        const f32 applied = m_gameOptionManager.getFloatOption(OPTION_SFX_VOLUME, volume);
+        LOG("[OptionMenu] SFX Volume: %.2f (%.0f%%)", applied, applied * 100.0f);
+#if defined(ITF_SUPPORT_WWISE)
+        Adapter_AudioMiddleware* audioAdapter = Adapter_AudioMiddleware::getptr();
+        if (audioAdapter)
+            audioAdapter->setMenuSFXVolume(Volume(applied, false));
+#endif
     }
 
     f32 Ray_GameManager::getIntensity() const
@@ -12101,104 +12131,11 @@ namespace ITF
         intensity = std::max(intensity, 0.0f);
         intensity = std::min(intensity, 1.0f);
         m_gameOptionManager.setFloatOption(OPTION_INTENSITY, intensity);
-    }
-
-    void Ray_GameManager::applyDisplayOptions()
-    {
-    }
-
-    void Ray_GameManager::applyLanguageOption()
-    {
-        ITF_LANGUAGE language = static_cast<ITF_LANGUAGE>(m_gameOptionManager.getIntListOptionValue(OPTION_LANGUAGE));
-        if (LOCALISATIONMANAGER && LOCALISATIONMANAGER->getCurrentLanguage() != language)
-        {
-            LOG("[Language] Applying saved language: %d", language);
-            LOCALISATIONMANAGER->changeLanguage(language);
-        }
-    }
-
-    void Ray_GameManager::applyStartWithHeartOption()
-    {
-        i32 heartIndex = getStartWithHeartIndex();
-        EHealthModifier heartModifier = getHealthModifier();
-        LOG("[OptionMenu] Start With Heart: %s (index: %d, modifier: %d)", getStartWithHeartDisplayName(heartIndex), heartIndex, heartModifier);
-    }
-
-    void Ray_GameManager::applyRunButtonOption()
-    {
-        i32 runMode = getRunButtonMode();
-        LOG("[OptionMenu] Run Button Mode: %s (value: %d)", getRunButtonDisplayName(runMode), runMode);
-    }
-
-#if defined(ITF_WINDOWS)
-    void Ray_GameManager::applyPCKeyboardControllerSharingOption()
-    {
-        const bbool enabled = IsKeyboardControllerSharingEnabled();
-        LOG("[OptionMenu] input mode Mode: %s", enabled ? "ON" : "OFF");
-        if (INPUT_ADAPTER)
-        {
-            INPUT_ADAPTER->SetKeyboardControllerSharing(enabled);
-        }
-    }
-#endif
-
-    void Ray_GameManager::applyMurfyAssistOption()
-    {
-        bbool murfyAssist = isMurfyAssistEnabled();
-        LOG("[OptionMenu] Murfy's Assist: %s", murfyAssist ? "ON" : "OFF");
-        // TODO: Apply to gameplay when needed
-    }
-
-    void Ray_GameManager::applyVibrationOption()
-    {
-        i32 vibrationMode = getVibrationMode();
-        bbool vibrations = (vibrationMode == VibrationMode_On);
-        LOG("[OptionMenu] Vibrations: %s", vibrations ? "ON" : "OFF");
-        // TODO: Apply to INPUT_ADAPTER when needed
-        // INPUT_ADAPTER->setVibrationEnabled(vibrations);
-    }
-
-    void Ray_GameManager::applyMasterVolumeOption()
-    {
-        f32 masterVol = getMasterVolume();
-        LOG("[OptionMenu] Master Volume: %.2f (%.0f%%)", masterVol, masterVol * 100.0f);
-#if defined(ITF_SUPPORT_WWISE)
-        Adapter_AudioMiddleware *audioAdapter = Adapter_AudioMiddleware::getptr();
-        if (audioAdapter)
-            audioAdapter->setMasterVolume(Volume(masterVol, false));
-#endif
-    }
-
-    void Ray_GameManager::applyMusicVolumeOption()
-    {
-        f32 musicVol = getMusicVolume();
-        LOG("[OptionMenu] Music Volume: %.2f (%.0f%%)", musicVol, musicVol * 100.0f);
-#if defined(ITF_SUPPORT_WWISE)
-        Adapter_AudioMiddleware* audioAdapter = Adapter_AudioMiddleware::getptr();
-        if (audioAdapter)
-            audioAdapter->setMenuMusicVolume(Volume(musicVol, false));
-
-#endif
-    }
-
-    void Ray_GameManager::applySFXVolumeOption()
-    {
-        f32 sfxVol = getSFXVolume();
-        LOG("[OptionMenu] SFX Volume: %.2f (%.0f%%)", sfxVol, sfxVol * 100.0f);
-#if defined(ITF_SUPPORT_WWISE)
-        Adapter_AudioMiddleware* audioAdapter = Adapter_AudioMiddleware::getptr();
-        if (audioAdapter)
-            audioAdapter->setMenuSFXVolume(Volume(sfxVol, false));
-#endif
-    }
-
-    void Ray_GameManager::applyIntensityOption()
-    {
-        f32 intensity = getIntensity();
-        LOG("[OptionMenu] Intensity: %.2f (%.0f%%)", intensity, intensity * 100.0f);
+        const f32 applied = m_gameOptionManager.getFloatOption(OPTION_INTENSITY, intensity);
+        LOG("[OptionMenu] Intensity: %.2f (%.0f%%)", applied, applied * 100.0f);
         if (PADRUMBLEMANAGER)
         {
-            PADRUMBLEMANAGER->setIntensityMultiplier(intensity);
+            PADRUMBLEMANAGER->setIntensityMultiplier(applied);
         }
     }
 
@@ -12284,28 +12221,29 @@ namespace ITF
         }
 
         auto* gm = RAY_GAMEMANAGER;
-        gm->applyDisplayOptions();
-        gm->applyMasterVolumeOption();
-        gm->applyMusicVolumeOption();
-        gm->applySFXVolumeOption();
+        if (gm)
+        {
+            gm->setResolutionIndex(gm->getResolutionIndex());
+            gm->setWindowed(gm->isWindowed());
+            gm->setLanguageIndex(gm->getLanguageIndex());
+            gm->setStartWithHeartIndex(gm->getStartWithHeartIndex());
+            gm->setRunButtonMode(gm->getRunButtonMode());
+            gm->setMurfyAssist(gm->isMurfyAssistEnabled());
+            gm->setVibrationMode(gm->getVibrationMode());
+            gm->setIntensity(gm->getIntensity());
+            gm->setMasterVolume(gm->getMasterVolume());
+            gm->setMusicVolume(gm->getMusicVolume());
+            gm->setSFXVolume(gm->getSFXVolume());
 #if defined(ITF_WINDOWS)
-        gm->applyPCKeyboardControllerSharingOption();
+            gm->setKeyboardControllerSharing(gm->IsKeyboardControllerSharingEnabled());
 #endif
 
-        if (result == Ray_GameOptionPersistence::Result_LoadSuccess)
-        {
-            gm->applyLanguageOption();
-            gm->applyStartWithHeartOption();
-            gm->applyRunButtonOption();
-            gm->applyMurfyAssistOption();
-            gm->applyVibrationOption();
-            gm->applyIntensityOption();
-        }
-        if (gm->m_onGameSettingLoaded)
-        {
-            auto cb = gm->m_onGameSettingLoaded;
-            gm->m_onGameSettingLoaded = nullptr;
-            cb();
+            if (gm->m_onGameSettingLoaded)
+            {
+                auto cb = gm->m_onGameSettingLoaded;
+                gm->m_onGameSettingLoaded = nullptr;
+                cb();
+            }
         }
     }
 } //namespace ITF

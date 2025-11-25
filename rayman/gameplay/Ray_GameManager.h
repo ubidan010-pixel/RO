@@ -1719,7 +1719,6 @@ namespace ITF
         // Game Options / Accessibility
         Ray_GameOptionManager& getGameOptionManager() { return m_gameOptionManager; }
         const Ray_GameOptionManager& getGameOptionManager() const { return m_gameOptionManager; }
-        void            applyDisplayOptions();
 
         EHealthModifier getHealthModifier() const;
         void            setHealthModifier(EHealthModifier _modifier);
@@ -1780,11 +1779,6 @@ namespace ITF
 
         f32             getIntensity() const;
         void            setIntensity(f32 intensity);
-
-        void            applyMasterVolumeOption();
-        void            applyMusicVolumeOption();
-        void            applySFXVolumeOption();
-        void            applyIntensityOption();
 
         //==========================================================================
         // Save/Load Options
@@ -1862,14 +1856,6 @@ namespace ITF
         void            registerAuthSecondBoot();
 #if defined(ITF_WINDOWS)
         void            registerPCKeyboardControllerSharingOption();
-#endif
-        void            applyLanguageOption();
-        void            applyStartWithHeartOption();
-        void            applyVibrationOption();
-        void            applyRunButtonOption();
-        void            applyMurfyAssistOption();
-#if defined(ITF_WINDOWS)
-        void            applyPCKeyboardControllerSharingOption();
 #endif
 
         Scene*          getSceneForPersistentActor(Actor *_obj) const;

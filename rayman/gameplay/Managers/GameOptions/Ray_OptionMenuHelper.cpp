@@ -276,11 +276,6 @@ namespace ITF
         RAY_GAMEMANAGER->setSFXVolume(sfxVolume);
         RAY_GAMEMANAGER->setIntensity(intensity);
 
-        RAY_GAMEMANAGER->applyDisplayOptions();
-        RAY_GAMEMANAGER->applyMasterVolumeOption();
-        RAY_GAMEMANAGER->applyMusicVolumeOption();
-        RAY_GAMEMANAGER->applySFXVolumeOption();
-        RAY_GAMEMANAGER->applyIntensityOption();
         refreshAllOptionVisuals();
 
         return btrue;
@@ -293,7 +288,6 @@ namespace ITF
 
         if (RAY_GAMEMANAGER)
         {
-            RAY_GAMEMANAGER->applyDisplayOptions();
             RAY_GAMEMANAGER->saveGameOptions();
         }
 
@@ -631,7 +625,6 @@ namespace ITF
         }
 
         toggleComponent->setValue(newValue);
-        applyOptionChange(optionId);
     }
 
     void Ray_OptionMenuHelper::adjustListOption(UIListOptionComponent* listComponent, const StringID& optionId, i32 direction)
@@ -702,7 +695,6 @@ namespace ITF
         }
 
         updateListOptionDisplay(listComponent, optionId, newIndex);
-        applyOptionChange(optionId);
     }
 
     void Ray_OptionMenuHelper::adjustFloatOption(UIFloatOptionComponent* floatComponent, const StringID& optionId, i32 direction)
@@ -733,22 +725,18 @@ namespace ITF
         if (optionId == OPTION_MASTER_VOLUME)
         {
             RAY_GAMEMANAGER->setMasterVolume(newValue);
-            RAY_GAMEMANAGER->applyMasterVolumeOption();
         }
         else if (optionId == OPTION_MUSIC_VOLUME)
         {
             RAY_GAMEMANAGER->setMusicVolume(newValue);
-            RAY_GAMEMANAGER->applyMusicVolumeOption();
         }
         else if (optionId == OPTION_SFX_VOLUME)
         {
             RAY_GAMEMANAGER->setSFXVolume(newValue);
-            RAY_GAMEMANAGER->applySFXVolumeOption();
         }
         else if (optionId == OPTION_INTENSITY)
         {
             RAY_GAMEMANAGER->setIntensity(newValue);
-            RAY_GAMEMANAGER->applyIntensityOption();
         }
         else
         {
@@ -756,7 +744,6 @@ namespace ITF
         }
 
         floatComponent->setValue(newValue, btrue);
-        applyOptionChange(optionId);
     }
 
     void Ray_OptionMenuHelper::updateListOptionDisplay(UIListOptionComponent* listComponent, const StringID& optionId, i32 index) const
@@ -788,17 +775,6 @@ namespace ITF
         if (displayName && displayName[0] != '\0')
         {
             valueComp->forceContent(displayName);
-        }
-    }
-
-    void Ray_OptionMenuHelper::applyOptionChange(const StringID& optionId) const
-    {
-        if (!RAY_GAMEMANAGER || !optionId.isValid())
-            return;
-
-        if (optionId == OPTION_RESOLUTION || optionId == OPTION_WINDOWED)
-        {
-            RAY_GAMEMANAGER->applyDisplayOptions();
         }
     }
 
@@ -1164,11 +1140,6 @@ namespace ITF
         RAY_GAMEMANAGER->setMusicVolume(m_snapshotMusicVolume);
         RAY_GAMEMANAGER->setSFXVolume(m_snapshotSFXVolume);
         RAY_GAMEMANAGER->setIntensity(m_snapshotIntensity);
-        RAY_GAMEMANAGER->applyDisplayOptions();
-        RAY_GAMEMANAGER->applyMasterVolumeOption();
-        RAY_GAMEMANAGER->applyMusicVolumeOption();
-        RAY_GAMEMANAGER->applySFXVolumeOption();
-        RAY_GAMEMANAGER->applyIntensityOption();
     }
 
     void Ray_OptionMenuHelper::updateTimer()
