@@ -12074,12 +12074,11 @@ namespace ITF
         volume = std::max(volume, 0.0f);
         volume = std::min(volume, 1.0f);
         m_gameOptionManager.setFloatOption(OPTION_MASTER_VOLUME, volume);
-        const f32 applied = m_gameOptionManager.getFloatOption(OPTION_MASTER_VOLUME, volume);
-        LOG("[OptionMenu] Master Volume: %.2f (%.0f%%)", applied, applied * 100.0f);
+        LOG("[OptionMenu] Master Volume: %.2f (%.0f%%)", volume, volume * 100.0f);
 #if defined(ITF_SUPPORT_WWISE)
         Adapter_AudioMiddleware *audioAdapter = Adapter_AudioMiddleware::getptr();
         if (audioAdapter)
-            audioAdapter->setMasterVolume(Volume(applied, false));
+            audioAdapter->setMasterVolume(Volume(volume, false));
 #endif
     }
 
@@ -12093,12 +12092,11 @@ namespace ITF
         volume = std::max(volume, 0.0f);
         volume = std::min(volume, 1.0f);
         m_gameOptionManager.setFloatOption(OPTION_MUSIC_VOLUME, volume);
-        const f32 applied = m_gameOptionManager.getFloatOption(OPTION_MUSIC_VOLUME, volume);
-        LOG("[OptionMenu] Music Volume: %.2f (%.0f%%)", applied, applied * 100.0f);
+        LOG("[OptionMenu] Music Volume: %.2f (%.0f%%)", volume, volume * 100.0f);
 #if defined(ITF_SUPPORT_WWISE)
         Adapter_AudioMiddleware* audioAdapter = Adapter_AudioMiddleware::getptr();
         if (audioAdapter)
-            audioAdapter->setMenuMusicVolume(Volume(applied, false));
+            audioAdapter->setMenuMusicVolume(Volume(volume, false));
 #endif
     }
 
@@ -12112,12 +12110,11 @@ namespace ITF
         volume = std::max(volume, 0.0f);
         volume = std::min(volume, 1.0f);
         m_gameOptionManager.setFloatOption(OPTION_SFX_VOLUME, volume);
-        const f32 applied = m_gameOptionManager.getFloatOption(OPTION_SFX_VOLUME, volume);
-        LOG("[OptionMenu] SFX Volume: %.2f (%.0f%%)", applied, applied * 100.0f);
+        LOG("[OptionMenu] SFX Volume: %.2f (%.0f%%)", volume, volume * 100.0f);
 #if defined(ITF_SUPPORT_WWISE)
         Adapter_AudioMiddleware* audioAdapter = Adapter_AudioMiddleware::getptr();
         if (audioAdapter)
-            audioAdapter->setMenuSFXVolume(Volume(applied, false));
+            audioAdapter->setMenuSFXVolume(Volume(volume, false));
 #endif
     }
 
@@ -12131,11 +12128,10 @@ namespace ITF
         intensity = std::max(intensity, 0.0f);
         intensity = std::min(intensity, 1.0f);
         m_gameOptionManager.setFloatOption(OPTION_INTENSITY, intensity);
-        const f32 applied = m_gameOptionManager.getFloatOption(OPTION_INTENSITY, intensity);
-        LOG("[OptionMenu] Intensity: %.2f (%.0f%%)", applied, applied * 100.0f);
+        LOG("[OptionMenu] Intensity: %.2f (%.0f%%)", intensity, intensity * 100.0f);
         if (PADRUMBLEMANAGER)
         {
-            PADRUMBLEMANAGER->setIntensityMultiplier(applied);
+            PADRUMBLEMANAGER->setIntensityMultiplier(intensity);
         }
     }
 
