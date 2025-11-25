@@ -18,25 +18,16 @@ public:
     NetworkServices_xboxseries();
 	~NetworkServices_xboxseries();
 
-    ///////////////////////////////////////////////////////////////////////////////////////////
-    ///Init
-    virtual void initialize(u32 dwMinUsers,u32 dwMaxUsers, bbool  bRequireOnlineUsers,u32 dwSignInPanes );
+    virtual u32 update() override;
+    virtual void initialize(u32 dwMinUsers, u32 dwMaxUsers, bbool  bRequireOnlineUsers, u32 dwSignInPanes) override;
+    virtual void terminate() override;
 
-    ///////////////////////////////////////////////////////////////////////////////////////////
-    /// termination
-    virtual void terminate();
-
-	///////////////////////////////////////////////////////////////////////////////////////////
-	/// check if player at given controller index is signed in
-	/// @param dwController
-	virtual bbool     isUserSignedIn( u32 dwController ) { return m_npOnline; }
-
-    ///////////////////////////////////////////////////////////////////////////////////////////
-    /// update
-    u32    update();
+    virtual u32 getPlatformSpecificErrorCode() override;
 
 protected:
+
 private:
+    int m_platformErrorCode;
 };
   
 

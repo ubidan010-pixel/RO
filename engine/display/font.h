@@ -136,6 +136,7 @@ namespace ITF
 
         f32 write(u32 color,f32 x, f32 y, f32 z, const String& text, i32 count, u32 mode, bbool _write );
         f32 writeML(u32 color,f32 x, f32 y, f32 z, const String& text, i32 count, u32 mode, bbool _write );
+        bbool isChina();
         void writeBox(u32 color,f32 x, f32 y, f32 z, bbool _isRender2D, const Vec3d &_boxPos, const Vec3d &_boxPivot, const Vec3d &_boxScale, f32 _boxRotation, bbool _useTransBox, f32 width, const SafeArray<CharInfo> &_charInfoTab, const String& text, i32 count, u32 mode, u32 modeY, f32 height = -1.f, bbool _write = btrue, bbool _cut = bfalse, TextActorInfoList* _actorInfo = NULL );
 
         ///////////////////////////////////////////////////////////////////////////////////////////

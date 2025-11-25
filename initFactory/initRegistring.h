@@ -60,6 +60,10 @@ REGISTER_ITF_PARENT(SoundAdapter_XAudio,SoundAdapter)
 #endif
 #endif
 
+#ifdef ITF_SUPPORT_UBISERVICES
+REGISTER_ITF_PARENT(OnlineAdapter_Ubiservices, OnlineAdapter)
+#endif
+
 #ifdef ITF_WINDOWS
     #ifdef ITF_SUPPORT_PLUGIN
         REGISTER_ITF_PARENT(FreeImageCodec,CodecImageAdapter)
@@ -77,9 +81,7 @@ REGISTER_ITF_PARENT(UPlayService_Win, UPlayService)
 #ifdef ITF_SUPPORT_ONLINETRACKING
 REGISTER_ITF_PARENT(OnlineTrackingAdapter_win32, OnlineTrackingAdapter)
 #endif //ITF_SUPPORT_ONLINETRACKING
-#ifdef ITF_SUPPORT_UBISERVICES
-REGISTER_ITF_PARENT(OnlineAdapter_Ubiservices, OnlineAdapter)
-#endif
+
 REGISTER_ITF_PARENT(RewardAdapter_win, RewardAdapter)
 #endif  // ITF_WINDOWS
 

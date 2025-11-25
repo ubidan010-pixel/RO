@@ -17,22 +17,16 @@ namespace ITF
         NetworkServices_Nintendo();
         ~NetworkServices_Nintendo();
 
-        ///////////////////////////////////////////////////////////////////////////////////////////
-        ///Init
+        virtual u32 update();
         virtual void initialize(u32 dwMinUsers, u32 dwMaxUsers, bbool  bRequireOnlineUsers, u32 dwSignInPanes);
-
-        ///////////////////////////////////////////////////////////////////////////////////////////
-        /// termination
         virtual void terminate();
 
-        ///////////////////////////////////////////////////////////////////////////////////////////
-        /// check if player at given controller index is signed in
-        /// @param dwController
-        virtual bbool     isUserSignedIn(u32 dwController) { return m_npOnline; }
+        virtual u32 getPlatformSpecificErrorCode();
 
-        ///////////////////////////////////////////////////////////////////////////////////////////
-        /// update
-        u32    update();
+    protected:
+
+    private:
+        int m_platformErrorCode;
 
     protected:
     private:

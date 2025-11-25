@@ -792,7 +792,10 @@ namespace FontPrivate
         return res;
     }
 }
-
+    bbool Font::isChina()
+    {
+        return LOCALISATIONMANAGER->getCurrentLanguage() == ITF_LANGUAGE_SIMPLIFIEDCHINESE || LOCALISATIONMANAGER->getCurrentLanguage() == ITF_LANGUAGE_TRADITIONALCHINESE;
+    };
 void Font::writeBox(u32 color,f32 x, f32 y, f32 z, bbool _isRender2D, const Vec3d &_boxPos, const Vec3d &_boxPivot, const Vec3d &_boxScale, f32 _boxRotation, bbool _useTransBox, f32 width, const SafeArray<CharInfo> &_charInfoTab, const String& text, i32 count, u32 mode, u32 modeY, f32 height, bbool _write, bbool _cut, TextActorInfoList* _actorInfo )
 {
     if( count <= 0 )
@@ -898,6 +901,10 @@ void Font::writeBox(u32 color,f32 x, f32 y, f32 z, bbool _isRender2D, const Vec3
 
                 // Advance the cursor to the next character
                 getNextChar(text,wordE);
+                    if ((isChina() && !tagOpened) || (tagOpened && c == FontPrivate::END_TAG_DELIMITER))
+                    {
+                        break;
+                    }
             }
 
             if(tagOpened)
@@ -1072,7 +1079,7 @@ void Font::writeBox(u32 color,f32 x, f32 y, f32 z, bbool _isRender2D, const Vec3
                 spaceWidth = getTextWidth(s, 1);
 
             // Does the word fit on the line? The first word is always accepted.
-            if( wordCount == 1 || currWidth + (wordCount > 1 ? spaceWidth : 0) + wordWidth <= width )
+                if (wordCount == 1 || currWidth + ((wordCount > 1 && !isChina()) ? spaceWidth : 0) + wordWidth <= width)
             {
                 if ( addIcon )
                 {
@@ -1094,8 +1101,8 @@ void Font::writeBox(u32 color,f32 x, f32 y, f32 z, bbool _isRender2D, const Vec3
                 curPos += wordWidth;
 
                 // Increase the line extent to the end of the word
-                lineE = wordE;
-                currWidth += (wordCount > 1 ? spaceWidth : 0) + wordWidth;
+                    lineE = wordE;
+                    currWidth += ((wordCount > 1 && !isChina()) ? spaceWidth : 0) + wordWidth;
 
                  // Did we reach the end of the line?
                 if( wordE == count || getTextChar(text,wordE) == '\n' )
@@ -1653,6 +1660,5 @@ FontCache::~FontCache()
     }
 
 }
-
 
 }

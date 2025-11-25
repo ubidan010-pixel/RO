@@ -22,16 +22,16 @@ namespace ITF
         virtual void term() override;
         virtual void update() override;
 
-        virtual void updatePlayTime(u32 _sessionTime);
+        virtual void updatePlayTime(u32 _sessionTime) override;
 
-        virtual void setAttributeBool(const char* attr, bool val);
-        virtual void setAttributeInt(const char* attr, i32 val);
-        virtual void setAttributeLong(const char* attr, i64 val);
-        virtual void setAttributeFloat(const char* attr, f32 val);
-        virtual void setAttributeDouble(const char* attr, f64 val);
-        virtual void setAttributeString(const char* attr, const char* val);
+        virtual void setAttributeBool(const char* attr, bool val) override;
+        virtual void setAttributeInt(const char* attr, i32 val) override;
+        virtual void setAttributeLong(const char* attr, i64 val) override;
+        virtual void setAttributeFloat(const char* attr, f32 val) override;
+        virtual void setAttributeDouble(const char* attr, f64 val) override;
+        virtual void setAttributeString(const char* attr, const char* val) override;
 
-        virtual int sendSignal(const char* signal);
+        virtual int sendSignal(const char* signal) override;
 
     private:
         US_NS::TimeSeconds m_playTime;

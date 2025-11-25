@@ -14,7 +14,8 @@
 
 namespace ITF
 {
-	NetworkServices_xboxseries::NetworkServices_xboxseries()
+	NetworkServices_xboxseries::NetworkServices_xboxseries():
+        m_platformErrorCode(0)
     {
 	}
 
@@ -33,6 +34,11 @@ namespace ITF
     u32 NetworkServices_xboxseries::update()
     {
         return 0;
+    }
+
+    u32 NetworkServices_xboxseries::getPlatformSpecificErrorCode()
+    {
+        return m_platformErrorCode;
     }
 } // namespace ITF
 

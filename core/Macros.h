@@ -85,18 +85,23 @@
 // $GB 2025/25/02: removed support for network services and tracking:
 // A lot of change is required if we want to support it, like the integration of ubiservices.
 #ifdef ITF_WINDOWS
-#define ITF_SUPPORT_NETWORKSERVICES 1
 #define ITF_SUPPORT_UPLAY 1
+
+#define ITF_SUPPORT_NETWORKSERVICES 1
 #define ITF_SUPPORT_UBISERVICES 1
 #define ITF_SUPPORT_ONLINETRACKING 1
 
 // $GS : need to tell apart UPLAY from PC / STEAM / LUNA / GFN later
 #define ITF_UPLAYPC 1
-#elif defined(ITF_PS5)
+#elif defined(ITF_PS5) || defined(ITF_XBOX_SERIES)
 #define ITF_SUPPORT_NETWORKSERVICES 1
 #define ITF_SUPPORT_UBISERVICES 1
+#define ITF_SUPPORT_ONLINETRACKING 1
+
+#elif defined(ITF_NX) || defined(ITF_OUNCE)
+// SDK can't be linked in since we can't find EVP_MD_size symbol within NX's openssl
+// Needs a rebuild without openssl3 here & external SSL.
 #endif
-// #define ITF_SUPPORT_ONLINETRACKING 1
 
 // $GB 2025/25/02: ENABLE_ALLOCATOR was for a custom allocator for X360. Probably obsolete.
 #ifdef ITF_X360

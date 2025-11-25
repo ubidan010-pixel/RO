@@ -42,6 +42,14 @@
 #include <ubiservices/services/notification/playerNotificationClient.h>
 #include <ubiservices/services/notification/playerNotificationUbiServices.h>
 
+#if ITF_PS5
+extern "C"
+{
+    unsigned int sceLibcHeapExtendedAlloc = 1;                           /* Switch to dynamic allocation */
+    size_t sceLibcHeapSize = SCE_LIBC_HEAP_SIZE_EXTENDED_ALLOC_NO_LIMIT; /* no upper limit for heap area */
+};
+#endif
+
 using namespace ubiservices;
 
 namespace ITF
@@ -291,19 +299,14 @@ namespace ITF
 #if defined(ITF_WINDOWS)
         const US_NS::GameConfigConsole gameConfigConsole(uplayPCPolicy);
 #elif defined(ITF_PS5)
-        const US_NS::String titleId("CUSA001234_00");
-        const US_NS::String clientId("11111111-2222-3333-4444-555555555555");
-        const US_NS::uint32 titleStoreServiceLabel = 0;
-        const US_NS::String clientSecret("ClientSecret");
-        const bool isSceNpCheckCallbackManagedBySdk = true;
-
-        const US_NS::GameConfigConsole gameConfigConsole(titleId, clientId, titleStoreServiceLabel, clientSecret, isSceNpCheckCallbackManagedBySdk);
+        const US_NS::String titleId("PPSA34569_00");
+        const US_NS::GameConfigConsole gameConfigConsole(titleId);
 #elif defined(ITF_NX) || defined(ITF_OUNCE)
         // This is the primary store id given to the game in the first party publishing tool
-        const US_NS::String applicationId("a11a1a1a-1111-11aa-111a-1a1111a11aaa");
-        const US_NS::GameConfigConsole gameConfigConsole(applicationId);
-#elif defined(ITF_SCARLETT)
-        const US_NS::String productId("a11a1a1a-1111-11aa-111a-1a1111a11aaa"); // This is the primary store id given to the game in the first party publishing tool
+        const US_NS::String theApplicationId("0100ac702659e000");
+        const US_NS::GameConfigConsole gameConfigConsole(theApplicationId);
+#elif defined(ITF_XBOX_SERIES)
+        const US_NS::String productId("48485039-5439-304e-c033-505343475400"); // This is the primary store id given to the game in the first party publishing tool
         const US_NS::PartyMultiplayerPrivilegeModel model = US_NS::PartyMultiplayerPrivilegeModel::Standard; // Xbox title payment model used to check party multiplayer privileges.
         const US_NS::GameConfigConsole gameConfigConsole(productId, model);
 #endif

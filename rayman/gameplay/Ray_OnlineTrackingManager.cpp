@@ -974,7 +974,7 @@ void Ray_OnlineTrackingManager::AwardUnlock(ITF::u32 awardIdu32)
 
     // player.progression.achievementUnlock
     String8 progressValue;
-    progressValue.setTextFormat("%s/%s", awardIdu32, REWARD_ADAPTER->getRewardsCount());
+    progressValue.setTextFormat("%d/%d", awardIdu32, REWARD_ADAPTER->getRewardsCount());
     addString("progressionType", "UplayActionUnlock");
     addString("progressionValue", progressValue);
     sendSignal("AchievementUnlock");
