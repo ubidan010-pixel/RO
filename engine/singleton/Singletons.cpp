@@ -723,11 +723,6 @@ void Singletons::destroy(bbool _fastExit)
     SF_DEL(m_MusicManager);
     SF_DEL(m_MetronomeManager);
 
-#ifndef ITF_SUPPORT_RAKI
-    if (m_Adapter_AudioMiddleware)
-        m_Adapter_AudioMiddleware->destroy();
-#endif
-
 #ifndef ITF_FINAL
     SF_DEL(m_TestManager);
 #endif // ITF_FINAL
@@ -749,6 +744,10 @@ void Singletons::destroy(bbool _fastExit)
 
     AnimDependenciesMapResource::terminate();
 
+#ifndef ITF_SUPPORT_RAKI
+    if (m_Adapter_AudioMiddleware)
+        m_Adapter_AudioMiddleware->destroy();
+#endif
     //SF_DEL(m_TemplateDatabase);
     SF_DEL(m_RegionsManager);
     SF_DEL(m_WaypointsManager);
@@ -815,7 +814,7 @@ void Singletons::destroy(bbool _fastExit)
 
     if (m_GFXAdapter)
         m_GFXAdapter->destroyResources();
-    
+      
     // ResourceManager can be waiting for a sleeping resource thread, do not try to delete it 
     // --> random crash during loading
     if(_fastExit)
