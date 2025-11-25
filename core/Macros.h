@@ -30,6 +30,8 @@
     #define ITF_DISABLE_WARNING 1
     #define ITF_DISABLE_LOG 1
     #define ITF_DISABLE_DEBUGINFO 1
+    //Temporay enable for final mode
+    #define ITF_SUPPORT_CHEAT 1
 #else
     #define ITF_SUPPORT_CHEAT 1
     // $GB 2025/25/02: Should be renamed to ITF_RASTER_ENABLED
@@ -90,6 +92,9 @@
 
 // $GS : need to tell apart UPLAY from PC / STEAM / LUNA / GFN later
 #define ITF_UPLAYPC 1
+#elif defined(ITF_PS5)
+#define ITF_SUPPORT_NETWORKSERVICES 1
+#define ITF_SUPPORT_UBISERVICES 1
 #endif
 // #define ITF_SUPPORT_ONLINETRACKING 1
 
