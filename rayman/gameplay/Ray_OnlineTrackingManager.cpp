@@ -120,11 +120,11 @@ void Ray_OnlineTrackingManager::OnlineTrackingTrackDeath(ITF::u32 playerIndex)
 	u32 num_players = GAMEMANAGER->getNumActivePlayers();
 
 	bbool bAllPlayerAreDead = btrue;
-
+	
 	for (u32 i=0;i<num_players;i++)
 	{
 		Player *player = GAMEMANAGER->getPlayer(i);
-
+		
 		if (player)
 		{
 			if (!player->isDead())
@@ -132,7 +132,7 @@ void Ray_OnlineTrackingManager::OnlineTrackingTrackDeath(ITF::u32 playerIndex)
 				bAllPlayerAreDead = bfalse;
 				break;
 			}
-
+			
 		}
 
 	}
@@ -144,7 +144,7 @@ void Ray_OnlineTrackingManager::OnlineTrackingTrackDeath(ITF::u32 playerIndex)
 
 	if (CONFIG->m_enableonlineTracking==btrue)
 	{
-
+		
 		if (ONLINETRACKING_ADAPTER)
 		{
 			RAY_GAMEMANAGER->getOnlineTrackingManager()->m_deathCountSinceLastCheckPoint[ playerIndex ]++;
@@ -198,7 +198,7 @@ void Ray_OnlineTrackingManager::OnlineTrackingTrackDeath(ITF::u32 playerIndex)
 				{
 					last_offscreen = "YES";
 				}
-
+				
 				str.setTextFormat("VERSION=%d&NUMPLAYERS=%d&PLAYERID=%d&LEVELNAME=%s&CHECKPOINT=%s&DEATH=YES&PAF=%s&OFFSCREEN=%s&X=%.1f&Y=%.1f&Z=%.1f",
 						currentEngineVersion,
 						num_players,
@@ -250,9 +250,9 @@ void Ray_OnlineTrackingManager::SendLevelStop(CheckPointTag _CP_Tag)
 		addUint32("TIME",(int)floorf(m_currentLevelTime));
 		addString("LEVELNAME",level_copy);
 		addUint32("RUNCOUNT", m_runCount);
-
+	
 		addString("TAAVAILABLE", (m_TimeAttackAvailableForThisMap==btrue)?"YES":"NO");
-
+	
 		addString("MODE", (RAY_GAMEMANAGER->isTimeAttack()) ? "TA" : "WT");
 
 		ESpot_State e = RAY_GAMEMANAGER->getWMSpotState(s_JU_B);
@@ -279,12 +279,12 @@ void Ray_OnlineTrackingManager::SendLevelStop(CheckPointTag _CP_Tag)
 		if ((m_TimeAttackAvailableForThisMap==bfalse && pLevelData->getChallengeTimeAttackCount()==0) || (pLevelData->getChallengeTimeAttackCount()==0 && !RAY_GAMEMANAGER->isTimeAttack()) )
 		{
 			// TA not unlocked or unlocked but not completed /////
-			addString("CHTA","NA");
+			addString("CHTA","NA");	
 
 		}
 		else
 		{
-
+			
 				if (pLevelData->getChallengeTimeAttackCount()==0 && RAY_GAMEMANAGER->isTimeAttack() )
 				{
 					// time attack success for the first time///
@@ -318,7 +318,7 @@ void Ray_OnlineTrackingManager::SendLevelStop(CheckPointTag _CP_Tag)
 		else if (_CP_Tag == CP_RestartLevel)
 				addString("REASON","RESTART");
 
-		/*if ( m_firstCompMap.count( level_copy ) == 0 )
+		/*if ( m_firstCompMap.count( level_copy ) == 0 ) 
 		{
 			addString("FIRSTCOMP","YES");
 		}
@@ -332,7 +332,7 @@ void Ray_OnlineTrackingManager::SendLevelStop(CheckPointTag _CP_Tag)
 			{
 				addString("FIRSTCOMP","YES");
 			}
-
+			
 		}*/
 
 		/*if (_CP_Tag==CP_EndOfLevel || _CP_Tag==CP_EndOfTimeAttack)
@@ -340,7 +340,7 @@ void Ray_OnlineTrackingManager::SendLevelStop(CheckPointTag _CP_Tag)
 			m_firstCompMap[level_copy] = LEVEL_ALREADY_COMPLETED;
 		}*/
 
-
+		
 		f32 first_time_stored = pLevelData->getFirstTimeLevelCompleted();
 
 		if (first_time_stored>0.0f)
@@ -355,14 +355,14 @@ void Ray_OnlineTrackingManager::SendLevelStop(CheckPointTag _CP_Tag)
 					first_time_stored = m_currentLevelTime;
 					addUint32("FIRSTCOMPTIME", (int)floorf(first_time_stored) );
 					addString("FIRSTCOMP","YES");
-		}
-		else
+		}			
+		else  
 		{
-					addString("FIRSTCOMPTIME","NA");
+					addString("FIRSTCOMPTIME","NA");	
 					addString("FIRSTCOMP","NA");
 		}
-
-
+				
+		
 
 		if (pLevelData->getChallengeLumsStage1()>0)
 		{
@@ -478,14 +478,14 @@ void Ray_OnlineTrackingManager::SendLevelStop(CheckPointTag _CP_Tag)
 			if ( checkpoint )
 			{
 				ObjectPath path;
-				SceneObjectPathUtils::getAbsolutePathFromObject(checkpoint,path);
+				SceneObjectPathUtils::getAbsolutePathFromObject(checkpoint,path);	
 				path.toString(checkPointStr);
 			}
 
 			ITF::String8 checkp = ITF::String8(checkPointStr.c_str());
 
 			i32 pos = 0;
-
+			
 			checkp.strstr('|',bfalse,&pos);
 
 			if (pos!=0)
@@ -501,7 +501,7 @@ void Ray_OnlineTrackingManager::SendLevelStop(CheckPointTag _CP_Tag)
 		else
 		{
 			addString("CHK","NA");
-		}
+		}		
 
 		sendTag("LEVEL_STOP",bfalse);
         sendSignal("LevelStop");
@@ -571,7 +571,7 @@ void Ray_OnlineTrackingManager::onReachedCheckpoint(CheckPointTag _CP_Tag)
 		if ( checkpoint )
 		{
 			ObjectPath path;
-			SceneObjectPathUtils::getAbsolutePathFromObject(checkpoint,path);
+			SceneObjectPathUtils::getAbsolutePathFromObject(checkpoint,path);	
 			path.toString(checkPointStr);
 		}
 
@@ -616,14 +616,14 @@ void Ray_OnlineTrackingManager::onReachedCheckpoint(CheckPointTag _CP_Tag)
 			addString("levelName", level_name);
 			addString("checkPoint", ITF::String8(checkPointStr.c_str()));
 			addUint32("checkPointOrder", m_checkPointOrderSinceLevelBegin );
-
+			
 			addUint32("lums", total_lums);//LUMS
 			addUint32("coins", RAY_GAMEMANAGER->getTotalTakenToothCount());
 			addUint32("brokenCages", RAY_GAMEMANAGER->getBrokenCageCount());
 
 			if (_CP_Tag == CP_Normal)
 			{
-
+				
 				addUint32("deathCountPlayer1", m_deathCountSinceLastCheckPoint[0]);
 				addUint32("deathCountPlayer2", m_deathCountSinceLastCheckPoint[1]);
 				addUint32("deathCountPlayer3", m_deathCountSinceLastCheckPoint[2]);
@@ -635,7 +635,7 @@ void Ray_OnlineTrackingManager::onReachedCheckpoint(CheckPointTag _CP_Tag)
 			}
 			else
 			{
-
+			
 				addUint32("deathCountPlayer1", m_LdeathCountSinceLastCheckPoint[0]);
 				addUint32("deathCountPlayer2", m_LdeathCountSinceLastCheckPoint[1]);
 				addUint32("deathCountPlayer3", m_LdeathCountSinceLastCheckPoint[2]);
@@ -660,7 +660,7 @@ void Ray_OnlineTrackingManager::onReachedCheckpoint(CheckPointTag _CP_Tag)
 				addString("levelName",level_name);
 				addString("checkPoint", ITF::String8(checkPointStr.c_str()));
 				addUint32("checkPointOrder", m_checkPointOrderSinceLevelBegin );
-
+				
 				addUint32("lums",total_lums);//LUMS
 				addUint32("coins",RAY_GAMEMANAGER->getTotalTakenToothCount());
 				addUint32("brokenCages",RAY_GAMEMANAGER->getBrokenCageCount());
@@ -675,7 +675,7 @@ void Ray_OnlineTrackingManager::onReachedCheckpoint(CheckPointTag _CP_Tag)
 			}
             else if(_CP_Tag == CP_Normal)
             {
-                m_checkPointOrderSinceLevelBegin++;
+                m_checkPointOrderSinceLevelBegin++; 
 
 				for (int i=0;i<4;i++)
 				{
@@ -697,7 +697,7 @@ void Ray_OnlineTrackingManager::onReachedCheckpoint(CheckPointTag _CP_Tag)
 
 	SavePersistant();
 
-
+	
 }
 
 void Ray_OnlineTrackingManager::resetStats(bool bResetCheckPointDataOnly )
@@ -706,13 +706,13 @@ void Ray_OnlineTrackingManager::resetStats(bool bResetCheckPointDataOnly )
     m_timeElapsedSinceLastCheckPoint = 0.0f;
     m_jumpCount						 = 0;
     m_attackCount					 = 0;
-    m_diamondCollected				 = 0;
+    m_diamondCollected				 = 0;   
 
 	if (!bResetCheckPointDataOnly)
 	{
 		 m_LjumpCount				= 0;
 		 m_LattackCount				= 0;
-		 m_LdiamondCollected		= 0;
+		 m_LdiamondCollected		= 0; 
 		 m_fLevelTime				= 0;
 	}
 }
@@ -767,8 +767,8 @@ void Ray_OnlineTrackingManager::update(f32 _dt)
 
 		// post launch tracking /////////////////////////////////////////
 
-
-
+		
+	
 		m_PlayerIntervalTime					+= _dt;
 		m_PlayTimeForPlayerIndex[numplayers-1]	+= _dt;
 		m_currentLevelTime						+= _dt;
@@ -786,7 +786,7 @@ void Ray_OnlineTrackingManager::update(f32 _dt)
 				for (u32 i=0;i<4;i++)
 				{
 					pUniverseData->setTimer(	m_PlayTimeForPlayerIndex[i],i);
-
+					
 				}
 
 				Ray_PersistentGameData_UniverseTracking *pUniverseData = RAY_GAMEMANAGER->getPersistentGameData()->getTrackingData();
@@ -888,9 +888,9 @@ void Ray_OnlineTrackingManager::update(f32 _dt)
 						pos_player[1].getX() , pos_player[1].getY() , pos_player[1].getZ() ,
 						pos_player[2].getX() , pos_player[2].getY() , pos_player[2].getZ() ,
 						pos_player[3].getX() , pos_player[3].getY() , pos_player[3].getZ() );
-
+                
 					StringConverter c(str);
-
+                    
 					if (ONLINETRACKING_ADAPTER)
 					{
 						ONLINETRACKING_ADAPTER->sendTag("PLAYER_POS", c.getChar());
@@ -928,7 +928,7 @@ void Ray_OnlineTrackingManager::onGameRestart(bbool _ReStartedByPlayers)
 			CURRENTWORLD->getRootScene()->getPath().getString(levelName);
 		}
 	}
-
+    
     Actor* checkpoint = GAMEMANAGER->getCurrentCheckpoint();
     ITF_STDSTRING checkPointStr = "";
 
@@ -940,7 +940,7 @@ void Ray_OnlineTrackingManager::onGameRestart(bbool _ReStartedByPlayers)
     }
 
     String str;
-    str.setTextFormat("VERSION=%d&NUMPLAYERS=%d&LEVELNAME=%s&CHECKPOINT=%s&REASON=%s&DURATION=%.1f",
+    str.setTextFormat("VERSION=%d&NUMPLAYERS=%d&LEVELNAME=%s&CHECKPOINT=%s&REASON=%s&DURATION=%.1f", 
         Versioning::getEngineVersion(),
         GAMEMANAGER->getNumActivePlayers(),
         StringToUTF8(levelName).get(),
@@ -950,7 +950,7 @@ void Ray_OnlineTrackingManager::onGameRestart(bbool _ReStartedByPlayers)
         );
 
     char* tag = str.getCharCopy();
-
+        
     ONLINETRACKING_ADAPTER->sendTag("LEVEL_RESTART", tag);
 
     SF_DEL_ARRAY(tag);
@@ -964,7 +964,6 @@ void Ray_OnlineTrackingManager::onGameRestart(bbool _ReStartedByPlayers)
 
 void Ray_OnlineTrackingManager::AwardUnlock(ITF::u32 awardIdu32)
 {
-    return;
 	startNewTag();
 
     addUint32("awardId" , awardIdu32);
@@ -1023,7 +1022,7 @@ void Ray_OnlineTrackingManager::SendPlayerIntervalTag()
     }
 
 	//SavePersistant();
-
+	
 }
 
 
@@ -1046,11 +1045,11 @@ void Ray_OnlineTrackingManager::SavePersistant()
 
 	}
 
-
+		
 	Ray_PersistentGameData_LevelTracking *pLevelData = RAY_GAMEMANAGER->getCurrentLevelData()->getTrackingData();
 
 	if (pLevelData)
-	{
+	{			
 		pLevelData->updateRunCount(m_runCount - pLevelData->getRunCount() );
 		pLevelData->updateChallengeTimeAttackCount(m_challengeTimeAttackCount - pLevelData->getChallengeTimeAttackCount() );
 	}

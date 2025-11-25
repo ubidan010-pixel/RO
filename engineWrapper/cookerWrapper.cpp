@@ -503,39 +503,17 @@ void cookerWrapper::getDependencies(String^ platform, String^ file, List<String^
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void cookerWrapper::getDependenciesStreamed(String^ platform, String^ file, List<String^>^ _dependencies, onDependencyFoundDelegate^ onFound)
-{
-    ITF::String         str_filename = utils::getITFString(file);
-    ITF::String         str_platform = utils::getITFString(platform);
-    ITF::DepCollector   col;
-
-    col.setDefaultFilters();
-    g_pFactory->getDependencyFiles(str_filename, str_platform, col);
-
-    while (col.getNextProcessing(str_filename))
-    {
-        String^ managedPath = gcnew String((wchar_t*)str_filename.cStr());
-        if (_dependencies != nullptr)
-            _dependencies->Add(managedPath);
-        if (onFound != nullptr)
-            onFound(managedPath);
-
-        g_pFactory->getDependencyFiles(str_filename, str_platform, col);
-    }
-}
-
-//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-void cookerWrapper::getGameDependencies(String^ platform,List<String^>^ _dependencies)
+void cookerWrapper::getGameDependencies(String^ platform, List<String^>^ _dependencies)
 {
     ITF::String         str_filename  = "common.alias";
     ITF::String         str_platform = utils::getITFString(platform);
     ITF::DepCollector   depCollector;
     ITF::DepCollection  patches;
-    const ITF::aliasContainer& aliasContainer = ITF::AliasManager::get().getContainer();
+    const ITF::AliasContainer& aliasContainer = ITF::AliasManager::get().getContainer();
 
     depCollector.add( str_filename );
     aliasContainer.getDependencies(depCollector);
+    aliasContainer.getDependencies(depCollector, str_platform);
     depCollector.setDefaultFilters();
     g_pFactory->resolveDependencyFiles(str_platform, depCollector);
 
@@ -546,31 +524,6 @@ void cookerWrapper::getGameDependencies(String^ platform,List<String^>^ _depende
         it.get( str_filename );
         _dependencies->Add( gcnew String( ( wchar_t* )str_filename.cStr() ) );
         it.next();
-    }
-}
-
-//--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-void cookerWrapper::getGameDependenciesStreamed(String^ platform, List<String^>^ _dependencies, onDependencyFoundDelegate^ onFound)
-{
-    ITF::String         str_filename  = "common.alias";
-    ITF::String         str_platform = utils::getITFString(platform);
-    ITF::DepCollector   depCollector;
-    const ITF::aliasContainer& aliasContainer = ITF::AliasManager::get().getContainer();
-
-    depCollector.add( str_filename );
-    aliasContainer.getDependencies(depCollector);
-    depCollector.setDefaultFilters();
-
-    while (depCollector.getNextProcessing(str_filename))
-    {
-        String^ managedPath = gcnew String((wchar_t*)str_filename.cStr());
-        if (_dependencies != nullptr)
-            _dependencies->Add(managedPath);
-        if (onFound != nullptr)
-            onFound(managedPath);
-
-        g_pFactory->getDependencyFiles(str_filename, str_platform, depCollector);
     }
 }
 
