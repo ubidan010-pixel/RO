@@ -108,42 +108,31 @@ namespace ITF
         if (!m_connected || !m_gamepad)
             return;
 
-        UpdateButtonState(JOY_BUT_A, SDL_GetGamepadButton(m_gamepad, SDL_GAMEPAD_BUTTON_SOUTH));
-        UpdateButtonState(JOY_BUT_B, SDL_GetGamepadButton(m_gamepad, SDL_GAMEPAD_BUTTON_EAST));
-        UpdateButtonState(JOY_BUT_X, SDL_GetGamepadButton(m_gamepad, SDL_GAMEPAD_BUTTON_WEST));
-        UpdateButtonState(JOY_BUT_Y, SDL_GetGamepadButton(m_gamepad, SDL_GAMEPAD_BUTTON_NORTH));
+        UpdateButtonState(m_joyButton_A, SDL_GetGamepadButton(m_gamepad, SDL_GAMEPAD_BUTTON_SOUTH));
+        UpdateButtonState(m_joyButton_B, SDL_GetGamepadButton(m_gamepad, SDL_GAMEPAD_BUTTON_EAST));
+        UpdateButtonState(m_joyButton_X, SDL_GetGamepadButton(m_gamepad, SDL_GAMEPAD_BUTTON_WEST));
+        UpdateButtonState(m_joyButton_Y, SDL_GetGamepadButton(m_gamepad, SDL_GAMEPAD_BUTTON_NORTH));
 
-        UpdateButtonState(JOY_BUT_LB, SDL_GetGamepadButton(m_gamepad, SDL_GAMEPAD_BUTTON_LEFT_SHOULDER));
-        UpdateButtonState(JOY_BUT_RB, SDL_GetGamepadButton(m_gamepad, SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER));
+        UpdateButtonState(m_joyButton_LB, SDL_GetGamepadButton(m_gamepad, SDL_GAMEPAD_BUTTON_LEFT_SHOULDER));
+        UpdateButtonState(m_joyButton_RB, SDL_GetGamepadButton(m_gamepad, SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER));
 
-        UpdateButtonState(JOY_BUT_BACK, SDL_GetGamepadButton(m_gamepad, SDL_GAMEPAD_BUTTON_BACK));
-        UpdateButtonState(JOY_BUT_START, SDL_GetGamepadButton(m_gamepad, SDL_GAMEPAD_BUTTON_START));
+        UpdateButtonState(m_joyButton_Back, SDL_GetGamepadButton(m_gamepad, SDL_GAMEPAD_BUTTON_BACK));
+        UpdateButtonState(m_joyButton_Start, SDL_GetGamepadButton(m_gamepad, SDL_GAMEPAD_BUTTON_START));
 
-        UpdateButtonState(JOY_BUT_LS, SDL_GetGamepadButton(m_gamepad, SDL_GAMEPAD_BUTTON_LEFT_STICK));
-        UpdateButtonState(JOY_BUT_RS, SDL_GetGamepadButton(m_gamepad, SDL_GAMEPAD_BUTTON_RIGHT_STICK));
+        UpdateButtonState(m_joyButton_ThumbLeft, SDL_GetGamepadButton(m_gamepad, SDL_GAMEPAD_BUTTON_LEFT_STICK));
+        UpdateButtonState(m_joyButton_ThumbRight, SDL_GetGamepadButton(m_gamepad, SDL_GAMEPAD_BUTTON_RIGHT_STICK));
 
-        UpdateButtonState(JOY_BUT_DPAD_UP, SDL_GetGamepadButton(m_gamepad, SDL_GAMEPAD_BUTTON_DPAD_UP));
-        UpdateButtonState(JOY_BUT_DPAD_DOWN, SDL_GetGamepadButton(m_gamepad, SDL_GAMEPAD_BUTTON_DPAD_DOWN));
-        UpdateButtonState(JOY_BUT_DPAD_LEFT, SDL_GetGamepadButton(m_gamepad, SDL_GAMEPAD_BUTTON_DPAD_LEFT));
-        UpdateButtonState(JOY_BUT_DPAD_RIGHT, SDL_GetGamepadButton(m_gamepad, SDL_GAMEPAD_BUTTON_DPAD_RIGHT));
+        UpdateButtonState(m_joyButton_DPadU, SDL_GetGamepadButton(m_gamepad, SDL_GAMEPAD_BUTTON_DPAD_UP));
+        UpdateButtonState(m_joyButton_DPadD, SDL_GetGamepadButton(m_gamepad, SDL_GAMEPAD_BUTTON_DPAD_DOWN));
+        UpdateButtonState(m_joyButton_DPadL, SDL_GetGamepadButton(m_gamepad, SDL_GAMEPAD_BUTTON_DPAD_LEFT));
+        UpdateButtonState(m_joyButton_DPadR, SDL_GetGamepadButton(m_gamepad, SDL_GAMEPAD_BUTTON_DPAD_RIGHT));
 
-        // Update axes
-        updateAxisState(
-            JOY_AXIS_LX, static_cast<f32>(SDL_GetGamepadAxis(m_gamepad, SDL_GAMEPAD_AXIS_LEFTX)) / 32767.0f);
-        updateAxisState(
-            JOY_AXIS_LY,
-            static_cast<f32>(-SDL_GetGamepadAxis(m_gamepad, SDL_GAMEPAD_AXIS_LEFTY)) / 32767.0f); // Invert Y
-        updateAxisState(
-            JOY_AXIS_RX, static_cast<f32>(SDL_GetGamepadAxis(m_gamepad, SDL_GAMEPAD_AXIS_RIGHTX)) / 32767.0f);
-        updateAxisState(
-            JOY_AXIS_RY,
-            static_cast<f32>(-SDL_GetGamepadAxis(m_gamepad, SDL_GAMEPAD_AXIS_RIGHTY)) / 32767.0f); // Invert Y
-
-        // Triggers (0.0 to 1.0)
-        updateAxisState(
-            JOY_AXIS_LT, static_cast<f32>(SDL_GetGamepadAxis(m_gamepad, SDL_GAMEPAD_AXIS_LEFT_TRIGGER)) / 32767.0f);
-        updateAxisState(
-            JOY_AXIS_RT, static_cast<f32>(SDL_GetGamepadAxis(m_gamepad, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER)) / 32767.0f);
+        updateAxisState(JOY_AXIS_LX, static_cast<f32>(SDL_GetGamepadAxis(m_gamepad, SDL_GAMEPAD_AXIS_LEFTX)) / 32767.0f);
+        updateAxisState(JOY_AXIS_LY,static_cast<f32>(-SDL_GetGamepadAxis(m_gamepad, SDL_GAMEPAD_AXIS_LEFTY)) / 32767.0f);
+        updateAxisState(JOY_AXIS_RX, static_cast<f32>(SDL_GetGamepadAxis(m_gamepad, SDL_GAMEPAD_AXIS_RIGHTX)) / 32767.0f);
+        updateAxisState(JOY_AXIS_RY,static_cast<f32>(-SDL_GetGamepadAxis(m_gamepad, SDL_GAMEPAD_AXIS_RIGHTY)) / 32767.0f);
+        updateAxisState(JOY_AXIS_LT, static_cast<f32>(SDL_GetGamepadAxis(m_gamepad, SDL_GAMEPAD_AXIS_LEFT_TRIGGER)) / 32767.0f);
+        updateAxisState(JOY_AXIS_RT, static_cast<f32>(SDL_GetGamepadAxis(m_gamepad, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER)) / 32767.0f);
 
         // Update vibration
         if (m_vibrationState.active)
@@ -700,32 +689,32 @@ namespace ITF
                 continue;
 
             const SDLGamepad& gamepad = m_sdlInput.m_gamepads[idx];
-            
+
             bbool hasGamepadInput = bfalse;
-            
+
             for (u32 button = 0; button < JOY_MAX_BUT; ++button)
             {
                 PressStatus status = gamepad.getButton(button);
                 m_buttons[slot][button] = status;
-                
+
                 if (status == Pressed || status == JustPressed)
                 {
                     hasGamepadInput = btrue;
                 }
             }
-            
+
             const f32 axisThreshold = 0.3f;
             for (u32 axis = 0; axis < JOY_MAX_AXES; ++axis)
             {
                 f32 axisValue = gamepad.getAxis(axis);
                 m_axes[slot][axis] = axisValue;
-                
+
                 if (!hasGamepadInput && (axisValue > axisThreshold || axisValue < -axisThreshold))
                 {
                     hasGamepadInput = btrue;
                 }
             }
-            
+
             if (hasGamepadInput)
             {
                 setLastUsedInputDevice(slot, InputDevice_Gamepad);
