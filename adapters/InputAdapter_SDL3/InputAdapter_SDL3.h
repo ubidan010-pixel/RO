@@ -36,7 +36,7 @@ namespace ITF
         uint32_t deviceOutputID;
 
     private:
-        void UpdateButtonState(u32 buttonIndex, bool pressed);
+        void updateButtonState(u32 buttonIndex, bool pressed);
         void updateAxisState(u32 axisIndex, f32 value);
 
         SDL_Gamepad* m_gamepad;
@@ -62,8 +62,8 @@ namespace ITF
         ~SDLInput();
 
         bool initialize(InputAdapter*);
-        void Cleanup();
-        void UpdateInputState();
+        void cleanup();
+        void updateInputState();
         void refreshGamepadList();
 
         SDLGamepad m_gamepads[JOY_MAX_COUNT];
@@ -73,12 +73,13 @@ namespace ITF
 
     private:
         void handleGamepadConnected(SDL_JoystickID instanceId);
-        void HandleGamepadDisconnected(SDL_JoystickID instanceId);
+        void handleGamepadDisconnected(SDL_JoystickID instanceId);
         void setGamepadConnected(u32 index, bool connected, InputAdapter::PadType padType);
-        void NotifyDeviceConnectEvent(u32 _padIndex,InputAdapter::PadType _type, bbool isConnected);
-        void InitScePad(int* out_pScePadHandles);
-        void GetScePadDeviceId(int in_padHandle, uint32_t& out_resolvedId);
-        bool GetMMDeviceFromPadHandle(wchar_t const* containerInfo, IMMDevice*& io_pMmDevice);
+        void notifyDeviceConnectEvent(u32 padIndex, InputAdapter::PadType type, bbool isConnected);
+        void initSonyControllerDeviceIds(SDLGamepad& gamepad);
+        void initScePad(int* outScePadHandles);
+        void getScePadDeviceId(int padHandle, uint32_t& outResolvedId);
+        bool getMMDeviceFromPadHandle(wchar_t const* containerInfo, IMMDevice*& outMmDevice);
         InputAdapter* m_adapter;
     };
 
