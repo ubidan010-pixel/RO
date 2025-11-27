@@ -17,8 +17,6 @@
 namespace ITF
 {
     static constexpr f32 SDL_AXIS_MAX_VALUE = 32767.0f;
-    static constexpr f32 SDL_RUMBLE_MAX_VALUE = 65535.0f;
-    static constexpr f64 MS_PER_SECOND = 1000.0;
     static constexpr u32 MAX_EVENTS_PER_FRAME = 100;
     static constexpr f32 AXIS_INPUT_THRESHOLD = 0.3f;
     static constexpr uint32_t DUALSENSE_ID_MARKER = 0x80000000;
@@ -66,11 +64,6 @@ namespace ITF
     {
         memset(m_axes, 0, sizeof(m_axes));
         memset(m_buttons, 0, sizeof(m_buttons));
-
-        m_vibrationState.duration = 0.0;
-        m_vibrationState.startTime = 0.0;
-        m_vibrationState.lastEndTime = 0.0;
-        m_vibrationState.active = false;
     }
 
     SDLGamepad::~SDLGamepad()
@@ -148,19 +141,6 @@ namespace ITF
             JOY_AXIS_RT,
             static_cast<f32>(SDL_GetGamepadAxis(m_gamepad, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER)) / SDL_AXIS_MAX_VALUE);
 
-        // Update vibration
-        if (m_vibrationState.active)
-        {
-            f64 currentTime = SYSTEM_ADAPTER->getTime();
-            if (m_vibrationState.duration > 0.0 &&
-                (currentTime - m_vibrationState.startTime) >= m_vibrationState.duration)
-            {
-                // Stop vibration
-                SDL_RumbleGamepad(m_gamepad, 0, 0, 0);
-                m_vibrationState.active = false;
-                m_vibrationState.lastEndTime = currentTime;
-            }
-        }
     }
 
     void SDLGamepad::updateButtonState(u32 buttonIndex, bool pressed)
@@ -228,23 +208,6 @@ namespace ITF
         return m_buttons[_button];
     }
 
-    void SDLGamepad::setVibration(f32 _leftMotorSpeed, f32 _rightMotorSpeed, f64 _duration)
-    {
-        if (!m_connected || !m_gamepad)
-            return;
-
-        Uint16 leftMotor = static_cast<Uint16>(_leftMotorSpeed * SDL_RUMBLE_MAX_VALUE);
-        Uint16 rightMotor = static_cast<Uint16>(_rightMotorSpeed * SDL_RUMBLE_MAX_VALUE);
-        Uint32 durationMs = (_duration > 0.0) ? static_cast<Uint32>(_duration * MS_PER_SECOND) : 0;
-
-        if (SDL_RumbleGamepad(m_gamepad, leftMotor, rightMotor, durationMs) == 0)
-        {
-            m_vibrationState.active = true;
-            m_vibrationState.duration = _duration;
-            m_vibrationState.startTime = SYSTEM_ADAPTER->getTime();
-        }
-    }
-
     bool SDLGamepad::isConnected() const
     {
         return m_connected && m_gamepad;
@@ -272,7 +235,7 @@ namespace ITF
         if (m_initialized)
             return true;
         m_adapter = adapter;
-        if (!SDL_Init(SDL_INIT_GAMEPAD | SDL_INIT_HAPTIC))
+        if (!SDL_Init(SDL_INIT_GAMEPAD))
         {
             LOG("[SDL] - could not initialize! Error: %s\n", SDL_GetError());
         }
@@ -745,29 +708,6 @@ namespace ITF
             m_connectedPlayers[0] = ePlaying;
         }
         setPadConnected(0, btrue);
-    }
-
-
-    void InputAdapter_SDL3::padVibration(u32 _numPad, f32 _leftMotorSpeed, f32 _rightMotorSpeed)
-    {
-        if (_numPad < JOY_MAX_COUNT)
-        {
-            m_sdlInput.m_gamepads[_numPad].setVibration(_leftMotorSpeed, _rightMotorSpeed, 0.0);
-        }
-    }
-
-    void InputAdapter_SDL3::startRumble(u32 _numPad, f64 _time, f32 _leftMotorSpeed, f32 _rightMotorSpeed)
-    {
-        if (_numPad >= JOY_MAX_COUNT)
-            return;
-        m_sdlInput.m_gamepads[_numPad].setVibration(_leftMotorSpeed, _rightMotorSpeed, _time);
-    }
-
-    void InputAdapter_SDL3::stopRumble(u32 _numPad)
-    {
-        if (_numPad >= JOY_MAX_COUNT)
-            return;
-        m_sdlInput.m_gamepads[_numPad].setVibration(0.0f, 0.0f, 0.0);
     }
 
     const char* InputAdapter_SDL3::GetControllerTypeName(u32 padIndex) const

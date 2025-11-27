@@ -155,7 +155,7 @@ CookerPlugin::CookerPlugin()
     m_cookFactory->registerCooker("imt",actCooker::cookFile,actCooker::dependenciesFile,Versioning::logicDatabaseCacheVer());
 	m_cookFactory->registerCooker("fxk",actCooker::cookFile,actCooker::dependenciesFile,Versioning::logicDatabaseCacheVer());
 	m_cookFactory->registerCooker("atl",atlasCooker::cookFile,NULL,Versioning::atlasVer());
-    // m_cookFactory->registerCooker("wav",soundCooker::cookFile,soundCooker::dependencyFiles,Versioning::soundVer());
+    m_cookFactory->registerCooker("wav",soundCooker::cookFile,soundCooker::dependencyFiles,Versioning::soundVer());
     m_cookFactory->registerCooker("ptc",animSkeletonCooker::cookFile,NULL,Versioning::animSkeletonVer());
     m_cookFactory->registerCooker("pbk",animPatchBankCooker::cookFile,NULL,Versioning::animPatchBankVer());
     m_cookFactory->registerCooker("anm",animTrackCooker::cookFile,animTrackCooker::dependencyFiles,Versioning::animTrackVer());

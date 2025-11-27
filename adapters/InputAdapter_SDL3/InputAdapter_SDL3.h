@@ -27,7 +27,6 @@ namespace ITF
         void cleanup();
         float getAxis(u32 _axis) const;
         InputAdapter::PressStatus getButton(u32 _button) const;
-        void setVibration(f32 _leftMotorSpeed, f32 _rightMotorSpeed, f64 _duration = 0.0);
         bool isConnected() const;
         uint32_t deviceID;
         uint32_t deviceOutputID;
@@ -42,14 +41,6 @@ namespace ITF
         bool m_connected;
         float m_axes[JOY_MAX_AXES];
         InputAdapter::PressStatus m_buttons[JOY_MAX_BUT];
-
-        struct VibrationState
-        {
-            f64 duration;
-            f64 startTime;
-            f64 lastEndTime;
-            bool active;
-        } m_vibrationState;
     };
 
     class SDLInput
@@ -86,9 +77,6 @@ namespace ITF
         InputAdapter_SDL3();
         ~InputAdapter_SDL3() override;
         u32 getGamePadCount() override;
-        void padVibration(u32 _numPad, f32 _rightMotorSpeed, f32 _leftMotorSpeed) override;
-        void startRumble(u32 _numPad, f64 _time, f32 _leftMotorSpeed, f32 _rightMotorSpeed) override;
-        void stopRumble(u32 _numPad) override;
         const char* GetControllerTypeName(u32 padIndex) const override;
         void UpdatePads() override;
     private:

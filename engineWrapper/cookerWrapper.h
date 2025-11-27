@@ -17,7 +17,6 @@ using namespace System::Collections::Generic;
 
 public delegate void onProgressBundleDelegate(float _progress);
 public delegate void onLogDelegate(String^ _progress);
-public delegate void onDependencyFoundDelegate(String^ _path);
 
 public ref class cookerWrapper
 {
@@ -35,8 +34,6 @@ public:
     void getTopLevelDependencies(String^ platform, String^ file, List<String^>^ _dependencies);
 
     void getGameDependencies(String^ platform,List<String^>^ _dependencies);
-    void getDependenciesStreamed(String^ platform, String^ file, List<String^>^ _dependencies, onDependencyFoundDelegate^ onFound);
-    void getGameDependenciesStreamed(String^ platform, List<String^>^ _dependencies, onDependencyFoundDelegate^ onFound);
 
     void getCookedName(String^ source,String^% destination);
 
