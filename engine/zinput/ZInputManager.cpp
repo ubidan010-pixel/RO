@@ -106,7 +106,6 @@ namespace ITF
         for(u32 i = 0; i < actionMapCount; i++)
         {
             ZAction action = pTemplate->getActionMap()[i];
-            adjustSelectAndBackAction(action);
             actionMapInternal._actionMap.push_back(action);
             actionMapInternal._actionMap[i].Reset();
         }
