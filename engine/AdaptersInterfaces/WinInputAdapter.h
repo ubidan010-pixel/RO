@@ -29,8 +29,8 @@ namespace ITF
         void getMousePos(i32& _x, i32& _y) const override;
         void flushKeys() override;
 
-        void onMouseButton(InputAdapter::MouseButton _but, InputAdapter::PressStatus _status) override;
-        void onKey(i32 _key, InputAdapter::PressStatus _status) override;
+        void onMouseButton(MouseButton _but, PressStatus _status) override;
+        void onKey(i32 _key, PressStatus _status) override;
         void onMouseWheel(i32 _wheelValue) override;
         void onMousePos(i32 _x, i32 _y) override;
 
@@ -110,7 +110,7 @@ namespace ITF
         u32 m_keyPressTime[KEY_COUNT];
 
         static f64 s_lastLeftMouseClick;
-        
+
         void updateKeyboardForPlayer0();
     };
 } // namespace ITF
