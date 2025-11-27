@@ -396,14 +396,6 @@ void ContextIconsManager::setupIcon(EContextIcon _icon, UIComponent* _iconUI, UI
         // Origins, and that's for the Japanese HD version so:
         // "GO RAYMAN GO, KICK MARIO'S BUTT!!!" :)
         EContextIconType iconType = s_iconsTypes[_icon];
-        if (SYSTEM_ADAPTER->isBackAndSelectButtonsInverted())
-        {
-            if (iconType == ContextIconType_Select)
-                iconType = ContextIconType_Back;
-            else if (iconType == ContextIconType_Back)
-                iconType = ContextIconType_Select;
-        }
-
         InputAdapter::PadType padType = INPUT_ADAPTER->getLastUsedPadType(mainPlayer);
         if (padType == InputAdapter::Pad_Invalid) return;
         String8 content = m_template->getButtonNames()[padType][iconType];

@@ -48,7 +48,7 @@ namespace ITF
         for (u32 i = 0; i < ACTIONMAP_MAX_PLAYER; i++)
             m_playersConfig[i] = StringID::Invalid;
 
-        m_listOfListeners.resize ( Cat_Count );    
+        m_listOfListeners.resize ( Cat_Count );
     }
 
     ZInputManager::~ZInputManager()
@@ -78,55 +78,7 @@ namespace ITF
                 continue;
 
             process_actionDevices(actionMapInternal);
-            update_actionMap(actionMapInternal);        
-        }
-    }
-
-    /*static*/ void ZInputManager::adjustSelectAndBackAction(ZAction & _action)
-    {
-        if (SYSTEM_ADAPTER->isBackAndSelectButtonsInverted())
-        {
-            static const StringID ActionsToInvert[] =
-            {
-                ITF_GET_STRINGID_CRC(WM_ENTER,2267322818),
-                ITF_GET_STRINGID_CRC(WM_BACK,4244387740),
-                ITF_GET_STRINGID_CRC(MENU_VALID,1084313942),
-                ITF_GET_STRINGID_CRC(MENU_ONPRESSED,185785632),
-                ITF_GET_STRINGID_CRC(MENU_ONRELEASED,14213630),
-                ITF_GET_STRINGID_CRC(MENU_BACK,2477582220)
-            };
-
-            static const struct InputPair
-            {
-                StringID initial;
-                StringID converted;
-            } InputInvert[] =
-            {
-                { ITF_GET_STRINGID_CRC(BUTTON_CROSS,2040208284),  ITF_GET_STRINGID_CRC(BUTTON_CIRCLE,1221459298) },
-                { ITF_GET_STRINGID_CRC(BUTTON_CIRCLE,1221459298), ITF_GET_STRINGID_CRC(BUTTON_CROSS,2040208284)}
-            };
-
-            for(ux i = 0; i<sizeof(ActionsToInvert)/sizeof(ActionsToInvert[0]); ++i)
-            {
-                if (ActionsToInvert[i] == _action.m_action)
-                {
-                    typedef ITF_VECTOR<ZInput> VecInput;
-                    VecInput & actInputs = _action.m_inputs;
-                    for(VecInput::iterator it = actInputs.begin(), itEnd = actInputs.end();
-                        it!=itEnd;
-                        ++it)
-                    {
-                        for(ux j = 0; j<sizeof(InputInvert)/sizeof(InputInvert[0]); ++j)
-                        {
-                            if (InputInvert[j].initial == it->m_control)
-                            {
-                                it->m_control = InputInvert[j].converted;
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
+            update_actionMap(actionMapInternal);
         }
     }
 
@@ -138,13 +90,13 @@ namespace ITF
         {
             ITF_ASSERT_MSG(0, "Couldn't load input file: %s", path.getString8().cStr());
             return;
-        }  
+        }
 #ifdef ITF_WII
         MEM_M_PushExt(MEM_C_MEM1_ALLOC);
 #endif
 
         STD_PAIR<StringID, ActionMapInternal> newInputFile;
-        ActionMapInternal actionMapInternal ; 
+        ActionMapInternal actionMapInternal ;
         actionMapInternal._actif    = btrue;
         actionMapInternal._config   = pTemplate->getConfig();
         ITF_ASSERT(pTemplate->getCategory()<Cat_Count);
@@ -173,7 +125,7 @@ namespace ITF
     {
         ITF_ASSERT(_actionMapInternal && _actionMapInternal->_actif);
 
-        // Listener iterator .. 
+        // Listener iterator ..
         Listeners::const_iterator  itListenerBegin  = m_listOfListeners[_actionMapInternal->_category].begin();
         Listeners::const_iterator  itListenerEnd    = m_listOfListeners[_actionMapInternal->_category].end();
 
@@ -181,7 +133,7 @@ namespace ITF
         u32 actionCount = mapList.size();
         for (u32 i = 0; i < actionCount; i++)
         {
-            ZAction* action = & (mapList[i]); 
+            ZAction* action = & (mapList[i]);
 
             for (u32 player = 0; player < ACTIONMAP_MAX_PLAYER; player++)
             {
@@ -197,7 +149,7 @@ namespace ITF
                             ++ it;
                         }
 
-                    }               
+                    }
                 }
             }
 
@@ -224,7 +176,7 @@ namespace ITF
         }
     }
 
-#define FOR_MAXPAD   for (u32 pad=0; pad<maxPAD; pad++)    
+#define FOR_MAXPAD   for (u32 pad=0; pad<maxPAD; pad++)
 
     void ZInputManager::addX360pad_device(u32 maxPAD)
     {
@@ -314,7 +266,7 @@ namespace ITF
     void ZInputManager::AddListener( IInputListener* _listener, const Category _category /*= Cat_GamePlay*/ )
     {
         m_listOfListeners[_category].push_back(_listener);
-        _listener->setCanReceive(btrue);    
+        _listener->setCanReceive(btrue);
     }
 
     void ZInputManager::clean_removedListeners()

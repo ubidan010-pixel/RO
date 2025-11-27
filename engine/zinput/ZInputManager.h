@@ -14,11 +14,11 @@ namespace  ITF
     class IInputListener;
     class IInputDevice;
     class ZInputManager_Template;
-    class ZInputManager 
+    class ZInputManager
     {
 
     public:
-        ZInputManager(); 
+        ZInputManager();
         ~ZInputManager();
 
         enum Category
@@ -31,9 +31,9 @@ namespace  ITF
 
         void                load_configFile( const Path& _path );
         void                update();
-        void                setActionMapsActive(const Category _category, bbool _actif); 
+        void                setActionMapsActive(const Category _category, bbool _actif);
 
-        /// Devices controller 
+        /// Devices controller
         void                addX360pad_device(u32 maxPAD);
         void                addWiimote_device(u32 maxPAD);
         void                addWiinunchuck_device(u32 maxPAD);
@@ -56,16 +56,12 @@ namespace  ITF
 
         void                ForceConfigForPlayer(u32 _player, const StringID & _config);
     private:
-
-        // at loading select/back actions can be changed depending on platform and country usages
-        static void adjustSelectAndBackAction(ZAction & _action);
-
         typedef ITF_VECTOR<IInputListener*> Listeners;
         Listeners   m_listeners;
         Listeners   m_listenersRemoved;
 
         typedef ITF_VECTOR<Listeners>    ListOfListeners;
-        ListOfListeners     m_listOfListeners;    
+        ListOfListeners     m_listOfListeners;
 
         typedef ITF_MAP <StringID, ActionMapInternal> ActionMapsContainer;
         ActionMapsContainer     m_actionMaps;
@@ -99,7 +95,7 @@ namespace  ITF
         ITF_INLINE const StringID & getName()const { return m_name; }
         ITF_INLINE const StringID & getConfig()const { return m_config; }
         ITF_INLINE const bbool getActif() const { return m_actif; }
-        ITF_INLINE const u32 getCategory() const { return m_category; }        
+        ITF_INLINE const u32 getCategory() const { return m_category; }
     private:
         ActionMap               m_actionMap;
         StringID                m_name, m_config;
