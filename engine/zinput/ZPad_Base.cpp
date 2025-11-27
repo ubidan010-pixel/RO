@@ -21,6 +21,8 @@ namespace ITF
         RegisterControlNames();
         RegisterPlatformControlNames(mapping);
         InitPlatformSpecificControls();
+        m_controlRemap.resize(m_deviceInfo.m_inputInfo.size());
+        ResetRemapping();
     }
 
     void ZPad_Base::InitializeInputTypes()
@@ -101,6 +103,7 @@ namespace ITF
         UpdateAxisValues(deviceInfo, axes);
         UpdateButtonStates(deviceInfo, buttons);
         UpdatePlatformSpecificControls(deviceInfo, buttons, axes);
+        ApplyRemapping(deviceInfo);
     }
 
     void ZPad_Base::UpdateAxisValues(SDeviceInfo& deviceInfo, const f32* axes)

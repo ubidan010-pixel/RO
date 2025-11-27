@@ -132,4 +132,36 @@ namespace ITF
             return U32_INVALID;
     }
 
+    void IInputDevice::SetRemap(u32 logicalControl, u32 physicalControl)
+    {
+        if (logicalControl < m_controlRemap.size())
+        {
+            m_controlRemap[logicalControl] = physicalControl;
+        }
+    }
+
+    void IInputDevice::ResetRemapping()
+    {
+        for (u32 i = 0; i < m_controlRemap.size(); ++i)
+        {
+            m_controlRemap[i] = i;
+        }
+    }
+
+    void IInputDevice::ApplyRemapping(SDeviceInfo& deviceInfo)
+    {
+        if (m_controlRemap.empty()) return;
+        ITF_VECTOR<SInputInfo> sourceInput = deviceInfo.m_inputInfo;
+
+        u32 count = Min((u32)m_controlRemap.size(), (u32)deviceInfo.m_inputInfo.size());
+        for (u32 i = 0; i < count; ++i)
+        {
+            u32 sourceIndex = m_controlRemap[i];
+            if (sourceIndex < sourceInput.size() && sourceIndex != i)
+            {
+                deviceInfo.m_inputInfo[i] = sourceInput[sourceIndex];
+            }
+        }
+    }
+
 } //namespace ITF

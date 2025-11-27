@@ -22,6 +22,10 @@ typedef ITF_MAP<StringID,int>     ControlTranslateMap;
     class IInputDevice
     {
     public:
+        struct SDeviceInfo
+        {
+            ITF_VECTOR<SInputInfo>  m_inputInfo;
+        };
 
 #ifdef ITF_WII
         IInputDevice(u32 id, u32 _ValidType): m_id(id), m_initialized(bfalse), m_ValidType(_ValidType) { }
@@ -42,17 +46,17 @@ typedef ITF_MAP<StringID,int>     ControlTranslateMap;
                 ;
         }
 
+        ITF_INLINE u32 GetId() const { return m_id; }
+
         const StringID & getSpecificConfig() const { return m_specificConfig; }
+        void                SetRemap(u32 logicalControl, u32 physicalControl);
+        void                ResetRemapping();
+        void                ApplyRemapping(SDeviceInfo& deviceInfo);
 
     protected:
         
         void    ImplUpdate();
         void    ImplProcessActions( ActionMap& actionMap );
-
-        struct SDeviceInfo
-        {
-            ITF_VECTOR<SInputInfo>  m_inputInfo;
-        };
 
         virtual void   InitDeviceInfo()= 0;
         virtual void   UpdateDeviceInfo( SDeviceInfo& deviceInfo )=0;
@@ -63,6 +67,8 @@ typedef ITF_MAP<StringID,int>     ControlTranslateMap;
         ControlTranslateMap         m_controlMap;
         bbool                       m_initialized;
         StringID                    m_specificConfig;
+        
+        ITF_VECTOR<u32>             m_controlRemap;
 
 #ifdef ITF_WII
         u32                         m_ValidType;

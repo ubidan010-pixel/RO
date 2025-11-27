@@ -234,6 +234,28 @@ namespace ITF
 
     }
 
+    void ZInputManager::SetRemap(u32 _playerIndex, u32 _logicalControl, u32 _physicalControl)
+    {
+        for (u32 i = 0; i < m_devices.size(); ++i)
+        {
+            if (m_devices[i]->GetId() == _playerIndex)
+            {
+                m_devices[i]->SetRemap(_logicalControl, _physicalControl);
+            }
+        }
+    }
+
+    void ZInputManager::ResetRemapping(u32 _playerIndex)
+    {
+        for (u32 i = 0; i < m_devices.size(); ++i)
+        {
+            if (m_devices[i]->GetId() == _playerIndex)
+            {
+                m_devices[i]->ResetRemapping();
+            }
+        }
+    }
+
     void ZInputManager::RemoveListener( IInputListener* _listener )
     {
         if(_listener)

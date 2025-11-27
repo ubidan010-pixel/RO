@@ -43,6 +43,9 @@ namespace  ITF
         void                addNintendopad_device(u32 maxPAD);
         void                addXBoxSeries_device(u32 maxPAD);
 
+        void                SetRemap(u32 _playerIndex, u32 _logicalControl, u32 _physicalControl);
+        void                ResetRemapping(u32 _playerIndex);
+
         struct ActionMapInternal
         {
             ActionMap _actionMap;

@@ -16,7 +16,6 @@ namespace ITF
 
         virtual ~ZPad_Base() = default;
 
-    protected:
         enum EStandardGamepadControl
         {
             STICK_LX = 0,
@@ -44,6 +43,7 @@ namespace ITF
             CONTROL_MAX = BASE_CONTROL_COUNT
         };
 
+    protected:
         struct PhysicalButtonMapping
         {
             u32 faceButtonSouth;
