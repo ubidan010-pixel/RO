@@ -901,10 +901,10 @@ void Font::writeBox(u32 color,f32 x, f32 y, f32 z, bbool _isRender2D, const Vec3
 
                 // Advance the cursor to the next character
                 getNextChar(text,wordE);
-                    if ((isChina() && !tagOpened) || (tagOpened && c == FontPrivate::END_TAG_DELIMITER))
-                    {
-                        break;
-                    }
+                if ((isChina() && !tagOpened))
+                {
+                    break;
+                }
             }
 
             if(tagOpened)
