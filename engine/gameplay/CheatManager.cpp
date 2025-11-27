@@ -171,8 +171,7 @@ bbool CheatManager::onKey( i32 _key, InputAdapter::PressStatus _keyStatus )
             break;
             case 'L':
                 {
-                    GAMEMANAGER->getInputManager()->SetRemap(0, ZPad_Base::BUTTON_FACE_WEST, ZPad_Base::BUTTON_FACE_SOUTH);
-                    LOG("OKE NE");
+                    GAMEMANAGER->getInputManager()->SetActionRemap(0, ZInputManager::Action_Hit, ZPad_Base::BUTTON_FACE_SOUTH);
                 }
             break;
         }

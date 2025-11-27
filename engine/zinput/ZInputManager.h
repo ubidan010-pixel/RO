@@ -29,6 +29,19 @@ namespace  ITF
             Cat_Count
         };
 
+        enum EGameAction
+        {
+            Action_Up = 0,
+            Action_Down,
+            Action_Left,
+            Action_Right,
+            Action_Run,
+            Action_Jump,
+            Action_Hit,
+            Action_Back,
+            Action_Count
+        };
+
         void                load_configFile( const Path& _path );
         void                update();
         void                setActionMapsActive(const Category _category, bbool _actif);
@@ -44,6 +57,7 @@ namespace  ITF
         void                addXBoxSeries_device(u32 maxPAD);
 
         void                SetRemap(u32 _playerIndex, u32 _logicalControl, u32 _physicalControl);
+        void                SetActionRemap(u32 _playerIndex, EGameAction _action, u32 _physicalControl);
         void                ResetRemapping(u32 _playerIndex);
 
         struct ActionMapInternal

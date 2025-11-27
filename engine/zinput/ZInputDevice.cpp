@@ -134,10 +134,18 @@ namespace ITF
 
     void IInputDevice::SetRemap(u32 logicalControl, u32 physicalControl)
     {
-        if (logicalControl < m_controlRemap.size())
+        if (logicalControl >= m_controlRemap.size()) return;
+        u32 oldPhysical = m_controlRemap[logicalControl];
+        for (u32 i = 0; i < m_controlRemap.size(); ++i)
         {
-            m_controlRemap[logicalControl] = physicalControl;
+            if (i != logicalControl && m_controlRemap[i] == physicalControl)
+            {
+            
+                m_controlRemap[i] = oldPhysical;
+                break; 
+            }
         }
+        m_controlRemap[logicalControl] = physicalControl;
     }
 
     void IInputDevice::ResetRemapping()

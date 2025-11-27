@@ -38,6 +38,10 @@
 
 #include "engine/zinput/XBoxSeries/ZPad_XBoxSeries.h"
 
+#ifndef _ITF_ZPAD_BASE_H_
+#include "engine/zinput/ZPad_Base.h"
+#endif //_ITF_ZPAD_BASE_H_
+
 // ---------------------------------------------------------------
 
 namespace ITF
@@ -253,6 +257,30 @@ namespace ITF
             {
                 m_devices[i]->ResetRemapping();
             }
+        }
+    }
+
+    void ZInputManager::SetActionRemap(u32 _playerIndex, EGameAction _action, u32 _physicalControl)
+    {
+        u32 logicalControl = U32_INVALID;
+
+        // Map Action to Default Logical Control (based on ZPad_Base and input_gen.isg)
+        switch (_action)
+        {
+        case Action_Up:    logicalControl = ZPad_Base::DPAD_UP; break;
+        case Action_Down:  logicalControl = ZPad_Base::DPAD_DOWN; break;
+        case Action_Left:  logicalControl = ZPad_Base::DPAD_LEFT; break;
+        case Action_Right: logicalControl = ZPad_Base::DPAD_RIGHT; break;
+        case Action_Run:   logicalControl = ZPad_Base::TRIGGER_RIGHT; break; // SPRINT
+        case Action_Jump:  logicalControl = ZPad_Base::BUTTON_FACE_SOUTH; break; // JUMP
+        case Action_Hit:   logicalControl = ZPad_Base::BUTTON_FACE_WEST; break; // ATTACK
+        case Action_Back:  logicalControl = ZPad_Base::BUTTON_FACE_EAST; break; // WM_BACK / LEAVE?
+        default: return;
+        }
+
+        if (logicalControl != U32_INVALID)
+        {
+            SetRemap(_playerIndex, logicalControl, _physicalControl);
         }
     }
 
