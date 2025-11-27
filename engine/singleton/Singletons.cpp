@@ -318,6 +318,10 @@
 #include "engine/localisation/LocalisationManager.h"
 #endif //_ITF_LOCALISATIONMANAGER_H_
 
+#ifndef _ITF_IMGUIADAPTER_H_
+#include "engine/AdaptersInterfaces/ImGui/ImGuiAdapter.h"
+#endif //_ITF_IMGUIADAPTER_H_
+
 namespace ITF
 {
 

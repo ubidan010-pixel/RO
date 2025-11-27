@@ -29,6 +29,7 @@
 #include <ubiservices/services/player_notifications/player_notifications_module.h>
 #include <ubiservices/services/notification/playerNotificationClient.h>
 #include <ubiservices/services/notification/playerNotificationCustom.h>
+#include <ubiservices/services/ubisoftConnect/ubisoftConnectClient.h>
 
 #if defined(ITF_WINDOWS)
 #   include "adapters/AccountAdapter_win/AccountAdapter_win.h"
@@ -919,6 +920,47 @@ void SessionService_Ubiservices::onFetchUplayNameSuccess(const String8& _nameOnU
 void SessionService_Ubiservices::onFetchUplayNameFailure(const OnlineError& /*_error*/)
 {
     ACCOUNT_ADAPTER->setActiveAccountNameOnUplay(String8::emptyString);
+}
+
+bool SessionService_Ubiservices::launchConnect(const String8& _deepLink,
+    std::list<std::pair<String8, String8> > _params)
+{
+    if (!m_initialized || !m_session)
+        return false;
+
+    US_NS::AuthenticationModule& modAuth = US_NS::AuthenticationModule::module(*m_session);
+    if (!modAuth.hasValidSessionInfo())
+        return false;
+
+    // Win uses UPC_ * api / UplayService overlay directly
+#if !defined(ITF_WINDOWS)
+    US_NS::String microAppId(_deepLink.cStr());
+    US_NS::Vector<std::pair<US_NS::String, US_NS::String> > microAppParameters;
+
+    for (auto& param : _params)
+    {
+        US_NS::String first(param.first.cStr());
+        US_NS::String second(param.second.cStr());
+        microAppParameters.push_back(std::pair<US_NS::String, US_NS::String>(first, second));
+    }
+
+    US_NS::UbisoftConnectModule& modConnect = US_NS::UbisoftConnectModule::module(*m_session);
+
+    auto result = modConnect.launchUbisoftConnect(microAppId, microAppParameters);
+    while (result.isProcessing())
+    {
+        sleep(100);
+    }
+
+    if (result.hasFailed())
+    {
+        setError(OnlineError());
+    }
+
+    return result.hasSucceeded();
+#endif
+
+    return false;
 }
 
 } // namespace ITF

@@ -83,6 +83,9 @@ REGISTER_ITF_PARENT(OnlineTrackingAdapter_win32, OnlineTrackingAdapter)
 #endif //ITF_SUPPORT_ONLINETRACKING
 
 REGISTER_ITF_PARENT(RewardAdapter_win, RewardAdapter)
+#ifdef ITF_SUPPORT_IMGUI
+REGISTER_ITF_PARENT(ImGuiAdapter_win, ImGuiAdapter)
+#endif
 #endif  // ITF_WINDOWS
 
 #ifdef ITF_IPAD
@@ -122,6 +125,9 @@ REGISTER_ITF_PARENT(SoundAdapter_Dummy, SoundAdapter)
 REGISTER_ITF_PARENT(TRCManagerAdapter_PS5, TRCManagerAdapter)
 REGISTER_ITF_PARENT(RewardAdapter_PS5, RewardAdapter)
 REGISTER_ITF_PARENT(AccountAdapter_PS5, AccountAdapter)
+#ifdef ITF_SUPPORT_IMGUI
+REGISTER_ITF_PARENT(ImGuiAdapter_PS5, ImGuiAdapter)
+#endif
 #endif
 
 #ifdef ITF_NX
@@ -129,6 +135,7 @@ REGISTER_ITF_PARENT(GFXAdapter_NVN, GFXAdapter)
 REGISTER_ITF_PARENT(FileManager_ITF, FileManager)
 REGISTER_ITF_PARENT(SystemAdapter_Nintendo, SystemAdapter)
 REGISTER_ITF_PARENT(Adapter_Savegame_Nintendo, Adapter_Savegame)
+REGISTER_ITF_PARENT(NetworkServices_Nintendo, NetworkServices)
 #ifdef ITF_SUPPORT_RAKI
 REGISTER_ITF_PARENT(SoundAdapter_Dummy, SoundAdapter)
 #endif
@@ -141,6 +148,7 @@ REGISTER_ITF_PARENT(GFXAdapter_NVN, GFXAdapter)
 REGISTER_ITF_PARENT(FileManager_ITF, FileManager)
 REGISTER_ITF_PARENT(SystemAdapter_Nintendo, SystemAdapter)
 REGISTER_ITF_PARENT(Adapter_Savegame_Nintendo, Adapter_Savegame)
+REGISTER_ITF_PARENT(NetworkServices_Nintendo, NetworkServices)
 #ifdef ITF_SUPPORT_RAKI
 REGISTER_ITF_PARENT(SoundAdapter_Dummy, SoundAdapter)
 #endif
@@ -153,12 +161,16 @@ REGISTER_ITF_PARENT(GFXAdapter_DX12, GFXAdapter)
 REGISTER_ITF_PARENT(FileManager_ITF, FileManager)
 REGISTER_ITF_PARENT(SystemAdapter_XBoxSeries, SystemAdapter)
 REGISTER_ITF_PARENT(Adapter_Savegame_XBoxSeries, Adapter_Savegame)
+REGISTER_ITF_PARENT(NetworkServices_xboxseries, NetworkServices)
 #ifdef ITF_SUPPORT_RAKI
 REGISTER_ITF_PARENT(SoundAdapter_Dummy, SoundAdapter)
 #endif
 REGISTER_ITF_PARENT(TRCManagerAdapter_XBoxSeries, TRCManagerAdapter)
 REGISTER_ITF_PARENT(AccountAdapter_xboxseries, AccountAdapter)
 REGISTER_ITF_PARENT(RewardAdapter_xboxseries, RewardAdapter)
+#ifdef ITF_SUPPORT_IMGUI
+REGISTER_ITF_PARENT(ImGuiAdapter_xboxseries, ImGuiAdapter)
+#endif
 #endif
 
 

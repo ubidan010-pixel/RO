@@ -277,6 +277,9 @@ namespace ITF
         GFX_ADAPTER_DX12_INIT_STEP(createTextureDescriptorPool);
         GFX_ADAPTER_DX12_INIT_STEP(createSwapChain);
         GFX_ADAPTER_DX12_INIT_STEP(createRTVDescriptorHeap);
+#ifdef ITF_SUPPORT_IMGUI
+        GFX_ADAPTER_DX12_INIT_STEP(createImGuiDescriptorHeap);
+#endif
         GFX_ADAPTER_DX12_INIT_STEP(createFrontAndBackBuffers);
         GFX_ADAPTER_DX12_INIT_STEP(createSamplerPool);
         GFX_ADAPTER_DX12_INIT_STEP(createUniformBufferPool);
@@ -315,4 +318,32 @@ namespace ITF
         GFXAdapter::destroyResources();
     }
 
+#ifdef ITF_SUPPORT_IMGUI
+    bool GFXAdapter_DX12::createImGuiDescriptorHeap()
+    {
+        if (!m_device)
+            return false;
+
+        D3D12_DESCRIPTOR_HEAP_DESC desc = {};
+        desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+        desc.NumDescriptors = 64;
+        desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+        desc.NodeMask = 0;
+
+#if defined(ITF_XBOX_SERIES)
+        HRESULT hr = m_device->CreateDescriptorHeap(&desc, IID_GRAPHICS_PPV_ARGS(m_imguiSrvHeap.ReleaseAndGetAddressOf()) );
+#else
+        HRESULT hr = m_device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(m_imguiSrvHeap.ReleaseAndGetAddressOf()));
+#endif
+
+        if (FAILED(hr))
+            return false;
+
+        m_imguiSrvDescriptorSize =
+            m_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+        return true;
+    }
+
+#endif
 } // namespace ITF

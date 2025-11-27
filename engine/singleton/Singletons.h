@@ -86,6 +86,7 @@ class   AliasManager;
 class   UVAtlasManager;
 class   FileCacheManager;
 class   LocalisationManager;
+class   ImGuiAdapter;
 
 class Singletons
 {
@@ -215,6 +216,10 @@ private:
 #endif //SUPPORT_STATS_MANAGER
 
             LocalisationManager*        m_LocalisationManager;
+
+#ifdef ITF_SUPPORT_IMGUI
+            ImGuiAdapter*           m_ImGuiAdapter;
+#endif
 
                                     Singletons      (   );
                                     ~Singletons     (   );
@@ -422,6 +427,10 @@ public:
             ITF_INLINE  LocalisationManager*       getLocalisationManager   (                      )   { return m_LocalisationManager; }
             ITF_INLINE  void                       setLocalisationManager   ( LocalisationManager* ptr )   { m_LocalisationManager = ptr; }
 
+#ifdef ITF_SUPPORT_IMGUI
+            ITF_INLINE  ImGuiAdapter*              getImGuiAdapter() { return m_ImGuiAdapter; }
+            ITF_INLINE  void                       setImGuiAdapter(ImGuiAdapter* ptr) { m_ImGuiAdapter = ptr; }
+#endif
 };
 
 #define SINGLETONS          Singletons::get()
@@ -476,6 +485,9 @@ public:
 #define PROFILERMANAGER         SINGLETONS.getProfilerManager()
 #define LOCALISATIONMANAGER     SINGLETONS.getLocalisationManager()
 
+#ifdef ITF_SUPPORT_IMGUI
+#define IMGUI_ADAPTER            SINGLETONS.getImGuiAdapter()
+#endif
 
 #define ADDWATCH(_name, _val) ((ITF::GlobalWatch*)(ITF::SINGLETONS.getPluginGateWay()->getPluginByName(ITF::GlobalWatch::getPluginName())))->addWatch(_name, _val);
 #define REMOVEWATCH(_name) ((ITF::GlobalWatch*)(ITF::SINGLETONS.getPluginGateWay()->getPluginByName(ITF::GlobalWatch::getPluginName())))->removeWatch(_name);

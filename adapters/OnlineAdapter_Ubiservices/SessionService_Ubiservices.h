@@ -39,6 +39,8 @@ namespace ITF
         const ITF_VECTOR<PopulationInfo>& getPopulations() const override { return m_populationsInfos; }
         bool isInPopulation(const String8& _subject, const String8& _popName) const override;
 
+        virtual bool launchConnect(const String8& _deepLink = "", std::list<std::pair<String8, String8> > _params = {}) override;
+
         bool isClubFeatureSwitchEnabled() const override;
         bool isNewsFeatureSwitchEnabled() const override;
 

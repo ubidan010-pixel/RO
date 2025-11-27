@@ -1079,7 +1079,7 @@ void Font::writeBox(u32 color,f32 x, f32 y, f32 z, bbool _isRender2D, const Vec3
                 spaceWidth = getTextWidth(s, 1);
 
             // Does the word fit on the line? The first word is always accepted.
-                if (wordCount == 1 || currWidth + ((wordCount > 1 && !isChina()) ? spaceWidth : 0) + wordWidth <= width)
+            if (wordCount == 1 || currWidth + ((wordCount > 1 && !isChina()) ? spaceWidth : 0) + wordWidth <= width)
             {
                 if ( addIcon )
                 {

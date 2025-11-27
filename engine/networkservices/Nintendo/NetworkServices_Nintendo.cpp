@@ -35,6 +35,11 @@ namespace ITF
     {
         return 0;
     }
+
+    u32 NetworkServices_Nintendo::getPlatformSpecificErrorCode()
+    {
+        return m_platformErrorCode;
+    }
 } // namespace ITF
 
 #endif

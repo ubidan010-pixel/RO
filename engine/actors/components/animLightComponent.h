@@ -294,6 +294,19 @@ namespace ITF
         bbool                       fillAnimInfo();
 		void						fillBoneMap();
         void                        updateScissor();
+
+#ifdef ITF_SUPPORT_IMGUI
+    public:
+        const char* inspectableName() const override { return "Anim Light Component"; }
+
+    protected:
+        bbool canShow() const override { return btrue; }
+        void buildProperties(PropertyBag& bag) override
+        {
+            ITF_PROP(bag, AnimLightComponent, m_colorFactor, "Color Factor", CAT("Lighting"), TIP("Base light color (RGBA)"));
+            ITF_PROP(bag, AnimLightComponent, m_colorFog, "Color Fog", CAT("Lighting"), TIP("Base light color (RGBA)"));
+        }
+#endif //ITF_SUPPORT_IMGUI
     };
 
     ITF_INLINE void AnimLightComponent::updatePatches()

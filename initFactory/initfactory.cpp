@@ -145,6 +145,10 @@
 
 #include "adapters/AccountAdapter_PS5/AccountAdapter_PS5.h"
 #include "adapters/AccountAdapter_xboxseries/AccountAdapter_xboxseries.h"
+// ImGui adapter
+#include "adapters/ImGuiAdapter_win/ImGuiAdapter_win.h"
+#include "adapters/ImGuiAdapter_PS5/ImGuiAdapter_PS5.h"
+#include "adapters/ImGuiAdapter_xboxseries/ImGuiAdapter_xboxseries.h"
 
 namespace ITF
 {

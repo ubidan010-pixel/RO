@@ -460,6 +460,20 @@ namespace ITF
     #else
         bool isDrawAllowed(bool _incrementDrawCallIndex = true) const { return true; }
     #endif
+
+#ifdef ITF_SUPPORT_IMGUI
+    public:
+
+        virtual ID3D12Device* getDevice() const { return m_device.Get(); }
+        virtual ID3D12DescriptorHeap* getImGuiSrvHeap() const { return m_imguiSrvHeap.Get(); }
+        virtual UINT getImGuiSrvDescriptorSize() const { return m_imguiSrvDescriptorSize; }
+        virtual bool createImGuiDescriptorHeap();
+        ID3D12CommandQueue* getCommandQueue() const { return m_mainContext ? m_mainContext->getQueue() : nullptr; }
+    private:
+        ComPtr<ID3D12DescriptorHeap> m_imguiSrvHeap{};
+        UINT                         m_imguiSrvDescriptorSize = 0;
+#endif // ITF_SUPPORT_IMGUI
+
     };
 
 } // namespace ITF

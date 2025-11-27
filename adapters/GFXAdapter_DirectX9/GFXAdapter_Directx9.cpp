@@ -169,6 +169,10 @@
 #include "tools/plugins/EngineMonitorPlugin/EngineMonitorPlugin.h"
 #endif //_ITF_ENGINEMONITORPLUGIN_H_
 
+#ifndef _ITF_IMGUIADAPTER_H_
+#include "engine/AdaptersInterfaces/ImGui/ImGuiAdapter.h"
+#endif //_ITF_IMGUIADAPTER_H_
+
 #include "core/UnicodeTools.h"
 
 namespace ITF
@@ -3581,6 +3585,10 @@ void GFXAdapter_Directx9::present()
     }
 #endif
 
+#ifdef ITF_SUPPORT_IMGUI
+    IMGUI_ADAPTER->render();
+#endif
+
     m_pd3dDevice->EndScene();
     resetSceneResolvedFlag();
 
@@ -4327,6 +4335,10 @@ bbool GFXAdapter_Directx9::resetDevice(bbool _forceReset)
     if (!m_pd3dDevice) return bfalse;
 
     preD3DReset();
+
+#ifdef ITF_SUPPORT_IMGUI
+    IMGUI_ADAPTER->onDeviceLost();
+#endif
     
     BuildPresentParams();
 
@@ -4347,6 +4359,10 @@ bbool GFXAdapter_Directx9::resetDevice(bbool _forceReset)
     if (SUCCEEDED(hr) || _forceReset)
     {
         Sleep(10);
+
+#ifdef ITF_SUPPORT_IMGUI
+        IMGUI_ADAPTER->onDeviceReset();
+#endif
 
         postD3DReset();
         reshape();

@@ -17,6 +17,10 @@
 #include "engine/picking/Pickable.h"
 #endif // _ITF_PICKABLE_H_
 
+#ifndef _ITF_IMGUIPROPERTYSYSTEM_H_
+#include "engine/AdaptersInterfaces/ImGui/ImGuiPropertySystem.h"
+#endif //_ITF_IMGUIPROPERTYSYSTEM_H_
+
 struct lua_State;
 
 #define DECLARE_VALIDATE_COMPONENT() virtual void validate(bbool &_isComponentValidated);
@@ -30,7 +34,7 @@ class Event;
 class GhostRecorderInfo;
 class GhostPlayerInfo;
 
-class ActorComponent : public IRTTIObject, public IEventListener
+class ActorComponent : public IRTTIObject, public IEventListener, public IInspectable
 {
     DECLARE_OBJECT_CHILD_RTTI_ABSTRACT(ActorComponent,IRTTIObject,2669192659)
 
@@ -109,6 +113,13 @@ protected:
     class Actor*                        m_actor;
     const class TemplateActorComponent* m_template;
     bbool                               m_pause;
+
+#ifdef ITF_SUPPORT_IMGUI
+public:
+    const char* inspectableName() const override { return "Actor Component"; }
+protected:
+    void buildProperties(PropertyBag& bag) override {}
+#endif //ITF_SUPPORT_IMGUI
 };
 
 }

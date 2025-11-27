@@ -31,6 +31,11 @@ namespace ITF
     private:
         ComPtr<IGameInput> m_gameInput{};
         InputPadsHandler_GameInput m_padsHandler;
+
+#if ITF_SUPPORT_IMGUI
+    public:
+        IGameInput* getGameInput() { return m_gameInput.Get(); }
+#endif
     };
 
     #define INPUT_ADAPTER_XBOXSERIES (static_cast<InputAdapter_XBoxSeries*>(INPUT_ADAPTER))

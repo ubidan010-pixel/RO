@@ -32,6 +32,9 @@ namespace ITF
         void configureUbiservices(const ubiservices::String& _buildId);
         void terminateUbiservices();
 
+        void initFirstParty();
+        void uninitFirstParty();
+
         String8 generateBuildId();
         const char* getUSApplicationId();
         bool convertITFtoUSLanguage(ITF_LANGUAGE _itfLang, String8& _lang, String8& _locale);

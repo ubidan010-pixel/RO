@@ -43,6 +43,16 @@
 #include <ubiservices/services/notification/playerNotificationUbiServices.h>
 
 #if ITF_PS5
+#include <ubiservices/core/firstPartyInit/psApi/jsonMemAllocator.h>
+#include <ubiservices/core/firstPartyInit/psApi/jsonInitializer.h>
+namespace FirstPartyInit_BF
+{
+    // We use pointers here because we cant create these object statically without loading certain lib before.
+    // SDK is dumb now; used to have an internal FirstPartyInit api call for this.
+    std::unique_ptr<US_NS::JsonMemAllocator> s_allocator;
+    std::unique_ptr<sce::Json::Initializer> s_jsonInitializer;
+}
+
 extern "C"
 {
     unsigned int sceLibcHeapExtendedAlloc = 1;                           /* Switch to dynamic allocation */
@@ -103,6 +113,7 @@ namespace ITF
 
     void OnlineAdapter_Ubiservices::initialize()
     {
+        initFirstParty();
         initializeUbiservices();
 
 #if defined(ITF_SUPPORT_ONLINETRACKING)
@@ -133,6 +144,8 @@ namespace ITF
             terminateUbiservices();
             m_initialized = false;
         }
+
+        uninitFirstParty();
     }
 
     bool OnlineAdapter_Ubiservices::convertITFtoUSLanguage(ITF_LANGUAGE _itfLang, String8& _lang, String8& _locale)
@@ -224,6 +237,38 @@ namespace ITF
         };
 
         return knownLang;
+    }
+
+    void OnlineAdapter_Ubiservices::initFirstParty()
+    {
+#if defined(ITF_PS5)
+        US_NS::JsonInitializer usJsonInitializer;
+        FirstPartyInit_BF::s_jsonInitializer.reset(new sce::Json::Initializer);
+        FirstPartyInit_BF::s_allocator.reset(new US_NS::JsonMemAllocator);
+        int returnCode = usJsonInitializer.initialize(*FirstPartyInit_BF::s_jsonInitializer, *FirstPartyInit_BF::s_allocator);
+        if (returnCode < 0)
+        {
+            LOG("[Ubiservices] sce::Json::Initializer initialize() error %d.\n", returnCode);
+        }
+#endif
+        LOG("[Ubiservices] initFirstParty OK");
+    }
+
+    void OnlineAdapter_Ubiservices::uninitFirstParty()
+    {
+#if defined(ITF_PS5)
+        if (FirstPartyInit_BF::s_jsonInitializer.get() != nullptr)
+        {
+            US_NS::JsonInitializer usJsonInitializer;
+            usJsonInitializer.uninitialize(*FirstPartyInit_BF::s_jsonInitializer);
+        }
+
+        // Must force release before uninitialize the Json module in uninitializeModules
+        FirstPartyInit_BF::s_jsonInitializer.release();
+        FirstPartyInit_BF::s_allocator.release();
+#endif
+
+        LOG("[Ubiservices] uninitFirstParty OK");
     }
 
     void OnlineAdapter_Ubiservices::initializeUbiservices()

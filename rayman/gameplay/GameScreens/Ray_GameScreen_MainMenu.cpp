@@ -58,6 +58,11 @@
 #include "rayman/gameplay/RichPresence/NetworkServices_PresenceMessages.h"
 #endif //_ITF_NETWORKSERVICES_PRESENCEMESSAGES_H__
 
+#ifndef ITF_ONLINE_ADAPTER_UBISERVICES_H
+#include "adapters/OnlineAdapter_Ubiservices/OnlineAdapter_Ubiservices.h"
+#include "adapters/OnlineAdapter_Ubiservices/SessionService_Ubiservices.h"
+#endif //ITF_ONLINE_ADAPTER_UBISERVICES_H
+
 #ifndef _ITF_UPLAYSERVICE_
 #include "engine/networkservices/UPlayService.h"
 #endif //_ITF_UPLAYSERVICE_
@@ -1224,10 +1229,16 @@ namespace ITF
         else if (id == pressUbiconnect)
         {
             LOG("[UBICONNECT] - Ray_GameScreen_MainMenu: Ubisoft Connect button pressed");
-#ifdef ITF_SUPPORT_UPLAY
+#if defined(ITF_WINDOWS) && defined(ITF_SUPPORT_UPLAY)
             if (UPLAYSERVICE && !UPLAYSERVICE->isOverlayActive())
             {
                 UPLAYSERVICE->showOverlay();
+            }
+#elif defined(ITF_SUPPORT_UBISERVICES)
+            if (ONLINE_ADAPTER)
+            {
+                bool ret = ONLINE_ADAPTER->getSessionService()->launchConnect();
+                LOG("[UBICONNECT] - Ray_GameScreen_MainMenu: overlay returned: %d", ret);
             }
 #endif
         }
