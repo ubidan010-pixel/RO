@@ -112,7 +112,7 @@ namespace ITF
             if (m_previousWeight  >= getTemplate()->getWeightStep() && m_fxControllerComponent)
             {
                 m_floatFx = m_fxControllerComponent->playFX(getTemplate()->getFloatFx());
-                m_fxControllerComponent->stopFX(m_sinkFx);
+                m_fxControllerComponent->stopFXFromHandle(m_sinkFx);
                 m_sinkFx = U32_INVALID;
             }
             const f32 initY = 0.0f;
@@ -127,7 +127,7 @@ namespace ITF
             {
                 if (m_fxControllerComponent)
                 {
-                    m_fxControllerComponent->stopFX(m_floatFx);
+                    m_fxControllerComponent->stopFXFromHandle(m_floatFx);
                     m_floatFx = U32_INVALID;
                 }
             }
@@ -138,7 +138,7 @@ namespace ITF
             if (m_previousWeight  < getTemplate()->getWeightStep() && m_fxControllerComponent)
             {
                 m_sinkFx = m_fxControllerComponent->playFX(getTemplate()->getSinkFx());
-                m_fxControllerComponent->stopFX(m_floatFx);
+                m_fxControllerComponent->stopFXFromHandle(m_floatFx);
                 m_floatFx = U32_INVALID;
             }
 
@@ -157,7 +157,7 @@ namespace ITF
             {
                 if (m_fxControllerComponent)
                 {
-                    m_fxControllerComponent->stopFX(m_sinkFx);
+                    m_fxControllerComponent->stopFXFromHandle(m_sinkFx);
                     m_sinkFx = U32_INVALID;
                 }
             }

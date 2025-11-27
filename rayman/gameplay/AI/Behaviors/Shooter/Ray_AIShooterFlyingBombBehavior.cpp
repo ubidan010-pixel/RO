@@ -242,7 +242,7 @@ namespace ITF
         if (m_fxController)
         {
             u32 fxHandle = m_fxController->playFeedback( _stim->getSender(), _stim->getActionFromHit(), m_actor->getRef() );
-            m_fxController->setFXPos(fxHandle, _stim->getFxPos());
+            m_fxController->setFXPosFromHandle(fxHandle, _stim->getFxPos());
         }
 
         // notify the sender that he touched us

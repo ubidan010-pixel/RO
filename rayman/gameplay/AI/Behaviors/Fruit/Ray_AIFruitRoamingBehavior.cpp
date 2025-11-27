@@ -1273,9 +1273,9 @@ namespace ITF
         {
             if( m_fxHandle != U32_INVALID )
             {
-                if( m_fxController->isPlaying( m_fxHandle ) )
+                if( m_fxController->isPlayingFromHandle( m_fxHandle ) )
                 {
-                    m_fxController->stopFX( m_fxHandle );
+                    m_fxController->stopFXFromHandle( m_fxHandle );
                 }
                 m_fxHandle = U32_INVALID;
             }

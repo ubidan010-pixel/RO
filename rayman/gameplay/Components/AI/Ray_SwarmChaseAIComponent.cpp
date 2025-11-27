@@ -158,7 +158,7 @@
             if (soundName.isValid() && m_handleSound == U32_INVALID)
             {
                 m_handleSound = m_fxControllerComponent->playFX(soundName);
-                m_fxControllerComponent->setFXPos(m_handleSound,m_actor->getPos()); 
+                m_fxControllerComponent->setFXPosFromHandle(m_handleSound,m_actor->getPos()); 
             }
         }
     }
@@ -169,7 +169,7 @@
     {
         if (m_fxControllerComponent)
         {
-            m_fxControllerComponent->stopFX(m_handleSound);
+            m_fxControllerComponent->stopFXFromHandle(m_handleSound);
             m_handleSound = U32_INVALID;
         }
     }
@@ -180,7 +180,7 @@
     {
         if (m_fxControllerComponent && m_handleSound != U32_INVALID)
         {
-            m_fxControllerComponent->setFXPos(m_handleSound, _pos); 
+            m_fxControllerComponent->setFXPosFromHandle(m_handleSound, _pos); 
         }
     }
 

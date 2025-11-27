@@ -158,7 +158,7 @@ namespace ITF
         if ( m_fxController != NULL )
         {
             u32 fxHandle = m_fxController->playFX( s_EjectedInput );
-            m_fxController->setFXPos( fxHandle, m_actor->getPos() );
+            m_fxController->setFXPosFromHandle( fxHandle, m_actor->getPos() );
         }   
     }
 

@@ -125,7 +125,7 @@ namespace ITF
             else if (onGamePlayEvent->getName() == ITF_GET_STRINGID_CRC(MRK_Flame_Stop,959055747))
             {
                 if (m_fxController)
-                    m_fxController->stopFX(m_flameHandle);
+                    m_fxController->stopFXFromHandle(m_flameHandle);
                 m_flameHandle = U32_INVALID;
             }
         }
@@ -157,7 +157,7 @@ namespace ITF
             m_physComponent->setStickOnWalls(bfalse);
 
         if (m_fxController)
-            m_fxController->stopFX(m_flameHandle);
+            m_fxController->stopFXFromHandle(m_flameHandle);
         m_flameHandle = U32_INVALID;
 
     }

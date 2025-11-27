@@ -1440,7 +1440,7 @@ namespace ITF
 
             if (m_geyserFxHandle != U32_INVALID)
             {
-                m_fxController->stopFX(m_geyserFxHandle);
+                m_fxController->stopFXFromHandle(m_geyserFxHandle);
                 m_geyserFxHandle = U32_INVALID;
             }
 
@@ -1453,8 +1453,8 @@ namespace ITF
                     if (getTemplate()->getFxUseTransform())
                     {
                         const Transform3d& transform = getFxTransform();
-                        m_fxController->setFXPos(m_geyserFxHandle, transform.getPos());
-                        m_fxController->setFXAngle(m_geyserFxHandle, transform.getAngle());
+                        m_fxController->setFXPosFromHandle(m_geyserFxHandle, transform.getPos());
+                        m_fxController->setFXAngleFromHandle(m_geyserFxHandle, transform.getAngle());
                         //m_fxController->setFXAngle(m_geyserFxHandle, transform.isFlipped() ? transform.getAngle() - MTH_PI : transform.getAngle());     // NOTE: this seems incorrect, yet somehow it more or less works for AlTranquilo (works normal or flipped, but doesn't work if actor has an angle)
                         //m_fxController->setFXAngle(m_geyserFxHandle, transform.transformDir(Vec2d::Right).getAngle());                                // this gives the same result
 
@@ -1904,7 +1904,7 @@ namespace ITF
             {
                 if (m_fxController)
                 {
-                    m_fxController->stopFX(user.m_fxHandle);
+                    m_fxController->stopFXFromHandle(user.m_fxHandle);
                 }
 
                 m_users.eraseNoOrder(i);
@@ -1936,7 +1936,7 @@ namespace ITF
             ITF_ASSERT(userActor);
             if (userActor)
             {
-                m_fxController->setFXPos(user.m_fxHandle, userActor->getPos());
+                m_fxController->setFXPosFromHandle(user.m_fxHandle, userActor->getPos());
             }
         }
     }

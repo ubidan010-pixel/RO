@@ -499,7 +499,7 @@ namespace ITF
             _pos.m_y -= 0.3f;   
 
             u32 fxHandle = m_fxControllerComponent->playFX(fxName);
-            m_fxControllerComponent->setFXPos(fxHandle,_pos);
+            m_fxControllerComponent->setFXPosFromHandle(fxHandle,_pos);
             return fxHandle;
         }
 
@@ -514,7 +514,7 @@ namespace ITF
 
         if (m_fxControllerComponent && _indexFx != U32_INVALID)
         {
-            m_fxControllerComponent->stopFX(_indexFx);
+            m_fxControllerComponent->stopFXFromHandle(_indexFx);
         }
     }
 
@@ -1558,7 +1558,7 @@ namespace ITF
         {
             const StringID feedbackAction = _hitEvent->getActionFromHit();
             u32 fxHandle = m_fxController->playFeedback(_hitEvent->getSender(), feedbackAction, m_actor->getRef());
-            m_fxController->setFXPos(fxHandle, _hitEvent->getFxPos());
+            m_fxController->setFXPosFromHandle(fxHandle, _hitEvent->getFxPos());
         }
 
         // Retract all attack

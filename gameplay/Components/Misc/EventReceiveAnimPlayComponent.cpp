@@ -354,7 +354,7 @@ void EventReceivePlayAnimComponent::updatePos( f32 _dt )
     {
         if ( ( m_currentPos == m_startValue ) && ( m_currentSpeed <= 0.f ) && ( m_fxHandle != U32_INVALID ) )
         {
-            m_fxControllerComponent->stopFX( m_fxHandle );
+            m_fxControllerComponent->stopFXFromHandle( m_fxHandle );
             m_fxHandle = U32_INVALID;
         }
         else if ( ( previousPos == 0.0f ) && ( m_currentPos > m_startValue ) && ( f32_Abs( m_currentSpeed ) > 0.0f ) )
@@ -362,7 +362,7 @@ void EventReceivePlayAnimComponent::updatePos( f32 _dt )
             if ( m_fxHandle == U32_INVALID )
             {
                 m_fxHandle = m_fxControllerComponent->playFX( s_StartInput );
-                m_fxControllerComponent->setFXPos( m_fxHandle, m_actor->getPos() );
+                m_fxControllerComponent->setFXPosFromHandle( m_fxHandle, m_actor->getPos() );
             }
         }
     }   

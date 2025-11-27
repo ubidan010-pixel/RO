@@ -259,7 +259,7 @@ void Ray_BTActionReceiveHit::setupHit( bbool _restart )
     m_tree->getBlackBoard().getFact(Ray_AIFact_receivedHitFeedbackAction,m_feedBackAction);
 
     u32 fxHandle = m_fxController->playFeedback(m_instigator, m_feedBackAction, m_tree->getActor()->getRef());
-    m_fxController->setFXPos(fxHandle, m_hitFxPos);
+    m_fxController->setFXPosFromHandle(fxHandle, m_hitFxPos);
 
     m_appexStart = bfalse;
     m_appexStop = bfalse;

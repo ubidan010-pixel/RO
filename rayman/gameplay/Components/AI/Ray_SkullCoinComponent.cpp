@@ -228,11 +228,11 @@ namespace ITF
 
         if (m_starFX!=U32_INVALID)
         {
-            m_fxControllerComponent->setFXPos(m_starFX, computePosFromVisualOffset());
+            m_fxControllerComponent->setFXPosFromHandle(m_starFX, computePosFromVisualOffset());
         }
         if (m_followFX != U32_INVALID)
         {
-            m_fxControllerComponent->setFXPos(m_followFX, computePosFromVisualOffset());
+            m_fxControllerComponent->setFXPosFromHandle(m_followFX, computePosFromVisualOffset());
         }
 
 
@@ -346,8 +346,8 @@ namespace ITF
     void Ray_SkullCoinComponent::setState(State_t _state)
     {
         //leaving old state
-        m_fxControllerComponent->stopFX(SKULLCOIN_STAR_PARTICLE_FX);
-        m_fxControllerComponent->stopFX(SKULLCOIN_FOLLOWPLAYER_FX);
+        m_fxControllerComponent->stopFXFromName(SKULLCOIN_STAR_PARTICLE_FX);
+        m_fxControllerComponent->stopFXFromName(SKULLCOIN_FOLLOWPLAYER_FX);
 
         m_starFX = U32_INVALID;
         m_followFX = U32_INVALID;

@@ -412,10 +412,10 @@ namespace ITF
                         count += 1.0f;
                     }
                     hitPos /= count;
-                    m_fxController->setFXPos(fxHandle, hitPos.to3d(m_actor->getDepth()));
+                    m_fxController->setFXPosFromHandle(fxHandle, hitPos.to3d(m_actor->getDepth()));
                 }
                 else
-                    m_fxController->setFXPos(fxHandle, hit->getFxPos());
+                    m_fxController->setFXPosFromHandle(fxHandle, hit->getFxPos());
             }
 		}
 

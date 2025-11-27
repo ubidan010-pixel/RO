@@ -996,7 +996,7 @@ namespace ITF
         {
             u32 fxHandle = m_fxControllerComponent->playFX(_name);
 
-            m_fxControllerComponent->setFXPos(fxHandle,_pos); 
+            m_fxControllerComponent->setFXPosFromHandle(fxHandle,_pos); 
             return fxHandle; 
         }
 
@@ -1009,7 +1009,7 @@ namespace ITF
     {
         if (m_fxControllerComponent)
         {
-            m_fxControllerComponent->setFXPos(_handle,_pos);
+            m_fxControllerComponent->setFXPosFromHandle(_handle,_pos);
         }
     }
 
@@ -1019,7 +1019,7 @@ namespace ITF
     {
         if (m_fxControllerComponent)
         {
-            m_fxControllerComponent->setFXAngle(_handle, _angle);
+            m_fxControllerComponent->setFXAngleFromHandle(_handle, _angle);
         }
     }
 
@@ -1029,7 +1029,7 @@ namespace ITF
     {
         if (m_fxControllerComponent)
         {
-            m_fxControllerComponent->stopFX(_handle);
+            m_fxControllerComponent->stopFXFromHandle(_handle);
         }
     }
 
@@ -2827,7 +2827,7 @@ namespace ITF
              soundPos += _pos.to3d();
              
              u32 handleFX = m_fxControllerComponent->playFX(_sound);
-             m_fxControllerComponent->setFXPos(handleFX, soundPos);
+             m_fxControllerComponent->setFXPosFromHandle(handleFX, soundPos);
          }
      }
 

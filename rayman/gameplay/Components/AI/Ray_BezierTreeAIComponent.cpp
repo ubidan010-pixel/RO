@@ -2464,7 +2464,7 @@ namespace ITF
             {
                 if (m_time > OPEN_THRESHOLD)
                 {
-                    _owner->m_fxController->stopFX(m_fxHandle);
+                    _owner->m_fxController->stopFXFromHandle(m_fxHandle);
                     m_fxHandle = U32_INVALID;
                 }
             }
@@ -2482,7 +2482,7 @@ namespace ITF
             {
                 if (m_time < CLOSE_THRESHOLD)
                 {
-                    _owner->m_fxController->stopFX(m_fxHandle);
+                    _owner->m_fxController->stopFXFromHandle(m_fxHandle);
                     m_fxHandle = U32_INVALID;
                 }
             }

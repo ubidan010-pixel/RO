@@ -183,7 +183,7 @@ namespace ITF
                     {
                         const StringID &feedbackAction = stim->getActionFromHit();
                         u32 fxHandle = m_fxController->playFeedback(stim->getSender(), feedbackAction, m_actor->getRef());
-                        m_fxController->setFXPos(fxHandle, stim->getFxPos());
+                        m_fxController->setFXPosFromHandle(fxHandle, stim->getFxPos());
                     }
                 }
             }

@@ -300,7 +300,7 @@ namespace ITF
         {
             if( m_fxController != NULL )
             {
-                m_fxController->stopFX( m_flameHandle );
+                m_fxController->stopFXFromHandle( m_flameHandle );
             }
             m_flameHandle = U32_INVALID;
         }

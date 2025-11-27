@@ -329,7 +329,7 @@ void Ray_SuperPunchGauge::stopFx()
 #endif
 
     // this will delete the generator eventually
-    m_fxController->stopFX(m_fxHandle);
+    m_fxController->stopFXFromHandle(m_fxHandle);
     
     // cleanup local info
     cleanup();

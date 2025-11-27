@@ -161,7 +161,7 @@ namespace ITF
 			else
 				fxName = ITF_GET_STRINGID_CRC(Explode,522485580);
             u32 fxHandle = m_fxController->playFX( fxName );
-            m_fxController->setFXPos( fxHandle, m_actor->getPos() );
+            m_fxController->setFXPosFromHandle( fxHandle, m_actor->getPos() );
         }
 
         // spawn fragments ?
@@ -382,4 +382,3 @@ namespace ITF
     }
 }
 
-  

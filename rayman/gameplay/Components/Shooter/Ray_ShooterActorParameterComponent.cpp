@@ -811,7 +811,7 @@ namespace ITF
         if ( fxName.isValid() )
         {
             fxHandle = m_fxControllerComponent->playFX( fxName );
-            m_fxControllerComponent->setFXPos( fxHandle, m_actor->getPos() );
+            m_fxControllerComponent->setFXPosFromHandle( fxHandle, m_actor->getPos() );
         }
         
         if ( _type == Vacuuming )
@@ -820,7 +820,7 @@ namespace ITF
         }
         else if ( ( _type == VacuumingStop ) && ( m_vacuumingFxHandle != U32_INVALID ) )
         {
-            m_fxControllerComponent->stopFX( m_vacuumingFxHandle );
+            m_fxControllerComponent->stopFXFromHandle( m_vacuumingFxHandle );
             m_vacuumingFxHandle = U32_INVALID;
         }                
     }

@@ -20,12 +20,13 @@
 
 namespace ITF
 {
-    const u32 MAX_FX_INSTANCES = 20;
+    //const u32 MAX_FX_INSTANCES = 20;
 
     class SoundComponent;
     class PolylineComponent;
     class AnimLightComponent;
     class FxBankComponent;
+    struct FxInstance;
 
     enum FXPlayMode
     {
@@ -54,7 +55,8 @@ namespace ITF
         virtual void onEvent(Event * _event);
         virtual void Update( f32 _deltaTime );
 
-        void removeFromStopList( u32 i );
+       
+		void removeFromStopListFromIndex(u32 _index);
 
         virtual void onBecomeActive();
         virtual void onResourceReady();
@@ -67,14 +69,17 @@ namespace ITF
 		u32         playFeedback(const ObjectRef& _actorRef, const StringID& _action, const ObjectRef& _targetRef, const StringID & _animFriendly = StringID::Invalid );
 		u32         playMaterialFX(StringID _fxName, const GameMaterial_Template* _mat = NULL);
         u32         playMaterialFX(StringID _fxName, StringID _animFriendly, const GameMaterial_Template* _mat);
-        void        stopFX(StringID _fxName);
-        void        stopFX(u32 _handle, bbool _onlyStopLooping = bfalse);
-        void        stopAllFX();
-        bbool       IsAllFXStopped() { return !m_playingFX; }
-        bbool       isPlaying(u32 _handle);
-        bbool       isSoundPlaying(u32 _handle);
-        bbool       isParticlePlaying(u32 _handle);
+        void        stopFXFromName(StringID _fxName, bbool _immediateParticlesStop = bfalse);
+	void        stopFXFromHandle(u32 _handle, bbool _onlyStopLooping = bfalse, bbool _immediateParticlesStop = bfalse, bbool _stopOnDestroy = bfalse);
+	void        stopAllFX(bbool _stopOnDestroy = bfalse, bbool _onlyStopLooping = bfalse, bbool _immediateParticlesStop = bfalse);
 
+
+        bbool       IsAllFXStopped() { return !m_playingFX; }
+	bbool isPlayingFromHandle(u32 _handle);
+	bbool isPlayingFromName(const StringID& _name);
+	bbool isSoundPlayingFromHandle(u32 _handle);
+	bbool isParticlePlayingFromHandle(u32 _handle);
+        u32 acquireFXInstance(u32& _index);
         //************************************
         // @name	ITF::FXControllerComponent::getParticuleGenerator()
         // @public 
@@ -101,7 +106,8 @@ namespace ITF
         // Set position of the FxInstance (which can be sound(s) + VFX(s))
         // It will stick to this position even if a bone has been set in FXControl param
         //************************************
-        void setFXPos(u32 _handle, const Vec3d& _pos);
+        void setFXPosFromHandle(u32 _handle, const Vec3d& _pos);
+        void setFXPosFromIndex(u32 index, const Vec3d& _pos);
 
         //************************************
         // @name	ITF::FXControllerComponent::setFXPos()
@@ -111,7 +117,7 @@ namespace ITF
         // Set position of the FxInstance (which can be sound(s) + VFX(s))
         // It will stick to this position even if a bone has been set in FXControl param
         //************************************
-        void setFXPos(StringID _fxName, const Vec3d& _pos);
+        void setFXPosFromName(StringID _fxName, const Vec3d& _pos);
 
         //************************************
         // @name	ITF::FXControllerComponent::setFXAngle()
@@ -120,7 +126,8 @@ namespace ITF
         // @param   _pos    : new position to set
         // Set angle of the FxInstance (which can be sound(s) + VFX(s))
         //************************************
-        void setFXAngle(u32 _handle, f32 _angle);
+        void setFXAngleFromHandle(u32 _handle, f32 _angle);
+        void setFXAngleFromIndex(u32 _index, f32 _angle);
 
         //************************************
         // @name	ITF::FXControllerComponent::setFXAngle()
@@ -129,7 +136,7 @@ namespace ITF
         // @param   _pos    : new position to set
         // Set angle of the FxInstance (which can be sound(s) + VFX(s))
         //************************************
-        void setFXAngle(StringID _fxName, f32 _angle);
+        void setFXAngleFromName(StringID _fxName, f32 _angle);
 
         //************************************
         // @name	ITF::FXControllerComponent::setFXPos()
@@ -138,7 +145,9 @@ namespace ITF
         // @param   _boneIndex : index of the bone to attach with
         // attach FxInstance to specified bone
         //************************************
-        void attachToBone(u32 _handle, u32 _boneIndex);
+        void attachToBoneFromHandle(u32 _handle, u32 _boneIndex);
+
+        void attachToBoneFromIndex(u32 index, u32 _boneIndex);
 
         //************************************
         // @name	ITF::FXControllerComponent::setFXPos()
@@ -147,7 +156,7 @@ namespace ITF
         // @param   _boneIndex : index of the bone to attach with
         // attach FxInstance to specified bone
         //************************************
-        void attachToBone(StringID _fxName, u32 _boneIndex);
+        void attachToBoneFromName(StringID _fxName, u32 _boneIndex);
 
         virtual void onUnloadResources();
         const GameMaterial_Template* getMaterial() const;
@@ -156,6 +165,27 @@ namespace ITF
         const FXControl* getFXControl( const StringID& _fxName ) const;
 
     protected:
+        struct FXInstance
+        {
+            FXInstance()
+                : m_control(NULL)
+                , m_soundInstance(ITF::SoundHandle::getInvalidHandle())
+                , m_particleInstance(U32_INVALID)
+                , m_playMode(FXPlayMode_Actor)
+                , m_handle(U32_INVALID)
+            {
+            }
+
+            const FXControl* m_control;
+            ITF::SoundHandle             m_soundInstance;
+            SafeArray<ITF::SoundHandle>  m_soundInstances;
+            u32             m_particleInstance;
+            SafeArray<u32>  m_particleInstances;
+            StringID    m_fromAnim;
+            // Play mode
+            FXPlayMode      m_playMode;
+            u32 m_handle;
+        };
         static const String8 s_default;
         u32             playFXInternal(StringID _fxName, const StringID & _animFriendly, f32 _ratio);
 		u32				playFeedbackInternal( const StringID& _actor
@@ -167,33 +197,23 @@ namespace ITF
                                             , const StringID& _defaultTarget
                                             , const StringID & _animFriendly = StringID::Invalid
                                             , const StringID& _customCategory = StringID::Invalid);
-        u32             acquireFXInstance();
-        void            releaseFXInstance(u32 _handle);
+	void releaseFXInstanceFromHandle(u32 _handle);
+	void releaseFXInstanceFromIndex(u32 _handle);
+	void stopFXFromIndex(u32 _index, bbool _onlyStopLooping = bfalse, bbool _immediateParticlesStop = bfalse, bbool _stopOnDestroy = bfalse);
+
+        FxInstance* getFxInstance(FxBankComponent* m_fxBankComponent, u32 fxInstanceIndex, StringID _fxName);
+
+		bbool isPlayingFromIndex(u32 _index);
+		bbool isSoundPlayingFromIndex(u32 _index);
+		bbool isParticlePlayingFromIndex(u32 _index);
+
      
         void            startDefaultFx();
-        void            stopDefaultFx();
+	void stopDefaultFx(bbool _stopOnDestroy = bfalse);
 
-		void			startTriggerFx();
-		void			stopTriggerFx();
+        void			startTriggerFx();
+	void stopTriggerFx(bbool _stopOnDestroy = bfalse);
 
-        struct FXInstance
-        {
-            FXInstance() 
-            : m_control(NULL)
-            , m_soundInstance(ITF::SoundHandle::getInvalidHandle())
-            , m_particleInstance(U32_INVALID)
-            , m_playMode(FXPlayMode_Actor)
-            {}
-            
-            const FXControl * m_control;
-            ITF::SoundHandle             m_soundInstance;
-            SafeArray<ITF::SoundHandle>  m_soundInstances;
-            u32             m_particleInstance;
-            SafeArray<u32>  m_particleInstances;
-            StringID    m_fromAnim;
-            // Play mode
-            FXPlayMode      m_playMode;
-        };
 
 
         //components
@@ -217,7 +237,8 @@ namespace ITF
         typedef ITF_VECTOR< Fx > FxToStopContainer ;
         FxToStopContainer m_fxToStop;
 
-        ITF_VECTOR<FXInstance> m_fxInstances;
+        KeyArray<FXInstance> m_fxInstances;
+        u32 m_idCount;
 
         SafeArray<StringID> m_stoppedAnims;
 

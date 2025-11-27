@@ -53,6 +53,7 @@ namespace ITF
 		SERIALIZE_CONTAINER("sounds",m_sounds);
         SERIALIZE_CONTAINER("particles",m_particles);
         SERIALIZE_MEMBER("owner",m_owner);
+        SERIALIZE_MEMBER("fxPlayInstanceOnce", m_fxInstanceOnce);
 	END_SERIALIZATION()
 
     ///////////////////////////////////////////////////////////////////////////////////////////

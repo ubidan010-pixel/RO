@@ -1328,7 +1328,7 @@ namespace ITF
 			{
 				posFlash = bone->m_Pos;
 				u32 handleFx = m_fxControllerComponent->playFX(fxNameFlash);
-				m_fxControllerComponent->setFXPos(handleFx, posFlash.to3d(zActor));
+				m_fxControllerComponent->setFXPosFromHandle(handleFx, posFlash.to3d(zActor));
 
 				if (m_soundComponent)
 				{

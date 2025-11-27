@@ -435,7 +435,7 @@ namespace ITF
         if (m_fxController)
         {
             u32 fxHandle = m_fxController->playFeedback(getLastAttacker(),ITF_GET_STRINGID_CRC(hit_crush,3169038330),m_actor->getRef());
-            m_fxController->setFXPos(fxHandle, getLastHitFxPos());
+            m_fxController->setFXPosFromHandle(fxHandle, getLastHitFxPos());
         }
     }
 

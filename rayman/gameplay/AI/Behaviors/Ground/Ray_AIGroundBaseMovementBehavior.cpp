@@ -285,7 +285,7 @@ namespace ITF
                 {
                     const Ray_GameMaterial_Template* mat = (const Ray_GameMaterial_Template*)(World::getGameMaterial(edge->getGameMaterial()));
                     u32 handle = m_fxController->playMaterialFX(ITF_GET_STRINGID_CRC(bounceFx,3317830063),mat);
-                    m_fxController->setFXPos(handle,m_actor->getBase());
+                    m_fxController->setFXPosFromHandle(handle,m_actor->getBase());
                 }                
             }
         }

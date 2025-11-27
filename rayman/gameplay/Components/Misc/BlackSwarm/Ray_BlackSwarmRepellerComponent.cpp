@@ -248,8 +248,8 @@ namespace ITF
         stopFx(m_soundLoopHandle);
         if( m_fxControllerComponent != NULL )
         {
-            m_fxControllerComponent->stopFX("Swarm_Interactive");
-            m_fxControllerComponent->stopFX("Swarm_Periodic");
+            m_fxControllerComponent->stopFXFromName("Swarm_Interactive");
+            m_fxControllerComponent->stopFXFromName("Swarm_Periodic");
         }
         //stop fx
         stopFx(m_fxHandle);
@@ -831,9 +831,9 @@ namespace ITF
         {
             if( _handle != U32_INVALID)
             {
-                if( m_fxControllerComponent->isPlaying(_handle) )
+                if( m_fxControllerComponent->isPlayingFromHandle(_handle) )
                 {
-                    m_fxControllerComponent->stopFX( _handle );
+                    m_fxControllerComponent->stopFXFromHandle( _handle );
                 }
                 _handle = U32_INVALID;
             }
@@ -846,7 +846,7 @@ namespace ITF
         if( m_fxControllerComponent != NULL && m_timeSinceLastInteractionSound > MIN_TIME_BETWEEN_INTERACTIVE_SOUNDS )
         {
             const StringID & interactiveSound = getTemplate()->getInteractiveSoundName();
-            m_fxControllerComponent->stopFX(interactiveSound);
+            m_fxControllerComponent->stopFXFromName(interactiveSound);
             m_fxControllerComponent->playFX(interactiveSound);
             m_timeSinceLastInteractionSound = 0.0f;
         }
@@ -858,7 +858,7 @@ namespace ITF
         if( m_fxControllerComponent != NULL )
         {
             const StringID & periodicSound = getTemplate()->getPeriodicSoundName();
-            m_fxControllerComponent->stopFX(periodicSound);
+            m_fxControllerComponent->stopFXFromName(periodicSound);
             m_fxControllerComponent->playFX(periodicSound);
         }
     }

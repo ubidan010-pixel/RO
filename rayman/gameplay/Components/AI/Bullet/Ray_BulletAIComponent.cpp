@@ -378,7 +378,7 @@ namespace ITF
         if (m_fxController)
         {
             u32 fxHandle = m_fxController->playFeedback( _hit->getSender(), _hit->getActionFromHit(), m_actor->getRef() );
-            m_fxController->setFXPos(fxHandle, _hit->getFxPos());
+            m_fxController->setFXPosFromHandle(fxHandle, _hit->getFxPos());
         }
 
         // check health (seb modif to manage different hp)

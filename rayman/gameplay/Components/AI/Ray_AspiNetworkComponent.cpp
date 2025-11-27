@@ -362,24 +362,24 @@ namespace ITF
         if (const Ray_AspiNetworkComponent_Template::FxData* fxData = getTemplate()->getFxData(_travelerActor))
         {
             _traveler.m_fxInHandle = m_fxController->playFX(fxData->m_fxIn);
-            m_fxController->setFXPos(_traveler.m_fxInHandle, _travelerActor->getPos());
+            m_fxController->setFXPosFromHandle(_traveler.m_fxInHandle, _travelerActor->getPos());
         }
     }
 
     void Ray_AspiNetworkComponent::updateFx( Traveler& _traveler, Actor* _travelerActor )
     {
-        m_fxController->setFXPos(_traveler.m_fxInHandle, _travelerActor->getPos());
+        m_fxController->setFXPosFromHandle(_traveler.m_fxInHandle, _travelerActor->getPos());
     }
 
     void Ray_AspiNetworkComponent::stopFx( Traveler& _traveler, Actor* _travelerActor )
     {
-        m_fxController->stopFX(_traveler.m_fxInHandle);
+        m_fxController->stopFXFromHandle(_traveler.m_fxInHandle);
         _traveler.m_fxInHandle = U32_INVALID;
 
         if (const Ray_AspiNetworkComponent_Template::FxData* fxData = getTemplate()->getFxData(_travelerActor))
         {
             u32 handle = m_fxController->playFX(fxData->m_fxOut);
-            m_fxController->setFXPos(handle, _travelerActor->getPos());
+            m_fxController->setFXPosFromHandle(handle, _travelerActor->getPos());
         }
     }
 

@@ -297,7 +297,7 @@ namespace ITF
     {
         if (m_fxControllerComponent)
         {
-            m_fxControllerComponent->stopFX(_handleFx);
+            m_fxControllerComponent->stopFXFromHandle(_handleFx);
         }
     }
 

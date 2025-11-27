@@ -124,7 +124,7 @@ namespace ITF
                     Vec3d fxPos = sender->getPos();
                     const StringID feedbackAction = _hit->getActionFromHit();
                     u32 fxHandle = m_fxController->playFeedback(_hit->getSender(), feedbackAction, m_actor->getRef());
-                    m_fxController->setFXPos(fxHandle, _hit->getFxPos());
+                    m_fxController->setFXPosFromHandle(fxHandle, _hit->getFxPos());
                 }
             }
 

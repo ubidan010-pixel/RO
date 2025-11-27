@@ -103,7 +103,7 @@
                 }
                 else if (m_handleSoundSlide != U32_INVALID &&  currentSpeed == 0.0f)
                 {
-                    m_fxController->stopFX(m_handleSoundSlide);
+                    m_fxController->stopFXFromHandle(m_handleSoundSlide);
                     m_handleSoundSlide = U32_INVALID;
                 }
             }
@@ -111,7 +111,7 @@
             {
                 if (m_handleSoundSlide != U32_INVALID)
                 {
-                    m_fxController->stopFX(m_handleSoundSlide);
+                    m_fxController->stopFXFromHandle(m_handleSoundSlide);
                     m_handleSoundSlide = U32_INVALID;
                 }
             }
@@ -250,7 +250,7 @@
         {
             const StringID feedbackAction = _hit->getActionFromHit();
             u32 fxHandle = m_fxController->playFeedback(_hit->getSender(), feedbackAction, m_actor->getRef());
-            m_fxController->setFXPos(fxHandle, _hit->getFxPos());
+            m_fxController->setFXPosFromHandle(fxHandle, _hit->getFxPos());
         }
 
         EReceivedHitType hitType = _hit->getReceivedHitType();

@@ -101,7 +101,7 @@ namespace ITF
                 u32 fxHandle = getParent()->m_fxController->playFX( ITF_GET_STRINGID_CRC(BubbleExitFX,2763088395) );
                 if ( fxHandle != U32_INVALID )
                 {
-                    getParent()->m_fxController->setFXPos( fxHandle, getParent()->m_actor->getPos() );
+                    getParent()->m_fxController->setFXPosFromHandle( fxHandle, getParent()->m_actor->getPos() );
                 }
             }
         }

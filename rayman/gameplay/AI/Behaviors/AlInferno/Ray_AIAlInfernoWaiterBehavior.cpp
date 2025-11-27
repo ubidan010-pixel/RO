@@ -777,7 +777,7 @@ namespace ITF
             //if fx isn't launched start it
             if( m_flamesFXHanfle != U32_INVALID )
             {
-                m_fxController->stopFX( m_flamesFXHanfle );
+                m_fxController->stopFXFromHandle( m_flamesFXHanfle );
                 m_flamesFXHanfle = U32_INVALID;
             }
         }

@@ -412,7 +412,7 @@ namespace ITF
                         Vec2d finalPos = fxPos + ( Vec2d::Right * Seeder::getSharedSeeder().GetFloat( -dist, dist ) );
 
                         u32 fxHandle = m_fxController->playFX( ITF_GET_STRINGID_CRC(Surf,4252188527) );
-                        m_fxController->setFXPos( fxHandle, finalPos.to3d( m_actor->getDepth() ) );            
+                        m_fxController->setFXPosFromHandle( fxHandle, finalPos.to3d( m_actor->getDepth() ) );
                     }
                 }            
 
@@ -430,7 +430,7 @@ namespace ITF
                 {
                     const StringID s_waterHead        = ITF_GET_STRINGID_CRC(WaterHead,3360312869); 
                     u32 fxHandle = m_fxController->playFX( s_waterHead );
-                    m_fxController->setFXPos( fxHandle, headFxPos.to3d( m_actor->getDepth() ) );
+                    m_fxController->setFXPosFromHandle( fxHandle, headFxPos.to3d( m_actor->getDepth() ) );
 
                     m_headInWater = playHeadFx;
                 }
@@ -438,7 +438,7 @@ namespace ITF
                 if ( ( playTailFx && !m_tailInWater ) || ( !playTailFx && m_tailInWater ) )
                 {
                     u32 fxHandle = m_fxController->playFX( ITF_GET_STRINGID_CRC(WaterTail,752947623) );
-                    m_fxController->setFXPos( fxHandle, tailFXPos.to3d( m_actor->getDepth() ) );
+                    m_fxController->setFXPosFromHandle( fxHandle, tailFXPos.to3d( m_actor->getDepth() ) );
 
                     m_tailInWater = playTailFx;
                 }

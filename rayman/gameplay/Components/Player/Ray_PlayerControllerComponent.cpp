@@ -2734,7 +2734,7 @@ void Ray_PlayerControllerComponent::stopSprintFx()
 {
     if (m_sprintFxHandle != U32_INVALID)
     {
-        m_fxController->stopFX(m_sprintFxHandle);
+        m_fxController->stopFXFromHandle(m_sprintFxHandle);
         m_sprintFxHandle = U32_INVALID;
     }
 }
@@ -2758,7 +2758,7 @@ void Ray_PlayerControllerComponent::stopSprintReducedFx()
 {
     if (m_sprintReducedFxHandle != U32_INVALID)
     {
-        m_fxController->stopFX(m_sprintReducedFxHandle);
+        m_fxController->stopFXFromHandle(m_sprintReducedFxHandle);
         m_sprintReducedFxHandle = U32_INVALID;
     }
 }
@@ -2782,7 +2782,7 @@ void Ray_PlayerControllerComponent::stopWallRunFx()
 {
     if (m_wallRunFxHandle != U32_INVALID)
     {
-        m_fxController->stopFX(m_wallRunFxHandle);
+        m_fxController->stopFXFromHandle(m_wallRunFxHandle);
         m_wallRunFxHandle = U32_INVALID;
     }
 }
@@ -2806,7 +2806,7 @@ void Ray_PlayerControllerComponent::stopWallRunReducedFx()
 {
     if (m_wallRunReducedFxHandle != U32_INVALID)
     {
-        m_fxController->stopFX(m_wallRunReducedFxHandle);
+        m_fxController->stopFXFromHandle(m_wallRunReducedFxHandle);
         m_wallRunReducedFxHandle = U32_INVALID;
     }
 }
@@ -11583,7 +11583,7 @@ void Ray_PlayerControllerComponent::receiveDamage( i32 _points )
     const StringID feedbackAction = punchStim.getActionFromHit();
 
     u32 fxHandle = m_fxController->playFeedback(m_receivedHitInstigator, feedbackAction, m_actor->getRef());
-    m_fxController->setFXPos(fxHandle, m_receivedHitFXPos);
+    m_fxController->setFXPosFromHandle(fxHandle, m_receivedHitFXPos);
 
     if ( isImmune() || CHEATMANAGER->isPlayerInvincible() )
     {
@@ -13011,7 +13011,7 @@ void Ray_PlayerControllerComponent::stopSlideFx()
 {
     if (m_slideFxHandle != U32_INVALID)
     {
-        m_fxController->stopFX(m_slideFxHandle);
+        m_fxController->stopFXFromHandle(m_slideFxHandle);
         m_slideFxHandle = U32_INVALID;
     }
 }
@@ -13036,7 +13036,7 @@ void Ray_PlayerControllerComponent::stopWallSlideFx()
 {
     if (m_wallSlideFxHandle != U32_INVALID)
     {
-        m_fxController->stopFX(m_wallSlideFxHandle);
+        m_fxController->stopFXFromHandle(m_wallSlideFxHandle);
         m_wallSlideFxHandle = U32_INVALID;
     }
 }
@@ -13076,13 +13076,13 @@ void Ray_PlayerControllerComponent::startBounceOnLineFx(const GameMaterial_Templ
 void Ray_PlayerControllerComponent::startDiveFx()
 {
     u32 fxHandle = m_fxController->playFX(ITF_GET_STRINGID_CRC(DiveFx,1187245914));
-    m_fxController->setFXPos(fxHandle,m_actor->getPos());
+    m_fxController->setFXPosFromHandle(fxHandle,m_actor->getPos());
 }
 
 void Ray_PlayerControllerComponent::startDiveOutFx()
 {
     u32 fxHandle = m_fxController->playFX(ITF_GET_STRINGID_CRC(DiveOutFx,2335027334));
-    m_fxController->setFXPos(fxHandle,m_actor->getPos());
+    m_fxController->setFXPosFromHandle(fxHandle,m_actor->getPos());
 }
 
 void Ray_PlayerControllerComponent::startHelicoFx()
@@ -13095,7 +13095,7 @@ void Ray_PlayerControllerComponent::stopHelicoFx()
 {
     if (m_helicoFxHandle != U32_INVALID)
     {
-        m_fxController->stopFX(m_helicoFxHandle);
+        m_fxController->stopFXFromHandle(m_helicoFxHandle);
         m_helicoFxHandle = U32_INVALID;
     }
 }
@@ -13116,7 +13116,7 @@ void Ray_PlayerControllerComponent::stopDeadSoulFx()
 {
     if (m_deadSoulFxHandle != U32_INVALID)
     {
-        m_fxController->stopFX(m_deadSoulFxHandle);
+        m_fxController->stopFXFromHandle(m_deadSoulFxHandle);
         m_deadSoulFxHandle = U32_INVALID;
     }
 }
@@ -13692,7 +13692,7 @@ void Ray_PlayerControllerComponent::updateLianaSlideFx( )
 
             Vec2d climbPos = edge->getPos() + ( edge->m_vector *  m_climbingT );
             const f32 depth = m_actor->getDepth();
-            m_fxController->setFXPos(m_lianaSlideFx,climbPos.to3d(depth));
+            m_fxController->setFXPosFromHandle(m_lianaSlideFx,climbPos.to3d(depth));
         }
         else
         {
@@ -13709,7 +13709,7 @@ void Ray_PlayerControllerComponent::stopLianaSlideFx()
 {
     if (m_lianaSlideFx != U32_INVALID)
     {
-        m_fxController->stopFX(m_lianaSlideFx);
+        m_fxController->stopFXFromHandle(m_lianaSlideFx);
         m_lianaSlideFx = U32_INVALID;
     }
 }

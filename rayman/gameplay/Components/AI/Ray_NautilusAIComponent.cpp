@@ -578,7 +578,7 @@ namespace ITF
             {
                 if (fabs(m_angularSpeed) < getTemplate()->getFxStopSpeed())
                 {
-                    m_fxController->stopFX(m_fxHandle);
+                    m_fxController->stopFXFromHandle(m_fxHandle);
                     m_fxHandle = U32_INVALID;
                 }
             }

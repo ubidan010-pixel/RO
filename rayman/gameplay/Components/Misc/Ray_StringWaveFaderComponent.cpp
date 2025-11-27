@@ -375,7 +375,7 @@ namespace ITF
             }
             if (killDownwardFX)
             {
-                m_fxControllerComponent->stopFX(m_downwardFX);
+                m_fxControllerComponent->stopFXFromHandle(m_downwardFX);
                 m_downwardFX = U32_INVALID;
             }
 

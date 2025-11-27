@@ -93,7 +93,7 @@ namespace ITF
             m_fxControllerComponent = m_actor->GetComponent<FXControllerComponent>();
 
             if (m_fxControllerComponent)
-                m_fxControllerComponent->stopFX(m_offToOnFX);
+                m_fxControllerComponent->stopFXFromHandle(m_offToOnFX);
             m_offToOnFX = U32_INVALID;
         }
     }
@@ -201,7 +201,7 @@ namespace ITF
             m_fxControllerComponent = m_actor->GetComponent<FXControllerComponent>();
             if (m_fxControllerComponent)
             {
-                m_fxControllerComponent->stopFX(_shaperDesc->m_waveFXHandle);
+                m_fxControllerComponent->stopFXFromHandle(_shaperDesc->m_waveFXHandle);
             }
             _shaperDesc->m_waveFXHandle = U32_INVALID;
         }
@@ -214,7 +214,7 @@ namespace ITF
             m_fxControllerComponent = m_actor->GetComponent<FXControllerComponent>();
             if (m_fxControllerComponent)
             {
-                m_fxControllerComponent->stopFX(_shaperDesc->m_preparingWaveFXHandle);
+                m_fxControllerComponent->stopFXFromHandle(_shaperDesc->m_preparingWaveFXHandle);
             }
             _shaperDesc->m_preparingWaveFXHandle = U32_INVALID;
         }
@@ -697,11 +697,11 @@ namespace ITF
             {
                 if (shaperDesc.m_waveFXHandle != U32_INVALID)
                 {
-                    m_fxControllerComponent->setFXPos(shaperDesc.m_waveFXHandle, wavePosition);
+                    m_fxControllerComponent->setFXPosFromHandle(shaperDesc.m_waveFXHandle, wavePosition);
                 }
                 if (shaperDesc.m_preparingWaveFXHandle != U32_INVALID)
                 {
-                    m_fxControllerComponent->setFXPos(shaperDesc.m_preparingWaveFXHandle, wavePosition);
+                    m_fxControllerComponent->setFXPosFromHandle(shaperDesc.m_preparingWaveFXHandle, wavePosition);
                 }
             }
         }           
@@ -765,7 +765,7 @@ namespace ITF
                             m_offToOnFX = m_fxControllerComponent->playFX(getOffToOnFX(waveType));
                             if (m_offToOnFX!=U32_INVALID)
                             {
-                                m_fxControllerComponent->setFXPos(m_offToOnFX, position);
+                                m_fxControllerComponent->setFXPosFromHandle(m_offToOnFX, position);
                             }
                         }
                     }

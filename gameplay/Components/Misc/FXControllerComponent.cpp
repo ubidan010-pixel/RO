@@ -146,6 +146,7 @@ namespace ITF
     : Super()
     , m_triggerFxHandle(U32_INVALID)
     , m_triggerFxStopOnUntrigger(bfalse)
+    , m_idCount(0)
     , m_defaultFxHandle(U32_INVALID)
     , m_soundComponent(NULL)
     , m_fxBankComponent(NULL)
@@ -221,7 +222,7 @@ namespace ITF
     {
         for (u32 i = 0; i < m_fxInstances.size(); ++i)
         {
-            if (isPlaying(i))
+	    if (isPlayingFromIndex(i)) 
                 return btrue;
         }
         return bfalse;
@@ -246,10 +247,10 @@ namespace ITF
                     u32 fxHandle = playMaterialFX(animTrackEvent->getName(),animTrackEvent->getFriendly(),NULL);
                     u32 boneIndex = animTrackEvent->getBoneParent();
                     if ( fxHandle != U32_INVALID && boneIndex != U32_INVALID )
-                        attachToBone(fxHandle,boneIndex);
+                        attachToBoneFromHandle(fxHandle,boneIndex);
                 }
                 else if (animTrackEvent->getAction() == AnimFXEvent::FX_Stop)
-                    stopFX(animTrackEvent->getName());
+                    stopFXFromName(animTrackEvent->getName());
             }
         }
         else if (EventTrigger * evt = _event->DynamicCast<EventTrigger>(ITF_GET_STRINGID_CRC(EventTrigger,1343042510)))
@@ -271,7 +272,7 @@ namespace ITF
                 {
                     if (m_triggerFxStopOnUntrigger)
                     {
-                        stopFX(m_triggerFxHandle);
+                        stopFXFromHandle(m_triggerFxHandle);
                     }
                     m_triggerFxHandle = U32_INVALID;
                 }
@@ -286,7 +287,7 @@ namespace ITF
             m_dieRequested = !eventDie->isDisableOnly();
             for (u32 i = 0; i < m_fxInstances.size(); ++i)
             {
-                stopFX(i,btrue);
+                stopFXFromIndex(i,btrue);
             }
         }
     }
@@ -296,46 +297,36 @@ namespace ITF
     // @protected 
     // @return	ITF::u32
     //************************************
-    u32 FXControllerComponent::acquireFXInstance()
+    u32 FXControllerComponent::acquireFXInstance(u32& _index)
     {
-        u32 handle = U32_INVALID;
-        u32 i = 0;
-        u32 size = m_fxInstances.size();
-        for (i = 0; i < size; i++)
-        {
-            if (m_fxInstances[i].m_control == NULL)
-            {
-                handle = i;
-                break;
-            }
-        }
-        if (i >= size && size <= MAX_FX_INSTANCES)
-        {
-            m_fxInstances.push_back(FXInstance());
-            handle = i;
-        }
-        
-        return handle;
+      
+		u32 handle = m_idCount++;
+        FXInstance instance{};
+        instance.m_handle = handle;
+		m_fxInstances.setNewValue(handle, FXInstance());
+		_index = m_fxInstances.size() - 1;
+		return handle;
     }
 
-    //************************************
-    // @name	ITF::FXControllerComponent::releaseFXInstance
-    // @protected 
-    // @param	u32 _handle
-    // @return	void
-    //************************************
-    void FXControllerComponent::releaseFXInstance(u32 _handle)
-    {
-        if (_handle < m_fxInstances.size())
-        {
-            FXInstance & fx = m_fxInstances[_handle];
-            fx.m_control    = NULL;
-            fx.m_soundInstance   = ITF::SoundHandle::getInvalidHandle();
-            fx.m_particleInstance = U32_INVALID;
-            fx.m_soundInstances.clear();
-            fx.m_particleInstances.clear();
-        }
-    }
+	void FXControllerComponent::releaseFXInstanceFromHandle(u32 _handle)
+	{
+		u32 index = m_fxInstances.find(_handle);
+		releaseFXInstanceFromIndex(index);
+	}
+
+  
+	void FXControllerComponent::releaseFXInstanceFromIndex(u32 _index)
+	{
+		if (_index < m_fxInstances.size())
+		{
+			FXInstance& fx = m_fxInstances.getAt(_index);
+			fx.m_control = NULL;
+			fx.m_soundInstance   = ITF::SoundHandle::getInvalidHandle();
+			fx.m_particleInstance = U32_INVALID;
+			fx.m_soundInstances.clear();
+			fx.m_particleInstances.clear();
+		}
+	}
 
     //************************************
     // @name	ITF::FXControllerComponent::playFXInternal
@@ -352,19 +343,22 @@ namespace ITF
             return U32_INVALID;
 
         ITF_MAP<StringID,FXControl*>::const_iterator it = getTemplate()->getEvents().find(_fxName);
+
+
         if (it != getTemplate()->getEvents().end())
         {
             FXControl * fx = it->second;
 
-            //checkAnimChange();
+              //checkAnimChange();
 
-            u32 handle = acquireFXInstance();
+          	u32 index;
+			u32 handle = acquireFXInstance(index);
             if (handle == U32_INVALID)
                 return handle;
 
-            FXInstance* currentInstance = &m_fxInstances[handle];
+            FXInstance& currentInstance = m_fxInstances.getAt(index);
 
-            currentInstance->m_control = fx;
+            currentInstance.m_control = fx;
 
             f32 lifeTimeMultiplier = 1.0f;
 
@@ -372,7 +366,7 @@ namespace ITF
             bbool fxPlayOnce = _animFriendly.isValid()?fx->m_fxPlayOnce:bfalse;
             bbool fxStopOnEndAnim = _animFriendly.isValid()?fx->m_fxStopOnEndAnim:bfalse;
 
-            currentInstance->m_fromAnim = _animFriendly.isValid();
+            currentInstance.m_fromAnim = _animFriendly.isValid();
 
             if (m_animLightComponent)
             {
@@ -381,7 +375,8 @@ namespace ITF
                     if ( m_animLightComponent->getNumPlayingSubAnims() == 0 || !m_animLightComponent->getCurSubAnim(0) )
                     {
                         ITF_ASSERT_MSG(0, "Please check why this is happening !");
-                        releaseFXInstance(handle);
+                      		releaseFXInstanceFromIndex(index);
+						m_fxInstances.eraseAtNoOrder(index);
                         return U32_INVALID;
                     }
                     m_currentSubAnim = m_animLightComponent->getCurSubAnim(0)->getFriendlyName();
@@ -389,7 +384,7 @@ namespace ITF
             }
 
             bbool addedToStopList = bfalse;
-            if (fxPlayOnce)
+            if (fxPlayOnce || fx->m_fxInstanceOnce)
             {
                 if (find (m_fxPlayOnceList.begin(),m_fxPlayOnceList.end(),fx->m_name) == m_fxPlayOnceList.end())
                 {
@@ -406,8 +401,29 @@ namespace ITF
                 }
                 else
                 {
-                    releaseFXInstance(handle);
-                    return U32_INVALID;
+					if (fx->m_fxInstanceOnce)
+					{
+						u32 icount = 0;
+						for (u32 i = 0; i < m_fxInstances.size(); ++i)
+						{
+							const FXControl* pControl = m_fxInstances.getAt(i).m_control;
+							if (pControl && (pControl->m_name == fx->m_name))
+							{
+								if (++icount == 2)
+								{
+									releaseFXInstanceFromIndex(index);
+                                    m_fxInstances.eraseAtNoOrder(index);
+									return U32_INVALID;
+								}
+							}
+						}
+					}
+					else
+					{
+						releaseFXInstanceFromIndex(index);
+						m_fxInstances.eraseAtNoOrder(index);
+						return U32_INVALID;
+					}
                 }
             }
             else
@@ -424,16 +440,16 @@ namespace ITF
             }
 
             // Set instance play mode
-            if ( currentInstance->m_control->m_fxBoneIndex != U32_INVALID)
+            if ( currentInstance.m_control->m_fxBoneIndex != U32_INVALID)
             {
-                currentInstance->m_playMode = FXPlayMode_AttachedToBone;
+                currentInstance.m_playMode = FXPlayMode_AttachedToBone;
             }
-            else if ( currentInstance->m_control->m_fxEmitFromBase )
+            else if ( currentInstance.m_control->m_fxEmitFromBase )
             {
-                currentInstance->m_playMode = FXPlayMode_ActorBase;
+                currentInstance.m_playMode = FXPlayMode_ActorBase;
             }
             else
-                currentInstance->m_playMode = FXPlayMode_Actor;
+                currentInstance.m_playMode = FXPlayMode_Actor;
 
             bbool playingSomething = bfalse;
 
@@ -443,18 +459,22 @@ namespace ITF
                 if (m_soundComponent)
                 {
                     StringID soundToPlay = fx->m_sound;
+	            currentInstance.m_soundInstances.reserve(fx->m_sounds.size());
+
                     if (soundToPlay.isValid())
                     {
-                        currentInstance->m_soundInstance = m_soundComponent->playSound(soundToPlay,currentInstance->m_control->m_fxBoneIndex);
-                        playingSomething = playingSomething || currentInstance->m_soundInstance != ITF::SoundHandle::getInvalidHandle();
+
+                        currentInstance.m_soundInstance = m_soundComponent->playSound(soundToPlay, currentInstance.m_control->m_fxBoneIndex);
+                        playingSomething = playingSomething || currentInstance.m_soundInstance != ITF::SoundHandle::getInvalidHandle();
                     }
 
                     for (u32 i = 0; i < fx->m_sounds.size(); ++i)
                     {
                         if (fx->m_sounds[i].isValid())
                         {
-                            currentInstance->m_soundInstances.push_back(m_soundComponent->playSound(fx->m_sounds[i],currentInstance->m_control->m_fxBoneIndex));
-                            playingSomething = playingSomething || currentInstance->m_soundInstances.back() != ITF::SoundHandle::getInvalidHandle();
+
+                            currentInstance.m_soundInstances.push_back(m_soundComponent->playSound(fx->m_sounds[i], currentInstance.m_control->m_fxBoneIndex));
+                            playingSomething = playingSomething || currentInstance.m_soundInstances.back() != ITF::SoundHandle::getInvalidHandle();
                         }
                     }
 
@@ -473,32 +493,32 @@ namespace ITF
 
                     if (particleToPlay.isValid())
                     {
-                        currentInstance->m_particleInstance = m_fxBankComponent->playFx(
+                        currentInstance.m_particleInstance = m_fxBankComponent->playFx(
                             particleToPlay,
-                            currentInstance->m_control->m_fxBoneIndex,
-                            currentInstance->m_control->m_fxUseBoneOrientation,
-                            currentInstance->m_control->m_fxEmitFromBase,
-                            currentInstance->m_control->m_fxUseActorSpeed,
-                            currentInstance->m_control->m_fxUseActorOrientation,
+                            currentInstance.m_control->m_fxBoneIndex,
+                            currentInstance.m_control->m_fxUseBoneOrientation,
+                            currentInstance.m_control->m_fxEmitFromBase,
+                            currentInstance.m_control->m_fxUseActorSpeed,
+                            currentInstance.m_control->m_fxUseActorOrientation,
                             lifeTimeMultiplier);
 
-                        playingSomething = playingSomething || currentInstance->m_particleInstance != U32_INVALID;
+                        playingSomething = playingSomething || currentInstance.m_particleInstance != U32_INVALID;
                     }
 
                     for (u32 i = 0; i < fx->m_particles.size(); ++i)
                     {
                         if (fx->m_particles[i].isValid())
                         {
-                           currentInstance->m_particleInstances.push_back(m_fxBankComponent->playFx(
+                            currentInstance.m_particleInstances.push_back(m_fxBankComponent->playFx(
                                 fx->m_particles[i],
-                                currentInstance->m_control->m_fxBoneIndex,
-                                currentInstance->m_control->m_fxUseBoneOrientation,
-                                currentInstance->m_control->m_fxEmitFromBase,
-                                currentInstance->m_control->m_fxUseActorSpeed, 
-                                currentInstance->m_control->m_fxUseActorOrientation,
+                                currentInstance.m_control->m_fxBoneIndex,
+                                currentInstance.m_control->m_fxUseBoneOrientation,
+                                currentInstance.m_control->m_fxEmitFromBase,
+                                currentInstance.m_control->m_fxUseActorSpeed,
+                                currentInstance.m_control->m_fxUseActorOrientation,
                                 lifeTimeMultiplier));
 
-                           playingSomething = playingSomething || currentInstance->m_particleInstances.back() != U32_INVALID;
+                           playingSomething = playingSomething || currentInstance.m_particleInstances.back() != U32_INVALID;
                         }
 
                     }
@@ -512,7 +532,8 @@ namespace ITF
                     m_fxToStop.pop_back();
 
                 }
-                releaseFXInstance(handle);
+              	releaseFXInstanceFromIndex(index);
+				m_fxInstances.eraseAtNoOrder(index);
                 handle = U32_INVALID;
             }
 
@@ -523,6 +544,7 @@ namespace ITF
         else
             return U32_INVALID;
     }
+
 
 	u32 FXControllerComponent::playFeedbackInternal( const StringID& _actor
                                                     , const StringID& _actorArchetype
@@ -538,11 +560,12 @@ namespace ITF
 
 		if ( feedback != NULL )
 		{
-			u32 handle = acquireFXInstance();
+				u32 index;
+			u32 handle = acquireFXInstance(index);
 			if (handle == U32_INVALID)
 				return handle;
 
-            FXInstance* currentInstance = &m_fxInstances[handle];
+            	FXInstance* currentInstance = &m_fxInstances.getAt(index);
 
 			currentInstance->m_control = feedback;
 
@@ -561,7 +584,8 @@ namespace ITF
 				    if ( m_animLightComponent->getNumPlayingSubAnims() == 0 || !m_animLightComponent->getCurSubAnim(0) )
 				    {
 					    ITF_ASSERT_MSG(0, "Please check why this is happening !");
-					    releaseFXInstance(handle);
+					   		releaseFXInstanceFromIndex(index);
+						m_fxInstances.eraseAtNoOrder(index);
 					    return U32_INVALID;
 				    }
 
@@ -584,8 +608,9 @@ namespace ITF
 					}
 				}
 				else
-				{
-					releaseFXInstance(handle);
+				{	
+	                releaseFXInstanceFromIndex(index);
+					m_fxInstances.eraseAtNoOrder(index);
 					return U32_INVALID;
 				}
 			}
@@ -613,18 +638,26 @@ namespace ITF
 			//PLAY SOUND
 			if (feedback->m_fxFlags & FXControl::flag_sound)
 			{
-				if (m_soundComponent)
-				{
-					StringID soundToPlay = feedback->m_sound;
-					if (soundToPlay.isValid())
-						currentInstance->m_soundInstance = m_soundComponent->playSound(soundToPlay,currentInstance->m_control->m_fxBoneIndex,FEEDBACKFX_MANAGER->getSDTemplate(soundToPlay),_customCategory);
+                if (m_soundComponent)
+                {
 
-					for (u32 i = 0; i < feedback->m_sounds.size(); ++i)
-					{
-						soundToPlay = feedback->m_sounds[i];
-						if (soundToPlay.isValid())
-							currentInstance->m_soundInstances.push_back(m_soundComponent->playSound(soundToPlay,currentInstance->m_control->m_fxBoneIndex,FEEDBACKFX_MANAGER->getSDTemplate(soundToPlay),_customCategory));
-					}
+                    StringID soundToPlay = feedback->m_sound;
+
+
+                    if (soundToPlay.isValid())
+                    {
+                        currentInstance->m_soundInstance = m_soundComponent->playSound(soundToPlay, currentInstance->m_control->m_fxBoneIndex, FEEDBACKFX_MANAGER->getSDTemplate(soundToPlay), _customCategory);
+                    }
+
+                    for (u32 i = 0; i < feedback->m_sounds.size(); ++i)
+                    {
+                        soundToPlay = feedback->m_sounds[i];
+                        if (soundToPlay.isValid())
+                        {
+                                currentInstance->m_soundInstances.push_back(m_soundComponent->playSound(soundToPlay, currentInstance->m_control->m_fxBoneIndex, FEEDBACKFX_MANAGER->getSDTemplate(soundToPlay), _customCategory));
+                        }
+                    }
+               
 
 				}
 			}
@@ -733,6 +766,7 @@ namespace ITF
     {
 
         StringID fx;
+	    u32 handle = U32_INVALID;
         const GameMaterial_Template* mat = _mat;
 
         if (!mat)
@@ -751,7 +785,7 @@ namespace ITF
 
 
 		    // TEMP : for a smooth transition to feedback effects, old system is still used until all data are correctly set
-		    u32 handle = playFeedbackInternal( m_actor->getType()
+		     handle = playFeedbackInternal( m_actor->getType()
                                                 , m_actor->getArchetype()
                                                 , FEEDBACKFX_MANAGER->getDefaultActor()
                                                 , _fxName
@@ -813,67 +847,86 @@ namespace ITF
 		return playFXInternal(fxName,_animFriendly,-1.f);
     }
 
-    //************************************
-    // @name	ITF::FXControllerComponent::stopFX
-    // @public 
-    // @param	u32 _handle
-    // @return	void
-    //************************************
-    void FXControllerComponent::stopFX(u32 _handle, bbool _onlyStopLooping /*=bfalse*/)
-    {
-        if (_handle >= m_fxInstances.size())
-            return;
+	void FXControllerComponent::stopFXFromHandle(
+		u32 _handle,
+		bbool _onlyStopLooping /*=bfalse*/,
+		bbool _immediateParticlesStop /*= bfalse*/,
+		bbool _stopOnDestroy /*= bfalse*/)
+	{
+		u32 index = m_fxInstances.find(_handle);
+		stopFXFromIndex(index, _onlyStopLooping, _immediateParticlesStop, _stopOnDestroy);
+	}
 
-        if (m_fxInstances[_handle].m_control != NULL)
+   void FXControllerComponent::stopFXFromIndex(
+		u32 _index,
+		bbool _onlyStopLooping /*=bfalse*/,
+		bbool _immediateParticlesStop /*= bfalse*/,
+		bbool _stopOnDestroy /*= bfalse*/)
+   {
+	    if (_index >= m_fxInstances.size())
+		{
+			return;
+		}
+
+		FXInstance& instance = m_fxInstances.getAt(_index);
+
+        if (instance.m_control != NULL)
         {
             if (m_soundComponent)
             {
-                if (m_fxInstances[_handle].m_soundInstance != ITF::SoundHandle::getInvalidHandle())
-                    m_soundComponent->stopSound(m_fxInstances[_handle].m_soundInstance,_onlyStopLooping);
-                for (u32 i = 0; i < m_fxInstances[_handle].m_soundInstances.size(); ++i)
-                {
-                    m_soundComponent->stopSound(m_fxInstances[_handle].m_soundInstances[i],_onlyStopLooping);
-                }
+
+                    if (instance.m_soundInstance.isValid())
+                    {
+                            m_soundComponent->stopSound(instance.m_soundInstance, _onlyStopLooping);
+                    }
+                    for (u32 i = 0; i < instance.m_soundInstances.size(); ++i)
+                    {
+                        if (instance.m_soundInstances[i].isValid())
+                        {
+                                m_soundComponent->stopSound(instance.m_soundInstances[i], _onlyStopLooping);
+                        }
+                    }
+ 
             }
             if (m_fxBankComponent)
             {
-                if (m_fxInstances[_handle].m_particleInstance != U32_INVALID)
-                    m_fxBankComponent->stopFx(m_fxInstances[_handle].m_particleInstance);
-                for (u32 i = 0; i < m_fxInstances[_handle].m_particleInstances.size(); ++i)
+                if (instance.m_particleInstance != U32_INVALID)
+                    m_fxBankComponent->stopFx(instance.m_particleInstance);
+                for (u32 i = 0; i < instance.m_particleInstances.size(); ++i)
                 {
-                    m_fxBankComponent->stopFx(m_fxInstances[_handle].m_particleInstances[i]);
+                    m_fxBankComponent->stopFx(instance.m_particleInstances[i]);
                 }
             }
         }
     }
 
-    void FXControllerComponent::stopFX( StringID _fxName )
+	void FXControllerComponent::stopFXFromName(StringID _fxName, bbool _immediateParticlesStop)
+	{
+		for (u32 i = 0; i < m_fxInstances.size(); ++i)
+		{
+			FXInstance& fx = m_fxInstances.getAt(i);
+			if (fx.m_control && fx.m_control->m_name == _fxName)
+			{
+				removeFromStopListFromIndex(i);
+				stopFXFromIndex(i, bfalse, _immediateParticlesStop, bfalse);
+			}
+		}
+	}
+    
+    void FXControllerComponent::stopAllFX(bbool _stopOnDestroy , bbool _onlyStopLooping , bbool _immediateParticlesStop )
     {
         for (u32 i = 0; i < m_fxInstances.size(); ++i)
         {
-            FXInstance& fx = m_fxInstances[i];
-            if (fx.m_control && fx.m_control->m_name == _fxName)
-            {
-                removeFromStopList(i);
-                stopFX(i);
-            }
-        }
-    }
-
-    void FXControllerComponent::stopAllFX()
-    {
-        for (u32 i = 0; i < m_fxInstances.size(); ++i)
-        {
-            FXInstance& fx = m_fxInstances[i];
+           	FXInstance& fx = m_fxInstances.getAt(i);
             if (fx.m_control)
             {
-                stopFX(i);
+                stopFXFromIndex(i, _onlyStopLooping, _immediateParticlesStop, _stopOnDestroy);
             }
         }
 
         for (FxToStopContainer::iterator it = m_fxToStop.begin(); it != m_fxToStop.end(); )
         {
-            stopFX(it->handle);
+            stopFXFromHandle(it->handle,_onlyStopLooping, _immediateParticlesStop, _stopOnDestroy);
 
             ITF_VECTOR<StringID>::iterator playOnceIt = find (m_fxPlayOnceList.begin(),m_fxPlayOnceList.end(),it->fxName);
             if ( playOnceIt != m_fxPlayOnceList.end())
@@ -887,16 +940,19 @@ namespace ITF
 
     ITF_ParticleGenerator* FXControllerComponent::getParticleGenerator(u32 _handle, StringID _fxName)
     {
-        if (_handle >= m_fxInstances.size())
-            return NULL;
+  		u32 index = m_fxInstances.find(_handle);
 
-        if (m_fxInstances[_handle].m_control != NULL)
+		if (index >= m_fxInstances.size())
+			return NULL;
+
+		FXInstance& instance = m_fxInstances.getAt(index);
+        if (instance.m_control != NULL)
         {
             ITF_ParticleGenerator * gen = NULL;
             u32 fxInstanceIndex = U32_INVALID;
             if (m_fxBankComponent)
             {
-                fxInstanceIndex = m_fxInstances[_handle].m_particleInstance;
+                fxInstanceIndex = instance.m_particleInstance;
 
                 if (fxInstanceIndex != U32_INVALID &&
                     m_fxBankComponent->getInstanceName(fxInstanceIndex) == _fxName )
@@ -908,9 +964,9 @@ namespace ITF
                     }
                 }
 
-                for (u32 i = 0; i < m_fxInstances[_handle].m_particleInstances.size(); ++i)
+                for (u32 i = 0; i < instance.m_particleInstances.size(); ++i)
                 {
-                    fxInstanceIndex = m_fxInstances[_handle].m_particleInstances[i];
+                    fxInstanceIndex = instance.m_particleInstances[i];
 
                     if (fxInstanceIndex != U32_INVALID &&
                         m_fxBankComponent->getInstanceName(fxInstanceIndex) == _fxName )
@@ -924,11 +980,11 @@ namespace ITF
                 }
             }
         }    
-
         return NULL;
     }
 
-    FxInstance* getFxInstance( FxBankComponent* m_fxBankComponent, u32 fxInstanceIndex, StringID _fxName )
+
+    FxInstance* FXControllerComponent::getFxInstance( FxBankComponent* m_fxBankComponent, u32 fxInstanceIndex, StringID _fxName )
     {
         if (fxInstanceIndex == U32_INVALID)
         {
@@ -959,19 +1015,23 @@ namespace ITF
 
         return fxInstance;
     }
-
+    
     void FXControllerComponent::getParticleGenerators(u32 _handle, SafeArray<ITF_ParticleGenerator*>& _generators)
     {
-        if (_handle >= m_fxInstances.size())
-            return;
+		u32 index = m_fxInstances.find(_handle);
 
-        if (m_fxInstances[_handle].m_control != NULL)
+		if (index >= m_fxInstances.size())
+			return;
+
+		FXInstance& instance = m_fxInstances.getAt(index);
+
+        if (instance.m_control != NULL)
         {
             ITF_ParticleGenerator * gen = NULL;
             u32 fxInstanceIndex = U32_INVALID;
             if (m_fxBankComponent)
             {
-                fxInstanceIndex = m_fxInstances[_handle].m_particleInstance;
+                fxInstanceIndex = instance.m_particleInstance;
 
                 if (fxInstanceIndex != U32_INVALID)
                 {
@@ -982,9 +1042,9 @@ namespace ITF
                     }
                 }
 
-                for (u32 i = 0; i < m_fxInstances[_handle].m_particleInstances.size(); ++i)
+                for (u32 i = 0; i < instance.m_particleInstances.size(); ++i)
                 {
-                    fxInstanceIndex = m_fxInstances[_handle].m_particleInstances[i];
+                    fxInstanceIndex = instance.m_particleInstances[i];
 
                     if (fxInstanceIndex != U32_INVALID)
                     {
@@ -998,117 +1058,160 @@ namespace ITF
             }
         }    
     }
+    
+	void FXControllerComponent::setFXPosFromHandle(u32 _handle, const Vec3d& _pos)
+	{
+		u32 index = m_fxInstances.find(_handle);
+		setFXPosFromIndex(index, _pos);
+	}
 
-    void FXControllerComponent::setFXPos(u32 _handle, const Vec3d& _pos)
+    void FXControllerComponent::setFXPosFromIndex(u32 index, const Vec3d& _pos)
     {
-        if (_handle >= m_fxInstances.size())
-            return;
 
-        if (m_fxInstances[_handle].m_control != NULL)
+		if (index >= m_fxInstances.size())
+			return;
+
+		FXInstance& instance = m_fxInstances.getAt(index);
+
+        if (instance.m_control != NULL)
         {
-            m_fxInstances[_handle].m_playMode = FXPlayMode_Position;
+            instance.m_playMode = FXPlayMode_Position;
             if (m_soundComponent)
             {
-                if (m_fxInstances[_handle].m_soundInstance != ITF::SoundHandle::getInvalidHandle())
-                    m_soundComponent->setSoundPos(m_fxInstances[_handle].m_soundInstance,_pos);
-                for (u32 i = 0; i < m_fxInstances[_handle].m_soundInstances.size(); ++i)
+                if (instance.m_soundInstance != ITF::SoundHandle::getInvalidHandle())
+                    m_soundComponent->setSoundPos(instance.m_soundInstance,_pos);
+                for (u32 i = 0; i < instance.m_soundInstances.size(); ++i)
                 {
-                    m_soundComponent->setSoundPos(m_fxInstances[_handle].m_soundInstances[i],_pos);
+                    m_soundComponent->setSoundPos(instance.m_soundInstances[i],_pos);
                 }
             }
             if (m_fxBankComponent)
             {
-                if (m_fxInstances[_handle].m_particleInstance != U32_INVALID)
-                    m_fxBankComponent->setFXPos(m_fxInstances[_handle].m_particleInstance, _pos);
-                for (u32 i = 0; i < m_fxInstances[_handle].m_particleInstances.size(); ++i)
+                if (instance.m_particleInstance != U32_INVALID)
+                    m_fxBankComponent->setFXPos(instance.m_particleInstance, _pos);
+                for (u32 i = 0; i < instance.m_particleInstances.size(); ++i)
                 {
-                    m_fxBankComponent->setFXPos(m_fxInstances[_handle].m_particleInstances[i], _pos);
+                    m_fxBankComponent->setFXPos(instance.m_particleInstances[i], _pos);
                 }
             }
         }
     }
 
-    void FXControllerComponent::setFXPos(StringID _fxName, const Vec3d& _pos)
+    void FXControllerComponent::setFXPosFromName(StringID _fxName, const Vec3d& _pos)
     {
         for (u32 i = 0; i < m_fxInstances.size(); ++i)
         {
-            FXInstance& fx = m_fxInstances[i];
+            FXInstance& fx = m_fxInstances.getAt(i);
             if (fx.m_control && fx.m_control->m_name == _fxName)
             {
-                setFXPos(i, _pos);
+                setFXPosFromIndex(i, _pos);
             }
         }
     }
 
-    void FXControllerComponent::setFXAngle(u32 _handle, f32 _angle)
+    void FXControllerComponent::setFXAngleFromHandle(u32 _handle, f32 _angle)
     {
-        if (_handle >= m_fxInstances.size())
+	    u32 index = m_fxInstances.find(_handle);
+        if (index >= m_fxInstances.size())
             return;
+        FXInstance& instance = m_fxInstances.getAt(index);
 
-        if (m_fxInstances[_handle].m_control != NULL)
+        if (instance.m_control != NULL)
         {
             if (m_fxBankComponent)
             {
-                if (m_fxInstances[_handle].m_particleInstance != U32_INVALID)
-                    m_fxBankComponent->setFXAngle(m_fxInstances[_handle].m_particleInstance, _angle);
-                for (u32 i = 0; i < m_fxInstances[_handle].m_particleInstances.size(); ++i)
+                if (instance.m_particleInstance != U32_INVALID)
+                    m_fxBankComponent->setFXAngle(instance.m_particleInstance, _angle);
+                for (u32 i = 0; i < instance.m_particleInstances.size(); ++i)
                 {
-                    m_fxBankComponent->setFXAngle(m_fxInstances[_handle].m_particleInstances[i], _angle);
+                    m_fxBankComponent->setFXAngle(instance.m_particleInstances[i], _angle);
+                }
+            }
+        }
+    }
+    void FXControllerComponent::setFXAngleFromIndex(u32 index, f32 _angle)
+    {
+
+        if (index >= m_fxInstances.size())
+            return;
+        FXInstance& instance = m_fxInstances.getAt(index);
+
+        if (instance.m_control != NULL)
+        {
+            if (m_fxBankComponent)
+            {
+                if (instance.m_particleInstance != U32_INVALID)
+                    m_fxBankComponent->setFXAngle(instance.m_particleInstance, _angle);
+                for (u32 i = 0; i < instance.m_particleInstances.size(); ++i)
+                {
+                    m_fxBankComponent->setFXAngle(instance.m_particleInstances[i], _angle);
                 }
             }
         }
     }
 
-    void FXControllerComponent::setFXAngle(StringID _fxName, f32 _angle)
+    void FXControllerComponent::setFXAngleFromName(StringID _fxName, f32 _angle)
     {
         for (u32 i = 0; i < m_fxInstances.size(); ++i)
         {
-            FXInstance& fx = m_fxInstances[i];
+            FXInstance& fx = m_fxInstances.getAt(i);
             if (fx.m_control && fx.m_control->m_name == _fxName)
             {
-                setFXAngle(i, _angle);
+                setFXAngleFromIndex(i, _angle);
             }
         }
     }
 
-    void FXControllerComponent::attachToBone(u32 _handle, u32 _boneIndex)
+    void FXControllerComponent::attachToBoneFromHandle(u32 _handle, u32 _boneIndex)
     {
-        if (_handle >= m_fxInstances.size() && _boneIndex == U32_INVALID)
+		u32 index = m_fxInstances.find(_handle);
+        attachToBoneFromIndex(index,_boneIndex);
+    }
+
+    void FXControllerComponent::attachToBoneFromIndex(u32 index, u32 _boneIndex)
+    {
+
+        if (index >= m_fxInstances.size() && _boneIndex == U32_INVALID)
             return;
 
-        if (m_fxInstances[_handle].m_control != NULL)
+        FXInstance& instance = m_fxInstances.getAt(index);
+
+
+        if (instance.m_control != NULL)
         {
-            m_fxInstances[_handle].m_playMode = FXPlayMode_AttachedToBone;
+            instance.m_playMode = FXPlayMode_AttachedToBone;
 
             if (m_soundComponent)
             {
-                if (m_fxInstances[_handle].m_soundInstance != ITF::SoundHandle::getInvalidHandle())
-                    m_soundComponent->attachToBone(m_fxInstances[_handle].m_soundInstance,_boneIndex);
-                for (u32 i = 0; i < m_fxInstances[_handle].m_soundInstances.size(); ++i)
+                if (instance.m_soundInstance != ITF::SoundHandle::getInvalidHandle())
+                    m_soundComponent->attachToBone(instance.m_soundInstance,_boneIndex);
+                for (u32 i = 0; i < instance.m_soundInstances.size(); ++i)
                 {
-                    m_soundComponent->attachToBone(m_fxInstances[_handle].m_soundInstances[i],_boneIndex);
+                    m_soundComponent->attachToBone(instance.m_soundInstances[i],_boneIndex);
                 }
             }
             if (m_fxBankComponent)
             {
-                if (m_fxInstances[_handle].m_particleInstance != U32_INVALID)
-                    m_fxBankComponent->attachToBone(m_fxInstances[_handle].m_particleInstance, _boneIndex);
-                for (u32 i = 0; i < m_fxInstances[_handle].m_particleInstances.size(); ++i)
+                if (instance.m_particleInstance != U32_INVALID)
+                    m_fxBankComponent->attachToBone(instance.m_particleInstance, _boneIndex);
+
+                for (u32 i = 0; i < instance.m_particleInstances.size(); ++i)
                 {
-                    m_fxBankComponent->attachToBone(m_fxInstances[_handle].m_particleInstances[i], _boneIndex);
+                    m_fxBankComponent->attachToBone(instance.m_particleInstances[i], _boneIndex);
                 }
             }
         }
     }
 
-    void FXControllerComponent::attachToBone(StringID _fxName, u32 _boneIndex)
+    void FXControllerComponent::attachToBoneFromName(StringID _fxName, u32 _boneIndex)
     {
         for (u32 i = 0; i < m_fxInstances.size(); ++i)
         {
-            FXInstance& fx = m_fxInstances[i];
+            FXInstance& fx = m_fxInstances.getAt(i);
+  
             if (fx.m_control && fx.m_control->m_name == _fxName)
             {
-                attachToBone(i, _boneIndex);
+                attachToBoneFromIndex(i, _boneIndex);
             }
         }
     }
@@ -1128,7 +1231,7 @@ namespace ITF
             {
                 if (it->animFriendly == m_stoppedAnims[i] )
                 {
-                    stopFX(it->handle);
+                    stopFXFromHandle(it->handle);
 
                     ITF_VECTOR<StringID>::iterator playOnceIt = find (m_fxPlayOnceList.begin(),m_fxPlayOnceList.end(),it->fxName);
                     if ( playOnceIt != m_fxPlayOnceList.end())
@@ -1150,22 +1253,42 @@ namespace ITF
         //m_fxInstances.prefetch();
         m_playingFX = bfalse;
 
-        for (u32 i = 0; i < m_fxInstances.size(); ++i)
-        {
-            if (m_fxInstances[i].m_control)
-            {
-                if (!isPlaying(i))
-                {
-                    removeFromStopList(i);
+        u32 numInstances = m_fxInstances.size();
+		u32 i = 0;
 
-                    // stopFX is needed to set particles generators in stopping states
-                    stopFX(i);
+		while (i < numInstances)
+		{
+			if (m_fxInstances.getAt(i).m_control)
+			{
+				if (!isPlayingFromIndex(i))
+				{
+					u32 handle = m_fxInstances.getAt(i).m_handle;
 
-                    // sound and VFX are stopped (no more particles generated), clean instance array
-                    releaseFXInstance(i);
-                }
-            }
-        }
+					if (handle == m_triggerFxHandle)
+					{
+						m_triggerFxHandle = U32_INVALID;
+						m_triggerFXisActive = bfalse;
+					}
+					else if (handle == m_defaultFxHandle)
+					{
+						m_defaultFxHandle = U32_INVALID;
+					}
+
+					removeFromStopListFromIndex(i);
+
+					// stopFX is needed to set particles generators in stopping states
+					stopFXFromIndex(i);
+
+					// sound and VFX are stopped (no more particles generated), clean instance array
+					releaseFXInstanceFromIndex(i);
+					m_fxInstances.eraseAtNoOrder(i);
+					numInstances--;
+					continue;
+				}
+			}
+
+			i++;
+}
 
         // Special case for triggered FXs
         if ( m_triggerFXisActive && getTemplate()->getTriggerFx().isValid() && (m_triggerFxHandle == U32_INVALID) && !m_dieRequested )
@@ -1182,15 +1305,39 @@ namespace ITF
     // @param	u32 _handle
     // @return	ITF::bbool
     //************************************
-    bbool FXControllerComponent::isPlaying(u32 _handle)
-    {
-        ITF_ASSERT(_handle < m_fxInstances.size());
-        if (_handle >= m_fxInstances.size())
-            return false;
-        bbool currentIsPlaying = isSoundPlaying(_handle) || isParticlePlaying(_handle);
-        m_playingFX = m_playingFX || currentIsPlaying;
-        return currentIsPlaying;
-    }
+	bbool FXControllerComponent::isPlayingFromName(const StringID& _name)
+	{
+		bbool playing = bfalse;
+		for (u32 i = 0; i < m_fxInstances.size(); ++i)
+		{
+			const FXInstance& fx = m_fxInstances.getAt(i);
+			if (fx.m_control && fx.m_control->m_name == _name)
+			{
+				playing = playing || isPlayingFromIndex(i);
+			}
+		}
+		return playing;
+	}
+
+	bbool FXControllerComponent::isPlayingFromHandle(u32 _handle)
+	{
+		u32 index = m_fxInstances.find(_handle);
+		return isPlayingFromIndex(index);
+	}
+
+	bbool FXControllerComponent::isPlayingFromIndex(u32 _index)
+	{
+		if (_index >= m_fxInstances.size())
+		{
+			return bfalse;
+		}
+
+		bbool currentIsPlaying = isSoundPlayingFromIndex(_index) || isParticlePlayingFromIndex(_index);
+		m_playingFX = m_playingFX || currentIsPlaying;
+
+		return currentIsPlaying;
+	}
+
 
     //************************************
     // @name	ITF::FXControllerComponent::isSoundPlaying
@@ -1198,57 +1345,63 @@ namespace ITF
     // @param	u32 _handle
     // @return	ITF::bbool
     //************************************
-    bbool FXControllerComponent::isSoundPlaying(u32 _handle)
-    {
-        ITF_ASSERT(_handle < m_fxInstances.size());
-        if (_handle >= m_fxInstances.size())
-            return false;
-        if (!m_soundComponent)
-            return bfalse;
+	bbool FXControllerComponent::isSoundPlayingFromHandle(u32 _handle)
+	{
+		u32 index = m_fxInstances.find(_handle);
 
-        if (m_fxInstances[_handle].m_soundInstance != ITF::SoundHandle::getInvalidHandle() 
-            && m_soundComponent->isPlaying(m_fxInstances[_handle].m_soundInstance))
-            return btrue;
+		return isSoundPlayingFromIndex(index);
+	}
 
-        for (u32 i = 0; i  < m_fxInstances[_handle].m_soundInstances.size(); ++i)
-        {
-            if (m_fxInstances[_handle].m_soundInstances[i] != ITF::SoundHandle::getInvalidHandle() 
-                && m_soundComponent->isPlaying(m_fxInstances[_handle].m_soundInstances[i]))
-                return btrue;
+	bbool FXControllerComponent::isSoundPlayingFromIndex(u32 _index)
+	{
+		if (!m_soundComponent)
+			return bfalse;
 
-        }
-        return bfalse;
-    }
+		if (_index >= m_fxInstances.size())
+		{
+			return bfalse;
+		}
 
-    //************************************
-    // @name	ITF::FXControllerComponent::isParticlePlaying
-    // @public 
-    // @param	u32 _handle
-    // @return	ITF::bbool
-    //************************************
-    bbool FXControllerComponent::isParticlePlaying(u32 _handle)
-    {
-        ITF_ASSERT(_handle < m_fxInstances.size());
+		FXInstance& instance = m_fxInstances.getAt(_index);
 
-        if (_handle >= m_fxInstances.size())
-            return false;
+		if (instance.m_soundInstance.isValid() && m_soundComponent->isPlaying(instance.m_soundInstance))
+			return btrue;
 
-        if (!m_fxBankComponent)
-            return bfalse;
+		for (u32 i = 0; i < instance.m_soundInstances.size(); ++i)
+		{
+			if (instance.m_soundInstances[i].isValid() && m_soundComponent->isPlaying(instance.m_soundInstances[i]))
+				return btrue;
+		}
+		return bfalse;
+	}
+	bbool FXControllerComponent::isParticlePlayingFromHandle(u32 _handle)
+	{
+		u32 index = m_fxInstances.find(_handle);
+		return isParticlePlayingFromIndex(index);
+	}
 
-        if (m_fxInstances[_handle].m_particleInstance != U32_INVALID 
-            && m_fxBankComponent->isPlaying(m_fxInstances[_handle].m_particleInstance))
-            return btrue;
+	bbool FXControllerComponent::isParticlePlayingFromIndex(u32 _index)
+	{
+		if (!m_fxBankComponent)
+			return bfalse;
 
-        for (u32 i = 0; i  < m_fxInstances[_handle].m_particleInstances.size(); ++i)
-        {
-            if (m_fxInstances[_handle].m_particleInstances[i] != U32_INVALID 
-                && m_fxBankComponent->isPlaying(m_fxInstances[_handle].m_particleInstances[i]))
-                return btrue;
+		if (_index >= m_fxInstances.size())
+		{
+			return bfalse;
+		}
 
-        }
-        return bfalse;
-    }
+		FXInstance& instance = m_fxInstances.getAt(_index);
+
+		if (instance.m_particleInstance != U32_INVALID && m_fxBankComponent->isPlaying(instance.m_particleInstance))
+			return btrue;
+
+		for (u32 i = 0; i < instance.m_particleInstances.size(); ++i)
+		{
+			if (instance.m_particleInstances[i] != U32_INVALID && m_fxBankComponent->isPlaying(instance.m_particleInstances[i]))
+				return btrue;
+		}
+		return bfalse;
+	}
 
     //************************************
     // @name	ITF::FXControllerComponent::getMaterial
@@ -1297,10 +1450,10 @@ namespace ITF
     {
         Super::onBecomeInactive();
 
-        stopDefaultFx();
-		stopTriggerFx();
+        stopDefaultFx(btrue);
+		stopTriggerFx(btrue);
 
-        stopAllFX();
+        stopAllFX(btrue); 
     }
 
     //************************************
@@ -1321,19 +1474,15 @@ namespace ITF
         }
     }
 
-    //************************************
-    // @name	ITF::FXControllerComponent::stopDefaultFx
-    // @protected 
-    // @return	void
-    //************************************
-    void FXControllerComponent::stopDefaultFx()
-    {
-        if (m_defaultFxHandle != U32_INVALID)
-        {
-            stopFX(m_defaultFxHandle);
-            m_defaultFxHandle = U32_INVALID;
-        }
-    }
+	void FXControllerComponent::stopDefaultFx(bbool _stopOnDestroy /* = bfalse */)
+	{
+		if (m_defaultFxHandle != U32_INVALID)
+		{
+			stopFXFromHandle(m_defaultFxHandle, bfalse, bfalse, _stopOnDestroy);
+			m_defaultFxHandle = U32_INVALID;
+		}
+	}
+
 
     //************************************
     //************************************
@@ -1346,11 +1495,11 @@ namespace ITF
 		}
 	}
 
-	void FXControllerComponent::stopTriggerFx()
+	void FXControllerComponent::stopTriggerFx(bbool _stopOnDestroy /* = bfalse */)
 	{
 		if (m_triggerFxHandle != U32_INVALID)
 		{
-			stopFX(m_triggerFxHandle);
+			stopFXFromHandle(m_triggerFxHandle, bfalse, bfalse, _stopOnDestroy);
 			m_triggerFxHandle = U32_INVALID;
 		}
 	}
@@ -1392,17 +1541,30 @@ namespace ITF
         return NULL;
     }
 
-    void FXControllerComponent::removeFromStopList( u32 i )
-    {
-        for (FxToStopContainer::iterator it = m_fxToStop.begin(); it != m_fxToStop.end(); )
-        {
-            Fx  & fx = *it;
-            if (fx.fxName == m_fxInstances[i].m_control->m_name && fx.handle == i)
-                it = m_fxToStop.erase(it);
-            else
-                ++it;
-        }
-    }
+
+	void FXControllerComponent::removeFromStopListFromIndex(u32 _index)
+	{
+		FXInstance& instance = m_fxInstances.getAt(_index);
+
+		for (FxToStopContainer::iterator it = m_fxToStop.begin(); it != m_fxToStop.end();)
+		{
+			Fx& fx = *it;
+			if (fx.fxName == instance.m_control->m_name && fx.handle == instance.m_handle)
+				it = m_fxToStop.erase(it);
+			else
+				++it;
+		}
+
+		//for (ITF_VECTOR<StringID>::iterator it = m_fxPlayOnceList.begin(); it != m_fxPlayOnceList.end(); )
+		//{
+		//    StringID  & fxName = *it;
+		//    if (fxName == instance.m_control->m_name)
+		//        it = m_fxPlayOnceList.erase(it);
+		//    else
+		//        ++it;
+		//}
+	}
+
 
 }
 

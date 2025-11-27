@@ -129,7 +129,7 @@ namespace ITF
             if (fxName.isValid() && m_handleFX == U32_INVALID)
             {
                 m_handleFX = m_fxControllerComponent->playFX(fxName);
-                m_fxControllerComponent->setFXPos(m_handleFX,m_actor->getPos()); 
+                m_fxControllerComponent->setFXPosFromHandle(m_handleFX,m_actor->getPos());
             }
         }
     }
@@ -140,7 +140,7 @@ namespace ITF
     {
         if (m_fxControllerComponent)
         {
-            m_fxControllerComponent->stopFX(m_handleFX);
+            m_fxControllerComponent->stopFXFromHandle(m_handleFX);
             m_handleFX = U32_INVALID;
             m_curDistPartciles = 0.0f;
         }
@@ -152,7 +152,7 @@ namespace ITF
     {
         if (m_fxControllerComponent && m_handleFX != U32_INVALID)
         {
-            m_fxControllerComponent->setFXPos(m_handleFX, _pos); 
+            m_fxControllerComponent->setFXPosFromHandle(m_handleFX, _pos);
         }
     }
 

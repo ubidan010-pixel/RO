@@ -117,6 +117,8 @@ namespace ITF
     void setSoundPos(SoundHandle _handle, const Vec3d& _pos);
     void attachToBone(SoundHandle _handle, u32 _boneIndex);
     ITF_VECTOR<SoundDescriptor> & getSoundList() { return m_soundList; }
+    typedef ITF_MAP<StringID, u32> SoundMap;
+    SoundMap& getSounds() { return m_sounds; }
 
     protected:
         void            clearInstance(SoundHandle _handle);
@@ -144,7 +146,7 @@ namespace ITF
         InputContainer              m_inputList;
 
         ITF_VECTOR<SoundDescriptor> m_soundList;
-        typedef ITF_MAP<StringID,u32> SoundMap;
+    
         SoundMap m_sounds;
 
         ITF_MAP<StringID,InstanceLimiter*> m_limiters;

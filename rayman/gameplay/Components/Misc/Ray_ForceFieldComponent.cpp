@@ -245,7 +245,7 @@ namespace ITF
 
         AIUtils::disableCollision(m_actor);
 
-        m_fxControllerComponent->stopFX(m_fxHandle);
+        m_fxControllerComponent->stopFXFromHandle(m_fxHandle);
         m_fxHandle = U32_INVALID;
         m_animComponent->setAnim(getTemplate()->getFadeAnim());
     }

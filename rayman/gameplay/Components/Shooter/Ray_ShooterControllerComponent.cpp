@@ -672,7 +672,7 @@ namespace ITF
                         u32 fxHandle = m_fxController->playFX( ITF_GET_STRINGID_CRC(ChangingZ,786434816) );
                         if ( fxHandle != U32_INVALID )
                         {
-                            m_fxController->setFXPos( fxHandle, m_actor->getPos() );
+                            m_fxController->setFXPosFromHandle( fxHandle, m_actor->getPos() );
                         }
                     }
                     //CHANGE_STATE( STATE_SEQUENCE_CHANGEDEPTH );
@@ -1186,7 +1186,7 @@ namespace ITF
             if ( fxName != NULL )
             {
                 fxHandle = m_fxController->playFX( *fxName );
-                m_fxController->setFXPos( fxHandle, m_actor->getPos() );
+                m_fxController->setFXPosFromHandle( fxHandle, m_actor->getPos() );
             }
             
             // surf sound 
@@ -1197,7 +1197,7 @@ namespace ITF
             }
             else if ( ( m_waterSNDType == None ) && ( m_waterSndSurfHandle != U32_INVALID ) ) 
             {
-                m_fxController->stopFX( m_waterSndSurfHandle );
+                m_fxController->stopFXFromHandle( m_waterSndSurfHandle );
                 m_waterSndSurfHandle = U32_INVALID;
             }
 
@@ -1209,14 +1209,14 @@ namespace ITF
             }
             else if ( !m_isInWater && ( m_waterSndGlobalHandle != U32_INVALID ) )
             {
-                m_fxController->stopFX( m_waterSndGlobalHandle );
+                m_fxController->stopFXFromHandle( m_waterSndGlobalHandle );
                 m_waterSndGlobalHandle = U32_INVALID;
             }
 
             if ( m_waterSndGlobalHandle != U32_INVALID )
-                m_fxController->setFXPos( m_waterSndGlobalHandle, m_actor->getPos() );
+                m_fxController->setFXPosFromHandle( m_waterSndGlobalHandle, m_actor->getPos() );
             if ( m_waterSndSurfHandle != U32_INVALID )
-                m_fxController->setFXPos( m_waterSndSurfHandle, m_actor->getPos() );
+                m_fxController->setFXPosFromHandle( m_waterSndSurfHandle, m_actor->getPos() );
         }
     }
 

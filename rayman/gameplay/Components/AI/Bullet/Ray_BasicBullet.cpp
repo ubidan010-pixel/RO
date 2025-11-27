@@ -1007,8 +1007,8 @@ namespace ITF
                 
                 if ( fxHandle != U32_INVALID )
                 {
-                    m_fxControllerComponent->setFXPos( fxHandle, m_envTouchedImpactPos.to3d((m_actor->getPos().m_z) ) );
-                    m_fxControllerComponent->setFXAngle( fxHandle, m_envTouchedImpactNormal.getAngle() );
+                    m_fxControllerComponent->setFXPosFromHandle( fxHandle, m_envTouchedImpactPos.to3d((m_actor->getPos().m_z) ) );
+                    m_fxControllerComponent->setFXAngleFromHandle( fxHandle, m_envTouchedImpactNormal.getAngle() );
                 }
             }
         }

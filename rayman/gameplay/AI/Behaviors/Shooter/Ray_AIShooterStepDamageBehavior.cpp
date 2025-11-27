@@ -70,7 +70,7 @@ namespace ITF
                 {
                     const StringID feedbackAction = hit->getActionFromHit();
                     u32 fxHandle = m_fxController->playFeedback(hit->getSender(), feedbackAction, m_actor->getRef());
-                    m_fxController->setFXPos(fxHandle, hit->getFxPos());
+                    m_fxController->setFXPosFromHandle(fxHandle, hit->getFxPos());
                 }
             }
             

@@ -787,12 +787,12 @@ namespace ITF
 
             if ( Pickable* target = getTarget() )
             {
-                m_fxController->setFXPos(fxHandle, target->getPos());
+                m_fxController->setFXPosFromHandle(fxHandle, target->getPos());
             }
         }
         else
         {
-            m_fxController->stopFX(getTemplate()->getFXControlID());
+            m_fxController->stopFXFromHandle(getTemplate()->getFXControlID());
             m_fxPlayed = bfalse;
         }
     }
@@ -806,7 +806,7 @@ namespace ITF
             const FXControl* fx = m_fxController->getFXControl(getTemplate()->getFXControlID());
             if (fx && fx->m_fxStopOnEndAnim)
             {
-                m_fxController->stopFX(getTemplate()->getFXControlID());
+                m_fxController->stopFXFromHandle(getTemplate()->getFXControlID());
             }
         }
     }

@@ -139,7 +139,7 @@ public:
     /// set value for given numeric key
     /// @param _key
     /// @param _value
-    void set(K _key, const T& _value)
+    T& set(K _key, const T& _value)
     {
         i32 index = m_keys.find(_key);
         if (index < 0)
@@ -158,19 +158,21 @@ public:
                     m_debugInfo[index] = String8::emptyString;
             #endif // ITF_DEBUG_STRINGID
         }
+        return m_array.back();
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     /// set value for given numeric key knowing that the value is new
     /// @param _key
     /// @param _value
-    void setNewValue(K _key, const T& _value)
+    T& setNewValue(K _key, const T& _value)
     {
         m_keys.push_back(_key);
         m_array.push_back(_value);
 #ifdef ITF_DEBUG_STRINGID
         m_debugInfo.push_back(String8::emptyString);
 #endif // ITF_DEBUG_STRINGID
+		return m_array.back();
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -215,12 +217,43 @@ public:
         if (index>=0)
         {
             m_keys.eraseKeepOrder((u32)index);
-            m_array.eraseKeepOrder((u32)index);
+            m_array.erase(m_array.begin() + index);
 #ifdef ITF_DEBUG_STRINGID
             m_debugInfo.erase(m_debugInfo.begin()+index);
 #endif
         }
     }
+
+		/// same as erase without consideration of order.
+		/// @param _key
+		void eraseNoOrder(K _key)
+		{
+			i32 index = m_keys.find(_key);
+			ITF_ASSERT(index >= 0);
+			if (index >= 0)
+			{
+				m_keys.eraseNoOrder((u32)index);
+                *(m_array.begin() + index) = std::move(m_array.back());
+                m_array.pop_back();
+#ifdef ITF_DEBUG_STRINGID
+				m_debugInfo.erase(m_debugInfo.begin() + index);
+#endif
+			}
+		}
+
+		/// same as erase without consideration of order.
+		/// @param _key
+		void eraseAtNoOrder(ux _index)
+		{
+			ITF_ASSERT_CRASH(_index < size(), "key missing in keyarray erase");
+			m_keys.eraseNoOrder(_index);
+			//m_array.unordered_erase(m_array.begin() + _index);
+            *(m_array.begin() + _index) = std::move(m_array.back());
+            m_array.pop_back();
+#ifdef ITF_DEBUG_STRINGID
+			m_debugInfo.erase(m_debugInfo.begin() + _index);
+#endif
+		}
 
 #ifdef ITF_DEBUG_STRINGID
     void setDBG(K _key, const T& _value, const String8& _debugInfo = String8::emptyString)
@@ -254,7 +287,7 @@ private:
         #endif // ITF_DEBUG_STRINGID
     }
    SafeArray<K> m_keys; //CAUTION : For now, this array is not sorted. Check any eraseNoOrder if you change it.
-   SafeArray<T> m_array;
+   ITF_VECTOR<T> m_array;
 #ifdef ITF_DEBUG_STRINGID
    Vector<String8> m_debugInfo;
 #endif // ITF_DEBUG_STRINGID

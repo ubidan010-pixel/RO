@@ -147,7 +147,7 @@ namespace ITF
         if ( m_fxControllerComponent != NULL )
         {
             u32 fxHandle = m_fxControllerComponent->playFX( ITF_GET_STRINGID_CRC(Enter,2000132787) );
-            m_fxControllerComponent->setFXPos( fxHandle, m_actor->getPos() );
+            m_fxControllerComponent->setFXPosFromHandle( fxHandle, m_actor->getPos() );
         }
 
         if ( m_animLightComponent && getTemplate()->getAspireAnim().isValid() )

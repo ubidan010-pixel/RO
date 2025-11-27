@@ -643,7 +643,7 @@ namespace ITF
     {
         if (_fxHandle!=U32_INVALID)
         {
-            _controller->stopFX(_fxHandle);
+            _controller->stopFXFromHandle(_fxHandle);
             _fxHandle = U32_INVALID;
         }
     }

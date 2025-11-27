@@ -133,7 +133,7 @@ namespace ITF
         else
         {
             ITF_ASSERT(m_fxHandle != U32_INVALID);
-            m_fxControllerComponent->stopFX( getTemplate()->getFxName() );
+            m_fxControllerComponent->stopFXFromName( getTemplate()->getFxName() );
             m_fxHandle = U32_INVALID;
         }
     }

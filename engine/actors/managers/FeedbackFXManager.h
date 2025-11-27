@@ -37,6 +37,7 @@ namespace ITF
 			, m_playContact(bfalse)
 			, m_fxFlags(0)
             , m_owner(StringID::Invalid)
+            , m_fxInstanceOnce(bfalse)
 		{
 		}
 
@@ -46,6 +47,7 @@ namespace ITF
 		StringID    m_name;
 		bbool       m_fxStopOnEndAnim;
 		bbool       m_fxPlayOnce;
+        bbool       m_fxInstanceOnce;
 		bbool       m_fxEmitFromBase;
 		u32         m_fxFlags;
 		bbool       m_fxUseActorSpeed;

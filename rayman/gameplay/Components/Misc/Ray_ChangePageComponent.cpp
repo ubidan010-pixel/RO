@@ -630,7 +630,7 @@ namespace ITF
         if ( m_fxControllerComponent != NULL )
         {
             u32 fxHandle = m_fxControllerComponent->playFX( ITF_GET_STRINGID_CRC(Enter,2000132787) );
-            m_fxControllerComponent->setFXPos( fxHandle, m_actor->getPos() );
+            m_fxControllerComponent->setFXPosFromHandle( fxHandle, m_actor->getPos() );
         }
 	}
 
@@ -650,7 +650,7 @@ namespace ITF
             //We may need to reboot sound
             if (m_currentElectoonSoundHandle!=U32_INVALID)
             {
-                m_fxControllerComponent->stopFX(m_currentElectoonSoundHandle);
+                m_fxControllerComponent->stopFXFromHandle(m_currentElectoonSoundHandle);
                 m_currentElectoonSoundHandle = U32_INVALID;
             }
         }
@@ -671,7 +671,7 @@ namespace ITF
                 }
                 else
                 {
-                    m_fxControllerComponent->stopFX(m_currentElectoonSoundHandle);
+                    m_fxControllerComponent->stopFXFromHandle(m_currentElectoonSoundHandle);
                     m_currentElectoonSoundHandle = U32_INVALID;
                 }
             }

@@ -59,7 +59,7 @@ namespace ITF
     {
         Super::update(_delta);
 
-        if ( m_fxController && m_playIndex != U32_INVALID && !m_fxController->isPlaying(m_playIndex) )
+        if ( m_fxController && m_playIndex != U32_INVALID && !m_fxController->isPlayingFromHandle(m_playIndex) )
         {
             m_aiBehavior->onActionFinished();
         }

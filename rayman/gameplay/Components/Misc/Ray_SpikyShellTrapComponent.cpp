@@ -579,12 +579,12 @@ namespace ITF
 
         if (U32_INVALID != m_soundFx)
         {
-            fx->stopFX(_id);    
+            fx->stopFXFromName(_id);    
         }
         if (_id.isValid())
         {
             m_soundFx = fx->playFX(_id);
-            fx->setFXPos(m_soundFx, m_pos);
+            fx->setFXPosFromHandle(m_soundFx, m_pos);
         }
 
     }

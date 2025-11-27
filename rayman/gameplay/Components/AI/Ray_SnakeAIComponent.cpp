@@ -1043,7 +1043,7 @@ namespace ITF
             if ( m_fxController != NULL )
             {
                 u32 fxHandle = m_fxController->playFeedback( _hitStim->getSender(), _hitStim->getActionFromHit(), m_actor->getRef() );
-                m_fxController->setFXPos( fxHandle, _hitStim->getFxPos() );
+                m_fxController->setFXPosFromHandle( fxHandle, _hitStim->getFxPos() );
             }
 
             EventHitSuccessful successEvt;
