@@ -265,6 +265,18 @@ namespace ITF
 #endif
     }
 
+    void InputAdapter::setLastUsedInputDevice(u32 _player, InputDeviceType _deviceType)
+    {
+        if (_player >= JOY_MAX_COUNT)
+            return;
+
+        InputDeviceType previousType = m_lastUsedInputDevice[_player];
+        if (previousType == _deviceType)
+            return;
+
+        m_lastUsedInputDevice[_player] = _deviceType;
+    }
+
     InputAdapter::PressStatus InputAdapter::getKeyboardStatus(i32 key) const
     {
         ITF_UNUSED(key);

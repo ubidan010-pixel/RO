@@ -601,13 +601,7 @@ namespace ITF
             return (_player < JOY_MAX_COUNT) ? m_lastUsedInputDevice[_player] : InputDevice_None;
         }
 
-        ITF_INLINE void setLastUsedInputDevice(u32 _player, InputDeviceType _deviceType)
-        {
-            if (_player < JOY_MAX_COUNT)
-            {
-                m_lastUsedInputDevice[_player] = _deviceType;
-            }
-        }
+        void setLastUsedInputDevice(u32 _player, InputDeviceType _deviceType);
 
         PadType getLastUsedPadType(u32 _player) const;
 
