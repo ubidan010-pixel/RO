@@ -40,7 +40,8 @@ namespace ITF
             BUTTON_FACE_WEST,
             BUTTON_FACE_NORTH,
             PLATFORM_SPECIFIC_START,
-            CONTROL_MAX = PLATFORM_SPECIFIC_START + 10
+            BASE_CONTROL_COUNT = PLATFORM_SPECIFIC_START,
+            CONTROL_MAX = BASE_CONTROL_COUNT
         };
 
         struct PhysicalButtonMapping
@@ -77,7 +78,7 @@ namespace ITF
 
         u32 AddPlatformControl(SInputInfo::EInputType type, const char* controlName);
 
-        void RegisterControlNames(const PhysicalButtonMapping& mapping);
+        void RegisterControlNames();
 
         void InitializeInputTypes();
 

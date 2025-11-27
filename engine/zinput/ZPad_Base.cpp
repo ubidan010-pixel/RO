@@ -13,12 +13,12 @@ namespace ITF
     void ZPad_Base::InitDeviceInfo()
     {
         m_deviceInfo.m_inputInfo.clear();
-        m_deviceInfo.m_inputInfo.resize(CONTROL_MAX);
+        m_deviceInfo.m_inputInfo.resize(BASE_CONTROL_COUNT);
         InitializeInputTypes();
 
         PhysicalButtonMapping mapping = GetPhysicalButtonMapping();
 
-        RegisterControlNames(mapping);
+        RegisterControlNames();
         RegisterPlatformControlNames(mapping);
         InitPlatformSpecificControls();
     }
@@ -55,45 +55,41 @@ namespace ITF
         inputInfo[BUTTON_FACE_NORTH].m_type = SInputInfo::INPUTTYPE_BUTTON;
     }
 
-    void ZPad_Base::RegisterControlNames(const PhysicalButtonMapping& mapping)
+    void ZPad_Base::RegisterControlNames()
     {
-        REGISTER_CONTROL(STICK_LX, "STICK_LX")
-        REGISTER_CONTROL(STICK_LY, "STICK_LY")
-        REGISTER_CONTROL(STICK_RX, "STICK_RX")
-        REGISTER_CONTROL(STICK_RY, "STICK_RY")
-        REGISTER_CONTROL(TRIGGER_LEFT, "TRIGGER_LEFT")
-        REGISTER_CONTROL(TRIGGER_RIGHT, "TRIGGER_RIGHT")
-        REGISTER_CONTROL(DPAD_UP, "DPAD_UP")
-        REGISTER_CONTROL(DPAD_DOWN, "DPAD_DOWN")
-        REGISTER_CONTROL(DPAD_LEFT, "DPAD_LEFT")
-        REGISTER_CONTROL(DPAD_RIGHT, "DPAD_RIGHT")
-        REGISTER_CONTROL(BUTTON_SELECT, "BUTTON_SELECT")
-        REGISTER_CONTROL(BUTTON_START, "BUTTON_START")
-        REGISTER_CONTROL(BUTTON_L_SHOULDER, "LEFT_SHOULDER")
-        REGISTER_CONTROL(BUTTON_R_SHOULDER, "RIGHT_SHOULDER")
-        REGISTER_CONTROL(BUTTON_L_THUMB, "LEFT_THUMB")
-        REGISTER_CONTROL(BUTTON_R_THUMB, "RIGHT_THUMB")
+        struct ControlName
+        {
+            u32 index;
+            const char* name;
+        };
 
-        REGISTER_CONTROL(BUTTON_FACE_SOUTH, "VB_FACE_SOUTH")
-        REGISTER_CONTROL(BUTTON_FACE_EAST, "VB_FACE_EAST")
-        REGISTER_CONTROL(BUTTON_FACE_WEST, "VB_FACE_WEST")
-        REGISTER_CONTROL(BUTTON_FACE_NORTH, "VB_FACE_NORTH")
-        REGISTER_CONTROL(BUTTON_L_SHOULDER, "VB_L_SHOULDER")
-        REGISTER_CONTROL(BUTTON_R_SHOULDER, "VB_R_SHOULDER")
-        REGISTER_CONTROL(TRIGGER_LEFT, "VB_L_TRIGGER")
-        REGISTER_CONTROL(TRIGGER_RIGHT, "VB_R_TRIGGER")
-        REGISTER_CONTROL(BUTTON_SELECT, "VB_SELECT")
-        REGISTER_CONTROL(BUTTON_START, "VB_START")
-        REGISTER_CONTROL(BUTTON_L_THUMB, "VB_L_THUMB")
-        REGISTER_CONTROL(BUTTON_R_THUMB, "VB_R_THUMB")
-        REGISTER_CONTROL(STICK_LX, "VB_STICK_LX")
-        REGISTER_CONTROL(STICK_LY, "VB_STICK_LY")
-        REGISTER_CONTROL(STICK_RX, "VB_STICK_RX")
-        REGISTER_CONTROL(STICK_RY, "VB_STICK_RY")
-        REGISTER_CONTROL(DPAD_UP, "VB_DPAD_UP")
-        REGISTER_CONTROL(DPAD_DOWN, "VB_DPAD_DOWN")
-        REGISTER_CONTROL(DPAD_LEFT, "VB_DPAD_LEFT")
-        REGISTER_CONTROL(DPAD_RIGHT, "VB_DPAD_RIGHT")
+        static const ControlName kCanonicalNames[] = {
+            {STICK_LX, "STICK_LX"},
+            {STICK_LY, "STICK_LY"},
+            {STICK_RX, "STICK_RX"},
+            {STICK_RY, "STICK_RY"},
+            {TRIGGER_LEFT, "TRIGGER_LEFT"},
+            {TRIGGER_RIGHT, "TRIGGER_RIGHT"},
+            {DPAD_UP, "DPAD_UP"},
+            {DPAD_DOWN, "DPAD_DOWN"},
+            {DPAD_LEFT, "DPAD_LEFT"},
+            {DPAD_RIGHT, "DPAD_RIGHT"},
+            {BUTTON_SELECT, "BUTTON_SELECT"},
+            {BUTTON_START, "BUTTON_START"},
+            {BUTTON_L_SHOULDER, "LEFT_SHOULDER"},
+            {BUTTON_R_SHOULDER, "RIGHT_SHOULDER"},
+            {BUTTON_L_THUMB, "LEFT_THUMB"},
+            {BUTTON_R_THUMB, "RIGHT_THUMB"},
+            {BUTTON_FACE_SOUTH, "FACE_SOUTH"},
+            {BUTTON_FACE_EAST, "FACE_EAST"},
+            {BUTTON_FACE_WEST, "FACE_WEST"},
+            {BUTTON_FACE_NORTH, "FACE_NORTH"},
+        };
+
+        for (const ControlName& control : kCanonicalNames)
+        {
+            REGISTER_CONTROL(control.index, control.name)
+        }
     }
 
     void ZPad_Base::UpdateDeviceInfo(SDeviceInfo& deviceInfo)
