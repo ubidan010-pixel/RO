@@ -172,4 +172,13 @@ namespace ITF
         }
     }
 
+    u32 IInputDevice::GetRemap(u32 logicalControl) const
+    {
+        if (logicalControl < m_controlRemap.size())
+        {
+            return m_controlRemap[logicalControl];
+        }
+        return logicalControl; // Default: 1-to-1 if out of bounds or not set
+    }
+
 } //namespace ITF

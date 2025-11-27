@@ -260,27 +260,34 @@ namespace ITF
         }
     }
 
-    void ZInputManager::SetActionRemap(u32 _playerIndex, EGameAction _action, u32 _physicalControl)
+    u32 ZInputManager::GetStandardControlFromAction(EGameAction _action)
     {
-        u32 logicalControl = U32_INVALID;
-
-        // Map Action to Default Logical Control (based on ZPad_Base and input_gen.isg)
         switch (_action)
         {
-        case Action_Up:    logicalControl = ZPad_Base::DPAD_UP; break;
-        case Action_Down:  logicalControl = ZPad_Base::DPAD_DOWN; break;
-        case Action_Left:  logicalControl = ZPad_Base::DPAD_LEFT; break;
-        case Action_Right: logicalControl = ZPad_Base::DPAD_RIGHT; break;
-        case Action_Run:   logicalControl = ZPad_Base::TRIGGER_RIGHT; break; // SPRINT
-        case Action_Jump:  logicalControl = ZPad_Base::BUTTON_FACE_SOUTH; break; // JUMP
-        case Action_Hit:   logicalControl = ZPad_Base::BUTTON_FACE_WEST; break; // ATTACK
-        case Action_Back:  logicalControl = ZPad_Base::BUTTON_FACE_EAST; break; // WM_BACK / LEAVE?
-        default: return;
+        case Action_Up:    return ZPad_Base::DPAD_UP;
+        case Action_Down:  return ZPad_Base::DPAD_DOWN;
+        case Action_Left:  return ZPad_Base::DPAD_LEFT;
+        case Action_Right: return ZPad_Base::DPAD_RIGHT;
+        case Action_Run:   return ZPad_Base::TRIGGER_RIGHT;
+        case Action_Jump:  return ZPad_Base::BUTTON_FACE_SOUTH;
+        case Action_Hit:   return ZPad_Base::BUTTON_FACE_WEST;
+        case Action_Back:  return ZPad_Base::BUTTON_FACE_EAST;
+        default: return U32_INVALID;
         }
+    }
+
+    void ZInputManager::SetActionRemap(u32 _playerIndex, EGameAction _action, u32 _physicalControl)
+    {
+        u32 logicalControl = GetStandardControlFromAction(_action);
 
         if (logicalControl != U32_INVALID)
         {
+            LOG("[ZInputManager] SetActionRemap: Player %d, Action %d -> Physical %d (Logical %d)\n", _playerIndex, _action, _physicalControl, logicalControl);
             SetRemap(_playerIndex, logicalControl, _physicalControl);
+        }
+        else
+        {
+            LOG("[ZInputManager] SetActionRemap: Invalid Action %d for Player %d\n", _action, _playerIndex);
         }
     }
 
@@ -345,6 +352,21 @@ namespace ITF
                 }
             }
         }
+    }
+
+    u32 ZInputManager::GetPhysicalFromAction(u32 _playerIndex, EGameAction _action)
+    {
+        u32 logicalControl = GetStandardControlFromAction(_action);
+        if (logicalControl == U32_INVALID) return U32_INVALID;
+
+        for (u32 i = 0; i < m_devices.size(); ++i)
+        {
+            if (m_devices[i] && m_devices[i]->GetId() == _playerIndex)
+            {
+                return m_devices[i]->GetRemap(logicalControl);
+            }
+        }
+        return logicalControl; 
     }
 
     IMPLEMENT_OBJECT_RTTI(ZInputManager_Template)
