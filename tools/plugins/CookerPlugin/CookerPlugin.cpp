@@ -155,7 +155,7 @@ CookerPlugin::CookerPlugin()
     m_cookFactory->registerCooker("imt",actCooker::cookFile,actCooker::dependenciesFile,Versioning::logicDatabaseCacheVer());
 	m_cookFactory->registerCooker("fxk",actCooker::cookFile,actCooker::dependenciesFile,Versioning::logicDatabaseCacheVer());
 	m_cookFactory->registerCooker("atl",atlasCooker::cookFile,NULL,Versioning::atlasVer());
-    m_cookFactory->registerCooker("wav",soundCooker::cookFile,soundCooker::dependencyFiles,Versioning::soundVer());
+    // m_cookFactory->registerCooker("wav",soundCooker::cookFile,soundCooker::dependencyFiles,Versioning::soundVer());
     m_cookFactory->registerCooker("ptc",animSkeletonCooker::cookFile,NULL,Versioning::animSkeletonVer());
     m_cookFactory->registerCooker("pbk",animPatchBankCooker::cookFile,NULL,Versioning::animPatchBankVer());
     m_cookFactory->registerCooker("anm",animTrackCooker::cookFile,animTrackCooker::dependencyFiles,Versioning::animTrackVer());
@@ -169,7 +169,7 @@ CookerPlugin::CookerPlugin()
     m_cookFactory->registerCooker("tga",textureCooker::cookFile,textureCooker::dependencyFiles,Versioning::textureVer(),btrue);
     m_cookFactory->registerCooker("png",textureCooker::cookFile,textureCooker::dependencyFiles,Versioning::textureVer(),btrue);
 
-    //options 
+    //options
     soundCooker::useBatch = bfalse;
 
     AnimSkeleton::m_funcCookerSkeleton                      = animSkeletonCooker::cookForced;
@@ -224,14 +224,14 @@ bbool CookerPlugin::requestNeededCooking(const String& _filename,bbool _HResVers
 
 bbool CookerPlugin::requestNeededCookingInternal(const String& _filename,bbool _HResVersion)
 {
-    
+
 #ifdef   MODE_HRESTEXTURE_SUPPORTED
     if (_HResVersion)
     {
         return m_cookFactory->fileNeedsCook(FILESERVER->getHResVersionName(_filename),FILESERVER->getCookedHResVersionName(_filename),	m_platform);
     }
 #endif //MODE_HRESTEXTURE_SUPPORTED
-    
+
     return m_cookFactory->fileNeedsCook(_filename,FILESERVER->getCookedName(_filename),	m_platform);
 }
 
@@ -275,7 +275,7 @@ void CookerPlugin::receive(Blob& _blob,const NETPeer* _peer, u32 _senderID)
           requestCooking(filename);
         }
 
-       
+
         ITF::Blob blob(ITF::BLOB_EXTRACT_AND_WRITE_ENABLED);
         blob.pushString(getPluginName());
         blob.pushString("idle");
@@ -306,7 +306,7 @@ void CookerPlugin::update()
     if (m_editorSenderID == 0)
         return;
 
-    
+
 }
 
 void CookerPlugin::onKey( i32 _key, InputAdapter::PressStatus _keyStatus )
