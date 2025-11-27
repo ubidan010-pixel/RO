@@ -203,21 +203,6 @@ namespace ITF
 #define  JOY_MAX_BUT        32
 #define  JOY_MAX_COUNT      4 //When getting pad statuses, you can iterate from 0 to JOY_MAX_COUNT-1
 
-#define JOY_BUT_A           m_joyButton_A
-#define JOY_BUT_B           m_joyButton_B
-#define JOY_BUT_X           m_joyButton_X
-#define JOY_BUT_Y           m_joyButton_Y
-#define JOY_BUT_LB          m_joyButton_LB
-#define JOY_BUT_RB          m_joyButton_RB
-#define JOY_BUT_BACK        m_joyButton_Back
-#define JOY_BUT_START       m_joyButton_Start
-#define JOY_BUT_LS          m_joyButton_ThumbLeft
-#define JOY_BUT_RS          m_joyButton_ThumbRight
-#define JOY_BUT_DPAD_UP     m_joyButton_DPadU
-#define JOY_BUT_DPAD_DOWN   m_joyButton_DPadD
-#define JOY_BUT_DPAD_LEFT   m_joyButton_DPadL
-#define JOY_BUT_DPAD_RIGHT  m_joyButton_DPadR
-
 #define JOY_AXIS_LX         0
 #define JOY_AXIS_LY         1
 #define JOY_AXIS_RX         2

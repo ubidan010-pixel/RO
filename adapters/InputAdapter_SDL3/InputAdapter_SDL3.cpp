@@ -1,15 +1,9 @@
 ﻿#include "precompiled_InputAdapter_SDL3.h"
-#include <mmdeviceapi.h>
-#include <propkey.h>
 #include "engine/AdaptersInterfaces/AudioMiddlewareAdapter.h"
 #ifdef ITF_USE_SDL
 #ifndef _ITF_INPUTADAPTER_SDL3_H_
 #include "InputAdapter_SDL3.h"
 #endif
-
-#ifndef _ITF_ERRORHANDLER_H_
-#include "core/error/ErrorHandler.h"
-#endif //_ITF_ERRORHANDLER_H_
 
 #ifndef ITF_SYSTEMADAPTER_WIN_H_
 #include "adapters/SystemAdapter_win/SystemAdapter_win.h"
@@ -17,76 +11,58 @@
 #include <pad.h>
 #include <pad_types.h>
 #include <pad_windows_static.h>
+#include <mmdeviceapi.h>
+#include <propkey.h>
+
 namespace ITF
 {
-    // ============================================================================
-    // Constants
-    // ============================================================================
-    
-    // SDL axis values range from -32768 to 32767, we normalize to -1.0 to 1.0
     static constexpr f32 SDL_AXIS_MAX_VALUE = 32767.0f;
-    
-    // SDL rumble motor values range from 0 to 65535
     static constexpr f32 SDL_RUMBLE_MAX_VALUE = 65535.0f;
-    
-    // Milliseconds per second for duration conversion
     static constexpr f64 MS_PER_SECOND = 1000.0;
-    
-    // Maximum SDL events to process per frame to prevent blocking
     static constexpr u32 MAX_EVENTS_PER_FRAME = 100;
-    
-    // Threshold for detecting significant axis input
     static constexpr f32 AXIS_INPUT_THRESHOLD = 0.3f;
-    
-    // Marker bit for DualSense controller ID to distinguish from other controllers
     static constexpr uint32_t DUALSENSE_ID_MARKER = 0x80000000;
-    
-    // Buffer size for GUID to string conversion
     static constexpr int32_t GUID_STRING_BUFFER_SIZE = 64;
+    static constexpr f32 INPUT_DEADZONE = 0.2f;
+    static InputAdapter::PadType MapSDLGamepadTypeToPadType(const SDL_Gamepad* gamepad)
+    {
+        if (!gamepad)
+            return InputAdapter::Pad_Other;
 
-    // ============================================================================
-    // Helper Functions
-    // ============================================================================
-    
-     static InputAdapter::PadType MapSDLGamepadTypeToPadType(const SDL_Gamepad* gamepad)
-     {
-         if (!gamepad)
-             return InputAdapter::Pad_Other;
-
-         SDL_GamepadType type = SDL_GetGamepadType(const_cast<SDL_Gamepad*>(gamepad));
-         switch (type)
-         {
-         case SDL_GAMEPAD_TYPE_PS5:
-             return InputAdapter::Pad_PS5;
-         case SDL_GAMEPAD_TYPE_PS4:
-             return InputAdapter::Pad_PS5;
-         case SDL_GAMEPAD_TYPE_PS3:
-             return InputAdapter::Pad_PS3;
-         case SDL_GAMEPAD_TYPE_XBOX360:
-             return InputAdapter::Pad_X360;
+        SDL_GamepadType type = SDL_GetGamepadType(const_cast<SDL_Gamepad*>(gamepad));
+        switch (type)
+        {
+        case SDL_GAMEPAD_TYPE_PS5:
+            return InputAdapter::Pad_PS5;
+        case SDL_GAMEPAD_TYPE_PS4:
+            return InputAdapter::Pad_PS5;
+        case SDL_GAMEPAD_TYPE_PS3:
+            return InputAdapter::Pad_PS3;
+        case SDL_GAMEPAD_TYPE_XBOX360:
+            return InputAdapter::Pad_X360;
         case SDL_GAMEPAD_TYPE_XBOXONE:
-             return InputAdapter::Pad_GenericXBox;
-         case SDL_GAMEPAD_TYPE_NINTENDO_SWITCH_PRO:
-             return InputAdapter::Pad_NX_Pro;
-         case SDL_GAMEPAD_TYPE_NINTENDO_SWITCH_JOYCON_LEFT:
-         case SDL_GAMEPAD_TYPE_NINTENDO_SWITCH_JOYCON_RIGHT:
-             return InputAdapter::Pad_NX_Joycon;
-         case SDL_GAMEPAD_TYPE_NINTENDO_SWITCH_JOYCON_PAIR:
-             return InputAdapter::Pad_NX_Joycon_Dual;
-         default:
-             return InputAdapter::Pad_Other;
-         }
-     }
+            return InputAdapter::Pad_GenericXBox;
+        case SDL_GAMEPAD_TYPE_NINTENDO_SWITCH_PRO:
+            return InputAdapter::Pad_NX_Pro;
+        case SDL_GAMEPAD_TYPE_NINTENDO_SWITCH_JOYCON_LEFT:
+        case SDL_GAMEPAD_TYPE_NINTENDO_SWITCH_JOYCON_RIGHT:
+            return InputAdapter::Pad_NX_Joycon;
+        case SDL_GAMEPAD_TYPE_NINTENDO_SWITCH_JOYCON_PAIR:
+            return InputAdapter::Pad_NX_Joycon_Dual;
+        default:
+            return InputAdapter::Pad_Other;
+        }
+    }
 
-    const f32 SDLGamepad::INPUT_DEADZONE = 0.2f;
+
 
     SDLGamepad::SDLGamepad()
         : m_gamepad(nullptr)
           , m_joystickId(0)
           , m_id(-1)
           , m_connected(false)
-          ,deviceID(0)
-          ,deviceOutputID(0)
+          , deviceID(0)
+          , deviceOutputID(0)
     {
         memset(m_axes, 0, sizeof(m_axes));
         memset(m_buttons, 0, sizeof(m_buttons));
@@ -156,12 +132,21 @@ namespace ITF
         updateButtonState(m_joyButton_DPadL, SDL_GetGamepadButton(m_gamepad, SDL_GAMEPAD_BUTTON_DPAD_LEFT));
         updateButtonState(m_joyButton_DPadR, SDL_GetGamepadButton(m_gamepad, SDL_GAMEPAD_BUTTON_DPAD_RIGHT));
 
-        updateAxisState(JOY_AXIS_LX, static_cast<f32>(SDL_GetGamepadAxis(m_gamepad, SDL_GAMEPAD_AXIS_LEFTX)) / SDL_AXIS_MAX_VALUE);
-        updateAxisState(JOY_AXIS_LY,static_cast<f32>(-SDL_GetGamepadAxis(m_gamepad, SDL_GAMEPAD_AXIS_LEFTY)) / SDL_AXIS_MAX_VALUE);
-        updateAxisState(JOY_AXIS_RX, static_cast<f32>(SDL_GetGamepadAxis(m_gamepad, SDL_GAMEPAD_AXIS_RIGHTX)) / SDL_AXIS_MAX_VALUE);
-        updateAxisState(JOY_AXIS_RY,static_cast<f32>(-SDL_GetGamepadAxis(m_gamepad, SDL_GAMEPAD_AXIS_RIGHTY)) / SDL_AXIS_MAX_VALUE);
-        updateAxisState(JOY_AXIS_LT, static_cast<f32>(SDL_GetGamepadAxis(m_gamepad, SDL_GAMEPAD_AXIS_LEFT_TRIGGER)) / SDL_AXIS_MAX_VALUE);
-        updateAxisState(JOY_AXIS_RT, static_cast<f32>(SDL_GetGamepadAxis(m_gamepad, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER)) / SDL_AXIS_MAX_VALUE);
+        updateAxisState(
+            JOY_AXIS_LX, static_cast<f32>(SDL_GetGamepadAxis(m_gamepad, SDL_GAMEPAD_AXIS_LEFTX)) / SDL_AXIS_MAX_VALUE);
+        updateAxisState(
+            JOY_AXIS_LY, static_cast<f32>(-SDL_GetGamepadAxis(m_gamepad, SDL_GAMEPAD_AXIS_LEFTY)) / SDL_AXIS_MAX_VALUE);
+        updateAxisState(
+            JOY_AXIS_RX, static_cast<f32>(SDL_GetGamepadAxis(m_gamepad, SDL_GAMEPAD_AXIS_RIGHTX)) / SDL_AXIS_MAX_VALUE);
+        updateAxisState(
+            JOY_AXIS_RY,
+            static_cast<f32>(-SDL_GetGamepadAxis(m_gamepad, SDL_GAMEPAD_AXIS_RIGHTY)) / SDL_AXIS_MAX_VALUE);
+        updateAxisState(
+            JOY_AXIS_LT,
+            static_cast<f32>(SDL_GetGamepadAxis(m_gamepad, SDL_GAMEPAD_AXIS_LEFT_TRIGGER)) / SDL_AXIS_MAX_VALUE);
+        updateAxisState(
+            JOY_AXIS_RT,
+            static_cast<f32>(SDL_GetGamepadAxis(m_gamepad, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER)) / SDL_AXIS_MAX_VALUE);
 
         // Update vibration
         if (m_vibrationState.active)
@@ -198,8 +183,7 @@ namespace ITF
         }
         else
         {
-            if (previousStatus == InputAdapter::Pressed ||
-                previousStatus == InputAdapter::JustPressed)
+            if (previousStatus == InputAdapter::Pressed || previousStatus == InputAdapter::JustPressed)
             {
                 m_buttons[buttonIndex] = InputAdapter::JustReleased;
             }
@@ -359,7 +343,7 @@ namespace ITF
         {
             --m_gamepadCount;
         }
-        
+
         notifyDeviceConnectEvent(index, padType, connected);
     }
 
@@ -376,8 +360,8 @@ namespace ITF
         {
             if (m_gamepads[i].initialize(i))
             {
-                 InputAdapter::PadType padType = MapSDLGamepadTypeToPadType(m_gamepads[i].getGamepad());
-                 setGamepadConnected(i, true, padType);
+                InputAdapter::PadType padType = MapSDLGamepadTypeToPadType(m_gamepads[i].getGamepad());
+                setGamepadConnected(i, true, padType);
             }
             else
             {
@@ -396,8 +380,8 @@ namespace ITF
             {
                 if (m_gamepads[i].initialize(i))
                 {
-                     InputAdapter::PadType padType = MapSDLGamepadTypeToPadType(m_gamepads[i].getGamepad());
-                     setGamepadConnected(i, true, padType);
+                    InputAdapter::PadType padType = MapSDLGamepadTypeToPadType(m_gamepads[i].getGamepad());
+                    setGamepadConnected(i, true, padType);
                     LOG("[SDL] - Gamepad connected at slot %u", i);
                     break;
                 }
@@ -418,6 +402,7 @@ namespace ITF
             }
         }
     }
+
     void SDLInput::notifyDeviceConnectEvent(u32 padIndex, InputAdapter::PadType type, bbool isConnected)
     {
         if (!isConnected)
@@ -427,11 +412,10 @@ namespace ITF
         }
 
         SDLGamepad& gamepad = m_gamepads[padIndex];
-        bool isSonyController = false;
-        
+
         SDL_GamepadType sdlType = SDL_GetGamepadTypeForID(gamepad.getJoystickId());
-        isSonyController = (sdlType == SDL_GAMEPAD_TYPE_PS5 || sdlType == SDL_GAMEPAD_TYPE_PS4);
-        
+        bool isSonyController = (sdlType == SDL_GAMEPAD_TYPE_PS5 || sdlType == SDL_GAMEPAD_TYPE_PS4);
+
         if (isSonyController)
         {
             initSonyControllerDeviceIds(gamepad);
@@ -454,11 +438,11 @@ namespace ITF
             int scePadHandle = m_scePadHandles[i];
             uint32_t resolvedId = 0;
             getScePadDeviceId(scePadHandle, resolvedId);
-            
+
             if (resolvedId != 0)
             {
                 gamepad.deviceID = scePadHandle;
-                
+
                 ScePadContainerIdInfo padContainerInfo;
                 int ret = scePadGetContainerIdInformation(scePadHandle, &padContainerInfo);
                 if (ret >= 0)
@@ -477,6 +461,7 @@ namespace ITF
             }
         }
     }
+
     void SDLInput::initScePad(int* outScePadHandles)
     {
         int ret = scePadInit();
@@ -488,23 +473,26 @@ namespace ITF
 
         for (int i = 0; i < SCE_USER_SERVICE_MAX_LOGIN_USERS; ++i)
         {
-            outScePadHandles[i] = scePadOpen(SCE_USER_SERVICE_STATIC_USER_ID_1 + i, SCE_PAD_PORT_TYPE_STANDARD, 0, nullptr);
+            outScePadHandles[i] = scePadOpen(
+                SCE_USER_SERVICE_STATIC_USER_ID_1 + i, SCE_PAD_PORT_TYPE_STANDARD, 0, nullptr);
         }
     }
+
     void SDLInput::getScePadDeviceId(int padHandle, uint32_t& outResolvedId)
     {
         outResolvedId = 0;
-        
+
         ScePadControllerType padType;
         int ret = scePadGetControllerType(padHandle, &padType);
-        
+
         if (ret != SCE_OK || padType == SCE_PAD_CONTROLLER_TYPE_NOT_CONNECTED)
             return;
 
-        outResolvedId = (padType == SCE_PAD_CONTROLLER_TYPE_DUALSENSE) 
-            ? (padHandle | DUALSENSE_ID_MARKER) 
-            : padHandle;
+        outResolvedId = (padType == SCE_PAD_CONTROLLER_TYPE_DUALSENSE)
+                            ? (padHandle | DUALSENSE_ID_MARKER)
+                            : padHandle;
     }
+
     bool SDLInput::getMMDeviceFromPadHandle(wchar_t const* containerInfo, IMMDevice*& outMmDevice)
     {
         outMmDevice = nullptr;
@@ -520,9 +508,9 @@ namespace ITF
 
         IMMDeviceCollection* pDevices = nullptr;
         hr = pEnumerator->EnumAudioEndpoints(eRender, DEVICE_STATEMASK_ALL, &pDevices);
-        
+
         bool deviceFound = false;
-        
+
         if (SUCCEEDED(hr) && pDevices)
         {
             UINT deviceCount = 0;
@@ -576,13 +564,14 @@ namespace ITF
 
         return deviceFound;
     }
+
     InputAdapter_SDL3::InputAdapter_SDL3()
     {
         auto adapter = static_cast<SystemAdapter_win*>(SYSTEM_ADAPTER);
-        adapter->SetCallbackKeyboard(WinInputAdapter::KeyCB);
-        adapter->SetCallbackMousePos(WinInputAdapter::MousePosCB);
-        adapter->SetCallbackMouseWheel(WinInputAdapter::MouseWheelCB);
-        adapter->SetCallbackMouseButton(WinInputAdapter::MouseButtonCB);
+        adapter->SetCallbackKeyboard(KeyCB);
+        adapter->SetCallbackMousePos(MousePosCB);
+        adapter->SetCallbackMouseWheel(MouseWheelCB);
+        adapter->SetCallbackMouseButton(MouseButtonCB);
 
         m_sdlInput.initialize(this);
 
@@ -625,7 +614,7 @@ namespace ITF
         for (u32 slot = 0; slot < JOY_MAX_COUNT; ++slot)
         {
             i32 idx = m_slotGamepad[slot];
-            if (idx < 0 || idx >= static_cast<i32>(JOY_MAX_COUNT) || !connectedGamepad[idx])
+            if (idx < 0 || idx >= JOY_MAX_COUNT || !connectedGamepad[idx])
             {
                 m_slotGamepad[slot] = -1;
             }
@@ -698,7 +687,7 @@ namespace ITF
         for (u32 slot = 0; slot < JOY_MAX_COUNT; ++slot)
         {
             i32 idx = m_slotGamepad[slot];
-            if (idx < 0 || idx >= static_cast<i32>(JOY_MAX_COUNT))
+            if (idx < 0 || idx >= JOY_MAX_COUNT)
                 continue;
             if (!connectedGamepad[idx])
                 continue;
@@ -799,7 +788,5 @@ namespace ITF
         }
         return "Disconnected";
     }
-
-
 }
 #endif

@@ -13,9 +13,6 @@ namespace ITF
     class SDLGamepad
     {
     public:
-        static const u32 MAX_PAD = JOY_MAX_COUNT;
-        static const f32 INPUT_DEADZONE;
-
         SDLGamepad();
         ~SDLGamepad();
 
