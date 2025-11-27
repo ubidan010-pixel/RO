@@ -122,7 +122,7 @@ public:
     // returns btrue if it's a hdd boot game
     virtual bbool isHDDMode() const {return bfalse;}
 
-    virtual bbool isBackAndSelectButtonsInverted() const { return bfalse; }
+    virtual bbool isBackAndSelectButtonsInverted() const { return btrue; }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     virtual ITF_TERRITORY getSystemTerritory()  const { return ITF_TERRITORY_UNKNOWN; }
