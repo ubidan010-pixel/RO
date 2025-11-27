@@ -87,6 +87,7 @@ void SessionService_Ubiservices::initialize()
     US_NS::PlayerNotificationsModule& modulePNOT = US_NS::PlayerNotificationsModule::module(*session);
 
     m_authenticationNotificationHandler = moduleAuth.createNotificationListener();
+    m_ubiservicesNotificationHandler = modulePNOT.createNotificationListenerUbiServices();
 	m_customNotificationHandler = modulePNOT.createNotificationListenerCustom();
     m_initialized = true;
 }
@@ -94,6 +95,7 @@ void SessionService_Ubiservices::initialize()
 void SessionService_Ubiservices::terminate()
 {
     m_authenticationNotificationHandler = ubiservices::NotificationSource<ubiservices::AuthenticationNotification>::ListenerHandler();
+    m_ubiservicesNotificationHandler = ubiservices::NotificationSource<ubiservices::PlayerNotificationUbiServices>::ListenerHandler();
 	m_customNotificationHandler = ubiservices::NotificationSource<ubiservices::PlayerNotificationCustom>::ListenerHandler();
 
     //EVENTMANAGER->unregisterEvent(EventMainUserChanged_CRC,this);
@@ -922,15 +924,17 @@ void SessionService_Ubiservices::onFetchUplayNameFailure(const OnlineError& /*_e
     ACCOUNT_ADAPTER->setActiveAccountNameOnUplay(String8::emptyString);
 }
 
-bool SessionService_Ubiservices::launchConnect(const String8& _deepLink,
+OnlineError SessionService_Ubiservices::launchConnect(const String8& _deepLink,
     std::list<std::pair<String8, String8> > _params)
 {
     if (!m_initialized || !m_session)
-        return false;
+        return OnlineError(OnlineError::ErrorType::Network, OnlineError::ErrorSubtype::NotInitialized,
+            OnlineError::ErrorSubtype::Connect);
 
     US_NS::AuthenticationModule& modAuth = US_NS::AuthenticationModule::module(*m_session);
     if (!modAuth.hasValidSessionInfo())
-        return false;
+        return OnlineError(OnlineError::ErrorType::UbiServer, OnlineError::ErrorSubtype::NotInitialized,
+            OnlineError::ErrorSubtype::Connect);
 
     // Win uses UPC_ * api / UplayService overlay directly
 #if !defined(ITF_WINDOWS)
@@ -946,7 +950,18 @@ bool SessionService_Ubiservices::launchConnect(const String8& _deepLink,
 
     US_NS::UbisoftConnectModule& modConnect = US_NS::UbisoftConnectModule::module(*m_session);
 
+#if defined(ITF_PS5)
+    auto userId = ACCOUNT_ADAPTER_PS5->getActiveAccount().getSceUserId();
+    auto result = modConnect.launchUbisoftConnect(microAppId, microAppParameters, userId);
+#elif defined(ITF_XBOX_SERIES)
+    auto xblCH = ACCOUNT_ADAPTER_XBOXSERIES->getActiveAccount().getContextHandle();
+    auto result = modConnect.launchUbisoftConnect(microAppId, microAppParameters, xblCH);
+#elif defined(ITF_NX) || defined(ITF_OUNCE)
     auto result = modConnect.launchUbisoftConnect(microAppId, microAppParameters);
+#elif
+    auto result = modConnect.launchUbisoftConnect(microAppId, microAppParameters);
+#endif
+
     while (result.isProcessing())
     {
         sleep(100);
@@ -954,13 +969,110 @@ bool SessionService_Ubiservices::launchConnect(const String8& _deepLink,
 
     if (result.hasFailed())
     {
-        setError(OnlineError());
+        u32 errCode = result.getAsyncResultError().m_baseError.m_code;
+        // TODO native Error handling display for NX through TRC Adapter
+        return OnlineError(OnlineError::ErrorType::UbiServer, OnlineError::ErrorSubtype::Connect, errCode);
     }
-
-    return result.hasSucceeded();
+    else if (result.hasSucceeded())
+    {
+        return OnlineError(OnlineError::ErrorType::Success);
+    }
 #endif
 
-    return false;
+    return OnlineError(OnlineError::ErrorType::Network, OnlineError::ErrorSubtype::NotInitialized);
+}
+
+OnlineError SessionService_Ubiservices::createSession()
+{
+    m_session = ONLINE_ADAPTER_UBISERVICES->getSession();
+    if (!m_initialized || !m_session)
+        return OnlineError(OnlineError::ErrorType::UbiServer, OnlineError::ErrorSubtype::NotInitialized,
+            OnlineError::ErrorSubtype::Authentication);
+
+    PlayerCredentials playerCredentials = getUbiServicesCredentials();
+
+    US_NS::Vector<US_NS::String> parametersGroupApplication = {};
+    US_NS::Vector<US_NS::String> parametersGroupSpace = {};
+
+    ITF_VECTOR<String8> parameterGroupNamesTitle = ONLINE_ADAPTER->getParameterGroupNames();
+    for (auto itGroupsToFetch = parameterGroupNamesTitle.begin(); itGroupsToFetch != parameterGroupNamesTitle.end(); ++itGroupsToFetch)
+    {
+        parametersGroupSpace.push_back(ubiservices::String(itGroupsToFetch->cStr()));
+    }
+
+    US_NS::AsyncResult<US_NS::Empty> result = m_session->open(playerCredentials, parametersGroupApplication, parametersGroupSpace);
+    // Simulate a pooling loop waiting for the process to complete.
+    while (result.isProcessing())
+    {
+        sleep(100);
+    }
+
+    if (result.hasFailed())
+    {
+        int32 code = result.getAsyncResultError().m_baseError.m_code;
+        LOG("[SessionService] Failed to open session: %d", code);
+        return OnlineError(OnlineError::ErrorType::UbiServer, OnlineError::ErrorSubtype::Authentication,
+            code);
+    }
+
+    // Wait for notification confirming if the websocket is connected or not
+    while (!m_ubiservicesNotificationHandler.isNotificationAvailable())
+    {
+        sleep(10);
+    }
+
+    const US_NS::PlayerNotificationUbiServices notification = m_ubiservicesNotificationHandler.popNotification();
+    if (notification.m_type == US_NS::PlayerNotificationUbiServicesType::NotificationThrottled)
+    {
+        // Handle throttling..
+        LOG("[SessionService] Websocket creation has been throttled, deleting session!");
+
+        // Set a default wait time before retry. Time in seconds       
+        m_nextSessionRetryTime = 30;
+
+        // Check if time to wait before retry has been provided
+        if (!notification.m_content.isEmpty())
+        {
+            m_nextSessionRetryTime = US_NS::String::convertToInt(notification.m_content);
+        }
+
+        // Start waiting for at least waitTimeBeforeRetry
+        LOG("[SessionService] waiting for %f", m_nextSessionRetryTime);
+
+        // Delete Session
+        AsyncResult<Empty> deleteResult = m_session->close();
+        // Wait for session deletion
+        deleteResult.wait();
+        // Wait time finished. Try creating session again
+    }
+    else if (notification.m_type == US_NS::PlayerNotificationUbiServicesType::NotificationConnectionFailed)
+    {
+        // Handle connection failed..
+        LOG("[SessionService] Websocket creation has failed, deleting session!");
+        AsyncResult<Empty> ret = m_session->close();
+        if (!ret.hasSucceeded())
+            LOG("[SessionService] failed to close session! %d", ret.getAsyncResultError().m_baseError.m_code);
+    }
+    else if (notification.m_type == US_NS::PlayerNotificationUbiServicesType::NotificationConnect)
+    {
+        // You are connected and all is good!
+        return OnlineError(OnlineError::ErrorType::Success);
+    }
+
+    LOG("[SessionService] unexpected notification type %d!", notification.m_type);
+    return OnlineError(OnlineError::ErrorType::UbiServer, OnlineError::ErrorSubtype::Authentication, (u32)notification.m_type);
+}
+
+bool SessionService_Ubiservices::hasUserAccountLinked()
+{
+    if (!m_initialized || !m_session)
+        return false;
+
+    US_NS::AuthenticationModule& modAuth = US_NS::AuthenticationModule::module(*m_session);
+    if (!modAuth.hasValidSessionInfo())
+        return false;
+
+    return modAuth.getSessionInfo().hasUserAccountLinked();
 }
 
 } // namespace ITF

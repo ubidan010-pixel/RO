@@ -15,6 +15,7 @@ public:
     enum ErrorType
     {
         Invalid,        // Internal use only: used to construct an OnlineError without parameters (transient state)
+        Success,        // Useful to return from network APIs that they succeeded, in fact.
 
         Network,        // Network connection problem (e.g., disconnected cable, no IP)
         FirstParty,     // First Party issue (e.g., invalid account)
@@ -31,10 +32,10 @@ public:
     {
         None,                   // No specific subtype
 
-        UbiServer_Maintenance,  // Ubisoft servers under maintenance
-
-        Timeout_SlowConnection, // Timeout but the user's connection appears to be slow
-
+        Maintenance,            // Ubisoft servers under maintenance / FeatureSwitches are off
+        NotInitialized,         // APIs cannot be used yet; missing inits
+        Authentication,         // Ubiservices auth errors
+        Connect,                // Connect launching errors
         ErrorSubtypeCount       // KEEP IT LAST (Internal use)
     };
 
@@ -60,7 +61,7 @@ public:
     {
         ITF_ASSERT_CRASH(_type != Invalid, "OnlineError::Invalid shouldn't be used directly (transient state)");
 
-        ITF_ASSERT_CRASH((_subtype == UbiServer_Maintenance && _type == UbiServer) || _subtype != UbiServer_Maintenance, "UbiServer_Maintenance is a subtype of UbiServer only");
+        ITF_ASSERT_CRASH((_subtype == Maintenance && _type == UbiServer) || _subtype != Maintenance, "Maintenance is a subtype of UbiServer only");
 
 #ifdef ITF_ORBIS
         // Make sure we always have an error code for first party PS4 errors

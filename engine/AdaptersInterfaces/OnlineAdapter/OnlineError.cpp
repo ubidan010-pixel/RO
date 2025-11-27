@@ -9,23 +9,24 @@ namespace
 {
     const char* type_strings[] =
     {
-        "Invalid Error (BUG)",
+        "LOGIC BUG",
+        "Success",
         "Network Error",
         "First Party Error",
         "Ubisoft Error",
         "Timeout Error",
         "Cancelled",
     };
-
     ITF_ASSERT_STATIC(ITF_ARRAY_SIZE(type_strings) == OnlineError::ErrorTypeCount, "The array containing the strings for online error types doesn't have the proper size");
 
     const char* subtype_strings[] =
     {
         "None",
-        "Servers Maintenance",
-        "Slow Connection"
+        "Maintenance",
+        "Not Initialized",
+        "Authentication",
+        "Ubisoft Connect"
     };
-
     ITF_ASSERT_STATIC(ITF_ARRAY_SIZE(subtype_strings) == OnlineError::ErrorSubtypeCount, "The array containing the strings for online error subtypes doesn't have the proper size");
 }
 

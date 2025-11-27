@@ -44,64 +44,163 @@ namespace ITF
         switch(errorContext)
         {
         case Pad_DisconnectingDuringTitleScreen:
+        {
             // TEMP TEXTE:
             message = buildText(4482);
             pTRCMessage = new TRCMessage_OneButtonWithCB(
                 new TRCMessage_Callback_WaitforPadState(TRCMessage_Callback_WaitforPadState::connected, U32_INVALID)); // INVALID = ALL pad
             pTRCMessage->SetForceOverPauseMenu();
             break;
+        }
+
         case Pad_DisconnectingDuringMenu:
         case Pad_DisconnectingDuringGameplay:
+        {
             ITF_ASSERT(_u32_customParam != U32_INVALID);
 
             {
-                String portNumberStr ;
-                portNumberStr.setTextFormat(" %d", _u32_customParam+1);
+                String portNumberStr;
+                portNumberStr.setTextFormat(" %d", _u32_customParam + 1);
                 message = message + buildText(4037) + portNumberStr;
             }
-            
+
             pTRCMessage = new TRCMessage_OneButtonWithCB(
                 new TRCMessage_Callback_WaitforPadState(TRCMessage_Callback_WaitforPadState::connected, _u32_customParam));
 
             pTRCMessage->changeDisplayPriority(TRCMessage_Base::High);
             pTRCMessage->SetForceOverPauseMenu();
-            if(errorContext==Pad_DisconnectingDuringGameplay && _u32_customParam != GAMEMANAGER->getMainIndexPlayer())
-            {                
-                ((TRCMessage_OneButtonWithCB*)pTRCMessage)->setButton(buildText(4164, ContextIconType_Select), input_actionID_Back);      
+            if (errorContext == Pad_DisconnectingDuringGameplay && _u32_customParam != GAMEMANAGER->getMainIndexPlayer())
+            {
+                ((TRCMessage_OneButtonWithCB*)pTRCMessage)->setButton(buildText(4164, ContextIconType_Select), input_actionID_Back);
             }
             pTRCMessage->setActivePlayer(_u32_customParam);
-        break;
+            break;
+        }
 
         case Sav_WarningBoot:
+        {
             // Warning not needed, the save system is in memory and secured, we just skip it
-            if(SAVEGAME_ADAPTER->IsSaveSystemEnable())
+            if (SAVEGAME_ADAPTER->IsSaveSystemEnable())
             {
-                pTRCMessage = newAlloc(mId_System, TRCMessage_NoButtonTimer(5.0, errorContext));            
+                pTRCMessage = newAlloc(mId_System, TRCMessage_NoButtonTimer(5.0, errorContext));
                 message = buildText(4026);
             }
             break;
+        }
 
         case Sav_AskForDelete:
+        {
             pTRCMessage = new TRCMessage_TwoButton(errorContext);
             pTRCMessage->setAllowedPlayer(GAMEMANAGER->getMainIndexPlayer());
 
-            ((TRCMessage_TwoButton*)pTRCMessage)->setRightButton(buildText(4142, ContextIconType_Invalid), input_actionID_Back); 
+            ((TRCMessage_TwoButton*)pTRCMessage)->setRightButton(buildText(4142, ContextIconType_Invalid), input_actionID_Back);
             ((TRCMessage_TwoButton*)pTRCMessage)->setLeftButton(buildText(4064, ContextIconType_Invalid), input_actionID_Valid); // continue
             message = buildText(4087);
 
             break;
+        }
 
         case Sav_CorruptedFile:
         case Sav_ErrorDuringLoad:
+        {
             ITF_ASSERT_CRASH(0, "The save system is using the memory one so should never fail");
             pTRCMessage = new TRCMessage_OneButton(errorContext);
             message = buildText(4017);
             _isDisplayingCorruptedSaveMsg = btrue;
             ((TRCMessage_OneButton*)pTRCMessage)->setButton(buildText(4061, ContextIconType_Invalid), input_actionID_Valid);
             break;
+        }
+
+        case UOR_FirstPartyOffline:
+        {
+            pTRCMessage = new TRCMessage_OneButton(errorContext);
+            message = "Offline Mode";//buildText(4017); TODO: add in Oasis message for Offline mode
+            ((TRCMessage_OneButton*)pTRCMessage)->setButton(buildText(4061, ContextIconType_Invalid), input_actionID_Valid);
+            break;
+        }
+
+        case UOR_WelcomeMessage:
+        {
+            pTRCMessage = new TRCMessage_TwoButton(errorContext);
+
+            LocalisationId idTitle, idSubtitle, idMain, idOutro, idGameTitle;
+            idTitle.value = 6937;
+            idSubtitle.value = 6938;
+            idMain.value = 6939;
+            idOutro.value = 6940;
+            idGameTitle.value = 6950;
+
+            // TODO fetch player name from AccountAdapter
+
+            String textTitle = LOCALISATIONMANAGER->getText(idTitle);
+            String textSubtitle = LOCALISATIONMANAGER->getText(idSubtitle);
+            String textMain = LOCALISATIONMANAGER->getText(idMain);
+            String textOutro = LOCALISATIONMANAGER->getText(idOutro);
+            String textGameTitle = LOCALISATIONMANAGER->getText(idGameTitle);
+
+            textTitle.replace("[gametag]", textGameTitle);
+            textSubtitle.replace("[gametag]", textGameTitle);
+            textMain.replace("[gametag]", textGameTitle);
+            textOutro.replace("[gametag]", textGameTitle);
+
+            message = textTitle + "\n" + textSubtitle + "\n\n" + textMain + "\n" + textOutro;
+            ((TRCMessage_TwoButton*)pTRCMessage)->setLeftButton(buildText(6941, ContextIconType_Select), input_actionID_Valid);
+            ((TRCMessage_TwoButton*)pTRCMessage)->setRightButton(buildText(6942, ContextIconType_Back), input_actionID_Back);
+            break;
+        }
+
+        case UOR_WelcomeBackMessage:
+        {
+            pTRCMessage = new TRCMessage_TwoButton(errorContext);
+
+            LocalisationId idTitle, idSubtitle, idMain, idOutro, idGameTitle;
+            idTitle.value = 6943;
+            idSubtitle.value = 6944;
+            idMain.value = 6945;
+            idOutro.value = 6947;
+            idGameTitle.value = 6948;
+
+            // TODO fetch player name from AccountAdapter
+
+            String textTitle = LOCALISATIONMANAGER->getText(idTitle);
+            String textSubtitle = LOCALISATIONMANAGER->getText(idSubtitle);
+            String textMain = LOCALISATIONMANAGER->getText(idMain);
+            String textOutro = LOCALISATIONMANAGER->getText(idOutro);
+            String textGameTitle = LOCALISATIONMANAGER->getText(idGameTitle);
+
+            textTitle.replace("[gametag]", textGameTitle);
+            textSubtitle.replace("[gametag]", textGameTitle);
+            textMain.replace("[gametag]", textGameTitle);
+            textOutro.replace("[gametag]", textGameTitle);
+
+            message = textTitle + "\n" + textSubtitle + "\n\n" + textMain + "\n" + textOutro;
+            ((TRCMessage_TwoButton*)pTRCMessage)->setLeftButton(buildText(6941, ContextIconType_Select), input_actionID_Valid);
+            ((TRCMessage_TwoButton*)pTRCMessage)->setRightButton(buildText(6942, ContextIconType_Back), input_actionID_Back);
+
+            break;
+        }
+
+        case UOR_LockedAccount:
+        {
+            pTRCMessage = new TRCMessage_OneButton(errorContext);
+            message = "Account is Locked!";//buildText(4017); TODO: add in Oasis message for Offline mode
+            ((TRCMessage_OneButton*)pTRCMessage)->setButton(buildText(4142, ContextIconType_Invalid), input_actionID_Back);
+            break;
+        }
+
+        case UOR_CreateSessionError:
+        {
+            pTRCMessage = new TRCMessage_OneButton(errorContext);
+            message = "Create Session Error. Continue offline.";//buildText(4017); TODO: add in Oasis message for Offline mode
+            ((TRCMessage_OneButton*)pTRCMessage)->setButton(buildText(4061, ContextIconType_Back), input_actionID_Valid);
+            break;
+        }
+
         default:
+        {
             ITF_ASSERT_MSG(0, "Unhandled errorContext %d", errorContext);
             break;
+        }
         }
 
         if(pTRCMessage)

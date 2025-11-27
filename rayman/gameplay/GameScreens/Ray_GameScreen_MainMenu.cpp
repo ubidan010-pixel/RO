@@ -1187,7 +1187,119 @@ namespace ITF
 
         GAMEMANAGER->updateRichPresenceForPlayer(PRESENCE_INTHEMENUS, getPlayerIndex());
         fillSaveGameSlots(btrue);
+
+        // Ubiservices Auth Flow entry point
+        // $GS: flow is disabled until I finish setting it up in async way and runs without deadlocking game
+        // OSS-26381 - [Connect] Overlay autocloses for auth deeplink on PS5
+        //onStartUbiservicesAuthFlow();
     }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////
+    // https://confluence.ubisoft.com/display/onlineservices/UC+Authentication+-+In-game+Flows
+    // Offline Mode w. Crossplay
+    void Ray_GameScreen_MainMenu::onStartUbiservicesAuthFlow()
+    {
+#if ITF_SUPPORT_UBISERVICES
+        // 1st party services ok?
+        if (NETWORKSERVICES && !NETWORKSERVICES->isNetworkReady())
+        {
+            ONLINE_ADAPTER->setOfflineMode(true);
+            TRC_ADAPTER->addMessage(TRCManagerAdapter::UOR_FirstPartyOffline);
+            return;
+        }
+
+        // wait here until player decides to link account or we find some other failure
+        setState(State_ShowingPressStart);
+
+        OnlineError result = ONLINE_ADAPTER->getSessionService()->createSession();
+        if (result.getType() == OnlineError::Success)
+        {
+            // Boot flags
+            i32 bootCounter = RAY_GAMEMANAGER->getAuthBootCount();
+            RAY_GAMEMANAGER->setAuthBootCount(bootCounter + 1);
+            RAY_GAMEMANAGER->saveGameOptions();
+
+            bbool isAlreadyLinked = RAY_GAMEMANAGER->getAuthAlreadyLinked();
+
+            LOG("[Auth] bootCounter:%d alreadyLinked: %d", bootCounter, isAlreadyLinked);
+
+            bool shouldShowWelcomeBack = true;
+            if (shouldShowWelcomeBack)
+            {
+                LOG("[Auth] Display Welcome Back message...");
+                TRC_ADAPTER->addMessage(TRCManagerAdapter::UOR_WelcomeBackMessage, 0, 0,
+                    [](const StringID& answer, TRCMessage_Base* pMessage, void* pParams) ->
+                    void {
+                        Ray_GameScreen_MainMenu* pThis = (Ray_GameScreen_MainMenu*)pParams;
+                        if (answer == input_actionID_Valid) // Connect me now!
+                        {
+                            ONLINE_ADAPTER->getSessionService()->launchConnect("auth");
+
+                            pThis->setState(State_ShowingTitleScreen);
+                        }
+                        else if (answer == input_actionID_Back) // Back/Cancel
+                        {
+                            pThis->setState(State_ShowingTitleScreen);
+                        }
+                    }, this);
+            }
+            else
+            {
+                LOG("[Auth] Start game online mode");
+                setState(State_ShowingMainMenu_SaveLoad_Root);
+            }
+        }
+        else
+        {
+            bool hasAccountLinked = ONLINE_ADAPTER->getSessionService()->hasUserAccountLinked();
+            LOG("[Auth] session creation errors. account linked: %d err code: %d", hasAccountLinked, result.getCode());
+
+            if (result.getType() == OnlineError::UbiServer &&
+                result.getSubType() == OnlineError::Authentication &&
+                result.getCode() == 0x143)   /* AUTHENTICATION_PLAYER_HAS_NO_UPLAY_ACCOUNT */
+            {
+                // welcome message
+                LOG("[Auth] Display Welcome message...");
+                TRC_ADAPTER->addMessage(TRCManagerAdapter::UOR_WelcomeMessage, 0, 0,
+                    [](const StringID& answer, TRCMessage_Base* pMessage, void* pParams) ->
+                    void {
+                        Ray_GameScreen_MainMenu* pThis = (Ray_GameScreen_MainMenu*)pParams;
+                        if (answer == input_actionID_Valid) // Connect me now!
+                        {
+                            OnlineError ret = ONLINE_ADAPTER->getSessionService()->launchConnect("auth");
+                            LOG("[Auth] Connect closed. ret: %d", ret.getCode());
+
+                            if (ret.getType() == OnlineError::Success)
+                                pThis->setState(State_ShowingMainMenu_SaveLoad_Root);
+                        }
+                        else if (answer == input_actionID_Back) // Back/Cancel
+                        {
+                            LOG("[Auth] Back to titlescreen...");
+                            pThis->setState(State_ShowingTitleScreen);
+                        }
+                    }, this);
+            }
+            else if (result.getType() == OnlineError::UbiServer &&
+                result.getSubType() == OnlineError::Authentication &&
+                result.getCode() == 0x160)  /* AUTHENTICATION_USER_ACCOUNT_LOCKED */
+            {
+                LOG("[Auth] User account LOCKED!");
+                OnlineError ret = ONLINE_ADAPTER->getSessionService()->launchConnect("auth");
+                LOG("[Auth] Connect closed. ret: %d", ret.getCode());
+                
+                TRC_ADAPTER->addMessage(TRCManagerAdapter::UOR_LockedAccount);
+                setState(State_ShowingTitleScreen);
+            }
+            else
+            {
+                // some other error. Block access.
+                TRC_ADAPTER->addMessage(TRCManagerAdapter::UOR_CreateSessionError);
+                setState(State_ShowingTitleScreen);
+            }
+        }
+#endif
+    }
+
     ///////////////////////////////////////////////////////////////////////////////////////////
     void Ray_GameScreen_MainMenu::onMenuItemAction (UIComponent* _UIComponent)
     {
@@ -1237,8 +1349,8 @@ namespace ITF
 #elif defined(ITF_SUPPORT_UBISERVICES)
             if (ONLINE_ADAPTER)
             {
-                bool ret = ONLINE_ADAPTER->getSessionService()->launchConnect();
-                LOG("[UBICONNECT] - Ray_GameScreen_MainMenu: overlay returned: %d", ret);
+                OnlineError ret = ONLINE_ADAPTER->getSessionService()->launchConnect();
+                LOG("[UBICONNECT] - Ray_GameScreen_MainMenu: overlay returned: %d", ret.getCode());
             }
 #endif
         }

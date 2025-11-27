@@ -1,6 +1,8 @@
 #ifndef _ITF_SESSIONSERVICE_UBISERVICES_H
 #define _ITF_SESSIONSERVICE_UBISERVICES_H
 
+#include "engine/AdaptersInterfaces/OnlineAdapter/SessionService.h"
+
 #if defined(ITF_SUPPORT_UBISERVICES)
 #include <ubiservices/services/authentication/authenticationClient.h>
 #include <ubiservices/services/authentication/authenticationNotification.h>
@@ -9,7 +11,6 @@
 #include <ubiservices/services/populations/populationInfo.h>
 
 #include "engine/AdaptersInterfaces/OnlineAdapter/OnlineError.h"
-#include "engine/AdaptersInterfaces/OnlineAdapter/SessionService.h"
 #include "engine/AdaptersInterfaces/OnlineAdapter/PopulationInfo.h"
 #include "engine/events/IEventListener.h"
 #include "core/UUID.h"
@@ -39,7 +40,9 @@ namespace ITF
         const ITF_VECTOR<PopulationInfo>& getPopulations() const override { return m_populationsInfos; }
         bool isInPopulation(const String8& _subject, const String8& _popName) const override;
 
-        virtual bool launchConnect(const String8& _deepLink = "", std::list<std::pair<String8, String8> > _params = {}) override;
+        virtual OnlineError launchConnect(const String8& _deepLink = "", std::list<std::pair<String8, String8> > _params = {}) override;
+        virtual OnlineError createSession() override;
+        virtual bool hasUserAccountLinked() override;
 
         bool isClubFeatureSwitchEnabled() const override;
         bool isNewsFeatureSwitchEnabled() const override;
@@ -72,7 +75,6 @@ namespace ITF
         static ubiservices::ProfileId convertProfileIdToUbiservices(const UUID& _profileId);
 
     private:
-        
         virtual bool areUbiServicesCredentialsAvailable();
         virtual ubiservices::PlayerCredentials getUbiServicesCredentials();
 

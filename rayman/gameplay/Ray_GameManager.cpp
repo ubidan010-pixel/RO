@@ -275,7 +275,9 @@
 
 #include "engine/AdaptersInterfaces/AudioMiddlewareAdapter.h"
 #include <algorithm>
-
+#ifndef _ITF_HATPICMANAGER_H_
+#include "gameplay/Managers/PadHapticsManager.h"
+#endif
 #define SAVEGAME_MAX_SIZE   65536 //Does not include extra storage data
 
 #define SAVE_MAX_ELEC       246
@@ -11742,9 +11744,9 @@ namespace ITF
         m_gameOptionManager.registerBoolOption(AUTH_ALREADY_LINKED, 0);
     }
 
-    void Ray_GameManager::registerAuthSecondBoot()
+    void Ray_GameManager::registerAuthBootCount()
     {
-        m_gameOptionManager.registerBoolOption(AUTH_SECOND_BOOT, 0);
+        m_gameOptionManager.registerIntOption(AUTH_BOOT_COUNT, 0, 0, I32_MAX);
     }
 
 #if defined(ITF_WINDOWS)
@@ -11770,7 +11772,7 @@ namespace ITF
         registerIntensityOption();
         registerLastPlayTime();
         registerAuthAlreadyLinked();
-        registerAuthSecondBoot();
+        registerAuthBootCount();
 #if defined(ITF_WINDOWS)
         registerPCKeyboardControllerSharingOption();
 #endif
@@ -12010,6 +12012,9 @@ namespace ITF
     {
         m_gameOptionManager.setListOptionIndex(OPTION_VIBRATIONS, mode);
         LOG("[OptionMenu] Vibrations: %s", mode == VibrationMode_On ? "ON" : "OFF");
+#ifdef USE_PAD_HAPTICS
+            HAPTICS_MANAGER->enableHaptics(mode);
+#endif
     }
 
     const char* Ray_GameManager::getVibrationDisplayName(i32 index) const
@@ -12148,14 +12153,14 @@ namespace ITF
         m_gameOptionManager.setBoolOption(AUTH_ALREADY_LINKED, already);
     }
 
-    bbool Ray_GameManager::getAuthSecondBoot() const
+    i32 Ray_GameManager::getAuthBootCount() const
     {
-        return m_gameOptionManager.getBoolOption(AUTH_SECOND_BOOT, 0);
+        return m_gameOptionManager.getIntOption(AUTH_BOOT_COUNT, 0);
     }
 
-    void Ray_GameManager::setAuthSecondBoot(bbool secondBoot)
+    void Ray_GameManager::setAuthBootCount(i32 bootcount)
     {
-        m_gameOptionManager.setBoolOption(AUTH_SECOND_BOOT, secondBoot);
+        m_gameOptionManager.setIntOption(AUTH_BOOT_COUNT, bootcount);
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////

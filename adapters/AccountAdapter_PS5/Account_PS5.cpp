@@ -29,7 +29,7 @@ namespace ITF
     {
         Account::dumpToLog();
 
-        LOG("\t* PS4-specific properties:"
+        LOG("\t* PS5-specific properties:"
             "\n\t\t- SCE USER ID: 0x%08X"
             "\n\t\t- ONLINE ID: %s"
             "\n\t\t- Country code: %s"

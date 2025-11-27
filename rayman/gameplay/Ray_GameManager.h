@@ -1790,9 +1790,9 @@ namespace ITF
         // Ubiservices Authentication Flow
         //==========================================================================
         bbool           getAuthAlreadyLinked() const;
-        void            setAuthAlreadyLinked(bbool already);
-        bbool           getAuthSecondBoot() const;
-        void            setAuthSecondBoot(bbool secondBoot);
+        void            setAuthAlreadyLinked(bbool linked);
+        i32             getAuthBootCount() const;
+        void            setAuthBootCount(i32 count);
 
         //CASA::VITA::TARIK::Fresco
         ITF_INLINE const ITF_VECTOR<Vec2d>& getFrescoGamePlayProgressionInfo() const { return m_configTemplate->getFrescoGamePlayProgressionInfo(); }
@@ -1853,7 +1853,7 @@ namespace ITF
         void            registerIntensityOption();
         void            registerLastPlayTime();
         void            registerAuthAlreadyLinked();
-        void            registerAuthSecondBoot();
+        void            registerAuthBootCount();
 #if defined(ITF_WINDOWS)
         void            registerPCKeyboardControllerSharingOption();
 #endif

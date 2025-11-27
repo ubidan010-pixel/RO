@@ -72,7 +72,7 @@ namespace ITF
 // Keeps track of Offline mode with cross progression status
 // https://confluence.ubisoft.com/display/onlineservices/UC+Authentication+-+In-game+Flows
 #define AUTH_ALREADY_LINKED             ITF_GET_STRINGID_CRC(AuthAlreadyLinked,2336798753)
-#define AUTH_SECOND_BOOT                ITF_GET_STRINGID_CRC(AuthSecondBoot,3756855500)
+#define AUTH_BOOT_COUNT                 ITF_GET_STRINGID_CRC(AuthBootCount,3102935158)
 
 #if defined(ITF_WINDOWS)
 #define OPTION_PC_KEYBOARD_CONTROLLER_SHARING ITF_GET_STRINGID_CRC(PCKeyboardControllerSharing,3022196002)

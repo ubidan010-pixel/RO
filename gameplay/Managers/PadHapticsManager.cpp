@@ -38,7 +38,6 @@ namespace ITF
         {
             registerControllerSpeaker(_padIndex,_deviceID,_deviceOutputID,_isSony);
         }
-
     }
 
     void PadHapticsManager::onControllerDisconnected(u32 pad)
@@ -50,19 +49,22 @@ namespace ITF
 
     void PadHapticsManager::enableHaptics(bbool enable)
     {
-            for (const auto& pair : m_devices)
+        m_enableHaptics = enable;
+        for (const auto& pair : m_devices)
+        {
+            const u32 pad = pair.first;
+            const DeviceInfo& info = pair.second;
+            if (enable)
             {
-                const u32 pad = pair.first;
-                const DeviceInfo& info = pair.second;
-                if (enable)
-                {
-                    registerHaptics(pad,info.deviceID,info.deviceOutputID,info.isSony);
-                }
-                else
-                {
-                    unregisterHaptics(pad);
-                }
+                registerHaptics(pad,info.deviceID,info.deviceOutputID,info.isSony);
             }
+            else
+            {
+                unregisterHaptics(pad);
+            }
+        }
+        // TODO, wait for new option, but for now it's alongs with haptics
+        enableControllerSpeaker(m_enableHaptics);
     }
 
     void PadHapticsManager::enableControllerSpeaker(bbool enable)
@@ -73,7 +75,7 @@ namespace ITF
             const DeviceInfo& info = pair.second;
             if (enable)
             {
-                registerControllerSpeaker(pad,info.deviceID,info.deviceOutputID,info.isSony);
+                registerControllerSpeaker(pad, info.deviceID, info.deviceOutputID, info.isSony);
             }
             else
             {
@@ -84,7 +86,6 @@ namespace ITF
 
     void PadHapticsManager::onSoundBankLoaded()
     {
-
     }
     void PadHapticsManager::registerHaptics(u32 _padIndex,u32 _deviceID,u32 _deviceOutputID,bool isSony)
     {
@@ -105,6 +106,7 @@ namespace ITF
     {
         AUDIO_ADAPTER->unregisterControllerSpeaker(_pad);
     }
+
     PadHapticsManager* PadHapticsManager::s_instance = NULL;
 }
 #endif //USE_PAD_HAPTICS

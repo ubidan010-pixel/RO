@@ -17,6 +17,7 @@ namespace ITF
         OnlineAdapter()
             : m_sessionService(nullptr)
             , m_trackingService(nullptr)
+            , m_offlineMode(bfalse)
         {
         }
 
@@ -25,6 +26,13 @@ namespace ITF
         virtual void initialize() {}
         virtual void update() {}
         virtual void terminate() {}
+
+        virtual void setOfflineMode(bbool _isOffline)
+        {
+            m_offlineMode = _isOffline;
+        }
+
+        virtual inline bbool getOfflineMode() { return m_offlineMode; }
 
         const ITF_VECTOR<String8> getParameterGroupNames()
         {
@@ -49,6 +57,8 @@ namespace ITF
     protected:
         SessionService* m_sessionService;
         TrackingService* m_trackingService;
+
+        bbool m_offlineMode;
     };
 
 #define ONLINE_ADAPTER ITF::OnlineAdapter::getptr()

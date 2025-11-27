@@ -62,10 +62,12 @@ namespace ITF
             else if (state == SCE_NET_CTL_STATE_DISCONNECTED)
             {
                 LOG("[NetworkServices_PS5] sceNetCtlGetState result is SCE_NET_CTL_STATE_DISCONNECTED\n");
+                setNetworkStatus(NetworkServices::ENetworkStatus_Error);
             }
             else if (state == SCE_NET_CTL_STATE_CONNECTING)
             {
                 LOG("[NetworkServices_PS5] sceNetCtlGetState result is SCE_NET_CTL_STATE_CONNECTING\n");
+                setNetworkStatus(NetworkServices::ENetworkStatus_Preparing);
             }
             else if (state == SCE_NET_CTL_STATE_IPOBTAINING)
             {
@@ -74,6 +76,7 @@ namespace ITF
             else if (state == SCE_NET_CTL_STATE_IPOBTAINED)
             {
                 LOG("[NetworkServices_PS5] sceNetCtlGetState result is SCE_NET_CTL_STATE_IPOBTAINED\n");
+                setNetworkStatus(NetworkServices::ENetworkStatus_Ready);
                 break;
             }
 
@@ -132,7 +135,14 @@ namespace ITF
             }
 
             if (pThis)
+            {
+                pThis->setNetworkStatus(NetworkServices::ENetworkStatus_Error);
                 pThis->m_platformErrorCode = result;
+            }
+        }
+        else if (eventType == SCE_NET_CTL_EVENT_TYPE_IPOBTAINED)
+        {
+            pThis->setNetworkStatus(NetworkServices::ENetworkStatus_Ready);
         }
     }
 } // namespace ITF

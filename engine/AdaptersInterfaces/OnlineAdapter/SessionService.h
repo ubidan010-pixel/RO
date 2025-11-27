@@ -35,7 +35,9 @@ public:
     virtual bool isClubFeatureSwitchEnabled() const = 0;
     virtual bool isNewsFeatureSwitchEnabled() const = 0;
 
-    virtual bool launchConnect(const String8& _deepLink = "", std::list<std::pair<String8, String8> > _params = {}) = 0;
+    virtual OnlineError launchConnect(const String8& _deepLink = "", std::list<std::pair<String8, String8> > _params = {}) = 0;
+    virtual OnlineError createSession() = 0;
+    virtual bool hasUserAccountLinked() = 0;
 
     virtual bool getConstantValue(String8 _parameterGroupName, StringID _parameterName, StringID _fieldName, f32 &_fieldValue) const = 0;
     virtual bool getConstantValue(String8 _parameterGroupName, StringID _parameterName, StringID _fieldName, u32 &_fieldValue) const = 0;

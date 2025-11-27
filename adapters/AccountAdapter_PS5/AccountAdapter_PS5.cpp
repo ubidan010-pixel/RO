@@ -26,10 +26,19 @@ namespace ITF
 
         SceUserServiceUserId initialUserId = SCE_USER_SERVICE_USER_ID_INVALID;
         int32_t ret = sceUserServiceGetInitialUser(&initialUserId);
-        ITF_ASSERT(ret == SCE_OK);
-        ITF_UNUSED(ret);
-        m_activeAccountInd = getAccountIndex(initialUserId);
-        ITF_ASSERT_MSG(m_activeAccountInd != U32_INVALID, "Active user not found!");
+        if (ret == SCE_OK)
+        {
+            m_activeAccountInd = getAccountIndex(initialUserId);
+
+            // autologin; we didn't receive a sign in event on game start
+            if (m_activeAccountInd == U32_INVALID)
+            {
+                addAccount(initialUserId);
+                m_activeAccountInd = 0;
+            }
+
+            ITF_ASSERT_MSG(m_activeAccountInd != U32_INVALID, "Active user not found!");
+        }
     }
 
     void AccountAdapter_PS5::update()

@@ -2,6 +2,7 @@
 #define _ITF_ACCOUNT_H_
 
 #include "core/UUID.h"
+#include "core/String8.h"
 
 namespace ITF
 {

@@ -193,8 +193,13 @@ namespace ITF
 			RangeContexte	= 100,
 			Gen_NoEnoughSpaceToPlay,
 
-            // UPC
+            // UOR
             UPC_ConnectionLost = 400,
+            UOR_WelcomeMessage,
+            UOR_WelcomeBackMessage,
+            UOR_FirstPartyOffline,
+            UOR_CreateSessionError, // linked account & account not locked
+            UOR_LockedAccount,
 
             Pad_enum		= 500,
             Pad_DisconnectingDuringTitleScreen,

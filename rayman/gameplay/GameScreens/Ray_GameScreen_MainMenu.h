@@ -151,6 +151,8 @@ namespace ITF
 
         void onPressStartAction();
 
+        void onStartUbiservicesAuthFlow();
+
         void enter_Exited();
         void leave_Exited() {}
 
