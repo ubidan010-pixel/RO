@@ -3,54 +3,28 @@
 
 #pragma once
 
-#ifndef _ITF_INPUTDEVICE_H_
-#include "engine/zinput/ZInputDevice.h"
-#endif //_ITF_INPUTDEVICE_H_
-
-#ifndef _ITF_ACTIONMAP_H_
-#include "engine/zinput/ZActionMap.h"
-#endif //_ITF_ACTIONMAP_H_
+#ifndef _ITF_ZPAD_BASE_H_
+#include "engine/zinput/ZPad_Base.h"
+#endif //_ITF_ZPAD_BASE_H_
 
 namespace ITF
 {
 #ifdef ITF_PS5
-    class ZPad_ps5 : public IInputDevice
+    class ZPad_ps5 : public ZPad_Base
     {
     public:
         explicit ZPad_ps5( u32 id )
-            : IInputDevice(id)
+            : ZPad_Base(id)
         {}
         virtual ~ZPad_ps5() = default;
 
     protected:
-        virtual void   InitDeviceInfo() override;
-        virtual void   UpdateDeviceInfo( SDeviceInfo& deviceInfo ) override;
+        virtual PhysicalButtonMapping GetPhysicalButtonMapping() const override;
+        virtual void InitPlatformSpecificControls() override;
+        virtual void UpdatePlatformSpecificControls(SDeviceInfo& deviceInfo, const InputAdapter::PressStatus* buttons, const f32* axes) override;
 
-        enum EControl
-        {
-            PAD_STICK_LX = 0,
-            PAD_STICK_LY,
-            PAD_STICK_RX,
-            PAD_STICK_RY,
-            PAD_TRIGGER_LEFT,
-            PAD_TRIGGER_RIGHT,
-            PAD_DPAD_UP,
-            PAD_DPAD_DOWN,
-            PAD_DPAD_LEFT,
-            PAD_DPAD_RIGHT,
-            PAD_BUTTON_OPTIONS,
-            PAD_BUTTON_L1,
-            PAD_BUTTON_R1,
-            PAD_BUTTON_LTHUMB,
-            PAD_BUTTON_RTHUMB,
-            PAD_BUTTON_CROSS,
-            PAD_BUTTON_CIRCLE,
-            PAD_BUTTON_SQUARE,
-            PAD_BUTTON_TRIANGLE,
-            PAD_BUTTON_TOUCHPAD,
-            PAD_ACCELEROMETER,
-            CONTROL_MAX
-        };
+    private:
+        u32 m_accelerometerControlIndex = U32_INVALID;
     };
 #endif // ITF_PS5
 }//namespace ITF
