@@ -910,7 +910,7 @@ void Font::writeBox(u32 color,f32 x, f32 y, f32 z, bbool _isRender2D, const Vec3
             if(tagOpened)
             {
                 static const String iconTag = FontPrivate::BuildNamedTag("icon");
-                static const String actionTag = FontPrivate::BuildNamedTag("ACTION");
+                static const String actionTag = FontPrivate::BuildNamedTag("action");
                 static const String actorTag = FontPrivate::BuildNamedTag("actor");
                 static const u32 iconTagBeginSize = iconTag.getLen();
                 static const u32 actionTagBeginSize = actionTag.getLen();
@@ -922,7 +922,7 @@ void Font::writeBox(u32 color,f32 x, f32 y, f32 z, bbool _isRender2D, const Vec3
                 word.strstr(actionTag.cStr(), bfalse, &indexActionBegin);
                 word.strstr(FontPrivate::END_TAG_DELIMITER, bfalse, &indexIconEnd);
 
-                if (indexActionBegin != -1 && indexIconEnd != -1 && indexIconEnd > indexActionBegin) // ACTION Tag found
+                if (indexActionBegin != -1 && indexIconEnd != -1 && indexIconEnd > indexActionBegin)
                 {
                     String charsAfterBraket(word.substr(indexIconEnd+1, word.getLen()- 1 - indexIconEnd));
                     const String actionContent = word.substr(indexActionBegin + actionTagBeginSize, indexIconEnd - indexActionBegin - actionTagBeginSize);
