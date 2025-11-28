@@ -55,6 +55,16 @@ namespace ITF
         inputInfo[BUTTON_FACE_EAST].m_type = SInputInfo::INPUTTYPE_BUTTON;
         inputInfo[BUTTON_FACE_WEST].m_type = SInputInfo::INPUTTYPE_BUTTON;
         inputInfo[BUTTON_FACE_NORTH].m_type = SInputInfo::INPUTTYPE_BUTTON;
+
+        inputInfo[STICK_L_UP].m_type = SInputInfo::INPUTTYPE_BUTTON;
+        inputInfo[STICK_L_DOWN].m_type = SInputInfo::INPUTTYPE_BUTTON;
+        inputInfo[STICK_L_LEFT].m_type = SInputInfo::INPUTTYPE_BUTTON;
+        inputInfo[STICK_L_RIGHT].m_type = SInputInfo::INPUTTYPE_BUTTON;
+
+        inputInfo[STICK_R_UP].m_type = SInputInfo::INPUTTYPE_BUTTON;
+        inputInfo[STICK_R_DOWN].m_type = SInputInfo::INPUTTYPE_BUTTON;
+        inputInfo[STICK_R_LEFT].m_type = SInputInfo::INPUTTYPE_BUTTON;
+        inputInfo[STICK_R_RIGHT].m_type = SInputInfo::INPUTTYPE_BUTTON;
     }
 
     void ZPad_Base::RegisterControlNames()
@@ -86,6 +96,14 @@ namespace ITF
             {BUTTON_FACE_EAST, "FACE_EAST"},
             {BUTTON_FACE_WEST, "FACE_WEST"},
             {BUTTON_FACE_NORTH, "FACE_NORTH"},
+            {STICK_L_UP, "STICK_L_UP"},
+            {STICK_L_DOWN, "STICK_L_DOWN"},
+            {STICK_L_LEFT, "STICK_L_LEFT"},
+            {STICK_L_RIGHT, "STICK_L_RIGHT"},
+            {STICK_R_UP, "STICK_R_UP"},
+            {STICK_R_DOWN, "STICK_R_DOWN"},
+            {STICK_R_LEFT, "STICK_R_LEFT"},
+            {STICK_R_RIGHT, "STICK_R_RIGHT"},
         };
 
         for (const ControlName& control : kCanonicalNames)
@@ -114,6 +132,17 @@ namespace ITF
         deviceInfo.m_inputInfo[STICK_RY].m_axisInfo.m_axis = axes[m_joyStickRight_Y];
         deviceInfo.m_inputInfo[TRIGGER_LEFT].m_axisInfo.m_axis = axes[m_joyTrigger_Left];
         deviceInfo.m_inputInfo[TRIGGER_RIGHT].m_axisInfo.m_axis = axes[m_joyTrigger_Right];
+
+        const f32 threshold = 0.5f;
+        deviceInfo.m_inputInfo[STICK_L_UP].m_buttonInfo.m_status = (axes[m_joyStickLeft_Y] > threshold) ? SInputInfo::BUTTONSTATUS_PRESS : SInputInfo::BUTTONSTATUS_NONE;
+        deviceInfo.m_inputInfo[STICK_L_DOWN].m_buttonInfo.m_status = (axes[m_joyStickLeft_Y] < -threshold) ? SInputInfo::BUTTONSTATUS_PRESS : SInputInfo::BUTTONSTATUS_NONE;
+        deviceInfo.m_inputInfo[STICK_L_LEFT].m_buttonInfo.m_status = (axes[m_joyStickLeft_X] < -threshold) ? SInputInfo::BUTTONSTATUS_PRESS : SInputInfo::BUTTONSTATUS_NONE;
+        deviceInfo.m_inputInfo[STICK_L_RIGHT].m_buttonInfo.m_status = (axes[m_joyStickLeft_X] > threshold) ? SInputInfo::BUTTONSTATUS_PRESS : SInputInfo::BUTTONSTATUS_NONE;
+
+        deviceInfo.m_inputInfo[STICK_R_UP].m_buttonInfo.m_status = (axes[m_joyStickRight_Y] > threshold) ? SInputInfo::BUTTONSTATUS_PRESS : SInputInfo::BUTTONSTATUS_NONE;
+        deviceInfo.m_inputInfo[STICK_R_DOWN].m_buttonInfo.m_status = (axes[m_joyStickRight_Y] < -threshold) ? SInputInfo::BUTTONSTATUS_PRESS : SInputInfo::BUTTONSTATUS_NONE;
+        deviceInfo.m_inputInfo[STICK_R_LEFT].m_buttonInfo.m_status = (axes[m_joyStickRight_X] < -threshold) ? SInputInfo::BUTTONSTATUS_PRESS : SInputInfo::BUTTONSTATUS_NONE;
+        deviceInfo.m_inputInfo[STICK_R_RIGHT].m_buttonInfo.m_status = (axes[m_joyStickRight_X] > threshold) ? SInputInfo::BUTTONSTATUS_PRESS : SInputInfo::BUTTONSTATUS_NONE;
     }
 
     void ZPad_Base::UpdateButtonStates(SDeviceInfo& deviceInfo, const InputAdapter::PressStatus* buttons)

@@ -264,10 +264,10 @@ namespace ITF
     {
         switch (_action)
         {
-        case Action_Up:    return ZPad_Base::DPAD_UP;
-        case Action_Down:  return ZPad_Base::DPAD_DOWN;
-        case Action_Left:  return ZPad_Base::DPAD_LEFT;
-        case Action_Right: return ZPad_Base::DPAD_RIGHT;
+        case Action_Up:    return ZPad_Base::STICK_L_UP;
+        case Action_Down:  return ZPad_Base::STICK_L_DOWN;
+        case Action_Left:  return ZPad_Base::STICK_L_LEFT;
+        case Action_Right: return ZPad_Base::STICK_L_RIGHT;
         case Action_Run:   return ZPad_Base::TRIGGER_RIGHT;
         case Action_Jump:  return ZPad_Base::BUTTON_FACE_SOUTH;
         case Action_Hit:   return ZPad_Base::BUTTON_FACE_WEST;

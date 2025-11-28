@@ -837,6 +837,12 @@ namespace ITF
                 case ZPad_Base::BUTTON_FACE_EAST:  return isPS5 ? "PS5_BUTTON_CIRCLE" : "PS3_BUTTON_CIRCLE";
                 case ZPad_Base::BUTTON_FACE_WEST:  return isPS5 ? "PS5_BUTTON_SQUARE" : "PS3_BUTTON_SQUARE";
                 case ZPad_Base::BUTTON_FACE_NORTH: return isPS5 ? "PS5_BUTTON_TRIANGLE" : "PS3_BUTTON_TRIANGLE";
+                case ZPad_Base::STICK_LX:
+                case ZPad_Base::STICK_LY:          return isPS5 ? "PS5_STICK_L" : "PS3_STICK";
+                case ZPad_Base::STICK_L_UP:        return isPS5 ? "PS5_STICK_L_UP" : "PS3_STICK_L_UP";
+                case ZPad_Base::STICK_L_DOWN:      return isPS5 ? "PS5_STICK_L_DOWN" : "PS3_STICK_L_DOWN";
+                case ZPad_Base::STICK_L_LEFT:      return isPS5 ? "PS5_STICK_L_LEFT" : "PS3_STICK_L_LEFT";
+                case ZPad_Base::STICK_L_RIGHT:     return isPS5 ? "PS5_STICK_L_RIGHT" : "PS3_STICK_L_RIGHT";
                 case ZPad_Base::DPAD_UP:           return isPS5 ? "PS5_DPAD_UP" : "PS3_DPAD";
                 case ZPad_Base::DPAD_DOWN:         return isPS5 ? "PS5_DPAD_DOWN" : "PS3_DPAD";
                 case ZPad_Base::DPAD_LEFT:         return isPS5 ? "PS5_DPAD_LEFT" : "PS3_DPAD";
@@ -861,10 +867,24 @@ namespace ITF
                 case ZPad_Base::BUTTON_FACE_EAST:  return isSeries ? "XBOX_BUTTON_B" : "X360_BUTTON_B";
                 case ZPad_Base::BUTTON_FACE_WEST:  return isSeries ? "XBOX_BUTTON_X" : "X360_BUTTON_X";
                 case ZPad_Base::BUTTON_FACE_NORTH: return isSeries ? "XBOX_BUTTON_Y" : "X360_BUTTON_Y";
-                case ZPad_Base::DPAD_UP:
-                case ZPad_Base::DPAD_DOWN:
-                case ZPad_Base::DPAD_LEFT:
-                case ZPad_Base::DPAD_RIGHT:        return isSeries ? "XBOX_DPAD" : "X360_DPAD";
+                case ZPad_Base::STICK_LX:
+                case ZPad_Base::STICK_LY:
+                case ZPad_Base::BUTTON_L_THUMB:    return isSeries ? "XBOX_STICK_L" : "X360_STICK_L";
+                case ZPad_Base::STICK_L_UP:        return isSeries ? "XBOX_STICK_L_UP" : "X360_STICK_L_UP";
+                case ZPad_Base::STICK_L_DOWN:      return isSeries ? "XBOX_STICK_L_DOWN" : "X360_STICK_L_DOWN";
+                case ZPad_Base::STICK_L_LEFT:      return isSeries ? "XBOX_STICK_L_LEFT" : "X360_STICK_L_LEFT";
+                case ZPad_Base::STICK_L_RIGHT:     return isSeries ? "XBOX_STICK_L_RIGHT" : "X360_STICK_L_RIGHT";
+                case ZPad_Base::STICK_RX:
+                case ZPad_Base::STICK_RY:
+                case ZPad_Base::BUTTON_R_THUMB:    return isSeries ? "XBOX_STICK_R" : "X360_STICK_R";
+                case ZPad_Base::STICK_R_UP:        return isSeries ? "XBOX_STICK_R_UP" : "X360_STICK_R_UP";
+                case ZPad_Base::STICK_R_DOWN:      return isSeries ? "XBOX_STICK_R_DOWN" : "X360_STICK_R_DOWN";
+                case ZPad_Base::STICK_R_LEFT:      return isSeries ? "XBOX_STICK_R_LEFT" : "X360_STICK_R_LEFT";
+                case ZPad_Base::STICK_R_RIGHT:     return isSeries ? "XBOX_STICK_R_RIGHT" : "X360_STICK_R_RIGHT";
+                case ZPad_Base::DPAD_UP:           return isSeries ? "XBOX_DPAD_UP" : "X360_DPAD_UP";
+                case ZPad_Base::DPAD_DOWN:         return isSeries ? "XBOX_DPAD_DOWN" : "X360_DPAD_DOWN";
+                case ZPad_Base::DPAD_LEFT:         return isSeries ? "XBOX_DPAD_LEFT" : "X360_DPAD_LEFT";
+                case ZPad_Base::DPAD_RIGHT:        return isSeries ? "XBOX_DPAD_RIGHT" : "X360_DPAD_RIGHT";
                 case ZPad_Base::BUTTON_L_SHOULDER: return isSeries ? "XBOX_BUTTON_LB" : "X360_BUTTON_LB";
                 case ZPad_Base::BUTTON_R_SHOULDER: return isSeries ? "XBOX_BUTTON_RB" : "X360_BUTTON_RB";
                 case ZPad_Base::TRIGGER_LEFT:      return isSeries ? "XBOX_BUTTON_LT" : "X360_BUTTON_LT";
@@ -884,6 +904,12 @@ namespace ITF
                 case ZPad_Base::BUTTON_FACE_EAST:  return "SWITCH_BUTTON_A";
                 case ZPad_Base::BUTTON_FACE_WEST:  return "SWITCH_BUTTON_Y";
                 case ZPad_Base::BUTTON_FACE_NORTH: return "SWITCH_BUTTON_X";
+                case ZPad_Base::STICK_LX:
+                case ZPad_Base::STICK_LY:          return "SWITCH_STICK_L";
+                case ZPad_Base::STICK_L_UP:        return "SWITCH_STICK_L_UP";
+                case ZPad_Base::STICK_L_DOWN:      return "SWITCH_STICK_L_DOWN";
+                case ZPad_Base::STICK_L_LEFT:      return "SWITCH_STICK_L_LEFT";
+                case ZPad_Base::STICK_L_RIGHT:     return "SWITCH_STICK_L_RIGHT";
                 case ZPad_Base::DPAD_UP:           return "SWITCH_PRO_DPAD_UP";
                 case ZPad_Base::DPAD_DOWN:         return "SWITCH_PRO_DPAD_DOWN";
                 case ZPad_Base::DPAD_LEFT:         return "SWITCH_PRO_DPAD_LEFT";
@@ -915,7 +941,6 @@ namespace ITF
             slot = IconSlot_X360;
         }
         const char* iconName = GetIconNameFromControl(physicalControl, slot);
-        LOG("%d | %s", _playerIndex, iconName);
         if (iconName && iconName[0] != '\0')
         {
             return String8(iconName);
@@ -928,10 +953,7 @@ namespace ITF
     {
         const char* rawStr = _tagContent.cStr();
         const char* dashPtr = strchr(rawStr, '-');
-
-        if (!dashPtr) return String8::emptyString;
-
-        i32 dashPos = (i32)(dashPtr - rawStr);
+        i32 dashPos = dashPtr ? (i32)(dashPtr - rawStr) : (i32)strlen(rawStr);
 
         char actionBuf[64];
         if (dashPos < 64) {
@@ -942,7 +964,11 @@ namespace ITF
         }
         String8 actionStr(actionBuf);
 
-        u32 playerIndex = atoi(dashPtr + 1);
+        u32 playerIndex = 0;
+        if (dashPtr && dashPtr[1] != '\0')
+        {
+            playerIndex = (u32)atoi(dashPtr + 1);
+        }
         if (INPUT_ADAPTER)
         {
              if (playerIndex >= JOY_MAX_COUNT) return String8::emptyString;
