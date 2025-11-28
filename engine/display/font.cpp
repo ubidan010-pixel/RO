@@ -910,16 +910,63 @@ void Font::writeBox(u32 color,f32 x, f32 y, f32 z, bbool _isRender2D, const Vec3
             if(tagOpened)
             {
                 static const String iconTag = FontPrivate::BuildNamedTag("icon");
+                static const String actionTag = FontPrivate::BuildNamedTag("ACTION");
                 static const String actorTag = FontPrivate::BuildNamedTag("actor");
                 static const u32 iconTagBeginSize = iconTag.getLen();
+                static const u32 actionTagBeginSize = actionTag.getLen();
                 static const u32 actorTagBeginSize = actorTag.getLen();
-                i32 indexIconBegin, indexIconEnd;
+                i32 indexIconBegin, indexIconEnd, indexActionBegin;
                 String8 textWithoutTags = "";
 
                 word.strstr(iconTag.cStr(), bfalse, &indexIconBegin);
+                word.strstr(actionTag.cStr(), bfalse, &indexActionBegin);
                 word.strstr(FontPrivate::END_TAG_DELIMITER, bfalse, &indexIconEnd);
 
-                if (indexIconBegin != -1 && indexIconEnd != -1 && indexIconEnd > indexIconBegin) // Tag found
+                if (indexActionBegin != -1 && indexIconEnd != -1 && indexIconEnd > indexActionBegin) // ACTION Tag found
+                {
+                    String charsAfterBraket(word.substr(indexIconEnd+1, word.getLen()- 1 - indexIconEnd));
+                    const String actionContent = word.substr(indexActionBegin + actionTagBeginSize, indexIconEnd - indexActionBegin - actionTagBeginSize);
+                    String8 actionContent8(actionContent.cStr());
+
+                    String8 iconName8 = UI_TEXTMANAGER->GetIconFromActionTag(actionContent8);
+
+                    if (!iconName8.isEmpty())
+                    {
+                        newicon = TAGicon();
+                        newicon.m_isSkipIcon = bfalse;
+                        newicon.m_isMenuLogo = bfalse;
+
+                        if (UI_TEXTMANAGER->getIconInfo(iconName8, newicon.m_isButton, newicon.m_index))
+                        {
+                            newicon.m_controllerType = UI_TEXTMANAGER->getControllerTypeFromIcon(iconName8);
+
+                            // compute space char from size of icon
+                            f32 spaceW = getTextWidth(" ", 1);
+                            i32 nb = ((i32)(iconSize/spaceW) - 1) + ((i32)(iconXOffset/spaceW));
+                            nb = Max(0, nb);
+
+                            // Check why this is happening (and remove the clamp when solved)
+                            ITF_WARNING_CATEGORY(Engine,NULL,nb <= MAX_SPACES_BY_ICON,"Trying to insert %d spaces to display an icon, please check this",nb);
+                            nb = Clamp(nb,0,MAX_SPACES_BY_ICON);
+
+                            word ="";
+                            for (i32 i=0; i< nb; i++)
+                                word += " ";
+
+                            f32 globalspacesize = (nb*spaceW) + spaceW*2;
+                            wordWidth = globalspacesize - spaceW;
+
+                            f32 shiftx = (globalspacesize - iconSize)*0.5f;
+                            newicon.m_pos = Vec2d(curPos + shiftx - spaceW , 0.f);
+                            addIcon = btrue;
+                            wordCount++;
+                        }
+                    }
+
+                    wordWidth += getTextWidth(charsAfterBraket.cStr(), charsAfterBraket.getLen());
+                    word += charsAfterBraket;
+                }
+                else if (indexIconBegin != -1 && indexIconEnd != -1 && indexIconEnd > indexIconBegin) // Tag found
                 {
                     String charsAfterBraket(word.substr(indexIconEnd+1, word.getLen()- 1 - indexIconEnd));
 
@@ -954,28 +1001,7 @@ void Font::writeBox(u32 color,f32 x, f32 y, f32 z, bbool _isRender2D, const Vec3
 
                     if (newicon.m_isSkipIcon || newicon.m_isMenuLogo || UI_TEXTMANAGER->getIconInfo(iconName8, newicon.m_isButton, newicon.m_index))
                     {
-                        if (iconName8.startsWith("WII_"))
-                            newicon.m_controllerType = CONTROLLER_WII;
-                        else if (iconName8.startsWith("PS3_"))
-                            newicon.m_controllerType = CONTROLLER_PS3;
-                        else if (iconName8.startsWith("PS5_"))
-                            newicon.m_controllerType = CONTROLLER_PS5;
-                        else if (iconName8.startsWith("VITA_"))
-                            newicon.m_controllerType = CONTROLLER_VITA;
-                        else if (iconName8.startsWith("CTR_"))
-                            newicon.m_controllerType = CONTROLLER_CTR;
-                        else if (iconName8.startsWith("SWITCH_"))
-                            newicon.m_controllerType = CONTROLLER_SWITCH;
-                        else if (iconName8.startsWith("OUNCE_"))
-                            newicon.m_controllerType = CONTROLLER_OUNCE;
-                        else if (iconName8.startsWith("XBOX_"))
-                            newicon.m_controllerType = CONTROLLER_XBOX;
-                        else if (iconName8.startsWith("X360_"))
-                            newicon.m_controllerType = CONTROLLER_X360;
-                        else if (iconName8.startsWith("KEYBOARD_"))
-                            newicon.m_controllerType = CONTROLLER_KEYBOARD;
-                        else
-                            newicon.m_controllerType = CONTROLLER_DEFAULT;
+                        newicon.m_controllerType = UI_TEXTMANAGER->getControllerTypeFromIcon(iconName8);
 
                         // compute space char from size of icon
                         f32 spaceW = getTextWidth(" ", 1);

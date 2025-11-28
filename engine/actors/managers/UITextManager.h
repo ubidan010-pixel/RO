@@ -123,9 +123,12 @@ namespace ITF
         Texture*        getButtonTexture();
         Texture*        getButtonTexture(const String8& _iconName) const;
         Texture*        getButtonTextureByType(i32 _controllerType) const;
+        EControllerType getControllerTypeFromIcon(const String8& _iconName) const;
         Texture*        getGpeTexture();
         Texture*        getSkipIconsTexture();
         Texture*        getMenuLogosTexture();
+        String8         GetIconForAction(u32 _playerIndex, u32 _action);
+        String8         GetIconFromActionTag(const String8& _tagContent);
 
         ITF_INLINE f32  getMenuLogoScale() const { return 0.28f; }
 

@@ -52,6 +52,18 @@
 #include "gameplay/Managers/GameManager.h"
 #endif //_ITF_GAMEMANAGER_H_
 
+#ifndef _ITF_ZINPUTMANAGER_H_
+#include "engine/zinput/ZInputManager.h"
+#endif //_ITF_ZINPUTMANAGER_H_
+
+#ifndef _ITF_ZPAD_BASE_H_
+#include "engine/zinput/ZPad_Base.h"
+#endif //_ITF_ZPAD_BASE_H_
+
+#ifndef _ITF_INPUTADAPTER_H_
+#include "engine/AdaptersInterfaces/InputAdapter.h"
+#endif //_ITF_INPUTADAPTER_H_
+
 
 namespace ITF
 {
@@ -113,6 +125,59 @@ namespace ITF
         case CONTROLLER_KEYBOARD:    return IconSlot_Keyboard;
         default:                     return IconSlot_Default;
         }
+    }
+
+    static EControllerType ControllerTypeFromSlot(ControllerIconSlot _slot)
+    {
+        switch (_slot)
+        {
+        case IconSlot_Wii:        return CONTROLLER_WII;
+        case IconSlot_PS3:        return CONTROLLER_PS3;
+        case IconSlot_PS5:        return CONTROLLER_PS5;
+        case IconSlot_Vita:       return CONTROLLER_VITA;
+        case IconSlot_CTR:        return CONTROLLER_CTR;
+        case IconSlot_Switch:     return CONTROLLER_SWITCH;
+        case IconSlot_Ounce:      return CONTROLLER_OUNCE;
+        case IconSlot_XboxSeries: return CONTROLLER_XBOX;
+        case IconSlot_X360:       return CONTROLLER_X360;
+        case IconSlot_Keyboard:   return CONTROLLER_KEYBOARD;
+        default:                  return CONTROLLER_DEFAULT;
+        }
+    }
+
+    static ControllerIconSlot ControllerSlotFromPadType(InputAdapter::PadType _padType)
+    {
+        switch (_padType)
+        {
+        case InputAdapter::Pad_WiiSideWay:
+        case InputAdapter::Pad_WiiNunchuk:
+        case InputAdapter::Pad_WiiClassic:
+            return IconSlot_Wii;
+        case InputAdapter::Pad_PS3:
+            return IconSlot_PS3;
+        case InputAdapter::Pad_PS5:
+            return IconSlot_PS5;
+        case InputAdapter::Pad_Vita:
+            return IconSlot_Vita;
+        case InputAdapter::Pad_CTR:
+            return IconSlot_CTR;
+        case InputAdapter::Pad_NX_Joycon:
+        case InputAdapter::Pad_NX_Joycon_Dual:
+        case InputAdapter::Pad_NX_Pro:
+            return IconSlot_Switch;
+        case InputAdapter::Pad_Other:
+            return IconSlot_Default;
+        case InputAdapter::Pad_X360:
+            return IconSlot_X360;
+        case InputAdapter::Pad_GenericXBox:
+            return IconSlot_XboxSeries;
+        case InputAdapter::Pad_Keyboard:
+            return IconSlot_Keyboard;
+        default:
+            break;
+        }
+
+        return IconSlot_Default;
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -689,6 +754,13 @@ namespace ITF
     }
 
     //////////////////////////////////////////////////////////////////////////
+    EControllerType UITextManager::getControllerTypeFromIcon(const String8& _iconName) const
+    {
+        ControllerIconSlot slot = ControllerSlotFromIconName(_iconName);
+        return ControllerTypeFromSlot(slot);
+    }
+
+    //////////////////////////////////////////////////////////////////////////
     Texture *UITextManager::getGpeTexture()
     {
         return (Texture*)m_gpeTextureId.getResource();
@@ -749,5 +821,146 @@ namespace ITF
         SERIALIZE_MEMBER("gpePath", m_gpePath);
         SERIALIZE_CONTAINER("gpeNames", m_gpeNames);
     END_SERIALIZATION()
+
+    ////////////////////////////////////////////////////////////////////////////
+    static const char* GetIconNameFromControl(u32 control, ControllerIconSlot slot)
+    {
+        switch (slot)
+        {
+        case IconSlot_PS5:
+        case IconSlot_PS3:
+            {
+                bbool isPS5 = (slot == IconSlot_PS5);
+                switch (control)
+                {
+                case ZPad_Base::BUTTON_FACE_SOUTH: return isPS5 ? "PS5_BUTTON_CROSS" : "PS3_BUTTON_CROSS";
+                case ZPad_Base::BUTTON_FACE_EAST:  return isPS5 ? "PS5_BUTTON_CIRCLE" : "PS3_BUTTON_CIRCLE";
+                case ZPad_Base::BUTTON_FACE_WEST:  return isPS5 ? "PS5_BUTTON_SQUARE" : "PS3_BUTTON_SQUARE";
+                case ZPad_Base::BUTTON_FACE_NORTH: return isPS5 ? "PS5_BUTTON_TRIANGLE" : "PS3_BUTTON_TRIANGLE";
+                case ZPad_Base::DPAD_UP:           return isPS5 ? "PS5_DPAD_UP" : "PS3_DPAD";
+                case ZPad_Base::DPAD_DOWN:         return isPS5 ? "PS5_DPAD_DOWN" : "PS3_DPAD";
+                case ZPad_Base::DPAD_LEFT:         return isPS5 ? "PS5_DPAD_LEFT" : "PS3_DPAD";
+                case ZPad_Base::DPAD_RIGHT:        return isPS5 ? "PS5_DPAD_RIGHT" : "PS3_DPAD";
+                case ZPad_Base::BUTTON_L_SHOULDER: return isPS5 ? "PS5_BUTTON_L1" : "PS3_BUTTON_L1";
+                case ZPad_Base::BUTTON_R_SHOULDER: return isPS5 ? "PS5_BUTTON_R1" : "PS3_BUTTON_R1";
+                case ZPad_Base::TRIGGER_LEFT:      return isPS5 ? "PS5_BUTTON_L2" : "PS3_BUTTON_L2";
+                case ZPad_Base::TRIGGER_RIGHT:     return isPS5 ? "PS5_BUTTON_R2" : "PS3_BUTTON_R2";
+                case ZPad_Base::BUTTON_SELECT:     return isPS5 ? "PS5_BUTTON_TOUCHPAD" : "PS3_BUTTON_SELECT";
+                case ZPad_Base::BUTTON_START:      return isPS5 ? "PS5_BUTTON_OPTIONS" : "PS3_BUTTON_START";
+                }
+            }
+            break;
+
+        case IconSlot_X360:
+        case IconSlot_XboxSeries:
+            {
+                bbool isSeries = (slot == IconSlot_XboxSeries);
+                switch (control)
+                {
+                case ZPad_Base::BUTTON_FACE_SOUTH: return isSeries ? "XBOX_BUTTON_A" : "X360_BUTTON_A";
+                case ZPad_Base::BUTTON_FACE_EAST:  return isSeries ? "XBOX_BUTTON_B" : "X360_BUTTON_B";
+                case ZPad_Base::BUTTON_FACE_WEST:  return isSeries ? "XBOX_BUTTON_X" : "X360_BUTTON_X";
+                case ZPad_Base::BUTTON_FACE_NORTH: return isSeries ? "XBOX_BUTTON_Y" : "X360_BUTTON_Y";
+                case ZPad_Base::DPAD_UP:
+                case ZPad_Base::DPAD_DOWN:
+                case ZPad_Base::DPAD_LEFT:
+                case ZPad_Base::DPAD_RIGHT:        return isSeries ? "XBOX_DPAD" : "X360_DPAD";
+                case ZPad_Base::BUTTON_L_SHOULDER: return isSeries ? "XBOX_BUTTON_LB" : "X360_BUTTON_LB";
+                case ZPad_Base::BUTTON_R_SHOULDER: return isSeries ? "XBOX_BUTTON_RB" : "X360_BUTTON_RB";
+                case ZPad_Base::TRIGGER_LEFT:      return isSeries ? "XBOX_BUTTON_LT" : "X360_BUTTON_LT";
+                case ZPad_Base::TRIGGER_RIGHT:     return isSeries ? "XBOX_BUTTON_RT" : "X360_BUTTON_RT";
+                case ZPad_Base::BUTTON_SELECT:     return isSeries ? "XBOX_BUTTON_BACK" : "X360_BUTTON_BACK";
+                case ZPad_Base::BUTTON_START:      return isSeries ? "XBOX_BUTTON_START" : "X360_BUTTON_START";
+                }
+            }
+            break;
+
+        case IconSlot_Switch:
+        case IconSlot_Ounce:
+            {
+                switch (control)
+                {
+                case ZPad_Base::BUTTON_FACE_SOUTH: return "SWITCH_BUTTON_B";
+                case ZPad_Base::BUTTON_FACE_EAST:  return "SWITCH_BUTTON_A";
+                case ZPad_Base::BUTTON_FACE_WEST:  return "SWITCH_BUTTON_Y";
+                case ZPad_Base::BUTTON_FACE_NORTH: return "SWITCH_BUTTON_X";
+                case ZPad_Base::DPAD_UP:           return "SWITCH_PRO_DPAD_UP";
+                case ZPad_Base::DPAD_DOWN:         return "SWITCH_PRO_DPAD_DOWN";
+                case ZPad_Base::DPAD_LEFT:         return "SWITCH_PRO_DPAD_LEFT";
+                case ZPad_Base::DPAD_RIGHT:        return "SWITCH_PRO_DPAD_RIGHT";
+                case ZPad_Base::BUTTON_L_SHOULDER: return "SWITCH_BUTTON_L";
+                case ZPad_Base::BUTTON_R_SHOULDER: return "SWITCH_BUTTON_R";
+                case ZPad_Base::TRIGGER_LEFT:      return "SWITCH_BUTTON_ZL";
+                case ZPad_Base::TRIGGER_RIGHT:     return "SWITCH_BUTTON_ZR";
+                case ZPad_Base::BUTTON_SELECT:     return "SWITCH_BUTTON_MINUS";
+                case ZPad_Base::BUTTON_START:      return "SWITCH_BUTTON_PLUS";
+                }
+            }
+            break;
+        }
+        return "";
+    }
+
+    String8 UITextManager::GetIconForAction(u32 _playerIndex, u32 _action)
+    {
+        if (!GAMEMANAGER || !GAMEMANAGER->getInputManager())
+            return String8::emptyString;
+        u32 physicalControl = GAMEMANAGER->getInputManager()->GetPhysicalFromAction(_playerIndex, (ZInputManager::EGameAction)_action);
+        if (physicalControl == U32_INVALID)
+            return String8::emptyString;
+        InputAdapter::PadType padType = INPUT_ADAPTER->getDebugInputPadType(_playerIndex);
+        ControllerIconSlot slot = ControllerSlotFromPadType(padType);
+        if (slot == IconSlot_Default)
+        {
+            slot = IconSlot_X360;
+        }
+        const char* iconName = GetIconNameFromControl(physicalControl, slot);
+        LOG("%d | %s", _playerIndex, iconName);
+        if (iconName && iconName[0] != '\0')
+        {
+            return String8(iconName);
+        }
+
+        return String8::emptyString;
+    }
+
+    String8 UITextManager::GetIconFromActionTag(const String8& _tagContent)
+    {
+        const char* rawStr = _tagContent.cStr();
+        const char* dashPtr = strchr(rawStr, '-');
+
+        if (!dashPtr) return String8::emptyString;
+
+        i32 dashPos = (i32)(dashPtr - rawStr);
+
+        char actionBuf[64];
+        if (dashPos < 64) {
+            strncpy(actionBuf, rawStr, dashPos);
+            actionBuf[dashPos] = 0;
+        } else {
+            return String8::emptyString;
+        }
+        String8 actionStr(actionBuf);
+
+        u32 playerIndex = atoi(dashPtr + 1);
+        if (INPUT_ADAPTER)
+        {
+             if (playerIndex >= JOY_MAX_COUNT) return String8::emptyString;
+        }
+
+        u32 action = ZInputManager::Action_Count;
+        if (actionStr == "Action_Up") action = ZInputManager::Action_Up;
+        else if (actionStr == "Action_Down") action = ZInputManager::Action_Down;
+        else if (actionStr == "Action_Left") action = ZInputManager::Action_Left;
+        else if (actionStr == "Action_Right") action = ZInputManager::Action_Right;
+        else if (actionStr == "Action_Run") action = ZInputManager::Action_Run;
+        else if (actionStr == "Action_Jump") action = ZInputManager::Action_Jump;
+        else if (actionStr == "Action_Hit") action = ZInputManager::Action_Hit;
+        else if (actionStr == "Action_Back") action = ZInputManager::Action_Back;
+
+        if (action == ZInputManager::Action_Count) return String8::emptyString;
+
+        return GetIconForAction(playerIndex, action);
+    }
 
 }
