@@ -1,5 +1,8 @@
 #include "precompiled_core.h"
 
+#include <iostream>
+#include <ostream>
+
 #ifndef _ITF_ERRORHANDLER_H_
 #include "core/error/ErrorHandler.h"
 #endif //_ITF_ERRORHANDLER_H_
@@ -217,6 +220,7 @@ void ErrorHandler::Log(const char* _szFormat, ...)
 #endif
     {
         ITF_OUTPUT_LOG_TO_CONSOLE(localBuffer);
+        std::cout << localBuffer << std::endl;
     }
     va_end(args0);
     return;
@@ -243,6 +247,7 @@ void ErrorHandler::Log(const char* _szFormat, ...)
         MSG_AddString(buffer);
         MSG_Display();
 #endif
+        std::cout << buffer << std::endl;
     }
     va_end(args);
 
