@@ -5,10 +5,6 @@
 #include "gameplay/components/UI/UIComponent.h"
 #endif //_ITF_UICOMPONENT_H_
 
-#ifndef _ITF_EVENTLISTENER_H_
-#include "engine/events/IEventListener.h"
-#endif //_ITF_EVENTLISTENER_H_
-
 #ifndef _ITF_INPUTADAPTER_H_
 #include "engine/AdaptersInterfaces/InputAdapter.h"
 #endif //_ITF_INPUTADAPTER_H_
@@ -42,17 +38,13 @@ namespace ITF
         virtual     void        onRollover          ();
         virtual     void        onRollout           ();
         virtual     void        onAction            (const StringID & action);
-
-        // Profile slot index (0-3 for 4 players)
         ITF_INLINE u32          getPlayerIndex() const { return m_playerIndex; }
         void                    setPlayerIndex(u32 index) { m_playerIndex = index; }
-
-        // Reset button path (userfriendly name)
         ITF_INLINE const StringID& getResetButtonPath() const { return m_resetButtonPath; }
-
-        // Controller connection state
         bbool                    isControllerConnected() const;
         InputAdapter::PadType    getControllerType() const;
+        static u32               getConnectedControllersCount();
+        static void              logAllControllersState();
 
         // IEventListener interface
         virtual void             onEvent(Event* _event) override;

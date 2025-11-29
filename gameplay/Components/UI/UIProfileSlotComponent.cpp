@@ -96,6 +96,18 @@ namespace ITF
             m_controllerType = INPUT_ADAPTER->getPadType(m_playerIndex);
         }
 
+        // Log initialization info
+        LOG("[UIProfileSlotComponent] Initialized for player %u - Controller connected: %s, Type: %d",
+            m_playerIndex,
+            m_isControllerConnected ? "true" : "false",
+            static_cast<i32>(m_controllerType));
+
+        // Log all connected controllers on first slot initialization
+        if (m_playerIndex == 0)
+        {
+            logAllControllersState();
+        }
+
         // Register for controller events
         registerEventListeners();
 
@@ -207,10 +219,20 @@ namespace ITF
         m_isControllerConnected = connected;
         m_controllerType = padType;
 
+        // Log the state change
+        LOG("[UIProfileSlotComponent] Player %u controller state changed: %s -> %s (Type: %d)",
+            m_playerIndex,
+            wasConnected ? "connected" : "disconnected",
+            connected ? "connected" : "disconnected",
+            static_cast<i32>(padType));
+
         // State changed - update UI accordingly
         if (wasConnected != connected)
         {
             updateResetButtonVisibility();
+            
+            // Log current total connected controllers
+            LOG("[UIProfileSlotComponent] Total connected controllers: %u", getConnectedControllersCount());
         }
     }
 
@@ -220,6 +242,44 @@ namespace ITF
         // TODO: Implement show/hide logic for reset button based on controller connection
         // This can be expanded later to find the reset button actor by userfriendly name
         // and enable/disable it based on m_isControllerConnected
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    u32 UIProfileSlotComponent::getConnectedControllersCount()
+    {
+        u32 count = 0;
+        if (INPUT_ADAPTER)
+        {
+            for (u32 i = 0; i < JOY_MAX_COUNT; ++i)
+            {
+                if (INPUT_ADAPTER->isPadConnected(i))
+                {
+                    ++count;
+                }
+            }
+        }
+        return count;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    void UIProfileSlotComponent::logAllControllersState()
+    {
+        LOG("[UIProfileSlotComponent] === Controllers State Summary ===");
+        LOG("[UIProfileSlotComponent] Total connected: %u / %u", getConnectedControllersCount(), JOY_MAX_COUNT);
+        
+        if (INPUT_ADAPTER)
+        {
+            for (u32 i = 0; i < JOY_MAX_COUNT; ++i)
+            {
+                bbool connected = INPUT_ADAPTER->isPadConnected(i);
+                InputAdapter::PadType padType = INPUT_ADAPTER->getPadType(i);
+                LOG("[UIProfileSlotComponent]   Player %u: %s (Type: %d)",
+                    i,
+                    connected ? "CONNECTED" : "disconnected",
+                    static_cast<i32>(padType));
+            }
+        }
+        LOG("[UIProfileSlotComponent] =================================");
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
