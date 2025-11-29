@@ -28,6 +28,18 @@ namespace ITF
         BEGIN_CONDITION_BLOCK(ESerializeGroup_DataEditable)
             SERIALIZE_MEMBER("playerIndex", m_playerIndex);
             SERIALIZE_MEMBER("resetButtonPath", m_resetButtonPath);
+            SERIALIZE_MEMBER("controlsPath", m_controlsPath);
+            SERIALIZE_MEMBER("presetPath", m_presetPath);
+            SERIALIZE_MEMBER("playerTitlePath", m_playerTitlePath);
+            SERIALIZE_MEMBER("actionsBgPath", m_actionsBgPath);
+            SERIALIZE_MEMBER("actionUpPath", m_actionUpPath);
+            SERIALIZE_MEMBER("actionDownPath", m_actionDownPath);
+            SERIALIZE_MEMBER("actionLeftPath", m_actionLeftPath);
+            SERIALIZE_MEMBER("actionRightPath", m_actionRightPath);
+            SERIALIZE_MEMBER("actionRunPath", m_actionRunPath);
+            SERIALIZE_MEMBER("actionJumpPath", m_actionJumpPath);
+            SERIALIZE_MEMBER("actionHitPath", m_actionHitPath);
+            SERIALIZE_MEMBER("actionBackPath", m_actionBackPath);
         END_CONDITION_BLOCK()
     END_SERIALIZATION()
 
@@ -36,6 +48,18 @@ namespace ITF
     : Super()
     , m_playerIndex(0)
     , m_resetButtonPath()
+    , m_controlsPath()
+    , m_presetPath()
+    , m_playerTitlePath()
+    , m_actionsBgPath()
+    , m_actionUpPath()
+    , m_actionDownPath()
+    , m_actionLeftPath()
+    , m_actionRightPath()
+    , m_actionRunPath()
+    , m_actionJumpPath()
+    , m_actionHitPath()
+    , m_actionBackPath()
     , m_isControllerConnected(bfalse)
     , m_controllerType(InputAdapter::Pad_Invalid)
     , m_eventListenerRegistered(bfalse)
@@ -54,6 +78,18 @@ namespace ITF
     {
         m_playerIndex = 0;
         m_resetButtonPath.clear();
+        m_controlsPath.clear();
+        m_presetPath.clear();
+        m_playerTitlePath.clear();
+        m_actionsBgPath.clear();
+        m_actionUpPath.clear();
+        m_actionDownPath.clear();
+        m_actionLeftPath.clear();
+        m_actionRightPath.clear();
+        m_actionRunPath.clear();
+        m_actionJumpPath.clear();
+        m_actionHitPath.clear();
+        m_actionBackPath.clear();
         m_isControllerConnected = bfalse;
         m_controllerType = InputAdapter::Pad_Invalid;
     }
@@ -111,8 +147,8 @@ namespace ITF
         // Register for controller events
         registerEventListeners();
 
-        // Update reset button visibility based on initial state
-        updateResetButtonVisibility();
+        // Update all UI elements visibility based on initial state
+        updateAllVisibility();
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -133,7 +169,7 @@ namespace ITF
     {
         Super::onBecomeActive();
         registerEventListeners();
-        updateResetButtonVisibility();
+        updateAllVisibility();
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -229,7 +265,7 @@ namespace ITF
         // State changed - update UI accordingly
         if (wasConnected != connected)
         {
-            updateResetButtonVisibility();
+            updateAllVisibility();
             
             // Log current total connected controllers
             LOG("[UIProfileSlotComponent] Total connected controllers: %u", getConnectedControllersCount());
@@ -237,53 +273,51 @@ namespace ITF
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
-    void UIProfileSlotComponent::updateResetButtonVisibility()
+    void UIProfileSlotComponent::setActorVisibility(const String8& actorPath, bbool visible)
     {
-        // Skip if no reset button path is set
-        if (m_resetButtonPath.isEmpty())
-        {
-            LOG("[UIProfileSlotComponent] Player %u: No reset button path set", m_playerIndex);
+        if (actorPath.isEmpty() || !m_actor)
             return;
-        }
-
-        // Get the scene from the actor
-        if (!m_actor)
-        {
-            LOG("[UIProfileSlotComponent] Player %u: No actor found", m_playerIndex);
-            return;
-        }
 
         Scene* scene = m_actor->getScene();
         if (!scene)
+            return;
+
+        Actor* targetActor = scene->getActorFromUserFriendly(actorPath);
+        if (!targetActor)
         {
-            LOG("[UIProfileSlotComponent] Player %u: No scene found", m_playerIndex);
+            LOG("[UIProfileSlotComponent] Player %u: Actor '%s' not found", m_playerIndex, actorPath.cStr());
             return;
         }
 
-        // Find the reset button actor by its userfriendly name
-        Actor* resetButtonActor = scene->getActorFromUserFriendly(m_resetButtonPath);
-        if (!resetButtonActor)
-        {
-            LOG("[UIProfileSlotComponent] Player %u: Reset button actor '%s' not found in scene",
-                m_playerIndex, m_resetButtonPath.cStr());
-            return;
-        }
-
-        // Show reset button if controller is connected, hide if not
-        bbool shouldShow = isControllerConnected();
-        
-        if (shouldShow)
-        {
-            resetButtonActor->enable();
-            LOG("[UIProfileSlotComponent] Player %u: Showing reset button '%s' (controller connected)",
-                m_playerIndex, m_resetButtonPath.cStr());
-        }
+        if (visible)
+            targetActor->enable();
         else
-        {
-            resetButtonActor->disable();
-            LOG("[UIProfileSlotComponent] Player %u: Hiding reset button '%s' (controller disconnected)",
-                m_playerIndex, m_resetButtonPath.cStr());
-        }
+            targetActor->disable();
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    void UIProfileSlotComponent::updateAllVisibility()
+    {
+        bbool visible = isControllerConnected();
+        LOG("[UIProfileSlotComponent] Player %u: Updating visibility (controller %s)",
+            m_playerIndex, visible ? "connected" : "disconnected");
+
+        // Header elements
+        setActorVisibility(m_resetButtonPath, visible);
+        setActorVisibility(m_controlsPath, visible);
+        setActorVisibility(m_presetPath, visible);
+        setActorVisibility(m_playerTitlePath, visible);
+
+        // Actions background and icons
+        setActorVisibility(m_actionsBgPath, visible);
+        setActorVisibility(m_actionUpPath, visible);
+        setActorVisibility(m_actionDownPath, visible);
+        setActorVisibility(m_actionLeftPath, visible);
+        setActorVisibility(m_actionRightPath, visible);
+        setActorVisibility(m_actionRunPath, visible);
+        setActorVisibility(m_actionJumpPath, visible);
+        setActorVisibility(m_actionHitPath, visible);
+        setActorVisibility(m_actionBackPath, visible);
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
