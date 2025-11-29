@@ -923,10 +923,7 @@ namespace ITF
             }
             break;
 
-        case IconSlot_Default:
-        case IconSlot_Wii:
-        case IconSlot_Vita:
-        case IconSlot_CTR:
+        default:
             break;
         }
         return "";
