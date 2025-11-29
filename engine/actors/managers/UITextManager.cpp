@@ -894,8 +894,6 @@ namespace ITF
                 }
             }
             break;
-        case IconSlot_NX_Joycon:
-        case IconSlot_NX_Joycon_Dual:
         case IconSlot_Switch:
         case IconSlot_Ounce:
             {
