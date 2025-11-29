@@ -5,11 +5,18 @@
 #include "gameplay/components/UI/UIComponent.h"
 #endif //_ITF_UICOMPONENT_H_
 
+#ifndef _ITF_EVENTLISTENER_H_
+#include "engine/events/IEventListener.h"
+#endif //_ITF_EVENTLISTENER_H_
+
+#ifndef _ITF_INPUTADAPTER_H_
+#include "engine/AdaptersInterfaces/InputAdapter.h"
+#endif //_ITF_INPUTADAPTER_H_
+
 
 namespace ITF
 {
     class Actor;
-
     class UIProfileSlotComponent : public UIComponent
     {
         DECLARE_OBJECT_CHILD_RTTI(UIProfileSlotComponent, UIComponent, 1711782705);
@@ -43,14 +50,28 @@ namespace ITF
         // Reset button path (userfriendly name)
         ITF_INLINE const StringID& getResetButtonPath() const { return m_resetButtonPath; }
 
+        // Controller connection state
+        bbool                    isControllerConnected() const;
+        InputAdapter::PadType    getControllerType() const;
+
+        // IEventListener interface
+        virtual void             onEvent(Event* _event) override;
+
     protected:
         ITF_INLINE const class UIProfileSlotComponent_Template* getTemplate() const;
 
     private:
         virtual void            clear();
+        void                    registerEventListeners();
+        void                    unregisterEventListeners();
+        void                    updateResetButtonVisibility();
+        void                    onControllerStateChanged(u32 padIndex, bbool connected, InputAdapter::PadType padType);
 
         u32                     m_playerIndex;
         StringID                m_resetButtonPath;
+        bbool                   m_isControllerConnected;
+        InputAdapter::PadType   m_controllerType;
+        bbool                   m_eventListenerRegistered;
     };
 
     class UIProfileSlotComponent_Template : public UIComponent_Template
