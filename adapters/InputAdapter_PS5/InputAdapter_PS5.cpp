@@ -225,6 +225,7 @@ namespace ITF
         int pad = 0;
         for(pad = 0; pad < SCE_USER_SERVICE_MAX_LOGIN_USERS; ++pad)
         {
+            bbool wasConnected = isPadConnected(pad);
             bbool isEffectivelyConnected = bfalse;
             if(m_joyPadPort[pad].isConnected())
             {
@@ -236,6 +237,19 @@ namespace ITF
                 if (!isEffectivelyConnected)
                     joyPadPort.checkConnection(); // update port connection to detect deconnection
             }
+            
+            if (wasConnected != isEffectivelyConnected)
+            {
+                if (isEffectivelyConnected)
+                {
+                    OnControllerConnected(pad, -1, -1, true); // PS5 is always Sony
+                }
+                else
+                {
+                    OnControllerDisconnected(pad);
+                }
+            }
+            
             setPadConnected(pad, isEffectivelyConnected);
         }
     }

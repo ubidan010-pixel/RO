@@ -26,7 +26,22 @@ namespace ITF
 
         for (u32 padIdx = 0; padIdx < NbMaxPads; ++padIdx)
         {
-            setPadConnected(padIdx, m_padsHandler.isPadConnected(padIdx));
+            bbool wasConnected = isPadConnected(padIdx);
+            bbool isConnected = m_padsHandler.isPadConnected(padIdx);
+            
+            if (wasConnected != isConnected)
+            {
+                if (isConnected)
+                {
+                    OnControllerConnected(padIdx);
+                }
+                else
+                {
+                    OnControllerDisconnected(padIdx);
+                }
+            }
+            
+            setPadConnected(padIdx, isConnected);
         }
     }
 

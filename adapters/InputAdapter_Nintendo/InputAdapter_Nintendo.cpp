@@ -234,6 +234,7 @@ void InputAdapter_Nintendo::updateAllInputState()
     {
         const InputPad_Nintendo* pad = getPad(padInd);
 
+        bbool wasConnected = isPadConnected(padInd);
         bool isConnected;
         PadType padType;
         if (pad != nullptr)
@@ -245,6 +246,18 @@ void InputAdapter_Nintendo::updateAllInputState()
         {
             isConnected = false;
             padType = Pad_Invalid;
+        }
+
+        if (wasConnected != isConnected)
+        {
+            if (isConnected)
+            {
+                OnControllerConnected(padInd);
+            }
+            else
+            {
+                OnControllerDisconnected(padInd);
+            }
         }
 
         setPadConnected(padInd, isConnected);
