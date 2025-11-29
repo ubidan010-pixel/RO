@@ -894,7 +894,8 @@ namespace ITF
                 }
             }
             break;
-
+        case IconSlot_NX_Joycon:
+        case IconSlot_NX_Joycon_Dual:
         case IconSlot_Switch:
         case IconSlot_Ounce:
             {
@@ -922,6 +923,12 @@ namespace ITF
                 case ZPad_Base::BUTTON_START:      return "SWITCH_BUTTON_PLUS";
                 }
             }
+            break;
+
+        case IconSlot_Default:
+        case IconSlot_Wii:
+        case IconSlot_Vita:
+        case IconSlot_CTR:
             break;
         }
         return "";
