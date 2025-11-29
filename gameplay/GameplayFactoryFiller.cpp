@@ -399,6 +399,10 @@
 #include "gameplay/components/UI/UIProfileSlotComponent.h"
 #endif //_ITF_UIPROFILESLOTCOMPONENT_H_
 
+#ifndef _ITF_UIACTIONBUTTONCOMPONENT_H_
+#include "gameplay/components/UI/UIActionButtonComponent.h"
+#endif //_ITF_UIACTIONBUTTONCOMPONENT_H_
+
 #ifndef _ITF_SIMPLETEXTCOMPONENT_H_
 #include "gameplay/components/UI/SimpleTextComponent.h"
 #endif //_ITF_SIMPLETEXTCOMPONENT_H_
@@ -1051,6 +1055,7 @@ namespace ITF
         actorComponentsFactory->RegisterObject<UIToggleOptionComponent>(ITF_GET_STRINGID_CRC(UIToggleOptionComponent,3689192266));
         actorComponentsFactory->RegisterObject<UIFloatOptionComponent>(ITF_GET_STRINGID_CRC(UIFloatOptionComponent,226609316));
         actorComponentsFactory->RegisterObject<UIProfileSlotComponent>(ITF_GET_STRINGID_CRC(UIProfileSlotComponent,1711782705));
+        actorComponentsFactory->RegisterObject<UIActionButtonComponent>(ITF_GET_STRINGID_CRC(UIActionButtonComponent,2847391056));
         actorComponentsFactory->RegisterObject<ActiveBroadcastComponent>(ITF_GET_STRINGID_CRC(ActiveBroadcastComponent, 239394893));
     }
 
@@ -1071,6 +1076,7 @@ namespace ITF
         templatesFactory->RegisterObject<UIToggleOptionComponent_Template>(ITF_GET_STRINGID_CRC(UIToggleOptionComponent_Template,3491665612));
         templatesFactory->RegisterObject<UIFloatOptionComponent_Template>(ITF_GET_STRINGID_CRC(UIFloatOptionComponent_Template,443628752));
         templatesFactory->RegisterObject<UIProfileSlotComponent_Template>(ITF_GET_STRINGID_CRC(UIProfileSlotComponent_Template,4231517306));
+        templatesFactory->RegisterObject<UIActionButtonComponent_Template>(ITF_GET_STRINGID_CRC(UIActionButtonComponent_Template,3156892741));
         templatesFactory->RegisterObject<GraphicComponent_Template>(ITF_GET_STRINGID_CRC(GraphicComponent_Template,1900486610));
         templatesFactory->RegisterObject<TextureGraphicComponent_Template>(ITF_GET_STRINGID_CRC(TextureGraphicComponent_Template,2628666149));
         templatesFactory->RegisterObject<StandeeComponent_Template>(ITF_GET_STRINGID_CRC(StandeeComponent_Template,170543165));
