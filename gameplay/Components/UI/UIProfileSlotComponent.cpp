@@ -53,7 +53,7 @@ namespace ITF
     void UIProfileSlotComponent::clear()
     {
         m_playerIndex = 0;
-        m_resetButtonPath = StringID();
+        m_resetButtonPath.clear();
         m_isControllerConnected = bfalse;
         m_controllerType = InputAdapter::Pad_Invalid;
     }
@@ -239,9 +239,51 @@ namespace ITF
     ///////////////////////////////////////////////////////////////////////////////////////////
     void UIProfileSlotComponent::updateResetButtonVisibility()
     {
-        // TODO: Implement show/hide logic for reset button based on controller connection
-        // This can be expanded later to find the reset button actor by userfriendly name
-        // and enable/disable it based on m_isControllerConnected
+        // Skip if no reset button path is set
+        if (m_resetButtonPath.isEmpty())
+        {
+            LOG("[UIProfileSlotComponent] Player %u: No reset button path set", m_playerIndex);
+            return;
+        }
+
+        // Get the scene from the actor
+        if (!m_actor)
+        {
+            LOG("[UIProfileSlotComponent] Player %u: No actor found", m_playerIndex);
+            return;
+        }
+
+        Scene* scene = m_actor->getScene();
+        if (!scene)
+        {
+            LOG("[UIProfileSlotComponent] Player %u: No scene found", m_playerIndex);
+            return;
+        }
+
+        // Find the reset button actor by its userfriendly name
+        Actor* resetButtonActor = scene->getActorFromUserFriendly(m_resetButtonPath);
+        if (!resetButtonActor)
+        {
+            LOG("[UIProfileSlotComponent] Player %u: Reset button actor '%s' not found in scene",
+                m_playerIndex, m_resetButtonPath.cStr());
+            return;
+        }
+
+        // Show reset button if controller is connected, hide if not
+        bbool shouldShow = isControllerConnected();
+        
+        if (shouldShow)
+        {
+            resetButtonActor->enable();
+            LOG("[UIProfileSlotComponent] Player %u: Showing reset button '%s' (controller connected)",
+                m_playerIndex, m_resetButtonPath.cStr());
+        }
+        else
+        {
+            resetButtonActor->disable();
+            LOG("[UIProfileSlotComponent] Player %u: Hiding reset button '%s' (controller disconnected)",
+                m_playerIndex, m_resetButtonPath.cStr());
+        }
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////

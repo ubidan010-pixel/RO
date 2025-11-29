@@ -40,7 +40,7 @@ namespace ITF
         virtual     void        onAction            (const StringID & action);
         ITF_INLINE u32          getPlayerIndex() const { return m_playerIndex; }
         void                    setPlayerIndex(u32 index) { m_playerIndex = index; }
-        ITF_INLINE const StringID& getResetButtonPath() const { return m_resetButtonPath; }
+        ITF_INLINE const String8& getResetButtonPath() const { return m_resetButtonPath; }
         bbool                    isControllerConnected() const;
         InputAdapter::PadType    getControllerType() const;
         static u32               getConnectedControllersCount();
@@ -60,7 +60,7 @@ namespace ITF
         void                    onControllerStateChanged(u32 padIndex, bbool connected, InputAdapter::PadType padType);
 
         u32                     m_playerIndex;
-        StringID                m_resetButtonPath;
+        String8                 m_resetButtonPath;
         bbool                   m_isControllerConnected;
         InputAdapter::PadType   m_controllerType;
         bbool                   m_eventListenerRegistered;
