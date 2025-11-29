@@ -15,6 +15,15 @@
 #ifndef _ITF_INPUTADAPTER_H_
 #include "engine/AdaptersInterfaces/InputAdapter.h"
 #endif //_ITF_INPUTADAPTER_H_
+
+#ifndef _ITF_EVENTS_H_
+#include "engine/events/Events.h"
+#endif //_ITF_EVENTS_H_
+
+#ifndef _ITF_EVENTMANAGER_H_
+#include "engine/events/EventManager.h"
+#endif //_ITF_EVENTMANAGER_H_
+
 #ifdef ITF_WINDOWS
 #include <windows.h>
 #endif
@@ -256,6 +265,12 @@ namespace ITF
 #ifdef USE_PAD_HAPTICS
         HAPTICS_MANAGER->onControllerConnected(_padIndex,_deviceID,_deviceOutputID,isSony);
 #endif
+        if (EVENTMANAGER)
+        {
+            PadType padType = (_padIndex < JOY_MAX_COUNT) ? getPadType(_padIndex) : Pad_Invalid;
+            EventControllerStateChanged event(_padIndex, btrue, padType);
+            EVENTMANAGER->broadcastEvent(&event);
+        }
     }
 
     void InputAdapter::OnControllerDisconnected(u32 _padIndex)
@@ -263,6 +278,12 @@ namespace ITF
 #ifdef USE_PAD_HAPTICS
         HAPTICS_MANAGER->onControllerDisconnected(_padIndex);
 #endif
+        if (EVENTMANAGER)
+        {
+            PadType padType = (_padIndex < JOY_MAX_COUNT) ? getPadType(_padIndex) : Pad_Invalid;
+            EventControllerStateChanged event(_padIndex, bfalse, padType);
+            EVENTMANAGER->broadcastEvent(&event);
+        }
     }
 
     void InputAdapter::setLastUsedInputDevice(u32 _player, InputDeviceType _deviceType)

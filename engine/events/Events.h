@@ -1042,6 +1042,33 @@ namespace ITF
         bbool    m_active;
     };
 
+    class EventControllerStateChanged : public Event
+    {
+        DECLARE_OBJECT_CHILD_RTTI(EventControllerStateChanged, Event, 1847293651);
+
+    public:
+        EventControllerStateChanged()
+            : m_padIndex(0)
+            , m_connected(bfalse)
+            , m_padType(InputAdapter::Pad_Invalid)
+        {}
+
+        EventControllerStateChanged(u32 _padIndex, bbool _connected, InputAdapter::PadType _padType = InputAdapter::Pad_Invalid)
+            : m_padIndex(_padIndex)
+            , m_connected(_connected)
+            , m_padType(_padType)
+        {}
+
+        ITF_INLINE u32 getPadIndex() const { return m_padIndex; }
+        ITF_INLINE bbool isConnected() const { return m_connected; }
+        ITF_INLINE InputAdapter::PadType getPadType() const { return m_padType; }
+
+    private:
+        u32 m_padIndex;
+        bbool m_connected;
+        InputAdapter::PadType m_padType;
+    };
+
 } // namespace ITF
 
 #endif //_ITF_EVENTS_H_
