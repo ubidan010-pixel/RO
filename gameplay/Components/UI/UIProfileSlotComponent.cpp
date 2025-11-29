@@ -11,6 +11,7 @@ namespace ITF
     BEGIN_SERIALIZATION_CHILD(UIProfileSlotComponent)
         BEGIN_CONDITION_BLOCK(ESerializeGroup_DataEditable)
             SERIALIZE_MEMBER("playerIndex", m_playerIndex);
+            SERIALIZE_MEMBER("resetButtonPath", m_resetButtonPath);
         END_CONDITION_BLOCK()
     END_SERIALIZATION()
 
@@ -18,6 +19,7 @@ namespace ITF
     UIProfileSlotComponent::UIProfileSlotComponent()
     : Super()
     , m_playerIndex(0)
+    , m_resetButtonPath()
     {
     }
 
@@ -31,6 +33,7 @@ namespace ITF
     void UIProfileSlotComponent::clear()
     {
         m_playerIndex = 0;
+        m_resetButtonPath = StringID();
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////

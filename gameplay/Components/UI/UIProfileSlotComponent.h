@@ -40,6 +40,9 @@ namespace ITF
         ITF_INLINE u32          getPlayerIndex() const { return m_playerIndex; }
         void                    setPlayerIndex(u32 index) { m_playerIndex = index; }
 
+        // Reset button path (userfriendly name)
+        ITF_INLINE const StringID& getResetButtonPath() const { return m_resetButtonPath; }
+
     protected:
         ITF_INLINE const class UIProfileSlotComponent_Template* getTemplate() const;
 
@@ -47,6 +50,7 @@ namespace ITF
         virtual void            clear();
 
         u32                     m_playerIndex;
+        StringID                m_resetButtonPath;
     };
 
     class UIProfileSlotComponent_Template : public UIComponent_Template
