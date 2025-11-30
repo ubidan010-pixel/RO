@@ -25,13 +25,15 @@ namespace ITF
         // Button handlers
         bbool handleAccept(const StringID& id);
         bbool handleCancel(const StringID& id);
-        bbool handleIconAction(const StringID& id);
-        void startRemappingMode(u32 playerIndex, ZInputManager::EGameAction action);
+        bbool handleIconAction(const StringID& id, UIComponent* component);
+        void startRemappingMode(u32 playerIndex, ZInputManager::EGameAction action, UIComponent* component);
         bbool parseIconId(const StringID& id, u32& outPlayerIndex, ZInputManager::EGameAction& outAction);
+        void clearIconDisplay(UIComponent* component);
         
         bbool m_isRemappingMode;
         u32 m_remappingPlayerIndex;
         ZInputManager::EGameAction m_remappingAction;
+        UIComponent* m_remappingComponent; 
     };
 }
 

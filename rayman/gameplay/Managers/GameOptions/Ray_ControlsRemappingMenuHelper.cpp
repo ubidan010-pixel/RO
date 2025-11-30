@@ -71,6 +71,7 @@ namespace ITF
           , m_isRemappingMode(bfalse)
           , m_remappingPlayerIndex(0)
           , m_remappingAction(ZInputManager::Action_Up)
+          , m_remappingComponent(NULL)
     {
         m_menuBaseName = "controlremapping";
     }
@@ -110,7 +111,7 @@ namespace ITF
         const StringID componentId = component->getID();
         if (handleAccept(componentId) || handleCancel(componentId))
             return;
-        if (actorId.isValid() && handleIconAction(actorId))
+        if (actorId.isValid() && handleIconAction(actorId, component))
             return;
     }
 
@@ -337,7 +338,7 @@ namespace ITF
         return bfalse;
     }
 
-    bbool Ray_ControlsRemappingMenuHelper::handleIconAction(const StringID& id)
+    bbool Ray_ControlsRemappingMenuHelper::handleIconAction(const StringID& id, UIComponent* component)
     {
         u32 playerIndex = 0;
         ZInputManager::EGameAction action = ZInputManager::Action_Up;
@@ -345,16 +346,25 @@ namespace ITF
         if (!parseIconId(id, playerIndex, action))
             return bfalse;
 
-        startRemappingMode(playerIndex, action);
+        startRemappingMode(playerIndex, action, component);
         return btrue;
     }
 
-    void Ray_ControlsRemappingMenuHelper::startRemappingMode(u32 playerIndex, ZInputManager::EGameAction action)
+    void Ray_ControlsRemappingMenuHelper::startRemappingMode(u32 playerIndex, ZInputManager::EGameAction action, UIComponent* component)
     {
         m_isRemappingMode = btrue;
         m_remappingPlayerIndex = playerIndex;
         m_remappingAction = action;
+        m_remappingComponent = component;
+        clearIconDisplay(component);
 
         LOG("[ControlsRemapping] Starting remap mode for Player %d, Action %d\n", playerIndex + 1, action);
+    }
+
+    void Ray_ControlsRemappingMenuHelper::clearIconDisplay(UIComponent* component)
+    {
+        if (!component)
+            return;
+        component->forceContent("");
     }
 }
