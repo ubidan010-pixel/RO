@@ -1042,6 +1042,24 @@ namespace ITF
         bbool    m_active;
     };
 
+    class EventOnlineSessionCreated : public Event
+    {
+        DECLARE_OBJECT_CHILD_RTTI(EventOnlineSessionCreated, Event, 3563070614);
+        DECLARE_SERIALIZE()
+    public:
+        EventOnlineSessionCreated() {}
+    private:
+    };
+
+    class EventOnlineSessionError : public Event
+    {
+        DECLARE_OBJECT_CHILD_RTTI(EventOnlineSessionError, Event, 112577091);
+        DECLARE_SERIALIZE()
+    public:
+        EventOnlineSessionError() {}
+    private:
+    };
+
     class EventControllerStateChanged : public Event
     {
         DECLARE_OBJECT_CHILD_RTTI(EventControllerStateChanged, Event, 1847293651);
