@@ -254,6 +254,7 @@ namespace ITF
         UIComponent*                getUIComponentFromFriendly(const StringID& menuID, const String8& friendlyToFind);
         UIComponent*                getUIComponentFromID(const StringID& menuID, const StringID& IDToFind);
         MenuItemActionListener*     getCurrentMenuActionListener();
+        static void                 notifySiblingUIComponents(UIComponent* component, bbool isSelected);
     private:
         void                        rememberMainSelectionForMenuStart(UIComponent* oldSel, UIComponent* newSel, UIMenu* menu);
         bbool                       handleMenuStartHorizontalNavigation(UIMenu* menu, UIComponent* selected, f32 joyX, f32 joyY);

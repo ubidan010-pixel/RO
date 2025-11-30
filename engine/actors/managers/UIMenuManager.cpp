@@ -286,21 +286,49 @@ namespace ITF
 
     }
 
+void UIMenuManager::notifySiblingUIComponents(UIComponent* component, bbool isSelected)
+{
+    if (!component)
+        return;
+
+    Actor* actor = component->GetActor();
+    if (!actor)
+        return;
+
+    SafeArray<UIComponent*> siblings = actor->GetComponents<UIComponent>();
+    for (u32 i = 0; i < siblings.size(); ++i)
+    {
+        if (siblings[i] != component)
+        {
+            siblings[i]->setIsSelected(isSelected);
+            if (isSelected)
+                siblings[i]->onRollover();
+            else
+                siblings[i]->onRollout();
+        }
+    }
+}
+
 void UIMenuManager::applySelectionChange(UIMenu* menu, UIComponent* oldSel, UIComponent* newSel)
 {
     MenuItemActionListener* listener = getCurrentMenuActionListener();
+    
     if (oldSel)
     {
         oldSel->setIsSelected(bfalse);
         oldSel->onRollout();
-        if (listener) listener->UpdateMenuOnSelectionChange(oldSel, false);
+        if (listener) 
+            listener->UpdateMenuOnSelectionChange(oldSel, false);
+        notifySiblingUIComponents(oldSel, bfalse);
     }
 
     if (newSel)
     {
         newSel->setIsSelected(btrue);
         newSel->onRollover();
-        if (listener) listener->UpdateMenuOnSelectionChange(newSel, true);
+        if (listener) 
+            listener->UpdateMenuOnSelectionChange(newSel, true);
+        notifySiblingUIComponents(newSel, btrue);
     }
 
     if (menu)
@@ -1798,11 +1826,15 @@ void UIMenuManager::applySelectionChange(UIMenu* menu, UIComponent* oldSel, UICo
                 selectedComponent->onRollout();
                 if (MenuItemActionListener *listener = getCurrentMenuActionListener())
                     listener->UpdateMenuOnSelectionChange(selectedComponent, false);
+                notifySiblingUIComponents(selectedComponent, bfalse);
             }
+
             componentUnderMouse->setIsSelected(btrue);
             componentUnderMouse->onRollover();
             if (MenuItemActionListener *listener = getCurrentMenuActionListener())
                 listener->UpdateMenuOnSelectionChange(componentUnderMouse, true);
+            notifySiblingUIComponents(componentUnderMouse, btrue);
+
             sendActionToSoundPlayer(m_currentMenuID, STRINGID_ACTION_MENU_SELECTION_CHANGE, selectedComponent->getID());
         }
         return true;

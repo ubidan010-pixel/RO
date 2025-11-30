@@ -70,6 +70,19 @@ namespace ITF
                 {
                     pUIComponent->setIsSelected(btrue);
                     pUIComponent->onRollover();
+                    Actor* actor = pUIComponent->GetActor();
+                    if (actor)
+                    {
+                        SafeArray<UIComponent*> siblings = actor->GetComponents<UIComponent>();
+                        for (u32 j = 0; j < siblings.size(); ++j)
+                        {
+                            if (siblings[j] != pUIComponent)
+                            {
+                                siblings[j]->setIsSelected(btrue);
+                                siblings[j]->onRollover();
+                            }
+                        }
+                    }
                 }
             }
             m_UIComponentsList.push_back(_ref);
@@ -141,6 +154,19 @@ namespace ITF
                     wasSomethingSelected=btrue;
                     pUIComponent->setIsSelected(btrue);
                     pUIComponent->onRollover();
+                    Actor* actor = pUIComponent->GetActor();
+                    if (actor)
+                    {
+                        SafeArray<UIComponent*> siblings = actor->GetComponents<UIComponent>();
+                        for (u32 j = 0; j < siblings.size(); ++j)
+                        {
+                            if (siblings[j] != pUIComponent)
+                            {
+                                siblings[j]->setIsSelected(btrue);
+                                siblings[j]->onRollover();
+                            }
+                        }
+                    }
                 }
                 else 
                     pUIComponent->setIsSelected(bfalse);
