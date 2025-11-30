@@ -344,7 +344,6 @@ void UIMenuManager::applySelectionChange(UIMenu* menu, UIComponent* oldSel, UICo
             listener->UpdateMenuOnSelectionChange(newSel, true);
         notifySiblingUIComponents(newSel, btrue);
     }
-    LOG("applySelectionChange: newsel: %s | oldSel: %s", newSel->getFriendly().cStr(), oldSel->getFriendly().cStr());
     if (menu)
     {
         rememberMainSelectionForMenuStart(oldSel, newSel, menu);
