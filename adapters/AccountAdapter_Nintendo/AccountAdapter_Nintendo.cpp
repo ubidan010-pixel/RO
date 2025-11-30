@@ -13,7 +13,7 @@ namespace ITF
         , m_activeAccount()
         , m_platformErrorCode(0)
         , m_accountRefreshNeeded(false)
-        , m_ignorePreselectedAccount(false)
+        , m_openPreselectedAccount(false)      // set true if SystemAdapter is not opening it first
     {
     }
 
@@ -29,7 +29,7 @@ namespace ITF
 
         SYSTEM_ADAPTER_NINTENDO->registerNotificationListener(this);
 
-        if (!m_ignorePreselectedAccount)
+        if (m_openPreselectedAccount)
         {
             nn::account::UserHandle userHandle;
 
@@ -47,6 +47,19 @@ namespace ITF
                     LOG("[AccountAdapter] Using preselected user \"%s\" for the active account", Account_Nintendo::uidToString(accountUid).cStr());
                     switchActiveAccount(accountUid, &userHandle);
                 }
+            }
+        }
+        else // when sysadapter already opened it, TryOpenPreselectedUser would crash, despite "noexcept" :/
+        {
+            nn::account::Uid accountUid = SYSTEM_ADAPTER_NINTENDO->getInitialUserId();
+            nn::account::UserHandle userHandle = SYSTEM_ADAPTER_NINTENDO->getInitialUserHandle();
+            nn::Result result = nn::account::GetUserId(&accountUid, userHandle);
+            ITF_VERIFY(result.IsSuccess());
+
+            if (result.IsSuccess())
+            {
+                LOG("[AccountAdapter] Using preselected user \"%s\" for the active account", Account_Nintendo::uidToString(accountUid).cStr());
+                switchActiveAccount(accountUid, &userHandle);
             }
         }
     }

@@ -36,6 +36,7 @@ public:
         NotInitialized,         // APIs cannot be used yet; missing inits
         Authentication,         // Ubiservices auth errors
         Connect,                // Connect launching errors
+        News,                   // Errors in fetching news
         ErrorSubtypeCount       // KEEP IT LAST (Internal use)
     };
 

@@ -21,6 +21,8 @@
 #include "rayman/gameplay/Managers/GameOptions/Ray_ControlsRemappingMenuHelper.h"
 #endif //_ITF_RAY_CONTROLSREMAPPINGMENUHELPER_H_
 
+#include <future>
+
 namespace ITF
 {
     class TRCMessage_Base;
@@ -106,6 +108,10 @@ namespace ITF
             State_ShowingMainMenu_NewGame_WaitSaved,
             State_ShowingMainMenu_NewGame_WaitSavedNotificationCleared,
             State_SigninChange_WaitPendingStorageOperation,
+
+            State_Online_CreateSession,
+            State_Online_UpdateSession,
+
             State_Exited,
         };
 
@@ -121,6 +127,7 @@ namespace ITF
         void enter_ShowingTitleScreen();
         void update_ShowingPressStart();
         void leave_ShowingPressStart();
+        void enter_OnlineCreateSession();
         void update_ShowingMainMenu_Root();
         void update_ShowingMainMenu_Load_StartLoading();
         void update_ShowingMainMenu_Load_WaitLoaded();
@@ -151,7 +158,13 @@ namespace ITF
 
         void onPressStartAction();
 
-        void onStartUbiservicesAuthFlow();
+        void onWelcomeMessagePressConnect();
+        void onWelcomeMessagePressBack();
+        void onWelcomeBackMessagePressConnect();
+        void asyncDoWelcomeBackSave();
+
+        void fetchNews();
+        void onShowNews(i32 _newsId);
 
         void enter_Exited();
         void leave_Exited() {}
@@ -198,6 +211,9 @@ namespace ITF
         u32 m_waitingFrameForTRCMsg;
         bbool m_pendingShowPCMenu;
         bbool m_shouldShowWarningBoot;
+        i32 m_newsItemIndex;
+        std::future<void> m_newsUpdateFuture;
+        std::future<void> m_authSaveFuture;
 #ifdef ITF_SUPPORT_NETWORKSERVICES
         NetworkServices::User* m_validUser;
 #endif //ITF_SUPPORT_NETWORKSERVICES

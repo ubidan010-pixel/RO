@@ -130,6 +130,9 @@
 #include "adapters/OnlineTrackingAdapter_win32/OnlineTrackingAdapter_win32.h"
 #include "adapters/OnlineTrackingAdapter_x360/OnlineTrackingAdapter_x360.h"
 #include "adapters/OnlineTrackingAdapter_ps3/OnlineTrackingAdapter_PS3.h"
+#include "adapters/OnlineTrackingAdapter_PS5/OnlineTrackingAdapter_PS5.h"
+#include "adapters/OnlineTrackingAdapter_Nintendo/OnlineTrackingAdapter_Nintendo.h"
+#include "adapters/OnlineTrackingAdapter_xboxseries/OnlineTrackingAdapter_xboxseries.h"
 
 // Adapter Ubiservices
 #include "adapters/OnlineAdapter_Ubiservices/OnlineAdapter_Ubiservices.h"
@@ -145,6 +148,8 @@
 
 #include "adapters/AccountAdapter_PS5/AccountAdapter_PS5.h"
 #include "adapters/AccountAdapter_xboxseries/AccountAdapter_xboxseries.h"
+#include "adapters/AccountAdapter_Nintendo/AccountAdapter_Nintendo.h"
+
 // ImGui adapter
 #include "adapters/ImGuiAdapter_win/ImGuiAdapter_win.h"
 #include "adapters/ImGuiAdapter_PS5/ImGuiAdapter_PS5.h"

@@ -3,6 +3,7 @@
 #include "adapters/OnlineAdapter_Ubiservices/OnlineAdapter_Ubiservices.h"
 #include "adapters/OnlineAdapter_Ubiservices/TrackingService_Ubiservices.h"
 #include "adapters/OnlineAdapter_Ubiservices/SessionService_Ubiservices.h"
+#include "adapters/OnlineAdapter_Ubiservices/NewsService_Ubiservices.h"
 
 #ifdef ITF_SUPPORT_UBISERVICES
 
@@ -102,6 +103,7 @@ namespace ITF
 #endif
 
         m_sessionService = newAlloc(mId_OnlineServices, SessionService_Ubiservices);
+        m_newsService = newAlloc(mId_OnlineServices, NewsService_Ubiservices);
     }
 
     OnlineAdapter_Ubiservices::~OnlineAdapter_Ubiservices()
@@ -109,6 +111,8 @@ namespace ITF
 #if defined(ITF_SUPPORT_ONLINETRACKING)
         SF_DEL(m_trackingService);
 #endif
+        SF_DEL(m_newsService);
+        SF_DEL(m_sessionService);
     }
 
     void OnlineAdapter_Ubiservices::initialize()
@@ -131,6 +135,9 @@ namespace ITF
 #if defined(ITF_SUPPORT_ONLINETRACKING)
         m_trackingService->update();
 #endif
+        // state machine not tested for Alpha
+        //m_sessionService->update();
+        m_newsService->update();
     }
 
     void OnlineAdapter_Ubiservices::terminate()

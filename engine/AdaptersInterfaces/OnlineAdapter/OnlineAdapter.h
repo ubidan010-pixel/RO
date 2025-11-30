@@ -10,6 +10,7 @@ namespace ITF
 {
     class SessionService;
     class TrackingService;
+    class NewsService;
 
     class OnlineAdapter : public TemplateSingleton<OnlineAdapter>
     {
@@ -54,9 +55,16 @@ namespace ITF
             return m_trackingService;
         }
 
+        NewsService* getNewsService()
+        {
+            ITF_ASSERT_CRASH(m_newsService != nullptr, "News service not implemented");
+            return m_newsService;
+        }
+
     protected:
         SessionService* m_sessionService;
         TrackingService* m_trackingService;
+        NewsService* m_newsService;
 
         bbool m_offlineMode;
     };

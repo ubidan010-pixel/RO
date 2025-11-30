@@ -28,6 +28,14 @@
 #include "gameplay/components/UI/UIComponent.h"
 #endif //_ITF_UICOMPONENT_H_
 
+#ifndef _ITF_UITEXTBOX_H_
+#include "gameplay/components/UI/UITextBox.h"
+#endif //_ITF_UITEXTBOX_H_
+
+#ifndef _ITF_UIMENUITEMTEXT_H_
+#include "gameplay/Components/UI/UIMenuItemText.h"
+#endif
+
 #ifndef _ITF_CHEATMANAGER_H_
 #include "engine/gameplay/CheatManager.h"
 #endif //_ITF_CHEATMANAGER_H_
@@ -61,6 +69,7 @@
 #ifndef ITF_ONLINE_ADAPTER_UBISERVICES_H
 #include "adapters/OnlineAdapter_Ubiservices/OnlineAdapter_Ubiservices.h"
 #include "adapters/OnlineAdapter_Ubiservices/SessionService_Ubiservices.h"
+#include "adapters/OnlineAdapter_Ubiservices/NewsService_Ubiservices.h"
 #endif //ITF_ONLINE_ADAPTER_UBISERVICES_H
 
 #ifndef _ITF_UPLAYSERVICE_
@@ -130,6 +139,8 @@
 #ifndef _ITF_CONFIG_H_
 #include "core/Config.h"
 #endif //_ITF_CONFIG_H_
+
+#include <future>
 namespace ITF
 {
     IMPLEMENT_OBJECT_RTTI(Ray_GameScreen_MainMenu)
@@ -197,6 +208,10 @@ namespace ITF
         setState(State_ShowingTitleScreen);
 
         calculateAndLogLastPlayTime();
+
+        i32 bootCounter = RAY_GAMEMANAGER->getAuthBootCount();
+        RAY_GAMEMANAGER->setAuthBootCount(bootCounter + 1);
+
         RAY_GAMEMANAGER->saveGameOptions();
 
         if (!m_wasPreloaded)
@@ -378,6 +393,7 @@ namespace ITF
         switch(m_state)
         {
         case State_ShowingTitleScreen: enter_ShowingTitleScreen(); break;
+        case State_Online_CreateSession: enter_OnlineCreateSession(); break;
         case State_Exited : enter_Exited(); break;
         }
     }
@@ -760,20 +776,39 @@ namespace ITF
         switch ( pMessage->getContexte() )
         {
         case TRCManagerAdapter::Sav_NoAvailableStorage:
+        {
             SAVEGAME_ADAPTER->signalAnswerChoseNoDevice(
-                ( currentButtonID == buttonYes) ? Adapter_Savegame::DeviceChosenAsNone_NoLongerSave :
+                (currentButtonID == buttonYes) ? Adapter_Savegame::DeviceChosenAsNone_NoLongerSave :
                 Adapter_Savegame::DeviceChosenAsNone_ChangeDevice);
             break;
+        }
         case TRCManagerAdapter::Sav_UserNotSignedIn:
+        {
             SAVEGAME_ADAPTER->signalAnswerWhenUserNotSignedIn(
-                ( currentButtonID == buttonYes ) ? Adapter_Savegame::NotSignedIn_Continue :
+                (currentButtonID == buttonYes) ? Adapter_Savegame::NotSignedIn_Continue :
                 Adapter_Savegame::NotSignedIn_Retry);
             break;
+        }
         case TRCManagerAdapter::Sav_AskForDelete:
+        {
             SAVEGAME_ADAPTER->signalForDeleteCorruptedFile(
-                ( currentButtonID == buttonYes ) ? Adapter_Savegame::CorruptedFile_Delete :
+                (currentButtonID == buttonYes) ? Adapter_Savegame::CorruptedFile_Delete :
                 Adapter_Savegame::CorruptedFile_Cancel);
+        }
+        case TRCManagerAdapter::UOR_WelcomeMessage:
+        {
+            if (currentButtonID == buttonYes)   // left button
+                pThis->onWelcomeMessagePressBack();
+            else
+                pThis->onWelcomeMessagePressConnect();
             break;
+        }
+        case TRCManagerAdapter::UOR_WelcomeBackMessage:
+        {
+            if (currentButtonID == buttonNo)   // right button
+                pThis->onWelcomeBackMessagePressConnect();
+            break;
+        }
         }
     }
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -1177,7 +1212,10 @@ namespace ITF
         SAVEGAME_ADAPTER->preLoad(getPlayerIndex(), 1, 1);
         if(TRC_ADAPTER)
             TRC_ADAPTER->resetLastErrorContext();
+
+#if !defined(ITF_SUPPORT_UBISERVICES)
         setState(State_ShowingMainMenu_SaveLoad_Root);
+#endif
 
         if(REWARD_ADAPTER)
             REWARD_ADAPTER->setMainPlayerIndex(getPlayerIndex());
@@ -1189,70 +1227,66 @@ namespace ITF
         fillSaveGameSlots(btrue);
 
         // Ubiservices Auth Flow entry point
-        // $GS: flow is disabled until I finish setting it up in async way and runs without deadlocking game
-        // OSS-26381 - [Connect] Overlay autocloses for auth deeplink on PS5
-        //onStartUbiservicesAuthFlow();
+        setState(State_Online_CreateSession);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////
     // https://confluence.ubisoft.com/display/onlineservices/UC+Authentication+-+In-game+Flows
     // Offline Mode w. Crossplay
-    void Ray_GameScreen_MainMenu::onStartUbiservicesAuthFlow()
+    // $GS: sync method, so music and update() do stop for 5-10s while processing the session.
+    // Beta goal: rewrite this async with the FSM in SessionService >(^.^)<
+    void Ray_GameScreen_MainMenu::enter_OnlineCreateSession()
     {
 #if ITF_SUPPORT_UBISERVICES
+        setState(State_Online_UpdateSession);
+
         // 1st party services ok?
         if (NETWORKSERVICES && !NETWORKSERVICES->isNetworkReady())
         {
             ONLINE_ADAPTER->setOfflineMode(true);
             TRC_ADAPTER->addMessage(TRCManagerAdapter::UOR_FirstPartyOffline);
+            setState(State_ShowingMainMenu_SaveLoad_Root);
             return;
         }
-
-        // wait here until player decides to link account or we find some other failure
-        setState(State_ShowingPressStart);
 
         OnlineError result = ONLINE_ADAPTER->getSessionService()->createSession();
         if (result.getType() == OnlineError::Success)
         {
+            // fetch news
+            m_newsUpdateFuture = std::async(&Ray_GameScreen_MainMenu::fetchNews, this);
+
             // Boot flags
             i32 bootCounter = RAY_GAMEMANAGER->getAuthBootCount();
-            RAY_GAMEMANAGER->setAuthBootCount(bootCounter + 1);
-            RAY_GAMEMANAGER->saveGameOptions();
+
+            // if we get here on 1st boot, account was pre-linked; save it.
+            if (bootCounter == 1)
+            {
+                RAY_GAMEMANAGER->setAuthAlreadyLinked(btrue);
+
+                // schedule a save
+                m_authSaveFuture = std::async(&Ray_GameScreen_MainMenu::asyncDoWelcomeBackSave, this);
+            }
 
             bbool isAlreadyLinked = RAY_GAMEMANAGER->getAuthAlreadyLinked();
 
             LOG("[Auth] bootCounter:%d alreadyLinked: %d", bootCounter, isAlreadyLinked);
 
-            bool shouldShowWelcomeBack = true;
+            bool shouldShowWelcomeBack = isAlreadyLinked && (bootCounter == 2);
             if (shouldShowWelcomeBack)
             {
                 LOG("[Auth] Display Welcome Back message...");
-                TRC_ADAPTER->addMessage(TRCManagerAdapter::UOR_WelcomeBackMessage, 0, 0,
-                    [](const StringID& answer, TRCMessage_Base* pMessage, void* pParams) ->
-                    void {
-                        Ray_GameScreen_MainMenu* pThis = (Ray_GameScreen_MainMenu*)pParams;
-                        if (answer == input_actionID_Valid) // Connect me now!
-                        {
-                            ONLINE_ADAPTER->getSessionService()->launchConnect("auth");
-
-                            pThis->setState(State_ShowingTitleScreen);
-                        }
-                        else if (answer == input_actionID_Back) // Back/Cancel
-                        {
-                            pThis->setState(State_ShowingTitleScreen);
-                        }
-                    }, this);
+                TRC_ADAPTER->addMessage(TRCManagerAdapter::UOR_WelcomeBackMessage);
             }
             else
             {
                 LOG("[Auth] Start game online mode");
-                setState(State_ShowingMainMenu_SaveLoad_Root);
             }
+
+            setState(State_ShowingMainMenu_SaveLoad_Root);
         }
         else
         {
-            bool hasAccountLinked = ONLINE_ADAPTER->getSessionService()->hasUserAccountLinked();
-            LOG("[Auth] session creation errors. account linked: %d err code: %d", hasAccountLinked, result.getCode());
+            LOG("[Auth] session creation errors. err code: %d", result.getCode());
 
             if (result.getType() == OnlineError::UbiServer &&
                 result.getSubType() == OnlineError::Authentication &&
@@ -1260,24 +1294,17 @@ namespace ITF
             {
                 // welcome message
                 LOG("[Auth] Display Welcome message...");
-                TRC_ADAPTER->addMessage(TRCManagerAdapter::UOR_WelcomeMessage, 0, 0,
-                    [](const StringID& answer, TRCMessage_Base* pMessage, void* pParams) ->
-                    void {
-                        Ray_GameScreen_MainMenu* pThis = (Ray_GameScreen_MainMenu*)pParams;
-                        if (answer == input_actionID_Valid) // Connect me now!
-                        {
-                            OnlineError ret = ONLINE_ADAPTER->getSessionService()->launchConnect("auth");
-                            LOG("[Auth] Connect closed. ret: %d", ret.getCode());
 
-                            if (ret.getType() == OnlineError::Success)
-                                pThis->setState(State_ShowingMainMenu_SaveLoad_Root);
-                        }
-                        else if (answer == input_actionID_Back) // Back/Cancel
-                        {
-                            LOG("[Auth] Back to titlescreen...");
-                            pThis->setState(State_ShowingTitleScreen);
-                        }
-                    }, this);
+                // On boot 1, we set the flag to check on 2nd boot.
+                i32 bootCounter = RAY_GAMEMANAGER->getAuthBootCount();
+                if (bootCounter == 1)
+                {
+                    RAY_GAMEMANAGER->setAuthAlreadyLinked(bfalse);
+                }
+
+                // button handling is in onCloseTRCMessage because of extra UI code
+                // to distinguish onCloseCallback for each button
+                TRC_ADAPTER->addMessage(TRCManagerAdapter::UOR_WelcomeMessage);
             }
             else if (result.getType() == OnlineError::UbiServer &&
                 result.getSubType() == OnlineError::Authentication &&
@@ -1287,16 +1314,130 @@ namespace ITF
                 OnlineError ret = ONLINE_ADAPTER->getSessionService()->launchConnect("auth");
                 LOG("[Auth] Connect closed. ret: %d", ret.getCode());
                 
-                TRC_ADAPTER->addMessage(TRCManagerAdapter::UOR_LockedAccount);
-                setState(State_ShowingTitleScreen);
+                TRC_ADAPTER->addMessage(TRCManagerAdapter::UOR_LockedAccount, 0, 0,
+                    [](const StringID& answer, TRCMessage_Base* pMessage, void* pParams) ->
+                    void {
+                        Ray_GameScreen_MainMenu* pThis = (Ray_GameScreen_MainMenu*)pParams;
+                        pThis->setState(State_ShowingTitleScreen);
+                    }
+                    , this);
             }
             else
             {
+                LOG("[Auth] unknown error %d", result.getCode());
+
                 // some other error. Block access.
-                TRC_ADAPTER->addMessage(TRCManagerAdapter::UOR_CreateSessionError);
-                setState(State_ShowingTitleScreen);
+                TRC_ADAPTER->addMessage(TRCManagerAdapter::UOR_CreateSessionError, 0, 0,
+                    [](const StringID& answer, TRCMessage_Base* pMessage, void* pParams) ->
+                    void {
+                        Ray_GameScreen_MainMenu* pThis = (Ray_GameScreen_MainMenu*)pParams;
+                        pThis->setState(State_ShowingTitleScreen);
+                    }
+                , this);
             }
         }
+#endif
+    }
+
+    // This must run async since it waits for save ops to end
+    void Ray_GameScreen_MainMenu::asyncDoWelcomeBackSave()
+    {
+        while (SAVEGAME_ADAPTER->hasPendingOperation())
+        {
+            sleep(100);
+        }
+
+        LOG("[Auth] saving welcome back screen for next boot");
+        RAY_GAMEMANAGER->saveGameOptions();
+    }
+
+    void Ray_GameScreen_MainMenu::onWelcomeMessagePressConnect()
+    {
+#if ITF_SUPPORT_UBISERVICES
+        OnlineError ret = ONLINE_ADAPTER->getSessionService()->launchConnect("auth");
+        LOG("[Auth] Connect closed. ret: %d", ret.getCode());
+
+        if (ret.getType() == OnlineError::Success)
+        {
+            // Design: retry connection establish flow
+            setState(State_Online_CreateSession);
+        }
+        else // connect got cancelled or failed. retry connection
+        {
+            setState(State_ShowingTitleScreen);
+        }
+#endif
+    }
+
+    void Ray_GameScreen_MainMenu::onWelcomeMessagePressBack()
+    {
+        LOG("[Auth] Back to titlescreen...");
+        setState(State_ShowingTitleScreen);
+    }
+
+    void Ray_GameScreen_MainMenu::onWelcomeBackMessagePressConnect()
+    {
+#if ITF_SUPPORT_UBISERVICES
+        ONLINE_ADAPTER->getSessionService()->launchConnect("auth");
+#endif
+    }
+
+    void Ray_GameScreen_MainMenu::fetchNews()
+    {
+#if ITF_SUPPORT_UBISERVICES
+        OnlineError err = ONLINE_ADAPTER->getNewsService()->downloadNews();
+        if (err.getType() == OnlineError::Success)
+        {
+            const StringID buttonNews1 = ITF_GET_STRINGID_CRC(news1_button, 1178697612);
+            const StringID buttonNews2 = ITF_GET_STRINGID_CRC(news2_button, 4067685073);
+
+            auto data = ONLINE_ADAPTER->getNewsService()->cachedNews();
+
+            UIComponent* pComp1 = UI_MENUMANAGER->getUIComponentFromID(NEW_MENU_FRIENDLY, buttonNews1);
+            UIComponent* pComp2 = UI_MENUMANAGER->getUIComponentFromID(NEW_MENU_FRIENDLY, buttonNews2);
+            if (pComp1)
+            {
+                UIMenuItemText* pNewsText1 = pComp1->GetActor()->GetComponent<UIMenuItemText>();
+                if (pNewsText1 && data.size() > 1)
+                {
+                    pNewsText1->forceContent(data[0].m_title);
+                }
+            }
+
+            if (pComp2)
+            {
+                UIMenuItemText* pNewsText2 = pComp2->GetActor()->GetComponent<UIMenuItemText>();
+                if (pNewsText2 && data.size() >= 2)
+                {
+                    pNewsText2->forceContent(data[1].m_title);
+                }
+            }
+        }
+#endif
+    }
+
+    void Ray_GameScreen_MainMenu::onShowNews(i32 _newsId)
+    {
+#if defined(ITF_SUPPORT_UBISERVICES)
+        m_newsItemIndex = _newsId;
+
+        TRC_ADAPTER->addMessage(TRCManagerAdapter::ErrorContext::UOR_News, [](TRCMessage_Base* pMessage, void* pParams) ->
+            bbool {
+                auto data = ONLINE_ADAPTER->getNewsService()->cachedNews();
+                i32 newsId = *(i32*)pParams;
+
+                if (newsId < 0 || newsId >= (i32)data.size())
+                {
+                    pMessage->forceTexts("", "News are not yet available. Please retry later.");
+                    return btrue;
+                }
+
+                String8 title = data[newsId].m_title;
+                String8 body = data[newsId].m_body;
+
+                pMessage->forceTexts(title, body);
+                return btrue;
+            }, &m_newsItemIndex, 0, 0);
 #endif
     }
 
@@ -1351,16 +1492,22 @@ namespace ITF
             {
                 OnlineError ret = ONLINE_ADAPTER->getSessionService()->launchConnect();
                 LOG("[UBICONNECT] - Ray_GameScreen_MainMenu: overlay returned: %d", ret.getCode());
+                if (ret.getType() != OnlineError::Success)
+                {
+                    TRC_ADAPTER->addMessage(TRCManagerAdapter::ErrorContext::UOR_FirstPartyOffline);
+                }
             }
 #endif
         }
         else if (id == pressNew1Button)
         {
             LOG("[NEWS] - Ray_GameScreen_MainMenu: News1 button pressed");
+            onShowNews(0);
         }
         else if (id == pressNew2Button)
         {
             LOG("[NEWS] - Ray_GameScreen_MainMenu: News2 button pressed");
+            onShowNews(1);
         }
         else if (id == quitGame)
         {

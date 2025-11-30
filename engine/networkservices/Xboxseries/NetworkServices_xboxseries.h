@@ -6,6 +6,8 @@
 #include "engine/networkservices/NetworkServices.h"
 #endif //_ITF_NETWORKSERVICES_
 
+#include <XNetworking.h>
+
 #ifdef ITF_SUPPORT_NETWORKSERVICES
 namespace ITF
 {
@@ -27,7 +29,13 @@ public:
 protected:
 
 private:
-    int m_platformErrorCode;
+    HRESULT m_platformErrorCode;
+    XNetworkingConnectivityHint m_connectivityHint;
+    bool m_isWSAStartupInitialized;
+
+    void logConnectivityHint(XNetworkingConnectivityHint &hint);
+    bool IsNetworkInitialized();
+    void setIpAddress();
 };
   
 

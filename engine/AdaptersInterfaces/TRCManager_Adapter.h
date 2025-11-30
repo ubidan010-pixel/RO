@@ -200,6 +200,7 @@ namespace ITF
             UOR_FirstPartyOffline,
             UOR_CreateSessionError, // linked account & account not locked
             UOR_LockedAccount,
+            UOR_News,
 
             Pad_enum		= 500,
             Pad_DisconnectingDuringTitleScreen,

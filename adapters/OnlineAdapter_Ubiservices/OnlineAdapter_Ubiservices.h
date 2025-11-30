@@ -27,6 +27,8 @@ namespace ITF
 
         US_NS::SharedPtr<US_NS::Session> getSession();
 
+        bool convertITFtoUSLanguage(ITF_LANGUAGE _itfLang, String8& _lang, String8& _locale);
+
     private:
         void initializeUbiservices();
         void configureUbiservices(const ubiservices::String& _buildId);
@@ -37,7 +39,6 @@ namespace ITF
 
         String8 generateBuildId();
         const char* getUSApplicationId();
-        bool convertITFtoUSLanguage(ITF_LANGUAGE _itfLang, String8& _lang, String8& _locale);
 
         // EAL area
         eal_log_dll_interface m_ealLogInterface;

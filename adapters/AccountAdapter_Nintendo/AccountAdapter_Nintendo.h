@@ -27,7 +27,7 @@ namespace ITF
 
         virtual u32 getPlatformSpecificErrorCode() override { ITF_ASSERT_CRASH(getTokenStatus() == ETokenStatus_Error, "AccountAdapter has no error"); return m_platformErrorCode; };
 
-        void ignorePreselectedAccount(bool _ignore) { m_ignorePreselectedAccount = _ignore; }
+        void openPreselectedAccount(bool _doOpen) { m_openPreselectedAccount = _doOpen; }
 
     protected:
         virtual Account_Nintendo& accessActiveAccount() override { ITF_ASSERT(m_activeAccountInd == 0); return m_activeAccount; }
@@ -36,7 +36,7 @@ namespace ITF
         Account_Nintendo m_activeAccount;
         u32 m_platformErrorCode;
         bool m_accountRefreshNeeded;
-        bool m_ignorePreselectedAccount; 
+        bool m_openPreselectedAccount; 
 
         void switchActiveAccount(const nn::account::Uid& _accountUid, const nn::account::UserHandle* _userHandle);
         void openActiveAccount();

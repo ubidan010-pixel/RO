@@ -70,6 +70,8 @@ namespace ITF
         void unregisterNotificationListener(ISystemNotificationListener_Nintendo* _listener);
 
         nn::account::Uid getInitialUserId() const { return m_initialUserID; }
+        nn::account::UserHandle getInitialUserHandle() const { return m_userHandle; }
+        bool havePermissions(bool isSilent);
 
         enum class GamePlayMode
         {
@@ -99,7 +101,9 @@ namespace ITF
         GamePlayMode m_gamePlayMode = GamePlayMode::None;
         nn::account::UserHandle m_userHandle{};
         nn::account::Uid m_initialUserID{};
-
+        nn::account::NetworkServiceAccountId m_nsaId{};
+        String8 m_token;
+        
         nn::vi::Display* m_display = nullptr;
         nn::vi::Layer* m_layer = nullptr;
 

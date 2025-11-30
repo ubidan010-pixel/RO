@@ -118,7 +118,12 @@ REGISTER_ITF_PARENT(GFXAdapter_PS5, GFXAdapter)
 REGISTER_ITF_PARENT(FileManager_ITF, FileManager)
 REGISTER_ITF_PARENT(SystemAdapter_PS5, SystemAdapter)
 REGISTER_ITF_PARENT(Adapter_Savegame_PS5, Adapter_Savegame)
+#ifdef ITF_SUPPORT_NETWORKSERVICES
 REGISTER_ITF_PARENT(NetworkServices_PS5, NetworkServices)
+#endif
+#ifdef ITF_SUPPORT_ONLINETRACKING
+REGISTER_ITF_PARENT(OnlineTrackingAdapter_PS5, OnlineTrackingAdapter)
+#endif
 #ifdef ITF_SUPPORT_RAKI
 REGISTER_ITF_PARENT(SoundAdapter_Dummy, SoundAdapter)
 #endif
@@ -135,12 +140,18 @@ REGISTER_ITF_PARENT(GFXAdapter_NVN, GFXAdapter)
 REGISTER_ITF_PARENT(FileManager_ITF, FileManager)
 REGISTER_ITF_PARENT(SystemAdapter_Nintendo, SystemAdapter)
 REGISTER_ITF_PARENT(Adapter_Savegame_Nintendo, Adapter_Savegame)
+#ifdef ITF_SUPPORT_NETWORKSERVICES
 REGISTER_ITF_PARENT(NetworkServices_Nintendo, NetworkServices)
+#endif
+#ifdef ITF_SUPPORT_ONLINETRACKING
+REGISTER_ITF_PARENT(OnlineTrackingAdapter_Nintendo, OnlineTrackingAdapter)
+#endif
 #ifdef ITF_SUPPORT_RAKI
 REGISTER_ITF_PARENT(SoundAdapter_Dummy, SoundAdapter)
 #endif
 REGISTER_ITF_PARENT(TRCManagerAdapter_Nintendo, TRCManagerAdapter)
 REGISTER_ITF_PARENT(RewardAdapter_Dummy, RewardAdapter)
+REGISTER_ITF_PARENT(AccountAdapter_Nintendo, AccountAdapter)
 #endif
 
 #ifdef ITF_OUNCE
@@ -148,12 +159,18 @@ REGISTER_ITF_PARENT(GFXAdapter_NVN, GFXAdapter)
 REGISTER_ITF_PARENT(FileManager_ITF, FileManager)
 REGISTER_ITF_PARENT(SystemAdapter_Nintendo, SystemAdapter)
 REGISTER_ITF_PARENT(Adapter_Savegame_Nintendo, Adapter_Savegame)
+#ifdef ITF_SUPPORT_NETWORKSERVICES
 REGISTER_ITF_PARENT(NetworkServices_Nintendo, NetworkServices)
+#endif
+#ifdef ITF_SUPPORT_ONLINETRACKING
+REGISTER_ITF_PARENT(OnlineTrackingAdapter_Nintendo, OnlineTrackingAdapter)
+#endif
 #ifdef ITF_SUPPORT_RAKI
 REGISTER_ITF_PARENT(SoundAdapter_Dummy, SoundAdapter)
 #endif
 REGISTER_ITF_PARENT(TRCManagerAdapter_Nintendo, TRCManagerAdapter)
 REGISTER_ITF_PARENT(RewardAdapter_Dummy, RewardAdapter)
+REGISTER_ITF_PARENT(AccountAdapter_Nintendo, AccountAdapter)
 #endif
 
 #ifdef ITF_XBOX_SERIES

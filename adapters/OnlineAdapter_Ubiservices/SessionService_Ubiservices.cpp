@@ -385,8 +385,8 @@ bool SessionService_Ubiservices::areUbiServicesCredentialsAvailable()
     const SceUserServiceUserId activeUserId = ACCOUNT_ADAPTER_PS5->getActiveAccount().getSceUserId();
     return activeUserId != SCE_USER_SERVICE_USER_ID_INVALID;
 
-#elif defined(ITF_SCARLETT)
-    const XblContextHandle& activeAccountContextHandle = ACCOUNT_ADAPTER_SCARLETT->getActiveAccount().getContextHandle();
+#elif defined(ITF_XBOX_SERIES)
+    const XblContextHandle& activeAccountContextHandle = ACCOUNT_ADAPTER_XBOXSERIES->getActiveAccount().getContextHandle();
     return activeAccountContextHandle != nullptr;
 #endif
 
@@ -931,11 +931,6 @@ OnlineError SessionService_Ubiservices::launchConnect(const String8& _deepLink,
         return OnlineError(OnlineError::ErrorType::Network, OnlineError::ErrorSubtype::NotInitialized,
             OnlineError::ErrorSubtype::Connect);
 
-    US_NS::AuthenticationModule& modAuth = US_NS::AuthenticationModule::module(*m_session);
-    if (!modAuth.hasValidSessionInfo())
-        return OnlineError(OnlineError::ErrorType::UbiServer, OnlineError::ErrorSubtype::NotInitialized,
-            OnlineError::ErrorSubtype::Connect);
-
     // Win uses UPC_ * api / UplayService overlay directly
 #if !defined(ITF_WINDOWS)
     US_NS::String microAppId(_deepLink.cStr());
@@ -984,10 +979,23 @@ OnlineError SessionService_Ubiservices::launchConnect(const String8& _deepLink,
 
 OnlineError SessionService_Ubiservices::createSession()
 {
+    m_sessionStatus = EInternalStatus_Preparing;
     m_session = ONLINE_ADAPTER_UBISERVICES->getSession();
     if (!m_initialized || !m_session)
-        return OnlineError(OnlineError::ErrorType::UbiServer, OnlineError::ErrorSubtype::NotInitialized,
-            OnlineError::ErrorSubtype::Authentication);
+    {
+        setError(OnlineError(OnlineError::ErrorType::UbiServer, OnlineError::ErrorSubtype::NotInitialized,
+            OnlineError::ErrorSubtype::Authentication));
+        return m_sessionError;
+    }
+
+#if defined(ITF_NX) || defined(ITF_OUNCE)
+    if (!SYSTEM_ADAPTER_NINTENDO->havePermissions(false))
+    {
+        setError(OnlineError(OnlineError::ErrorType::FirstParty, OnlineError::ErrorSubtype::Authentication,
+            0));
+        return m_sessionError;
+    }
+#endif
 
     PlayerCredentials playerCredentials = getUbiServicesCredentials();
 
@@ -1011,8 +1019,10 @@ OnlineError SessionService_Ubiservices::createSession()
     {
         int32 code = result.getAsyncResultError().m_baseError.m_code;
         LOG("[SessionService] Failed to open session: %d", code);
-        return OnlineError(OnlineError::ErrorType::UbiServer, OnlineError::ErrorSubtype::Authentication,
-            code);
+        setError(OnlineError(OnlineError::ErrorType::UbiServer, OnlineError::ErrorSubtype::Authentication,
+            code));
+
+        return m_sessionError;
     }
 
     // Wait for notification confirming if the websocket is connected or not
@@ -1051,16 +1061,24 @@ OnlineError SessionService_Ubiservices::createSession()
         LOG("[SessionService] Websocket creation has failed, deleting session!");
         AsyncResult<Empty> ret = m_session->close();
         if (!ret.hasSucceeded())
+        {
             LOG("[SessionService] failed to close session! %d", ret.getAsyncResultError().m_baseError.m_code);
+            setError(OnlineError(OnlineError::ErrorType::UbiServer, OnlineError::ErrorSubtype::Authentication,
+                (u32)ret.getAsyncResultError().m_baseError.m_code));
+            return m_sessionError;
+        }
     }
     else if (notification.m_type == US_NS::PlayerNotificationUbiServicesType::NotificationConnect)
     {
         // You are connected and all is good!
-        return OnlineError(OnlineError::ErrorType::Success);
+        m_sessionError = OnlineError(OnlineError::ErrorType::Success);
+        m_sessionStatus = EInternalStatus_Ready;
+        return m_sessionError;
     }
 
     LOG("[SessionService] unexpected notification type %d!", notification.m_type);
-    return OnlineError(OnlineError::ErrorType::UbiServer, OnlineError::ErrorSubtype::Authentication, (u32)notification.m_type);
+    setError(OnlineError(OnlineError::ErrorType::UbiServer, OnlineError::ErrorSubtype::Authentication, (u32)notification.m_type));
+    return m_sessionError;
 }
 
 bool SessionService_Ubiservices::hasUserAccountLinked()

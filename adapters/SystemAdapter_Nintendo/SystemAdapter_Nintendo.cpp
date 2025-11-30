@@ -7,11 +7,13 @@
 #include "adapters/Adapter_Savegame_Nintendo/Adapter_Savegame_Nintendo.h"
 #include "core/error/ErrorHandler.h"
 #include "core/system/Synchronize.h"
+#include "core/memory/memoryId.h"
 #include <nn/time/time_Api.h>
 #include <nn/time/time_StandardUserSystemClock.h>
 #include <nn/time/time_CalendarTime.h>
 #include <nn/time/time_TimeZoneApi.h>
 #include <nn/account.h>
+#include <nn/err.h>
 #include <nn/vi.h>
 
 #ifdef ITF_SUPPORT_NINTENDO_PROFILER
@@ -60,6 +62,8 @@ namespace ITF
         Singletons::get().setInputAdapter(inputAdapter);
         inputAdapter->initialize();
 
+        // TryOpenPreselectedUser can only run once per app or it crashes SDK
+        // https://developer.nintendo.com/html/online-docs/p67qwg2b/sdk/sdk-document/Pages/Page_309702322.en.html?highlight=TryOpenPreselectedUser
         initUsers();
 
         return btrue;
@@ -73,6 +77,73 @@ namespace ITF
 
         ITF_VERIFY_MSG(nn::account::TryOpenPreselectedUser(&m_userHandle), "nn::account::TryOpenPreselectedUser failed, is StartupUserAccount set to Required in nmeta?");
         ITF_VERIFY_NN_CALL(nn::account::GetLastOpenedUser(&m_initialUserID));
+    }
+
+    bool SystemAdapter_Nintendo::havePermissions(bool isSilent)
+    {
+        // m_userHandle uninitialized
+        if (m_userHandle._data[0] == 0 || m_userHandle._data[1] == 0 || m_userHandle._context == 0)
+        {
+            LOG("[havePermissions] user not init");
+            return false;
+        }
+
+        // check NetworkServiceAccount Available
+        bool user_av = false;
+        nn::Result nsaResult = nn::account::IsNetworkServiceAccountAvailable(&user_av, m_userHandle);
+
+        if (!nsaResult.IsSuccess() || !user_av)
+        {
+            LOG("[havePermissions] User lacks NSA");
+        }
+
+        nn::Result ensResult = nn::account::EnsureNetworkServiceAccountAvailable(m_userHandle);
+
+        if (!ensResult.IsSuccess())
+        {
+            LOG("[havePermissions] EnsureAvailable error: %d", ensResult.GetDescription());
+            return false;
+        }
+
+        ITF_VERIFY_NN_CALL(nn::account::GetNetworkServiceAccountId(&m_nsaId, m_userHandle));
+
+        // check online membership
+        nn::account::AsyncContext ctx;
+        nn::Result ensureIdTokenResult = nn::account::EnsureNetworkServiceAccountIdTokenCacheAsync(&ctx, m_userHandle);
+
+        if (!ensureIdTokenResult.IsSuccess())
+        {
+            LOG("[havePermissions] ensure id token cache failed: %d", ensureIdTokenResult.GetDescription());
+            return false;
+        }
+
+        bool isDone = false;
+        for (int i = 0; !isDone && i < 100; i++)
+        {
+            ctx.HasDone(&isDone);
+            sleep(100);
+        }
+        
+        nn::Result asyncResult = ctx.GetResult();
+
+        if (!asyncResult.IsSuccess())
+        {
+            LOG("[havePermissions] EnsureNetworkServiceAccountIdTokenCacheAsync failed %d", asyncResult.GetDescription());
+            nn::err::ShowError(asyncResult);
+            return false;
+        }
+        size_t size = nn::account::NetworkServiceAccountIdTokenLengthMax;
+        char* buffer = newAlloc(mId_System, char[size]);
+        nn::Result loadIdTokenCacheResult = nn::account::LoadNetworkServiceAccountIdTokenCache(&size, buffer, size, m_userHandle);
+
+        if (loadIdTokenCacheResult.IsSuccess())
+        {
+            m_token.setText(buffer);
+            LOG("[havePermissions] token : {%s}", m_token.cStr());
+            return true;
+        }
+
+        return false;
     }
 
     void SystemAdapter_Nintendo::registerNotificationListener(ISystemNotificationListener_Nintendo* _listener)

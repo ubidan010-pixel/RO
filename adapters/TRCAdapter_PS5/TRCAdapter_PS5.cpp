@@ -1,6 +1,8 @@
 #include "precompiled_TRCAdapter_PS5.h"
 
 #include "TRCAdapter_PS5.h"
+#include "core/AdaptersInterfaces/AccountAdapter.h"
+
 #include "engine/singleton/Singletons.h"
 #include "gameplay/GameplayTypes.h"
 #include "engine/localisation/LocalisationManager.h"
@@ -130,13 +132,19 @@ namespace ITF
             idOutro.value = 6940;
             idGameTitle.value = 6950;
 
-            // TODO fetch player name from AccountAdapter
-
             String textTitle = LOCALISATIONMANAGER->getText(idTitle);
             String textSubtitle = LOCALISATIONMANAGER->getText(idSubtitle);
             String textMain = LOCALISATIONMANAGER->getText(idMain);
             String textOutro = LOCALISATIONMANAGER->getText(idOutro);
             String textGameTitle = LOCALISATIONMANAGER->getText(idGameTitle);
+
+            String8 playerName;
+            ACCOUNT_ADAPTER->getActivePlayerName(playerName);
+
+            textTitle.replace("[console gamertag]", playerName);
+            textSubtitle.replace("[console gamertag]", playerName);
+            textMain.replace("[console gamertag]", playerName);
+            textOutro.replace("[console gamertag]", playerName);
 
             textTitle.replace("[gametag]", textGameTitle);
             textSubtitle.replace("[gametag]", textGameTitle);
@@ -144,8 +152,10 @@ namespace ITF
             textOutro.replace("[gametag]", textGameTitle);
 
             message = textTitle + "\n" + textSubtitle + "\n\n" + textMain + "\n" + textOutro;
-            ((TRCMessage_TwoButton*)pTRCMessage)->setLeftButton(buildText(6941, ContextIconType_Select), input_actionID_Valid);
-            ((TRCMessage_TwoButton*)pTRCMessage)->setRightButton(buildText(6942, ContextIconType_Back), input_actionID_Back);
+
+            // Right button is preselected
+            ((TRCMessage_TwoButton*)pTRCMessage)->setRightButton(buildText(6941, ContextIconType_Select), input_actionID_Valid);
+            ((TRCMessage_TwoButton*)pTRCMessage)->setLeftButton(buildText(6942, ContextIconType_Back), input_actionID_Back);
             break;
         }
 
@@ -160,13 +170,19 @@ namespace ITF
             idOutro.value = 6947;
             idGameTitle.value = 6948;
 
-            // TODO fetch player name from AccountAdapter
-
             String textTitle = LOCALISATIONMANAGER->getText(idTitle);
             String textSubtitle = LOCALISATIONMANAGER->getText(idSubtitle);
             String textMain = LOCALISATIONMANAGER->getText(idMain);
             String textOutro = LOCALISATIONMANAGER->getText(idOutro);
             String textGameTitle = LOCALISATIONMANAGER->getText(idGameTitle);
+
+            String8 playerName;
+            ACCOUNT_ADAPTER->getActivePlayerName(playerName);
+
+            textTitle.replace("[console gamertag]", playerName);
+            textSubtitle.replace("[console gamertag]", playerName);
+            textMain.replace("[console gamertag]", playerName);
+            textOutro.replace("[console gamertag]", playerName);
 
             textTitle.replace("[gametag]", textGameTitle);
             textSubtitle.replace("[gametag]", textGameTitle);
@@ -174,8 +190,10 @@ namespace ITF
             textOutro.replace("[gametag]", textGameTitle);
 
             message = textTitle + "\n" + textSubtitle + "\n\n" + textMain + "\n" + textOutro;
-            ((TRCMessage_TwoButton*)pTRCMessage)->setLeftButton(buildText(6941, ContextIconType_Select), input_actionID_Valid);
-            ((TRCMessage_TwoButton*)pTRCMessage)->setRightButton(buildText(6942, ContextIconType_Back), input_actionID_Back);
+
+            // Right button is preselected
+            ((TRCMessage_TwoButton*)pTRCMessage)->setRightButton(buildText(6941, ContextIconType_Select), input_actionID_Valid);
+            ((TRCMessage_TwoButton*)pTRCMessage)->setLeftButton(buildText(6942, ContextIconType_Back), input_actionID_Back);
 
             break;
         }
@@ -193,6 +211,13 @@ namespace ITF
             pTRCMessage = new TRCMessage_OneButton(errorContext);
             message = "Create Session Error. Continue offline.";//buildText(4017); TODO: add in Oasis message for Offline mode
             ((TRCMessage_OneButton*)pTRCMessage)->setButton(buildText(4061, ContextIconType_Back), input_actionID_Valid);
+            break;
+        }
+
+        case UOR_News:
+        {
+            pTRCMessage = new TRCMessage_OneButton(errorContext);
+            ((TRCMessage_OneButton*)pTRCMessage)->setButton(buildText(4061, ContextIconType_Invalid), input_actionID_Valid);
             break;
         }
 
