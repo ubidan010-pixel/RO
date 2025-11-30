@@ -11,7 +11,7 @@ namespace ITF
     class Actor;
     class UIActionButtonComponent : public UIComponent
     {
-        DECLARE_OBJECT_CHILD_RTTI(UIActionButtonComponent, UIComponent, 2847391056);
+        DECLARE_OBJECT_CHILD_RTTI(UIActionButtonComponent, UIComponent, 1149467690);
 
     public:
         DECLARE_SERIALIZE()
@@ -49,7 +49,7 @@ namespace ITF
 
     class UIActionButtonComponent_Template : public UIComponent_Template
     {
-        DECLARE_OBJECT_CHILD_RTTI(UIActionButtonComponent_Template, UIComponent_Template, 3156892741);
+        DECLARE_OBJECT_CHILD_RTTI(UIActionButtonComponent_Template, UIComponent_Template, 443268294);
         DECLARE_SERIALIZE();
         DECLARE_ACTORCOMPONENT_TEMPLATE(UIActionButtonComponent);
 
