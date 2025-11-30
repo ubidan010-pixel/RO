@@ -104,10 +104,14 @@ namespace ITF
 
         ITF_INLINE const Path& getActionsBgTextureConnected() const { return m_actionsBgTextureConnected; }
         ITF_INLINE const Path& getActionsBgTextureDisconnected() const { return m_actionsBgTextureDisconnected; }
+        ITF_INLINE const Path& getPlayerTitleTextureConnected() const { return m_playerTitleTextureConnected; }
+        ITF_INLINE const Path& getPlayerTitleTextureDisconnected() const { return m_playerTitleTextureDisconnected; }
 
     private:
         Path                    m_actionsBgTextureConnected;
         Path                    m_actionsBgTextureDisconnected;
+        Path                    m_playerTitleTextureConnected;
+        Path                    m_playerTitleTextureDisconnected;
     };
 
     ITF_INLINE const UIProfileSlotComponent_Template* UIProfileSlotComponent::getTemplate() const

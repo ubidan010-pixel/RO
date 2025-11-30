@@ -347,7 +347,15 @@ namespace ITF
         setActorVisibility(m_resetButtonPath, visible);
         setActorVisibility(m_controlsPath, visible);
         setActorVisibility(m_presetPath, visible);
-        setActorVisibility(m_playerTitlePath, visible);
+
+        // Player title - change texture instead of hiding
+        const Path& titleTexConnected = getTemplate()->getPlayerTitleTextureConnected();
+        const Path& titleTexDisconnected = getTemplate()->getPlayerTitleTextureDisconnected();
+        if (!titleTexConnected.isEmpty() && !titleTexDisconnected.isEmpty())
+        {
+            const Path& titleTexturePath = visible ? titleTexConnected : titleTexDisconnected;
+            setActorBackgroundTexture(m_playerTitlePath, titleTexturePath);
+        }
 
         // Actions background - change texture instead of hiding
         const Path& texConnected = getTemplate()->getActionsBgTextureConnected();
@@ -412,12 +420,16 @@ namespace ITF
     BEGIN_SERIALIZATION_CHILD(UIProfileSlotComponent_Template)
         SERIALIZE_MEMBER("actionsBgTextureConnected", m_actionsBgTextureConnected);
         SERIALIZE_MEMBER("actionsBgTextureDisconnected", m_actionsBgTextureDisconnected);
+        SERIALIZE_MEMBER("playerTitleTextureConnected", m_playerTitleTextureConnected);
+        SERIALIZE_MEMBER("playerTitleTextureDisconnected", m_playerTitleTextureDisconnected);
     END_SERIALIZATION()
 
     UIProfileSlotComponent_Template::UIProfileSlotComponent_Template()
     : Super()
     , m_actionsBgTextureConnected()
     , m_actionsBgTextureDisconnected()
+    , m_playerTitleTextureConnected()
+    , m_playerTitleTextureDisconnected()
     {
     }
 
