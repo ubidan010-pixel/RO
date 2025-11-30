@@ -10,6 +10,15 @@
 
 namespace ITF
 {
+    namespace
+    {
+        const f32 kStickThreshold = 0.5f;
+
+        ITF_INLINE bbool IsButtonPressed(InputAdapter::PressStatus status)
+        {
+            return status == InputAdapter::Pressed || status == InputAdapter::JustPressed;
+        }
+    }
     void ZPad_Base::InitDeviceInfo()
     {
         m_deviceInfo.m_inputInfo.clear();
@@ -134,16 +143,15 @@ namespace ITF
         deviceInfo.m_inputInfo[TRIGGER_LEFT].m_axisInfo.m_axis = axes[m_joyTrigger_Left];
         deviceInfo.m_inputInfo[TRIGGER_RIGHT].m_axisInfo.m_axis = axes[m_joyTrigger_Right];
 
-        const f32 threshold = 0.5f;
-        deviceInfo.m_inputInfo[STICK_L_UP].m_buttonInfo.m_status = (axes[m_joyStickLeft_Y] > threshold) ? SInputInfo::BUTTONSTATUS_PRESS : SInputInfo::BUTTONSTATUS_NONE;
-        deviceInfo.m_inputInfo[STICK_L_DOWN].m_buttonInfo.m_status = (axes[m_joyStickLeft_Y] < -threshold) ? SInputInfo::BUTTONSTATUS_PRESS : SInputInfo::BUTTONSTATUS_NONE;
-        deviceInfo.m_inputInfo[STICK_L_LEFT].m_buttonInfo.m_status = (axes[m_joyStickLeft_X] < -threshold) ? SInputInfo::BUTTONSTATUS_PRESS : SInputInfo::BUTTONSTATUS_NONE;
-        deviceInfo.m_inputInfo[STICK_L_RIGHT].m_buttonInfo.m_status = (axes[m_joyStickLeft_X] > threshold) ? SInputInfo::BUTTONSTATUS_PRESS : SInputInfo::BUTTONSTATUS_NONE;
+        deviceInfo.m_inputInfo[STICK_L_UP].m_buttonInfo.m_status = (axes[m_joyStickLeft_Y] > kStickThreshold) ? SInputInfo::BUTTONSTATUS_PRESS : SInputInfo::BUTTONSTATUS_NONE;
+        deviceInfo.m_inputInfo[STICK_L_DOWN].m_buttonInfo.m_status = (axes[m_joyStickLeft_Y] < -kStickThreshold) ? SInputInfo::BUTTONSTATUS_PRESS : SInputInfo::BUTTONSTATUS_NONE;
+        deviceInfo.m_inputInfo[STICK_L_LEFT].m_buttonInfo.m_status = (axes[m_joyStickLeft_X] < -kStickThreshold) ? SInputInfo::BUTTONSTATUS_PRESS : SInputInfo::BUTTONSTATUS_NONE;
+        deviceInfo.m_inputInfo[STICK_L_RIGHT].m_buttonInfo.m_status = (axes[m_joyStickLeft_X] > kStickThreshold) ? SInputInfo::BUTTONSTATUS_PRESS : SInputInfo::BUTTONSTATUS_NONE;
 
-        deviceInfo.m_inputInfo[STICK_R_UP].m_buttonInfo.m_status = (axes[m_joyStickRight_Y] > threshold) ? SInputInfo::BUTTONSTATUS_PRESS : SInputInfo::BUTTONSTATUS_NONE;
-        deviceInfo.m_inputInfo[STICK_R_DOWN].m_buttonInfo.m_status = (axes[m_joyStickRight_Y] < -threshold) ? SInputInfo::BUTTONSTATUS_PRESS : SInputInfo::BUTTONSTATUS_NONE;
-        deviceInfo.m_inputInfo[STICK_R_LEFT].m_buttonInfo.m_status = (axes[m_joyStickRight_X] < -threshold) ? SInputInfo::BUTTONSTATUS_PRESS : SInputInfo::BUTTONSTATUS_NONE;
-        deviceInfo.m_inputInfo[STICK_R_RIGHT].m_buttonInfo.m_status = (axes[m_joyStickRight_X] > threshold) ? SInputInfo::BUTTONSTATUS_PRESS : SInputInfo::BUTTONSTATUS_NONE;
+        deviceInfo.m_inputInfo[STICK_R_UP].m_buttonInfo.m_status = (axes[m_joyStickRight_Y] > kStickThreshold) ? SInputInfo::BUTTONSTATUS_PRESS : SInputInfo::BUTTONSTATUS_NONE;
+        deviceInfo.m_inputInfo[STICK_R_DOWN].m_buttonInfo.m_status = (axes[m_joyStickRight_Y] < -kStickThreshold) ? SInputInfo::BUTTONSTATUS_PRESS : SInputInfo::BUTTONSTATUS_NONE;
+        deviceInfo.m_inputInfo[STICK_R_LEFT].m_buttonInfo.m_status = (axes[m_joyStickRight_X] < -kStickThreshold) ? SInputInfo::BUTTONSTATUS_PRESS : SInputInfo::BUTTONSTATUS_NONE;
+        deviceInfo.m_inputInfo[STICK_R_RIGHT].m_buttonInfo.m_status = (axes[m_joyStickRight_X] > kStickThreshold) ? SInputInfo::BUTTONSTATUS_PRESS : SInputInfo::BUTTONSTATUS_NONE;
     }
 
     void ZPad_Base::UpdateButtonStates(SDeviceInfo& deviceInfo, const InputAdapter::PressStatus* buttons)
@@ -236,50 +244,21 @@ namespace ITF
 
         switch (physicalControl)
         {
-        case DPAD_UP:
-            isPressed = (buttons[m_joyButton_DPadU] == InputAdapter::Pressed || buttons[m_joyButton_DPadU] == InputAdapter::JustPressed);
-            break;
-        case DPAD_DOWN:
-            isPressed = (buttons[m_joyButton_DPadD] == InputAdapter::Pressed || buttons[m_joyButton_DPadD] == InputAdapter::JustPressed);
-            break;
-        case DPAD_LEFT:
-            isPressed = (buttons[m_joyButton_DPadL] == InputAdapter::Pressed || buttons[m_joyButton_DPadL] == InputAdapter::JustPressed);
-            break;
-        case DPAD_RIGHT:
-            isPressed = (buttons[m_joyButton_DPadR] == InputAdapter::Pressed || buttons[m_joyButton_DPadR] == InputAdapter::JustPressed);
-            break;
-        case BUTTON_FACE_SOUTH:
-            isPressed = (buttons[mapping.faceButtonSouth] == InputAdapter::Pressed || buttons[mapping.faceButtonSouth] == InputAdapter::JustPressed);
-            break;
-        case BUTTON_FACE_EAST:
-            isPressed = (buttons[mapping.faceButtonEast] == InputAdapter::Pressed || buttons[mapping.faceButtonEast] == InputAdapter::JustPressed);
-            break;
-        case BUTTON_FACE_WEST:
-            isPressed = (buttons[mapping.faceButtonWest] == InputAdapter::Pressed || buttons[mapping.faceButtonWest] == InputAdapter::JustPressed);
-            break;
-        case BUTTON_FACE_NORTH:
-            isPressed = (buttons[mapping.faceButtonNorth] == InputAdapter::Pressed || buttons[mapping.faceButtonNorth] == InputAdapter::JustPressed);
-            break;
-        case BUTTON_L_SHOULDER:
-            isPressed = (buttons[mapping.shoulderLeft] == InputAdapter::Pressed || buttons[mapping.shoulderLeft] == InputAdapter::JustPressed);
-            break;
-        case BUTTON_R_SHOULDER:
-            isPressed = (buttons[mapping.shoulderRight] == InputAdapter::Pressed || buttons[mapping.shoulderRight] == InputAdapter::JustPressed);
-            break;
-        case BUTTON_L_THUMB:
-            isPressed = (buttons[m_joyButton_ThumbLeft] == InputAdapter::Pressed || buttons[m_joyButton_ThumbLeft] == InputAdapter::JustPressed);
-            break;
-        case BUTTON_R_THUMB:
-            isPressed = (buttons[m_joyButton_ThumbRight] == InputAdapter::Pressed || buttons[m_joyButton_ThumbRight] == InputAdapter::JustPressed);
-            break;
-        case BUTTON_START:
-            isPressed = (buttons[mapping.startButton] == InputAdapter::Pressed || buttons[mapping.startButton] == InputAdapter::JustPressed);
-            break;
-        case BUTTON_SELECT:
-            isPressed = (buttons[mapping.selectButton] == InputAdapter::Pressed || buttons[mapping.selectButton] == InputAdapter::JustPressed);
-            break;
-        default:
-            break;
+        case DPAD_UP:         isPressed = IsButtonPressed(buttons[m_joyButton_DPadU]); break;
+        case DPAD_DOWN:       isPressed = IsButtonPressed(buttons[m_joyButton_DPadD]); break;
+        case DPAD_LEFT:       isPressed = IsButtonPressed(buttons[m_joyButton_DPadL]); break;
+        case DPAD_RIGHT:      isPressed = IsButtonPressed(buttons[m_joyButton_DPadR]); break;
+        case BUTTON_FACE_SOUTH:  isPressed = IsButtonPressed(buttons[mapping.faceButtonSouth]); break;
+        case BUTTON_FACE_EAST:   isPressed = IsButtonPressed(buttons[mapping.faceButtonEast]); break;
+        case BUTTON_FACE_WEST:   isPressed = IsButtonPressed(buttons[mapping.faceButtonWest]); break;
+        case BUTTON_FACE_NORTH:  isPressed = IsButtonPressed(buttons[mapping.faceButtonNorth]); break;
+        case BUTTON_L_SHOULDER:  isPressed = IsButtonPressed(buttons[mapping.shoulderLeft]); break;
+        case BUTTON_R_SHOULDER:  isPressed = IsButtonPressed(buttons[mapping.shoulderRight]); break;
+        case BUTTON_L_THUMB:     isPressed = IsButtonPressed(buttons[m_joyButton_ThumbLeft]); break;
+        case BUTTON_R_THUMB:     isPressed = IsButtonPressed(buttons[m_joyButton_ThumbRight]); break;
+        case BUTTON_START:       isPressed = IsButtonPressed(buttons[mapping.startButton]); break;
+        case BUTTON_SELECT:      isPressed = IsButtonPressed(buttons[mapping.selectButton]); break;
+        default: break;
         }
 
         return isPressed ? 1.0f : 0.0f;

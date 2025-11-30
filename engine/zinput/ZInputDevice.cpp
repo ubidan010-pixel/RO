@@ -204,7 +204,6 @@ namespace ITF
         {
             if (i != logicalControl && m_controlRemap[i] == physicalControl)
             {
-
                 m_controlRemap[i] = oldPhysical;
                 break;
             }
