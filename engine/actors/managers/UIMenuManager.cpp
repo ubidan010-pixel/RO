@@ -326,12 +326,12 @@ void UIMenuManager::notifySiblingUIComponents(UIComponent* component, bbool isSe
 void UIMenuManager::applySelectionChange(UIMenu* menu, UIComponent* oldSel, UIComponent* newSel)
 {
     MenuItemActionListener* listener = getCurrentMenuActionListener();
-    
+
     if (oldSel)
     {
         oldSel->setIsSelected(bfalse);
         oldSel->onRollout();
-        if (listener) 
+        if (listener)
             listener->UpdateMenuOnSelectionChange(oldSel, false);
         notifySiblingUIComponents(oldSel, bfalse);
     }
@@ -340,11 +340,11 @@ void UIMenuManager::applySelectionChange(UIMenu* menu, UIComponent* oldSel, UICo
     {
         newSel->setIsSelected(btrue);
         newSel->onRollover();
-        if (listener) 
+        if (listener)
             listener->UpdateMenuOnSelectionChange(newSel, true);
         notifySiblingUIComponents(newSel, btrue);
     }
-
+    LOG("applySelectionChange: newsel: %s | oldSel: %s", newSel->getFriendly().cStr(), oldSel->getFriendly().cStr());
     if (menu)
     {
         rememberMainSelectionForMenuStart(oldSel, newSel, menu);

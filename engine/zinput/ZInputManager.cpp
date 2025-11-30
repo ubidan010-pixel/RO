@@ -48,6 +48,7 @@ namespace ITF
 {
 
     ZInputManager::ZInputManager()
+        : m_suppressReceive(bfalse)
     {
         for (u32 i = 0; i < ACTIONMAP_MAX_PLAYER; i++)
             m_playersConfig[i] = StringID::Invalid;
@@ -144,6 +145,8 @@ namespace ITF
                 {
                     if ( !m_playersConfig[player].isValid() || m_playersConfig[player] == _actionMapInternal->_config )
                     {
+                        if (m_suppressReceive)
+                            continue;
                         Listeners::const_iterator it = itListenerBegin;
                         while ( it != itListenerEnd )
                         {

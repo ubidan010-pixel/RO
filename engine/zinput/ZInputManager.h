@@ -62,6 +62,9 @@ namespace  ITF
         u32                 GetPhysicalFromAction(u32 _playerIndex, EGameAction _action);
         void                ResetRemapping(u32 _playerIndex);
 
+        void                SetSuppressReceive(bbool _suppress) { m_suppressReceive = _suppress; }
+        bbool               GetSuppressReceive() const { return m_suppressReceive; }
+
         struct ActionMapInternal
         {
             ActionMap _actionMap;
@@ -96,6 +99,7 @@ namespace  ITF
         void                update_devices ();
 
         StringID            m_playersConfig[ACTIONMAP_MAX_PLAYER];
+        bbool               m_suppressReceive;
     };
 
 

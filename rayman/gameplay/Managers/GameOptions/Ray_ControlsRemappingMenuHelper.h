@@ -44,10 +44,12 @@ namespace ITF
 
         static Ray_ControlsRemappingMenuHelper* s_activeHelper;
         bbool m_isRemappingMode;
+        bbool m_isWaitingForRelease;
         u32 m_remappingPlayerIndex;
         ZInputManager::EGameAction m_remappingAction;
         UIComponent* m_remappingComponent;
         f32 m_remappingCooldown;
+        f32 m_postRemapCooldown;
         InputAdapter::PressStatus m_lastButtonStates[JOY_MAX_BUT];
         f32 m_lastAxisStates[JOY_MAX_AXES];
     };

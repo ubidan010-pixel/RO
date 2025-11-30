@@ -130,10 +130,12 @@ namespace ITF
     Ray_ControlsRemappingMenuHelper::Ray_ControlsRemappingMenuHelper()
         : Ray_BaseMenuHelper()
           , m_isRemappingMode(bfalse)
+          , m_isWaitingForRelease(bfalse)
           , m_remappingPlayerIndex(0)
           , m_remappingAction(ZInputManager::Action_Up)
           , m_remappingComponent(NULL)
           , m_remappingCooldown(0.0f)
+          , m_postRemapCooldown(0.0f)
     {
         m_menuBaseName = "controlremapping";
         for (u32 i = 0; i < JOY_MAX_BUT; ++i)
@@ -168,6 +170,8 @@ namespace ITF
 
         m_isActive = btrue;
         m_isRemappingMode = bfalse;
+        m_isWaitingForRelease = bfalse;
+        m_postRemapCooldown = 0.0f;
         m_mainListener = mainListener;
         UI_MENUMANAGER->setMenuListener(m_menuBaseName, this);
         m_menu = UI_MENUMANAGER->getMenu(m_menuBaseName);
@@ -441,6 +445,10 @@ namespace ITF
         m_remappingCooldown = kRemapInputDelay;
         clearIconDisplay(component);
         snapshotInputState();
+        if (GAMEMANAGER && GAMEMANAGER->getInputManager())
+        {
+            GAMEMANAGER->getInputManager()->SetSuppressReceive(btrue);
+        }
 
         LOG("[ControlsRemapping] Starting remap mode for Player %d, Action %d\n", playerIndex + 1, action);
     }
@@ -473,6 +481,9 @@ namespace ITF
         m_isRemappingMode = bfalse;
         m_remappingComponent = nullptr;
         m_remappingCooldown = 0.0f;
+        m_isWaitingForRelease = btrue;
+        m_postRemapCooldown = 0.15f; 
+        LOG("[ControlsRemapping] Entering wait-for-release state\n");
     }
 
     void Ray_ControlsRemappingMenuHelper::snapshotInputState()
@@ -627,6 +638,55 @@ namespace ITF
 
     void Ray_ControlsRemappingMenuHelper::updateRemappingMode(f32 deltaTime)
     {
+        if (m_isWaitingForRelease)
+        {
+            m_postRemapCooldown -= deltaTime;
+            bbool allReleased = btrue;
+            if (INPUT_ADAPTER && m_postRemapCooldown <= 0.0f)
+            {
+                InputAdapter::PressStatus buttons[JOY_MAX_BUT];
+                INPUT_ADAPTER->getGamePadButtons(InputAdapter::EnvironmentAll, m_remappingPlayerIndex, buttons, JOY_MAX_BUT);
+
+                f32 axes[JOY_MAX_AXES] = {0.0f};
+                INPUT_ADAPTER->getGamePadPos(InputAdapter::EnvironmentAll, m_remappingPlayerIndex, axes, JOY_MAX_AXES);
+                for (u32 i = 0; i < JOY_MAX_BUT; ++i)
+                {
+                    if (buttons[i] == InputAdapter::Pressed || buttons[i] == InputAdapter::JustPressed)
+                    {
+                        allReleased = bfalse;
+                        break;
+                    }
+                }
+                if (allReleased)
+                {
+                    const f32 threshold = 0.4f;
+                    for (u32 i = 0; i < JOY_MAX_AXES; ++i)
+                    {
+                        if (axes[i] > threshold || axes[i] < -threshold)
+                        {
+                            allReleased = bfalse;
+                            break;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                allReleased = bfalse;
+            }
+
+            if (allReleased)
+            {
+                m_isWaitingForRelease = bfalse;
+                if (GAMEMANAGER && GAMEMANAGER->getInputManager())
+                {
+                    GAMEMANAGER->getInputManager()->SetSuppressReceive(bfalse);
+                }
+                LOG("[ControlsRemapping] Input released, Receive re-enabled\n");
+            }
+            return;
+        }
+
         if (!m_isRemappingMode)
             return;
 
@@ -650,6 +710,12 @@ namespace ITF
     void Ray_ControlsRemappingMenuHelper::onClose()
     {
         cancelRemappingMode(btrue);
+        m_isWaitingForRelease = bfalse;
+        if (GAMEMANAGER && GAMEMANAGER->getInputManager())
+        {
+            GAMEMANAGER->getInputManager()->SetSuppressReceive(bfalse);
+        }
+
         if (s_activeHelper == this)
         {
             s_activeHelper = nullptr;
