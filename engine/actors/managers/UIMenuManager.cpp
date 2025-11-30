@@ -39,6 +39,10 @@
 #include "gameplay/components/UI/UIMenu.h"
 #endif //_ITF_UIMENU_H_
 
+#ifndef _ITF_ACTOR_H_
+#include "engine/actors/actor.h"
+#endif //_ITF_ACTOR_H_
+
 #ifndef _ITF_GAMEMANAGER_H_
 #include "gameplay/Managers/GameManager.h"
 #endif //_ITF_GAMEMANAGER_H_
@@ -50,6 +54,10 @@
 #ifndef _ITF_RAY_OPTIONMENUHELPER_H_
 #include "rayman/gameplay/Managers/GameOptions/Ray_OptionMenuHelper.h"
 #endif //_ITF_RAY_OPTIONMENUHELPER_H_
+
+#ifndef _ITF_RAY_CONTROLSREMAPPINGMENUHELPER_H_
+#include "rayman/gameplay/Managers/GameOptions/Ray_ControlsRemappingMenuHelper.h"
+#endif //_ITF_RAY_CONTROLSREMAPPINGMENUHELPER_H_
 
 #ifndef _ITF_CONFIG_H_
 #include "core/Config.h"
@@ -249,6 +257,12 @@ namespace ITF
         if (optionHelper && optionHelper->isActive())
         {
             optionHelper->updateTimer();
+        }
+
+        Ray_ControlsRemappingMenuHelper* remapHelper = Ray_ControlsRemappingMenuHelper::getActiveHelper();
+        if (remapHelper && remapHelper->isActive())
+        {
+            remapHelper->updateRemappingMode(LOGICDT);
         }
 
         if (m_inMenu)
@@ -927,8 +941,12 @@ void UIMenuManager::applySelectionChange(UIMenu* menu, UIComponent* oldSel, UICo
                                 UIComponent* newSel = getUIComponent(overrideRef);
                                 if (newSel)
                                 {
-                                    applySelectionChange(pMenu, pUIComponentSelected, newSel);
-                                    return;
+                                    Actor* overrideActor = newSel->GetActor();
+                                    if (overrideActor && overrideActor->isEnabled())
+                                    {
+                                        applySelectionChange(pMenu, pUIComponentSelected, newSel);
+                                        return;
+                                    }
                                 }
                             }
                             else
@@ -964,7 +982,11 @@ void UIMenuManager::applySelectionChange(UIMenu* menu, UIComponent* oldSel, UICo
     {
         ObjectRef refComponentSelected = _pUIComponentSelected->getUIref();
         ObjectRef refNextComponentSelected = refComponentSelected;
-        Vec3d posComponentSelected = _pUIComponentSelected->GetActor()->getPos();
+        Actor* selectedActor = _pUIComponentSelected->GetActor();
+        if (!selectedActor || !selectedActor->isEnabled())
+            return refComponentSelected;
+
+        Vec3d posComponentSelected = selectedActor->getPos();
 
         f32 angleJoyComponent;
         if (_findFarthest)
@@ -978,11 +1000,15 @@ void UIMenuManager::applySelectionChange(UIMenu* menu, UIComponent* oldSel, UICo
             if (!pUIComponent || !pUIComponent->getActive() || !pUIComponent->getCanBeSelected())
                 continue;
 
+            Actor* actor = pUIComponent->GetActor();
+            if (!actor || !actor->isEnabled())
+                continue;
+
             ObjectRef refUIComponent = pUIComponent->getUIref();
             if (refUIComponent == refComponentSelected)
                 continue;
 
-            Vec3d posComponent = pUIComponent->GetActor()->getPos();
+            Vec3d posComponent = actor->getPos();
             Vec2d delta(posComponent.m_x - posComponentSelected.m_x,
                         posComponent.m_y - posComponentSelected.m_y);
 
@@ -1962,8 +1988,12 @@ void UIMenuManager::applySelectionChange(UIMenu* menu, UIComponent* oldSel, UICo
             UIComponent* ubisoftComponent = menu->getUIComponentByID(kUbiConnectID);
             if (ubisoftComponent && ubisoftComponent->getActive() && ubisoftComponent->getCanBeSelected())
             {
-                applySelectionChange(menu, selected, ubisoftComponent);
-                return btrue;
+                Actor* ubiActor = ubisoftComponent->GetActor();
+                if (ubiActor && ubiActor->isEnabled())
+                {
+                    applySelectionChange(menu, selected, ubisoftComponent);
+                    return btrue;
+                }
             }
         }
 
@@ -1980,8 +2010,12 @@ void UIMenuManager::applySelectionChange(UIMenu* menu, UIComponent* oldSel, UICo
             }
             if (targetComponent)
             {
-                applySelectionChange(menu, selected, targetComponent);
-                return btrue;
+                Actor* targetActor = targetComponent->GetActor();
+                if (targetActor && targetActor->isEnabled())
+                {
+                    applySelectionChange(menu, selected, targetComponent);
+                    return btrue;
+                }
             }
         }
 
