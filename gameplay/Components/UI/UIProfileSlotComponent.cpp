@@ -20,6 +20,14 @@
 #include "engine/scene/SceneObjectPath.h"
 #endif //_ITF_SCENEOBJECTPATH_H_
 
+#ifndef _ITF_TEXTUREGRAPHICCOMPONENT2D_H_
+#include "engine/actors/components/texturegraphiccomponent2D.h"
+#endif //_ITF_TEXTUREGRAPHICCOMPONENT2D_H_
+
+#ifndef _ITF_RESOURCEMANAGER_H_
+#include "engine/resources/ResourceManager.h"
+#endif //_ITF_RESOURCEMANAGER_H_
+
 namespace ITF
 {
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -32,6 +40,8 @@ namespace ITF
             SERIALIZE_MEMBER("presetPath", m_presetPath);
             SERIALIZE_MEMBER("playerTitlePath", m_playerTitlePath);
             SERIALIZE_MEMBER("actionsBgPath", m_actionsBgPath);
+            SERIALIZE_MEMBER("actionsBgTextureConnected", m_actionsBgTextureConnected);
+            SERIALIZE_MEMBER("actionsBgTextureDisconnected", m_actionsBgTextureDisconnected);
             SERIALIZE_MEMBER("actionUpPath", m_actionUpPath);
             SERIALIZE_MEMBER("actionDownPath", m_actionDownPath);
             SERIALIZE_MEMBER("actionLeftPath", m_actionLeftPath);
@@ -52,6 +62,8 @@ namespace ITF
     , m_presetPath()
     , m_playerTitlePath()
     , m_actionsBgPath()
+    , m_actionsBgTextureConnected()
+    , m_actionsBgTextureDisconnected()
     , m_actionUpPath()
     , m_actionDownPath()
     , m_actionLeftPath()
@@ -82,6 +94,8 @@ namespace ITF
         m_presetPath.clear();
         m_playerTitlePath.clear();
         m_actionsBgPath.clear();
+        m_actionsBgTextureConnected.clear();
+        m_actionsBgTextureDisconnected.clear();
         m_actionUpPath.clear();
         m_actionDownPath.clear();
         m_actionLeftPath.clear();
@@ -233,7 +247,7 @@ namespace ITF
     ///////////////////////////////////////////////////////////////////////////////////////////
     void UIProfileSlotComponent::onEvent(Event* _event)
     {
-        if (EventControllerStateChanged* controllerEvent = 
+        if (EventControllerStateChanged* controllerEvent =
             _event->DynamicCast<EventControllerStateChanged>(ITF_GET_STRINGID_CRC(EventControllerStateChanged, 1847293651)))
         {
             onControllerStateChanged(
@@ -266,7 +280,7 @@ namespace ITF
         if (wasConnected != connected)
         {
             updateAllVisibility();
-            
+
             // Log current total connected controllers
             LOG("[UIProfileSlotComponent] Total connected controllers: %u", getConnectedControllersCount());
         }
@@ -296,6 +310,39 @@ namespace ITF
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
+    void UIProfileSlotComponent::setActorBackgroundTexture(const String8& actorPath, const Path& texturePath)
+    {
+        if (actorPath.isEmpty() || texturePath.isEmpty() || !m_actor)
+            return;
+
+        Scene* scene = m_actor->getScene();
+        if (!scene)
+            return;
+
+        Actor* targetActor = scene->getActorFromUserFriendly(actorPath);
+        if (!targetActor)
+        {
+            LOG("[UIProfileSlotComponent] Player %u: Actor '%s' not found for texture change", m_playerIndex, actorPath.cStr());
+            return;
+        }
+
+        // Get TextureGraphicComponent2D from the actor
+        TextureGraphicComponent2D* texComp = targetActor->GetComponent<TextureGraphicComponent2D>();
+        if (!texComp)
+        {
+            LOG("[UIProfileSlotComponent] Player %u: Actor '%s' has no TextureGraphicComponent2D", m_playerIndex, actorPath.cStr());
+            return;
+        }
+
+        // Create new resource ID for the texture and change it
+        ResourceID newTextureID = targetActor->addResource(Resource::ResourceType_Texture, texturePath);
+        if (newTextureID.isValidResourceId())
+        {
+            texComp->changeTexture(newTextureID);
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
     void UIProfileSlotComponent::updateAllVisibility()
     {
         bbool visible = isControllerConnected();
@@ -308,8 +355,14 @@ namespace ITF
         setActorVisibility(m_presetPath, visible);
         setActorVisibility(m_playerTitlePath, visible);
 
-        // Actions background and icons
-        setActorVisibility(m_actionsBgPath, visible);
+        // Actions background - change texture instead of hiding
+        if (!m_actionsBgTextureConnected.isEmpty() && !m_actionsBgTextureDisconnected.isEmpty())
+        {
+            const Path& texturePath = visible ? m_actionsBgTextureConnected : m_actionsBgTextureDisconnected;
+            setActorBackgroundTexture(m_actionsBgPath, texturePath);
+        }
+
+        // Action icons - show/hide based on connection
         setActorVisibility(m_actionUpPath, visible);
         setActorVisibility(m_actionDownPath, visible);
         setActorVisibility(m_actionLeftPath, visible);
@@ -342,7 +395,7 @@ namespace ITF
     {
         LOG("[UIProfileSlotComponent] === Controllers State Summary ===");
         LOG("[UIProfileSlotComponent] Total connected: %u / %u", getConnectedControllersCount(), JOY_MAX_COUNT);
-        
+
         if (INPUT_ADAPTER)
         {
             for (u32 i = 0; i < JOY_MAX_COUNT; ++i)
