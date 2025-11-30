@@ -126,19 +126,22 @@ namespace ITF
         updateButtonState(m_joyButton_DPadR, SDL_GetGamepadButton(m_gamepad, SDL_GAMEPAD_BUTTON_DPAD_RIGHT));
 
         updateAxisState(
-            JOY_AXIS_LX, static_cast<f32>(SDL_GetGamepadAxis(m_gamepad, SDL_GAMEPAD_AXIS_LEFTX)) / SDL_AXIS_MAX_VALUE);
+            m_joyStickLeft_X,
+            static_cast<f32>(SDL_GetGamepadAxis(m_gamepad, SDL_GAMEPAD_AXIS_LEFTX)) / SDL_AXIS_MAX_VALUE);
         updateAxisState(
-            JOY_AXIS_LY, static_cast<f32>(-SDL_GetGamepadAxis(m_gamepad, SDL_GAMEPAD_AXIS_LEFTY)) / SDL_AXIS_MAX_VALUE);
+            m_joyStickLeft_Y,
+            static_cast<f32>(-SDL_GetGamepadAxis(m_gamepad, SDL_GAMEPAD_AXIS_LEFTY)) / SDL_AXIS_MAX_VALUE);
         updateAxisState(
-            JOY_AXIS_RX, static_cast<f32>(SDL_GetGamepadAxis(m_gamepad, SDL_GAMEPAD_AXIS_RIGHTX)) / SDL_AXIS_MAX_VALUE);
+            m_joyStickRight_X,
+            static_cast<f32>(SDL_GetGamepadAxis(m_gamepad, SDL_GAMEPAD_AXIS_RIGHTX)) / SDL_AXIS_MAX_VALUE);
         updateAxisState(
-            JOY_AXIS_RY,
+            m_joyStickRight_Y,
             static_cast<f32>(-SDL_GetGamepadAxis(m_gamepad, SDL_GAMEPAD_AXIS_RIGHTY)) / SDL_AXIS_MAX_VALUE);
         updateAxisState(
-            JOY_AXIS_LT,
+            m_joyTrigger_Left,
             static_cast<f32>(SDL_GetGamepadAxis(m_gamepad, SDL_GAMEPAD_AXIS_LEFT_TRIGGER)) / SDL_AXIS_MAX_VALUE);
         updateAxisState(
-            JOY_AXIS_RT,
+            m_joyTrigger_Right,
             static_cast<f32>(SDL_GetGamepadAxis(m_gamepad, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER)) / SDL_AXIS_MAX_VALUE);
 
     }

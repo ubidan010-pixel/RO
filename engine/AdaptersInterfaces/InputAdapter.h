@@ -203,14 +203,6 @@ namespace ITF
 #define  JOY_MAX_BUT        32
 #define  JOY_MAX_COUNT      4 //When getting pad statuses, you can iterate from 0 to JOY_MAX_COUNT-1
 
-#define JOY_AXIS_LX         0
-#define JOY_AXIS_LY         1
-#define JOY_AXIS_RX         2
-#define JOY_AXIS_RY         3
-#define JOY_AXIS_LT         4
-#define JOY_AXIS_RT         5
-#define JOY_MAX_AXES        6
-
     class InputAdapter : public TemplateSingleton<InputAdapter>
     {
     public:
