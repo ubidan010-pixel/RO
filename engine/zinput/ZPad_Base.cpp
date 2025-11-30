@@ -122,6 +122,7 @@ namespace ITF
         UpdateButtonStates(deviceInfo, buttons);
         UpdatePlatformSpecificControls(deviceInfo, buttons, axes);
         ApplyRemapping(deviceInfo);
+        ApplyDirectionRemapping(deviceInfo, axes, buttons);
     }
 
     void ZPad_Base::UpdateAxisValues(SDeviceInfo& deviceInfo, const f32* axes)
@@ -199,5 +200,155 @@ namespace ITF
         u32 index = m_deviceInfo.m_inputInfo.size() - 1;
         REGISTER_CONTROL(index, controlName)
         return index;
+    }
+
+    f32 ZPad_Base::GetAxisValueFromControl(u32 physicalControl, const f32* axes, const InputAdapter::PressStatus* buttons) const
+    {
+        switch (physicalControl)
+        {
+        case STICK_L_UP:
+            return f32_Max(0.0f, axes[m_joyStickLeft_Y]);
+        case STICK_L_DOWN:
+            return f32_Max(0.0f, -axes[m_joyStickLeft_Y]);
+        case STICK_L_LEFT:
+            return f32_Max(0.0f, -axes[m_joyStickLeft_X]);
+        case STICK_L_RIGHT:
+            return f32_Max(0.0f, axes[m_joyStickLeft_X]);
+        case STICK_R_UP:
+            return f32_Max(0.0f, axes[m_joyStickRight_Y]);
+        case STICK_R_DOWN:
+            return f32_Max(0.0f, -axes[m_joyStickRight_Y]);
+        case STICK_R_LEFT:
+            return f32_Max(0.0f, -axes[m_joyStickRight_X]);
+        case STICK_R_RIGHT:
+            return f32_Max(0.0f, axes[m_joyStickRight_X]);
+        default:
+            break;
+        }
+
+        if (physicalControl == TRIGGER_LEFT)
+            return axes[m_joyTrigger_Left];
+        if (physicalControl == TRIGGER_RIGHT)
+            return axes[m_joyTrigger_Right];
+
+        PhysicalButtonMapping mapping = GetPhysicalButtonMapping();
+        bbool isPressed = bfalse;
+
+        switch (physicalControl)
+        {
+        case DPAD_UP:
+            isPressed = (buttons[m_joyButton_DPadU] == InputAdapter::Pressed || buttons[m_joyButton_DPadU] == InputAdapter::JustPressed);
+            break;
+        case DPAD_DOWN:
+            isPressed = (buttons[m_joyButton_DPadD] == InputAdapter::Pressed || buttons[m_joyButton_DPadD] == InputAdapter::JustPressed);
+            break;
+        case DPAD_LEFT:
+            isPressed = (buttons[m_joyButton_DPadL] == InputAdapter::Pressed || buttons[m_joyButton_DPadL] == InputAdapter::JustPressed);
+            break;
+        case DPAD_RIGHT:
+            isPressed = (buttons[m_joyButton_DPadR] == InputAdapter::Pressed || buttons[m_joyButton_DPadR] == InputAdapter::JustPressed);
+            break;
+        case BUTTON_FACE_SOUTH:
+            isPressed = (buttons[mapping.faceButtonSouth] == InputAdapter::Pressed || buttons[mapping.faceButtonSouth] == InputAdapter::JustPressed);
+            break;
+        case BUTTON_FACE_EAST:
+            isPressed = (buttons[mapping.faceButtonEast] == InputAdapter::Pressed || buttons[mapping.faceButtonEast] == InputAdapter::JustPressed);
+            break;
+        case BUTTON_FACE_WEST:
+            isPressed = (buttons[mapping.faceButtonWest] == InputAdapter::Pressed || buttons[mapping.faceButtonWest] == InputAdapter::JustPressed);
+            break;
+        case BUTTON_FACE_NORTH:
+            isPressed = (buttons[mapping.faceButtonNorth] == InputAdapter::Pressed || buttons[mapping.faceButtonNorth] == InputAdapter::JustPressed);
+            break;
+        case BUTTON_L_SHOULDER:
+            isPressed = (buttons[mapping.shoulderLeft] == InputAdapter::Pressed || buttons[mapping.shoulderLeft] == InputAdapter::JustPressed);
+            break;
+        case BUTTON_R_SHOULDER:
+            isPressed = (buttons[mapping.shoulderRight] == InputAdapter::Pressed || buttons[mapping.shoulderRight] == InputAdapter::JustPressed);
+            break;
+        case BUTTON_L_THUMB:
+            isPressed = (buttons[m_joyButton_ThumbLeft] == InputAdapter::Pressed || buttons[m_joyButton_ThumbLeft] == InputAdapter::JustPressed);
+            break;
+        case BUTTON_R_THUMB:
+            isPressed = (buttons[m_joyButton_ThumbRight] == InputAdapter::Pressed || buttons[m_joyButton_ThumbRight] == InputAdapter::JustPressed);
+            break;
+        case BUTTON_START:
+            isPressed = (buttons[mapping.startButton] == InputAdapter::Pressed || buttons[mapping.startButton] == InputAdapter::JustPressed);
+            break;
+        case BUTTON_SELECT:
+            isPressed = (buttons[mapping.selectButton] == InputAdapter::Pressed || buttons[mapping.selectButton] == InputAdapter::JustPressed);
+            break;
+        default:
+            break;
+        }
+
+        return isPressed ? 1.0f : 0.0f;
+    }
+
+    void ZPad_Base::ApplyDirectionRemapping(SDeviceInfo& deviceInfo, const f32* axes, const InputAdapter::PressStatus* buttons)
+    {
+        if (m_controlRemap.empty()) return;
+        struct DirectionAxisMapping
+        {
+            u32 directionControl;   
+            u32 axisControl;        
+            bbool isPositive;     
+        };
+
+        static const DirectionAxisMapping kDirectionMappings[] = {
+            { STICK_L_UP,    STICK_LY, btrue },
+            { STICK_L_DOWN,  STICK_LY, bfalse },
+            { STICK_L_LEFT,  STICK_LX, bfalse },
+            { STICK_L_RIGHT, STICK_LX, btrue },
+            { STICK_R_UP,    STICK_RY, btrue },
+            { STICK_R_DOWN,  STICK_RY, bfalse },
+            { STICK_R_LEFT,  STICK_RX, bfalse },
+            { STICK_R_RIGHT, STICK_RX, btrue },
+        };
+        bbool lxHasRemap = (m_controlRemap[STICK_L_LEFT] != STICK_L_LEFT) || (m_controlRemap[STICK_L_RIGHT] != STICK_L_RIGHT);
+        bbool lyHasRemap = (m_controlRemap[STICK_L_UP] != STICK_L_UP) || (m_controlRemap[STICK_L_DOWN] != STICK_L_DOWN);
+        bbool rxHasRemap = (m_controlRemap[STICK_R_LEFT] != STICK_R_LEFT) || (m_controlRemap[STICK_R_RIGHT] != STICK_R_RIGHT);
+        bbool ryHasRemap = (m_controlRemap[STICK_R_UP] != STICK_R_UP) || (m_controlRemap[STICK_R_DOWN] != STICK_R_DOWN);
+        if (!lxHasRemap && !lyHasRemap && !rxHasRemap && !ryHasRemap) return;
+        f32 remappedAxes[4] = { 0.0f, 0.0f, 0.0f, 0.0f }; 
+
+        for (const auto& mapping : kDirectionMappings)
+        {
+            u32 dirControl = mapping.directionControl;
+            if (dirControl >= m_controlRemap.size()) continue;
+
+            u32 axisIndex = mapping.axisControl;
+            if (axisIndex == STICK_LX && !lxHasRemap) continue;
+            if (axisIndex == STICK_LY && !lyHasRemap) continue;
+            if (axisIndex == STICK_RX && !rxHasRemap) continue;
+            if (axisIndex == STICK_RY && !ryHasRemap) continue;
+
+            u32 physicalControl = m_controlRemap[dirControl];
+            f32 axisValue = GetAxisValueFromControl(physicalControl, axes, buttons);
+            if (mapping.isPositive)
+            {
+                remappedAxes[axisIndex] += axisValue;
+            }
+            else
+            {
+                remappedAxes[axisIndex] -= axisValue;
+            }
+        }
+        if (lxHasRemap)
+        {
+            deviceInfo.m_inputInfo[STICK_LX].m_axisInfo.m_axis = f32_Clamp(remappedAxes[STICK_LX], -1.0f, 1.0f);
+        }
+        if (lyHasRemap)
+        {
+            deviceInfo.m_inputInfo[STICK_LY].m_axisInfo.m_axis = f32_Clamp(remappedAxes[STICK_LY], -1.0f, 1.0f);
+        }
+        if (rxHasRemap)
+        {
+            deviceInfo.m_inputInfo[STICK_RX].m_axisInfo.m_axis = f32_Clamp(remappedAxes[STICK_RX], -1.0f, 1.0f);
+        }
+        if (ryHasRemap)
+        {
+            deviceInfo.m_inputInfo[STICK_RY].m_axisInfo.m_axis = f32_Clamp(remappedAxes[STICK_RY], -1.0f, 1.0f);
+        }
     }
 } // namespace ITF

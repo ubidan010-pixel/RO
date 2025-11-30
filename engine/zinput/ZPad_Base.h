@@ -94,6 +94,10 @@ namespace ITF
 
         void UpdateButtonStates(SDeviceInfo& deviceInfo, const InputAdapter::PressStatus* buttons);
 
+        void ApplyDirectionRemapping(SDeviceInfo& deviceInfo, const f32* axes, const InputAdapter::PressStatus* buttons);
+
+        f32 GetAxisValueFromControl(u32 physicalControl, const f32* axes, const InputAdapter::PressStatus* buttons) const;
+
         static SInputInfo::EButtonStatus ConvertButtonStatus(InputAdapter::PressStatus status)
         {
             return (status == InputAdapter::Pressed || status == InputAdapter::JustPressed)
