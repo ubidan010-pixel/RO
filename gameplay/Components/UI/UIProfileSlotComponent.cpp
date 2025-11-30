@@ -40,8 +40,6 @@ namespace ITF
             SERIALIZE_MEMBER("presetPath", m_presetPath);
             SERIALIZE_MEMBER("playerTitlePath", m_playerTitlePath);
             SERIALIZE_MEMBER("actionsBgPath", m_actionsBgPath);
-            SERIALIZE_MEMBER("actionsBgTextureConnected", m_actionsBgTextureConnected);
-            SERIALIZE_MEMBER("actionsBgTextureDisconnected", m_actionsBgTextureDisconnected);
             SERIALIZE_MEMBER("actionUpPath", m_actionUpPath);
             SERIALIZE_MEMBER("actionDownPath", m_actionDownPath);
             SERIALIZE_MEMBER("actionLeftPath", m_actionLeftPath);
@@ -62,8 +60,6 @@ namespace ITF
     , m_presetPath()
     , m_playerTitlePath()
     , m_actionsBgPath()
-    , m_actionsBgTextureConnected()
-    , m_actionsBgTextureDisconnected()
     , m_actionUpPath()
     , m_actionDownPath()
     , m_actionLeftPath()
@@ -94,8 +90,6 @@ namespace ITF
         m_presetPath.clear();
         m_playerTitlePath.clear();
         m_actionsBgPath.clear();
-        m_actionsBgTextureConnected.clear();
-        m_actionsBgTextureDisconnected.clear();
         m_actionUpPath.clear();
         m_actionDownPath.clear();
         m_actionLeftPath.clear();
@@ -356,9 +350,11 @@ namespace ITF
         setActorVisibility(m_playerTitlePath, visible);
 
         // Actions background - change texture instead of hiding
-        if (!m_actionsBgTextureConnected.isEmpty() && !m_actionsBgTextureDisconnected.isEmpty())
+        const Path& texConnected = getTemplate()->getActionsBgTextureConnected();
+        const Path& texDisconnected = getTemplate()->getActionsBgTextureDisconnected();
+        if (!texConnected.isEmpty() && !texDisconnected.isEmpty())
         {
-            const Path& texturePath = visible ? m_actionsBgTextureConnected : m_actionsBgTextureDisconnected;
+            const Path& texturePath = visible ? texConnected : texDisconnected;
             setActorBackgroundTexture(m_actionsBgPath, texturePath);
         }
 
@@ -414,10 +410,14 @@ namespace ITF
     ///////////////////////////////////////////////////////////////////////////////////////////
     IMPLEMENT_OBJECT_RTTI(UIProfileSlotComponent_Template)
     BEGIN_SERIALIZATION_CHILD(UIProfileSlotComponent_Template)
+        SERIALIZE_MEMBER("actionsBgTextureConnected", m_actionsBgTextureConnected);
+        SERIALIZE_MEMBER("actionsBgTextureDisconnected", m_actionsBgTextureDisconnected);
     END_SERIALIZATION()
 
     UIProfileSlotComponent_Template::UIProfileSlotComponent_Template()
     : Super()
+    , m_actionsBgTextureConnected()
+    , m_actionsBgTextureDisconnected()
     {
     }
 

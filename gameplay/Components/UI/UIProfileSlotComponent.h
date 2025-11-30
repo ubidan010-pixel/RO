@@ -9,10 +9,6 @@
 #include "engine/AdaptersInterfaces/InputAdapter.h"
 #endif //_ITF_INPUTADAPTER_H_
 
-#ifndef _ITF_PATH_H_
-#include "core/Path.h"
-#endif //_ITF_PATH_H_
-
 
 namespace ITF
 {
@@ -57,8 +53,6 @@ namespace ITF
         ITF_INLINE const String8& getActionJumpPath() const { return m_actionJumpPath; }
         ITF_INLINE const String8& getActionHitPath() const { return m_actionHitPath; }
         ITF_INLINE const String8& getActionBackPath() const { return m_actionBackPath; }
-        ITF_INLINE const Path& getActionsBgTextureConnected() const { return m_actionsBgTextureConnected; }
-        ITF_INLINE const Path& getActionsBgTextureDisconnected() const { return m_actionsBgTextureDisconnected; }
         bbool                    isControllerConnected() const;
         InputAdapter::PadType    getControllerType() const;
         static u32               getConnectedControllersCount();
@@ -85,8 +79,6 @@ namespace ITF
         String8                 m_presetPath;
         String8                 m_playerTitlePath;
         String8                 m_actionsBgPath;
-        Path                    m_actionsBgTextureConnected;
-        Path                    m_actionsBgTextureDisconnected;
         String8                 m_actionUpPath;
         String8                 m_actionDownPath;
         String8                 m_actionLeftPath;
@@ -110,8 +102,12 @@ namespace ITF
         UIProfileSlotComponent_Template();
         ~UIProfileSlotComponent_Template();
 
-    private:
+        ITF_INLINE const Path& getActionsBgTextureConnected() const { return m_actionsBgTextureConnected; }
+        ITF_INLINE const Path& getActionsBgTextureDisconnected() const { return m_actionsBgTextureDisconnected; }
 
+    private:
+        Path                    m_actionsBgTextureConnected;
+        Path                    m_actionsBgTextureDisconnected;
     };
 
     ITF_INLINE const UIProfileSlotComponent_Template* UIProfileSlotComponent::getTemplate() const
