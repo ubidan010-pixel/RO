@@ -48,6 +48,7 @@ namespace ITF
             SERIALIZE_MEMBER("actionJumpPath", m_actionJumpPath);
             SERIALIZE_MEMBER("actionHitPath", m_actionHitPath);
             SERIALIZE_MEMBER("actionBackPath", m_actionBackPath);
+            SERIALIZE_MEMBER("connectControllerTextPath", m_connectControllerTextPath);
         END_CONDITION_BLOCK()
     END_SERIALIZATION()
 
@@ -68,6 +69,7 @@ namespace ITF
     , m_actionJumpPath()
     , m_actionHitPath()
     , m_actionBackPath()
+    , m_connectControllerTextPath()
     , m_isControllerConnected(bfalse)
     , m_controllerType(InputAdapter::Pad_Invalid)
     , m_eventListenerRegistered(bfalse)
@@ -98,6 +100,7 @@ namespace ITF
         m_actionJumpPath.clear();
         m_actionHitPath.clear();
         m_actionBackPath.clear();
+        m_connectControllerTextPath.clear();
         m_isControllerConnected = bfalse;
         m_controllerType = InputAdapter::Pad_Invalid;
     }
@@ -375,6 +378,9 @@ namespace ITF
         setActorVisibility(m_actionJumpPath, visible);
         setActorVisibility(m_actionHitPath, visible);
         setActorVisibility(m_actionBackPath, visible);
+
+        // Connect controller text - INVERTED: show when disconnected, hide when connected
+        setActorVisibility(m_connectControllerTextPath, !visible);
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////

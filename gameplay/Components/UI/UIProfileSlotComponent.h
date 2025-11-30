@@ -53,6 +53,7 @@ namespace ITF
         ITF_INLINE const String8& getActionJumpPath() const { return m_actionJumpPath; }
         ITF_INLINE const String8& getActionHitPath() const { return m_actionHitPath; }
         ITF_INLINE const String8& getActionBackPath() const { return m_actionBackPath; }
+        ITF_INLINE const String8& getConnectControllerTextPath() const { return m_connectControllerTextPath; }
         bbool                    isControllerConnected() const;
         InputAdapter::PadType    getControllerType() const;
         static u32               getConnectedControllersCount();
@@ -87,6 +88,7 @@ namespace ITF
         String8                 m_actionJumpPath;
         String8                 m_actionHitPath;
         String8                 m_actionBackPath;
+        String8                 m_connectControllerTextPath;
         bbool                   m_isControllerConnected;
         InputAdapter::PadType   m_controllerType;
         bbool                   m_eventListenerRegistered;
