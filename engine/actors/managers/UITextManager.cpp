@@ -843,10 +843,18 @@ namespace ITF
                 case ZPad_Base::STICK_L_DOWN:      return isPS5 ? "PS5_STICK_L_DOWN" : "PS3_STICK_L_DOWN";
                 case ZPad_Base::STICK_L_LEFT:      return isPS5 ? "PS5_STICK_L_LEFT" : "PS3_STICK_L_LEFT";
                 case ZPad_Base::STICK_L_RIGHT:     return isPS5 ? "PS5_STICK_L_RIGHT" : "PS3_STICK_L_RIGHT";
+                case ZPad_Base::STICK_RX:
+                case ZPad_Base::STICK_RY:          return isPS5 ? "PS5_STICK_R" : "PS3_STICK_TILT_R";
+                case ZPad_Base::STICK_R_UP:        return isPS5 ? "PS5_STICK_R_UP" : "PS3_STICK_R_UP";
+                case ZPad_Base::STICK_R_DOWN:      return isPS5 ? "PS5_STICK_R_DOWN" : "PS3_STICK_R_DOWN";
+                case ZPad_Base::STICK_R_LEFT:      return isPS5 ? "PS5_STICK_R_LEFT" : "PS3_STICK_R_LEFT";
+                case ZPad_Base::STICK_R_RIGHT:     return isPS5 ? "PS5_STICK_R_RIGHT" : "PS3_STICK_R_RIGHT";
                 case ZPad_Base::DPAD_UP:           return isPS5 ? "PS5_DPAD_UP" : "PS3_DPAD";
                 case ZPad_Base::DPAD_DOWN:         return isPS5 ? "PS5_DPAD_DOWN" : "PS3_DPAD";
                 case ZPad_Base::DPAD_LEFT:         return isPS5 ? "PS5_DPAD_LEFT" : "PS3_DPAD";
                 case ZPad_Base::DPAD_RIGHT:        return isPS5 ? "PS5_DPAD_RIGHT" : "PS3_DPAD";
+                case ZPad_Base::BUTTON_L_THUMB:    return isPS5 ? "PS5_BUTTON_L3" : "PS3_STICK";
+                case ZPad_Base::BUTTON_R_THUMB:    return isPS5 ? "PS5_BUTTON_R3" : "PS3_STICK_TILT_R";
                 case ZPad_Base::BUTTON_L_SHOULDER: return isPS5 ? "PS5_BUTTON_L1" : "PS3_BUTTON_L1";
                 case ZPad_Base::BUTTON_R_SHOULDER: return isPS5 ? "PS5_BUTTON_R1" : "PS3_BUTTON_R1";
                 case ZPad_Base::TRIGGER_LEFT:      return isPS5 ? "PS5_BUTTON_L2" : "PS3_BUTTON_L2";
