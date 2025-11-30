@@ -28,8 +28,8 @@ namespace ITF
                 {
                     //Need a fix
                     //if (input.m_translatedControl == U32_INVALID)
-                        input.m_translatedControl = TranslateControl(input.m_control,m_controlMap);
-                    
+                    input.m_translatedControl = TranslateControl(input.m_control,m_controlMap);
+
                     u32 control = input.m_translatedControl;
                     if ( control != U32_INVALID )
                     {
@@ -62,12 +62,12 @@ namespace ITF
                                     action.m_axis[m_id] *= -1.f;
                                 if ( action.m_scale )
                                     action.m_axis[m_id] *= action.m_scale;
-                            }                            
+                            }
 
                             action.m_matchs[m_id]++;
                         }
                     }
-                } 
+                }
             }
         }
     }
@@ -140,9 +140,9 @@ namespace ITF
         {
             if (i != logicalControl && m_controlRemap[i] == physicalControl)
             {
-            
+
                 m_controlRemap[i] = oldPhysical;
-                break; 
+                break;
             }
         }
         m_controlRemap[logicalControl] = physicalControl;
@@ -178,7 +178,32 @@ namespace ITF
         {
             return m_controlRemap[logicalControl];
         }
-        return logicalControl; // Default: 1-to-1 if out of bounds or not set
+        return logicalControl;
+    }
+
+    u32 IInputDevice::GetFirstActiveControl() const
+    {
+        if (!IsDeviceValid()) return U32_INVALID;
+
+        for (u32 i = 0; i < m_deviceInfo.m_inputInfo.size(); ++i)
+        {
+            const SInputInfo& info = m_deviceInfo.m_inputInfo[i];
+            if (info.m_type == SInputInfo::INPUTTYPE_BUTTON)
+            {
+                if (info.m_buttonInfo.m_status == SInputInfo::BUTTONSTATUS_PRESS)
+                {
+                    return i;
+                }
+            }
+            else if (info.m_type == SInputInfo::INPUTTYPE_AXIS)
+            {
+                if (info.m_axisInfo.m_status == SInputInfo::BUTTONSTATUS_PRESS && abs(info.m_axisInfo.m_axis) > 0.5f)
+                {
+                    return i;
+                }
+            }
+        }
+        return U32_INVALID;
     }
 
 } //namespace ITF

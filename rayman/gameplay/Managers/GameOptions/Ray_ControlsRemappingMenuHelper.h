@@ -37,7 +37,6 @@ namespace ITF
         void clearIconDisplay(UIComponent* component);
         void restoreIconDisplay(UIComponent* component);
         void cancelRemappingMode(bbool restoreDisplay);
-        void snapshotInputState();
         bbool detectPhysicalControl(u32& outPhysicalControl);
         void finalizeRemapping(u32 physicalControl);
         void onClose() override;
@@ -50,8 +49,6 @@ namespace ITF
         UIComponent* m_remappingComponent;
         f32 m_remappingCooldown;
         f32 m_postRemapCooldown;
-        InputAdapter::PressStatus m_lastButtonStates[JOY_MAX_BUT];
-        f32 m_lastAxisStates[JOY_MAX_AXES];
     };
 }
 

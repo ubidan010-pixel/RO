@@ -53,6 +53,7 @@ typedef ITF_MAP<StringID,int>     ControlTranslateMap;
         void                ResetRemapping();
         void                ApplyRemapping(SDeviceInfo& deviceInfo);
         u32                 GetRemap(u32 logicalControl) const;
+        u32                 GetFirstActiveControl() const;
 
     protected:
         

@@ -61,6 +61,7 @@ namespace  ITF
         u32                 GetStandardControlFromAction(EGameAction _action);
         u32                 GetPhysicalFromAction(u32 _playerIndex, EGameAction _action);
         void                ResetRemapping(u32 _playerIndex);
+        u32                 GetFirstActiveControl(u32 _playerIndex);
 
         void                SetSuppressReceive(bbool _suppress) { m_suppressReceive = _suppress; }
         bbool               GetSuppressReceive() const { return m_suppressReceive; }

@@ -372,6 +372,22 @@ namespace ITF
         return logicalControl; 
     }
 
+    u32 ZInputManager::GetFirstActiveControl(u32 _playerIndex)
+    {
+        for (u32 i = 0; i < m_devices.size(); ++i)
+        {
+            if (m_devices[i] && m_devices[i]->GetId() == _playerIndex)
+            {
+                u32 control = m_devices[i]->GetFirstActiveControl();
+                if (control != U32_INVALID)
+                {
+                    return control;
+                }
+            }
+        }
+        return U32_INVALID;
+    }
+
     IMPLEMENT_OBJECT_RTTI(ZInputManager_Template)
         BEGIN_SERIALIZATION(ZInputManager_Template)
         SERIALIZE_MEMBER("name", m_name);
