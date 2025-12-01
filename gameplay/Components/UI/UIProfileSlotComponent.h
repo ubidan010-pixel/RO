@@ -33,8 +33,8 @@ namespace ITF
         virtual     void        onRollover          ();
         virtual     void        onRollout           ();
         virtual     void        onAction            (const StringID & action);
-        u32          getPlayerIndex() const { return m_playerIndex; }
-        void                    setPlayerIndex(u32 index) { m_playerIndex = index; }
+        u32            getPlayerIndex() const { return m_playerIndex; }
+        void           setPlayerIndex(u32 index) { m_playerIndex = index; }
         const String8& getResetButtonPath() const { return m_resetButtonPath; }
         const String8& getControlsPath() const { return m_controlsPath; }
         const String8& getPresetPath() const { return m_presetPath; }
