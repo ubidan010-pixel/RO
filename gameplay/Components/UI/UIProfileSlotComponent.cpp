@@ -16,18 +16,6 @@
 #include "engine/singleton/Singletons.h"
 #endif //_ITF_SINGLETONS_H_
 
-#ifndef _ITF_SCENEOBJECTPATH_H_
-#include "engine/scene/SceneObjectPath.h"
-#endif //_ITF_SCENEOBJECTPATH_H_
-
-#ifndef _ITF_TEXTUREGRAPHICCOMPONENT2D_H_
-#include "engine/actors/components/texturegraphiccomponent2D.h"
-#endif //_ITF_TEXTUREGRAPHICCOMPONENT2D_H_
-
-#ifndef _ITF_RESOURCEMANAGER_H_
-#include "engine/resources/ResourceManager.h"
-#endif //_ITF_RESOURCEMANAGER_H_
-
 namespace ITF
 {
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -39,7 +27,11 @@ namespace ITF
             SERIALIZE_MEMBER("controlsPath", m_controlsPath);
             SERIALIZE_MEMBER("presetPath", m_presetPath);
             SERIALIZE_MEMBER("playerTitlePath", m_playerTitlePath);
+            SERIALIZE_MEMBER("playerTitlePathConnected", m_playerTitlePathConnected);
+            SERIALIZE_MEMBER("playerTitlePathDisconnected", m_playerTitlePathDisconnected);
             SERIALIZE_MEMBER("actionsBgPath", m_actionsBgPath);
+            SERIALIZE_MEMBER("actionsBgPathConnected", m_actionsBgPathConnected);
+            SERIALIZE_MEMBER("actionsBgPathDisconnected", m_actionsBgPathDisconnected);
             SERIALIZE_MEMBER("actionUpPath", m_actionUpPath);
             SERIALIZE_MEMBER("actionDownPath", m_actionDownPath);
             SERIALIZE_MEMBER("actionLeftPath", m_actionLeftPath);
@@ -60,7 +52,11 @@ namespace ITF
     , m_controlsPath()
     , m_presetPath()
     , m_playerTitlePath()
+    , m_playerTitlePathConnected()
+    , m_playerTitlePathDisconnected()
     , m_actionsBgPath()
+    , m_actionsBgPathConnected()
+    , m_actionsBgPathDisconnected()
     , m_actionUpPath()
     , m_actionDownPath()
     , m_actionLeftPath()
@@ -91,7 +87,11 @@ namespace ITF
         m_controlsPath.clear();
         m_presetPath.clear();
         m_playerTitlePath.clear();
+        m_playerTitlePathConnected.clear();
+        m_playerTitlePathDisconnected.clear();
         m_actionsBgPath.clear();
+        m_actionsBgPathConnected.clear();
+        m_actionsBgPathDisconnected.clear();
         m_actionUpPath.clear();
         m_actionDownPath.clear();
         m_actionLeftPath.clear();
@@ -306,40 +306,6 @@ namespace ITF
             targetActor->disable();
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////////////
-    void UIProfileSlotComponent::setActorBackgroundTexture(const String8& actorPath, const Path& texturePath)
-    {
-        if (actorPath.isEmpty() || texturePath.isEmpty() || !m_actor)
-            return;
-
-        Scene* scene = m_actor->getScene();
-        if (!scene)
-            return;
-
-        Actor* targetActor = scene->getActorFromUserFriendly(actorPath);
-        if (!targetActor)
-        {
-            LOG("[UIProfileSlotComponent] Player %u: Actor '%s' not found for texture change", m_playerIndex, actorPath.cStr());
-            return;
-        }
-
-        // Get TextureGraphicComponent2D from the actor
-        TextureGraphicComponent2D* texComp = targetActor->GetComponent<TextureGraphicComponent2D>();
-        if (!texComp)
-        {
-            LOG("[UIProfileSlotComponent] Player %u: Actor '%s' has no TextureGraphicComponent2D", m_playerIndex, actorPath.cStr());
-            return;
-        }
-
-        // Create new resource ID for the texture and change it
-        ResourceID newTextureID = targetActor->addResource(Resource::ResourceType_Texture, texturePath);
-        if (newTextureID.isValidResourceId())
-        {
-            texComp->changeTexture(newTextureID);
-        }
-    }
-
-    ///////////////////////////////////////////////////////////////////////////////////////////
     void UIProfileSlotComponent::updateAllVisibility()
     {
         bbool visible = isControllerConnected();
@@ -351,22 +317,18 @@ namespace ITF
         setActorVisibility(m_controlsPath, visible);
         setActorVisibility(m_presetPath, visible);
 
-        // Player title - change texture instead of hiding
-        const Path& titleTexConnected = getTemplate()->getPlayerTitleTextureConnected();
-        const Path& titleTexDisconnected = getTemplate()->getPlayerTitleTextureDisconnected();
-        if (!titleTexConnected.isEmpty() && !titleTexDisconnected.isEmpty())
+        // Player title background - toggle variant actors
+        if (!m_playerTitlePathConnected.isEmpty() && !m_playerTitlePathDisconnected.isEmpty())
         {
-            const Path& titleTexturePath = visible ? titleTexConnected : titleTexDisconnected;
-            setActorBackgroundTexture(m_playerTitlePath, titleTexturePath);
+            setActorVisibility(m_playerTitlePathConnected, visible);
+            setActorVisibility(m_playerTitlePathDisconnected, !visible);
         }
 
-        // Actions background - change texture instead of hiding
-        const Path& texConnected = getTemplate()->getActionsBgTextureConnected();
-        const Path& texDisconnected = getTemplate()->getActionsBgTextureDisconnected();
-        if (!texConnected.isEmpty() && !texDisconnected.isEmpty())
+        // Actions background - toggle variant actors
+        if (!m_actionsBgPathConnected.isEmpty() && !m_actionsBgPathDisconnected.isEmpty())
         {
-            const Path& texturePath = visible ? texConnected : texDisconnected;
-            setActorBackgroundTexture(m_actionsBgPath, texturePath);
+            setActorVisibility(m_actionsBgPathConnected, visible);
+            setActorVisibility(m_actionsBgPathDisconnected, !visible);
         }
 
         // Action icons - show/hide based on connection
@@ -424,18 +386,10 @@ namespace ITF
     ///////////////////////////////////////////////////////////////////////////////////////////
     IMPLEMENT_OBJECT_RTTI(UIProfileSlotComponent_Template)
     BEGIN_SERIALIZATION_CHILD(UIProfileSlotComponent_Template)
-        SERIALIZE_MEMBER("actionsBgTextureConnected", m_actionsBgTextureConnected);
-        SERIALIZE_MEMBER("actionsBgTextureDisconnected", m_actionsBgTextureDisconnected);
-        SERIALIZE_MEMBER("playerTitleTextureConnected", m_playerTitleTextureConnected);
-        SERIALIZE_MEMBER("playerTitleTextureDisconnected", m_playerTitleTextureDisconnected);
     END_SERIALIZATION()
 
     UIProfileSlotComponent_Template::UIProfileSlotComponent_Template()
     : Super()
-    , m_actionsBgTextureConnected()
-    , m_actionsBgTextureDisconnected()
-    , m_playerTitleTextureConnected()
-    , m_playerTitleTextureDisconnected()
     {
     }
 

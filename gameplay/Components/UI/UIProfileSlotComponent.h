@@ -44,7 +44,11 @@ namespace ITF
         ITF_INLINE const String8& getControlsPath() const { return m_controlsPath; }
         ITF_INLINE const String8& getPresetPath() const { return m_presetPath; }
         ITF_INLINE const String8& getPlayerTitlePath() const { return m_playerTitlePath; }
+        ITF_INLINE const String8& getPlayerTitlePathConnected() const { return m_playerTitlePathConnected; }
+        ITF_INLINE const String8& getPlayerTitlePathDisconnected() const { return m_playerTitlePathDisconnected; }
         ITF_INLINE const String8& getActionsBgPath() const { return m_actionsBgPath; }
+        ITF_INLINE const String8& getActionsBgPathConnected() const { return m_actionsBgPathConnected; }
+        ITF_INLINE const String8& getActionsBgPathDisconnected() const { return m_actionsBgPathDisconnected; }
         ITF_INLINE const String8& getActionUpPath() const { return m_actionUpPath; }
         ITF_INLINE const String8& getActionDownPath() const { return m_actionDownPath; }
         ITF_INLINE const String8& getActionLeftPath() const { return m_actionLeftPath; }
@@ -70,7 +74,6 @@ namespace ITF
         void                    registerEventListeners();
         void                    unregisterEventListeners();
         void                    setActorVisibility(const String8& actorPath, bbool visible);
-        void                    setActorBackgroundTexture(const String8& actorPath, const Path& texturePath);
         void                    updateAllVisibility();
         void                    onControllerStateChanged(u32 padIndex, bbool connected, InputAdapter::PadType padType);
 
@@ -79,7 +82,11 @@ namespace ITF
         String8                 m_controlsPath;
         String8                 m_presetPath;
         String8                 m_playerTitlePath;
+        String8                 m_playerTitlePathConnected;
+        String8                 m_playerTitlePathDisconnected;
         String8                 m_actionsBgPath;
+        String8                 m_actionsBgPathConnected;
+        String8                 m_actionsBgPathDisconnected;
         String8                 m_actionUpPath;
         String8                 m_actionDownPath;
         String8                 m_actionLeftPath;
@@ -104,16 +111,7 @@ namespace ITF
         UIProfileSlotComponent_Template();
         ~UIProfileSlotComponent_Template();
 
-        ITF_INLINE const Path& getActionsBgTextureConnected() const { return m_actionsBgTextureConnected; }
-        ITF_INLINE const Path& getActionsBgTextureDisconnected() const { return m_actionsBgTextureDisconnected; }
-        ITF_INLINE const Path& getPlayerTitleTextureConnected() const { return m_playerTitleTextureConnected; }
-        ITF_INLINE const Path& getPlayerTitleTextureDisconnected() const { return m_playerTitleTextureDisconnected; }
-
     private:
-        Path                    m_actionsBgTextureConnected;
-        Path                    m_actionsBgTextureDisconnected;
-        Path                    m_playerTitleTextureConnected;
-        Path                    m_playerTitleTextureDisconnected;
     };
 
     ITF_INLINE const UIProfileSlotComponent_Template* UIProfileSlotComponent::getTemplate() const
