@@ -39,6 +39,10 @@
 #include <algorithm>
 #include <cmath>
 #include <cstring>
+#ifndef _ITF_TRCManagerAdapter_H_
+#include "engine/AdaptersInterfaces/TRCManager_Adapter.h"
+#endif
+#include "GameScreens/Ray_GameScreen_MainMenu.h"
 
 namespace ITF
 {
@@ -143,7 +147,6 @@ namespace ITF
     {
         if (!component)
             return;
-
         const StringID componentId = component->getID();
         if (componentId.isValid())
         {
@@ -151,10 +154,16 @@ namespace ITF
                 componentId == OPTIONMENU_ACCEPT_BUTTON ||
                 componentId == OPTIONMENU_CANCEL_BUTTON)
             {
+                if (m_showLanguageWarning)
+                {
+                    TRC_ADAPTER->addMessage(TRCManagerAdapter::Language_Warn);
+                    m_showLanguageWarning = false;
+                }
                 if (isEditing())
                 {
                     exitEditMode();
                 }
+
             }
 
             if (handleResetToDefault(componentId) || handleAccept(componentId) || handleCancel(componentId))
@@ -192,6 +201,7 @@ namespace ITF
 
         enterEditMode(component, optionId);
     }
+
 
     void Ray_OptionMenuHelper::UpdateMenuOnSelectionChange(UIComponent* uiComponent, bbool isSelected)
     {
@@ -658,7 +668,16 @@ namespace ITF
         }
         else if (optionId == OPTION_LANGUAGE)
         {
-            RAY_GAMEMANAGER->setLanguageIndex(newIndex);
+            if (RAY_GAMEMANAGER->getCurrentGameScreen() != Ray_GameScreen_MainMenu::GetClassCRCStatic())
+            {
+                RAY_GAMEMANAGER->setPendingLanguageIndex(newIndex);
+                m_showLanguageWarning = btrue;
+            }
+            else
+            {
+                RAY_GAMEMANAGER->setLanguageIndex(newIndex);
+            }
+
         }
         else if (optionId == OPTION_START_WITH_HEART)
         {
@@ -874,7 +893,7 @@ namespace ITF
 
     ObjectRef Ray_OptionMenuHelper::getNavigationOverrideTarget(UIComponent* current, f32 joyX, f32 joyY)
     {
-        if (!m_isActive || !m_menu || !current)
+        if (!m_isActive || !m_menu || !current || TRC_ADAPTER->existsMessage(TRCManagerAdapter::Language_Warn))
             return ObjectRef::InvalidRef;
 
         const bbool editing = isEditing();

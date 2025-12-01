@@ -1736,6 +1736,7 @@ namespace ITF
         void            setWindowed(bbool windowed);
 
         i32             getLanguageIndex() const;
+        void            setPendingLanguageIndex(i32 index);
         void            setLanguageIndex(i32 index);
         const char*     getLanguageDisplayName(i32 index) const;
         //==========================================================================
@@ -1875,6 +1876,8 @@ namespace ITF
         void            onCheckpointLoadUpdateSprintTutorial();
         void            onMapLoadedUpdateMurphyAssist();
         void            onCheckpointLoadUpdateMurphyAssist();
+
+        void            ChangeLanguageInGame();
 
         class Ray_UIFadeScreenComponent* getUIFade() const;
 
@@ -2041,6 +2044,7 @@ namespace ITF
         ObjectRef                   m_preloadedPrologueWorld;
         bbool                       m_preloadedPrologueReady;
 		bbool						m_isPlayingFrescoVideo;
+        i32                         m_languageIndexChangedInGame;
     };
 
 #define RAY_REWARD_MANAGER      RAY_GAMEMANAGER->getRewardManager()

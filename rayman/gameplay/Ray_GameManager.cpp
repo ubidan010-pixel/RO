@@ -1199,6 +1199,7 @@ namespace ITF
           , m_preloadedPrologueReady(bfalse)
           , m_gameOptionPersistence(NULL)
           , m_trcHelper(NULL)
+          ,m_languageIndexChangedInGame(-1)
     {
         ITF_MemSet(m_lastPadType, U32_INVALID, sizeof(m_lastPadType));
 
@@ -2710,7 +2711,6 @@ namespace ITF
 
             m_rewardManager.init();
         }
-
         m_wasPostLoadInitCalled = btrue;
     }
 
@@ -3866,8 +3866,16 @@ namespace ITF
 #endif //ITF_WII
         unspawnMedal();
         postGameScreenChange<Ray_GameScreen_MainMenu>(bfalse);
+        ChangeLanguageInGame();
     }
-
+    void Ray_GameManager::ChangeLanguageInGame()
+    {
+        if (m_languageIndexChangedInGame!=-1 && m_languageIndexChangedInGame != LOCALISATIONMANAGER->getCurrentLanguage())
+        {
+            u32 index = static_cast<u32>(m_languageIndexChangedInGame);
+            setLanguageIndex(index);
+        }
+    }
     void Ray_GameManager::goToLevelStats()
     {
         postGameScreenChange<Ray_GameScreen_LevelStats>(bfalse);
@@ -11894,12 +11902,16 @@ namespace ITF
     {
         return m_gameOptionManager.getListOptionIndex(OPTION_LANGUAGE);
     }
-
+    void Ray_GameManager::setPendingLanguageIndex(i32 index)
+    {
+        m_languageIndexChangedInGame = index;
+        m_gameOptionManager.setListOptionIndex(OPTION_LANGUAGE, index);
+    }
     void Ray_GameManager::setLanguageIndex(i32 index)
     {
         m_gameOptionManager.setListOptionIndex(OPTION_LANGUAGE, index);
-
         ITF_LANGUAGE newLanguage = static_cast<ITF_LANGUAGE>(m_gameOptionManager.getIntListOptionValue(OPTION_LANGUAGE));
+        m_languageIndexChangedInGame = -1;
         if (LOCALISATIONMANAGER && LOCALISATIONMANAGER->getCurrentLanguage() != newLanguage)
         {
             LOG("[Language] Changing language from %d to %d", LOCALISATIONMANAGER->getCurrentLanguage(), newLanguage);

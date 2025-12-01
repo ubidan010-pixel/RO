@@ -132,6 +132,7 @@ namespace ITF
         f32 m_snapshotMusicVolume;
         f32 m_snapshotSFXVolume;
         f32 m_snapshotIntensity;
+        bbool m_showLanguageWarning;
 
         static Ray_OptionMenuHelper* s_activeHelper;
 
