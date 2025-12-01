@@ -13,8 +13,10 @@
 #include "engine/AdaptersInterfaces/InputAdapter.h"
 #endif //_ITF_INPUTADAPTER_H_
 
+#if defined(ITF_WINDOWS)
 #include <vector>
 #include <utility>
+#endif
 
 namespace ITF
 {
@@ -26,27 +28,20 @@ namespace ITF
     public:
         Ray_ControlsRemappingMenuHelper();
         virtual ~Ray_ControlsRemappingMenuHelper();
+
         void activateForControlsRemappingMenu(MenuItemActionListener* mainListener);
         void onMenuItemAction(UIComponent* _UIComponent) override;
         ObjectRef getNavigationOverrideTarget(UIComponent* current, f32 joyX, f32 joyY) override;
+        
         static Ray_ControlsRemappingMenuHelper* getActiveHelper();
         void updateRemappingMode(f32 deltaTime);
+
 #if defined(ITF_WINDOWS)
         static bbool handleExternalEditingInput(UIComponent* component, const StringID& action);
         bbool processEditingInput(UIComponent* component, const StringID& action);
 #endif
 
     private:
-        enum ENavigationDirection
-        {
-            Navigation_Up,
-            Navigation_Down,
-            Navigation_Left,
-            Navigation_Right
-        };
-        UIComponent* getNavigationTarget(UIComponent* current, ENavigationDirection direction) const;
-
-        // Button handlers
         bbool handleAccept(const StringID& id);
         bbool handleCancel(const StringID& id);
         bbool handleIconAction(const StringID& id, UIComponent* component);
@@ -61,21 +56,16 @@ namespace ITF
 
 #if defined(ITF_WINDOWS)
         bbool handleControllerTypeAction(const StringID& id, UIComponent* component);
+        void enterControllerTypeEditMode(UIListOptionComponent* component);
+        void exitControllerTypeEditMode();
         void adjustControllerType(UIListOptionComponent* listComponent, i32 direction);
         void updateControllerTypeDisplay(UIListOptionComponent* listComponent, i32 index);
         UIListOptionComponent* findControllerTypeComponent() const;
         bbool isControllerTypeEditing() const { return m_isEditingControllerType; }
-        void enterControllerTypeEditMode(UIListOptionComponent* component);
-        void exitControllerTypeEditMode();
-        bbool m_isEditingControllerType;
-        UIListOptionComponent* m_editingControllerTypeComponent;
-        f32 m_controllerTypeInputTimer;
-        f32 m_controllerTypeFirstPressTimer;
-        bbool m_controllerTypeFirstPressed;
-        std::vector<std::pair<UIComponent*, bbool>> m_previousSelectionStates;
 #endif
 
         static Ray_ControlsRemappingMenuHelper* s_activeHelper;
+
         bbool m_isRemappingMode;
         bbool m_isWaitingForRelease;
         u32 m_remappingPlayerIndex;
@@ -83,6 +73,15 @@ namespace ITF
         UIComponent* m_remappingComponent;
         f32 m_remappingCooldown;
         f32 m_postRemapCooldown;
+
+#if defined(ITF_WINDOWS)
+        bbool m_isEditingControllerType;
+        UIListOptionComponent* m_editingControllerTypeComponent;
+        f32 m_controllerTypeInputTimer;
+        f32 m_controllerTypeFirstPressTimer;
+        bbool m_controllerTypeFirstPressed;
+        std::vector<std::pair<UIComponent*, bbool>> m_previousSelectionStates;
+#endif
     };
 }
 

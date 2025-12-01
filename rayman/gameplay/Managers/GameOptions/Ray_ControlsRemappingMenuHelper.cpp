@@ -42,13 +42,22 @@
 
 namespace ITF
 {
+    namespace ControlsRemappingConstants
+    {
+        static const f32 REMAPPING_COOLDOWN = 0.25f;
+        static const f32 POST_REMAP_COOLDOWN = 0.15f;
+
+#if defined(ITF_WINDOWS)
+        static const f32 CONTROLLER_TYPE_FIRST_PRESS_DELAY = 0.35f;
+        static const f32 CONTROLLER_TYPE_REPEAT_RATE = 0.12f;
+#endif
+    }
+
     Ray_ControlsRemappingMenuHelper* Ray_ControlsRemappingMenuHelper::s_activeHelper = nullptr;
 
-    // Define button IDs for controls remapping menu
 #define CONTROLSREMAPPING_ACCEPT_BUTTON  ITF_GET_STRINGID_CRC(accept_button,25226343)
 #define CONTROLSREMAPPING_CANCEL_BUTTON  ITF_GET_STRINGID_CRC(cancel_button,4260770984)
 
-    // Player 1 Icons
 #define ICON_PLAYER1_UP     ITF_GET_STRINGID_CRC(player1_up_icon,1753979515)
 #define ICON_PLAYER1_DOWN   ITF_GET_STRINGID_CRC(player1_down_icon,845618532)
 #define ICON_PLAYER1_LEFT   ITF_GET_STRINGID_CRC(player1_left_icon,3896653396)
@@ -58,7 +67,6 @@ namespace ITF
 #define ICON_PLAYER1_HIT    ITF_GET_STRINGID_CRC(player1_hit_icon,4282892399)
 #define ICON_PLAYER1_BACK   ITF_GET_STRINGID_CRC(player1_back_icon,1021152668)
 
-    // Player 2 Icons
 #define ICON_PLAYER2_UP     ITF_GET_STRINGID_CRC(player2_up_icon,4288940261)
 #define ICON_PLAYER2_DOWN   ITF_GET_STRINGID_CRC(player2_down_icon,441889963)
 #define ICON_PLAYER2_LEFT   ITF_GET_STRINGID_CRC(player2_left_icon,2679901733)
@@ -68,7 +76,6 @@ namespace ITF
 #define ICON_PLAYER2_HIT    ITF_GET_STRINGID_CRC(player2_hit_icon,425931337)
 #define ICON_PLAYER2_BACK   ITF_GET_STRINGID_CRC(player2_back_icon,3528166033)
 
-    // Player 3 Icons
 #define ICON_PLAYER3_UP     ITF_GET_STRINGID_CRC(player3_up_icon,1876599777)
 #define ICON_PLAYER3_DOWN   ITF_GET_STRINGID_CRC(player3_down_icon,548047626)
 #define ICON_PLAYER3_LEFT   ITF_GET_STRINGID_CRC(player3_left_icon,1679854463)
@@ -78,7 +85,6 @@ namespace ITF
 #define ICON_PLAYER3_HIT    ITF_GET_STRINGID_CRC(player3_hit_icon,1301281176)
 #define ICON_PLAYER3_BACK   ITF_GET_STRINGID_CRC(player3_back_icon,3624079622)
 
-    // Player 4 Icons
 #define ICON_PLAYER4_UP     ITF_GET_STRINGID_CRC(player4_up_icon,4257930662)
 #define ICON_PLAYER4_DOWN   ITF_GET_STRINGID_CRC(player4_down_icon,1841519437)
 #define ICON_PLAYER4_LEFT   ITF_GET_STRINGID_CRC(player4_left_icon,2981630500)
@@ -87,6 +93,51 @@ namespace ITF
 #define ICON_PLAYER4_JUMP   ITF_GET_STRINGID_CRC(player4_jump_icon,3258270794)
 #define ICON_PLAYER4_HIT    ITF_GET_STRINGID_CRC(player4_hit_icon,3161019062)
 #define ICON_PLAYER4_BACK   ITF_GET_STRINGID_CRC(player4_back_icon,1461371878)
+
+    struct IconMapping
+    {
+        StringID iconId;
+        u32 playerIndex;
+        ZInputManager::EGameAction action;
+    };
+
+    static const IconMapping s_iconMappings[] =
+    {
+        { ICON_PLAYER1_UP,    0, ZInputManager::Action_Up    },
+        { ICON_PLAYER1_DOWN,  0, ZInputManager::Action_Down  },
+        { ICON_PLAYER1_LEFT,  0, ZInputManager::Action_Left  },
+        { ICON_PLAYER1_RIGHT, 0, ZInputManager::Action_Right },
+        { ICON_PLAYER1_RUN,   0, ZInputManager::Action_Run   },
+        { ICON_PLAYER1_JUMP,  0, ZInputManager::Action_Jump  },
+        { ICON_PLAYER1_HIT,   0, ZInputManager::Action_Hit   },
+        { ICON_PLAYER1_BACK,  0, ZInputManager::Action_Back  },
+        { ICON_PLAYER2_UP,    1, ZInputManager::Action_Up    },
+        { ICON_PLAYER2_DOWN,  1, ZInputManager::Action_Down  },
+        { ICON_PLAYER2_LEFT,  1, ZInputManager::Action_Left  },
+        { ICON_PLAYER2_RIGHT, 1, ZInputManager::Action_Right },
+        { ICON_PLAYER2_RUN,   1, ZInputManager::Action_Run   },
+        { ICON_PLAYER2_JUMP,  1, ZInputManager::Action_Jump  },
+        { ICON_PLAYER2_HIT,   1, ZInputManager::Action_Hit   },
+        { ICON_PLAYER2_BACK,  1, ZInputManager::Action_Back  },
+        { ICON_PLAYER3_UP,    2, ZInputManager::Action_Up    },
+        { ICON_PLAYER3_DOWN,  2, ZInputManager::Action_Down  },
+        { ICON_PLAYER3_LEFT,  2, ZInputManager::Action_Left  },
+        { ICON_PLAYER3_RIGHT, 2, ZInputManager::Action_Right },
+        { ICON_PLAYER3_RUN,   2, ZInputManager::Action_Run   },
+        { ICON_PLAYER3_JUMP,  2, ZInputManager::Action_Jump  },
+        { ICON_PLAYER3_HIT,   2, ZInputManager::Action_Hit   },
+        { ICON_PLAYER3_BACK,  2, ZInputManager::Action_Back  },
+        { ICON_PLAYER4_UP,    3, ZInputManager::Action_Up    },
+        { ICON_PLAYER4_DOWN,  3, ZInputManager::Action_Down  },
+        { ICON_PLAYER4_LEFT,  3, ZInputManager::Action_Left  },
+        { ICON_PLAYER4_RIGHT, 3, ZInputManager::Action_Right },
+        { ICON_PLAYER4_RUN,   3, ZInputManager::Action_Run   },
+        { ICON_PLAYER4_JUMP,  3, ZInputManager::Action_Jump  },
+        { ICON_PLAYER4_HIT,   3, ZInputManager::Action_Hit   },
+        { ICON_PLAYER4_BACK,  3, ZInputManager::Action_Back  },
+    };
+
+    static const u32 s_iconMappingsCount = sizeof(s_iconMappings) / sizeof(s_iconMappings[0]);
 
     Ray_ControlsRemappingMenuHelper::Ray_ControlsRemappingMenuHelper()
         : Ray_BaseMenuHelper()
@@ -161,7 +212,6 @@ namespace ITF
         }
 #endif
 
-        // Show the controls remapping menu
         UI_MENUMANAGER->showMenuPage(GAMEINTERFACE->getGameMenuPriority(), m_menuBaseName, btrue, this);
     }
 
@@ -205,206 +255,15 @@ namespace ITF
     bbool Ray_ControlsRemappingMenuHelper::parseIconId(const StringID& id, u32& outPlayerIndex,
                                                        ZInputManager::EGameAction& outAction)
     {
-        // Player 1 icons
-        if (id == ICON_PLAYER1_UP)
+        for (u32 i = 0; i < s_iconMappingsCount; ++i)
         {
-            outPlayerIndex = 0;
-            outAction = ZInputManager::Action_Up;
-            return btrue;
+            if (id == s_iconMappings[i].iconId)
+            {
+                outPlayerIndex = s_iconMappings[i].playerIndex;
+                outAction = s_iconMappings[i].action;
+                return btrue;
+            }
         }
-        if (id == ICON_PLAYER1_DOWN)
-        {
-            outPlayerIndex = 0;
-            outAction = ZInputManager::Action_Down;
-            return btrue;
-        }
-        if (id == ICON_PLAYER1_LEFT)
-        {
-            outPlayerIndex = 0;
-            outAction = ZInputManager::Action_Left;
-            return btrue;
-        }
-        if (id == ICON_PLAYER1_RIGHT)
-        {
-            outPlayerIndex = 0;
-            outAction = ZInputManager::Action_Right;
-            return btrue;
-        }
-        if (id == ICON_PLAYER1_RUN)
-        {
-            outPlayerIndex = 0;
-            outAction = ZInputManager::Action_Run;
-            return btrue;
-        }
-        if (id == ICON_PLAYER1_JUMP)
-        {
-            outPlayerIndex = 0;
-            outAction = ZInputManager::Action_Jump;
-            return btrue;
-        }
-        if (id == ICON_PLAYER1_HIT)
-        {
-            outPlayerIndex = 0;
-            outAction = ZInputManager::Action_Hit;
-            return btrue;
-        }
-        if (id == ICON_PLAYER1_BACK)
-        {
-            outPlayerIndex = 0;
-            outAction = ZInputManager::Action_Back;
-            return btrue;
-        }
-
-        // Player 2 icons
-        if (id == ICON_PLAYER2_UP)
-        {
-            outPlayerIndex = 1;
-            outAction = ZInputManager::Action_Up;
-            return btrue;
-        }
-        if (id == ICON_PLAYER2_DOWN)
-        {
-            outPlayerIndex = 1;
-            outAction = ZInputManager::Action_Down;
-            return btrue;
-        }
-        if (id == ICON_PLAYER2_LEFT)
-        {
-            outPlayerIndex = 1;
-            outAction = ZInputManager::Action_Left;
-            return btrue;
-        }
-        if (id == ICON_PLAYER2_RIGHT)
-        {
-            outPlayerIndex = 1;
-            outAction = ZInputManager::Action_Right;
-            return btrue;
-        }
-        if (id == ICON_PLAYER2_RUN)
-        {
-            outPlayerIndex = 1;
-            outAction = ZInputManager::Action_Run;
-            return btrue;
-        }
-        if (id == ICON_PLAYER2_JUMP)
-        {
-            outPlayerIndex = 1;
-            outAction = ZInputManager::Action_Jump;
-            return btrue;
-        }
-        if (id == ICON_PLAYER2_HIT)
-        {
-            outPlayerIndex = 1;
-            outAction = ZInputManager::Action_Hit;
-            return btrue;
-        }
-        if (id == ICON_PLAYER2_BACK)
-        {
-            outPlayerIndex = 1;
-            outAction = ZInputManager::Action_Back;
-            return btrue;
-        }
-
-        // Player 3 icons
-        if (id == ICON_PLAYER3_UP)
-        {
-            outPlayerIndex = 2;
-            outAction = ZInputManager::Action_Up;
-            return btrue;
-        }
-        if (id == ICON_PLAYER3_DOWN)
-        {
-            outPlayerIndex = 2;
-            outAction = ZInputManager::Action_Down;
-            return btrue;
-        }
-        if (id == ICON_PLAYER3_LEFT)
-        {
-            outPlayerIndex = 2;
-            outAction = ZInputManager::Action_Left;
-            return btrue;
-        }
-        if (id == ICON_PLAYER3_RIGHT)
-        {
-            outPlayerIndex = 2;
-            outAction = ZInputManager::Action_Right;
-            return btrue;
-        }
-        if (id == ICON_PLAYER3_RUN)
-        {
-            outPlayerIndex = 2;
-            outAction = ZInputManager::Action_Run;
-            return btrue;
-        }
-        if (id == ICON_PLAYER3_JUMP)
-        {
-            outPlayerIndex = 2;
-            outAction = ZInputManager::Action_Jump;
-            return btrue;
-        }
-        if (id == ICON_PLAYER3_HIT)
-        {
-            outPlayerIndex = 2;
-            outAction = ZInputManager::Action_Hit;
-            return btrue;
-        }
-        if (id == ICON_PLAYER3_BACK)
-        {
-            outPlayerIndex = 2;
-            outAction = ZInputManager::Action_Back;
-            return btrue;
-        }
-
-        // Player 4 icons
-        if (id == ICON_PLAYER4_UP)
-        {
-            outPlayerIndex = 3;
-            outAction = ZInputManager::Action_Up;
-            return btrue;
-        }
-        if (id == ICON_PLAYER4_DOWN)
-        {
-            outPlayerIndex = 3;
-            outAction = ZInputManager::Action_Down;
-            return btrue;
-        }
-        if (id == ICON_PLAYER4_LEFT)
-        {
-            outPlayerIndex = 3;
-            outAction = ZInputManager::Action_Left;
-            return btrue;
-        }
-        if (id == ICON_PLAYER4_RIGHT)
-        {
-            outPlayerIndex = 3;
-            outAction = ZInputManager::Action_Right;
-            return btrue;
-        }
-        if (id == ICON_PLAYER4_RUN)
-        {
-            outPlayerIndex = 3;
-            outAction = ZInputManager::Action_Run;
-            return btrue;
-        }
-        if (id == ICON_PLAYER4_JUMP)
-        {
-            outPlayerIndex = 3;
-            outAction = ZInputManager::Action_Jump;
-            return btrue;
-        }
-        if (id == ICON_PLAYER4_HIT)
-        {
-            outPlayerIndex = 3;
-            outAction = ZInputManager::Action_Hit;
-            return btrue;
-        }
-        if (id == ICON_PLAYER4_BACK)
-        {
-            outPlayerIndex = 3;
-            outAction = ZInputManager::Action_Back;
-            return btrue;
-        }
-
         return bfalse;
     }
 
@@ -437,7 +296,7 @@ namespace ITF
         m_remappingPlayerIndex = playerIndex;
         m_remappingAction = action;
         m_remappingComponent = component;
-        m_remappingCooldown = 0.25f;
+        m_remappingCooldown = ControlsRemappingConstants::REMAPPING_COOLDOWN;
         clearIconDisplay(component);
 
         if (GAMEMANAGER && GAMEMANAGER->getInputManager())
@@ -477,7 +336,7 @@ namespace ITF
         m_remappingComponent = nullptr;
         m_remappingCooldown = 0.0f;
         m_isWaitingForRelease = btrue;
-        m_postRemapCooldown = 0.15f;
+        m_postRemapCooldown = ControlsRemappingConstants::POST_REMAP_COOLDOWN;
         LOG("[ControlsRemapping] Entering wait-for-release state\n");
     }
 
@@ -581,72 +440,27 @@ namespace ITF
         }
     }
 
-    UIComponent* Ray_ControlsRemappingMenuHelper::getNavigationTarget(UIComponent* current, ENavigationDirection direction) const
-    {
-        if (!current || !m_menu)
-            return nullptr;
-
-        // For now, return nullptr to use default navigation
-        // Can be extended later with custom navigation table like Ray_OptionMenuHelper
-        return nullptr;
-    }
-
     ObjectRef Ray_ControlsRemappingMenuHelper::getNavigationOverrideTarget(UIComponent* current, f32 joyX, f32 joyY)
     {
         if (!m_isActive || !m_menu || !current)
             return ObjectRef::InvalidRef;
 
 #if defined(ITF_WINDOWS)
-        const bbool editing = m_isEditingControllerType;
+        if (!m_isEditingControllerType)
+            return ObjectRef::InvalidRef;
 
         const f32 absJoyX = f32_Abs(joyX);
         const f32 absJoyY = f32_Abs(joyY);
         if (absJoyX < MTH_EPSILON && absJoyY < MTH_EPSILON)
             return ObjectRef::InvalidRef;
 
-        ENavigationDirection direction;
         const bbool preferHorizontal = absJoyX >= absJoyY;
         if (preferHorizontal)
         {
-            if (absJoyX < MTH_EPSILON)
-                return ObjectRef::InvalidRef;
-
-            // When editing, block horizontal navigation (handled by processEditingInput for value changes)
-            if (editing)
-                return ObjectRef::InvalidRef;
-
-            direction = (joyX > 0.0f) ? Navigation_Right : Navigation_Left;
-        }
-        else
-        {
-            if (absJoyY < MTH_EPSILON)
-                return ObjectRef::InvalidRef;
-            direction = (joyY > 0.0f) ? Navigation_Down : Navigation_Up;
+            return ObjectRef::InvalidRef;
         }
 
-        // When editing and navigating up/down, exit edit mode first
-        UIComponent* navigationStart = current;
-        if (editing)
-        {
-            if (m_editingControllerTypeComponent)
-            {
-                navigationStart = m_editingControllerTypeComponent;
-            }
-
-            exitControllerTypeEditMode();
-        }
-
-        if (!navigationStart)
-            navigationStart = current;
-
-        // Try custom navigation first
-        UIComponent* target = getNavigationTarget(navigationStart, direction);
-        if (target && target != navigationStart && target->getActive() && target->getCanBeSelected())
-        {
-            return target->getUIref();
-        }
-
-        // Return invalid to let UIMenuManager handle default navigation
+        exitControllerTypeEditMode();
         return ObjectRef::InvalidRef;
 #else
         return ObjectRef::InvalidRef;
@@ -701,7 +515,6 @@ namespace ITF
         m_controllerTypeFirstPressed = btrue;
         m_previousSelectionStates.clear();
 
-        // Disable all other components to block left/right D-pad navigation
         if (m_menu)
         {
             const ObjectRefList& componentsList = m_menu->getUIComponentsList();
@@ -713,7 +526,6 @@ namespace ITF
 
                 bbool originalSelectable = comp->getCanBeSelected();
 
-                // Keep current component selectable
                 if (comp == static_cast<UIComponent*>(component))
                 {
                     if (!originalSelectable)
@@ -724,7 +536,6 @@ namespace ITF
                     continue;
                 }
 
-                // Disable all other selectable components
                 if (originalSelectable)
                 {
                     m_previousSelectionStates.push_back(std::make_pair(comp, originalSelectable));
@@ -747,7 +558,6 @@ namespace ITF
             m_editingControllerTypeComponent->setEditingMode(bfalse);
         }
 
-        // Restore all component selectable states
         for (std::vector<std::pair<UIComponent*, bbool>>::iterator it = m_previousSelectionStates.begin();
              it != m_previousSelectionStates.end(); ++it)
         {
@@ -774,7 +584,6 @@ namespace ITF
         i32 currentIndex = RAY_GAMEMANAGER->getPCControlMode();
         i32 newIndex = currentIndex + direction;
 
-        // Wrap around
         if (newIndex < 0)
             newIndex = PC_CONTROL_MODE_CHOICES - 1;
         else if (newIndex >= static_cast<i32>(PC_CONTROL_MODE_CHOICES))
@@ -855,8 +664,7 @@ namespace ITF
             exitControllerTypeEditMode();
             return btrue;
         }
-        static const f32 FIRST_PRESS_DELAY = 0.35f;
-        static const f32 REPEAT_RATE = 0.12f;
+
         if (action == input_actionID_Left)
         {
             m_controllerTypeFirstPressed = btrue;
@@ -877,7 +685,7 @@ namespace ITF
 
             if (m_controllerTypeFirstPressed)
             {
-                if (m_controllerTypeFirstPressTimer > FIRST_PRESS_DELAY)
+                if (m_controllerTypeFirstPressTimer > ControlsRemappingConstants::CONTROLLER_TYPE_FIRST_PRESS_DELAY)
                 {
                     m_controllerTypeFirstPressed = bfalse;
                     m_controllerTypeInputTimer = 0.0f;
@@ -888,7 +696,7 @@ namespace ITF
             else
             {
                 m_controllerTypeInputTimer += LOGICDT;
-                if (m_controllerTypeInputTimer > REPEAT_RATE)
+                if (m_controllerTypeInputTimer > ControlsRemappingConstants::CONTROLLER_TYPE_REPEAT_RATE)
                 {
                     m_controllerTypeInputTimer = 0.0f;
                     i32 dir = (action == input_actionID_LeftHold) ? -1 : 1;
