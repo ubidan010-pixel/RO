@@ -381,6 +381,9 @@ namespace ITF
 #ifdef ITF_WINDOWS
 		bool						m_mouseLocked;
 #endif //ITF_WIN32
+        u32                         m_currentInputPlayer;
+    public:
+        u32                         getCurrentInputPlayer() const { return m_currentInputPlayer; }
     };
 }
 #endif // _ITF_UIMENUMANAGER_H_

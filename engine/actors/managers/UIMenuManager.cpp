@@ -184,6 +184,7 @@ namespace ITF
 #if defined(ITF_WINDOWS) && (defined(ITF_FINAL) || ITF_ENABLE_EDITOR_KEYBOARD)
 		, m_mouseLocked(false)
 #endif //ITF_WINDOWS
+        , m_currentInputPlayer(U32_INVALID)
 		{
 #ifdef ITF_SUPPORT_CHEAT
         m_debugMenuMaps = newAlloc(mId_UI,DebugMenu);
@@ -1508,6 +1509,7 @@ void UIMenuManager::applySelectionChange(UIMenu* menu, UIComponent* oldSel, UICo
 
     void UIMenuManager::Receive( u32 player, f32 axis, const StringID& action )
     {
+        m_currentInputPlayer = player;
         if (SYSTEM_ADAPTER->isOSUIActive())
             return;
 

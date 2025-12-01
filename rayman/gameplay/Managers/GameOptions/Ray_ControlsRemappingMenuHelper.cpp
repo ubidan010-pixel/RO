@@ -371,6 +371,16 @@ namespace ITF
 
         if (!parseIconId(id, playerIndex, action))
             return bfalse;
+        if (UI_MENUMANAGER)
+        {
+            u32 inputPlayer = UI_MENUMANAGER->getCurrentInputPlayer();
+            if (inputPlayer != U32_INVALID && inputPlayer != playerIndex)
+            {
+                LOG("[ControlsRemapping] Rejected: Controller %d cannot remap Player %d slot\n", 
+                    inputPlayer + 1, playerIndex + 1);
+                return btrue; 
+            }
+        }
 
         startRemappingMode(playerIndex, action, component);
         return btrue;
