@@ -770,9 +770,11 @@ void UIMenuManager::applySelectionChange(UIMenu* menu, UIComponent* oldSel, UICo
 
     static bbool IsFreeAccessMenu(const StringID& menuId)
     {
-        // optionmenu
+        // option menu
         static const StringID optionMenuID = ITF_GET_STRINGID_CRC(optionmenu, 1286202687);
-        return menuId == optionMenuID;
+        // control remapping menu
+        static const StringID controlRemapMenuID = ITF_GET_STRINGID_CRC(controlremapping, 662219687);
+        return menuId == optionMenuID || menuId == controlRemapMenuID;
     }
 
 #ifdef ITF_SUPPORT_CHEAT
