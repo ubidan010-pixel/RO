@@ -420,9 +420,9 @@ namespace ITF
             u32 inputPlayer = UI_MENUMANAGER->getCurrentInputPlayer();
             if (inputPlayer != U32_INVALID && inputPlayer != playerIndex)
             {
-                LOG("[ControlsRemapping] Rejected: Controller %d cannot remap Player %d slot\n", 
+                LOG("[ControlsRemapping] Rejected: Controller %d cannot remap Player %d slot\n",
                     inputPlayer + 1, playerIndex + 1);
-                return btrue; 
+                return btrue;
             }
         }
 
@@ -439,7 +439,7 @@ namespace ITF
         m_remappingComponent = component;
         m_remappingCooldown = 0.25f;
         clearIconDisplay(component);
-        
+
         if (GAMEMANAGER && GAMEMANAGER->getInputManager())
         {
             GAMEMANAGER->getInputManager()->SetSuppressReceive(btrue);
@@ -477,7 +477,7 @@ namespace ITF
         m_remappingComponent = nullptr;
         m_remappingCooldown = 0.0f;
         m_isWaitingForRelease = btrue;
-        m_postRemapCooldown = 0.15f; 
+        m_postRemapCooldown = 0.15f;
         LOG("[ControlsRemapping] Entering wait-for-release state\n");
     }
 
@@ -520,7 +520,7 @@ namespace ITF
         {
             m_postRemapCooldown -= deltaTime;
             bbool allReleased = bfalse;
-            
+
             if (m_postRemapCooldown <= 0.0f && GAMEMANAGER && GAMEMANAGER->getInputManager())
             {
                 u32 activeControl = GAMEMANAGER->getInputManager()->GetFirstActiveControl(m_remappingPlayerIndex);
@@ -588,6 +588,7 @@ namespace ITF
     {
         if (id != CONTROLLER_OPTIONS_ID)
             return bfalse;
+
         if (UI_MENUMANAGER)
         {
             u32 inputPlayer = UI_MENUMANAGER->getCurrentInputPlayer();
@@ -601,15 +602,18 @@ namespace ITF
         UIListOptionComponent* listComponent = component->DynamicCast<UIListOptionComponent>(ITF_GET_STRINGID_CRC(UIListOptionComponent, 3621365669));
         if (!listComponent)
             return bfalse;
+        if (m_isEditingControllerType && m_editingControllerTypeComponent == listComponent)
+        {
+            exitControllerTypeEditMode();
+            return btrue;
+        }
 
         if (m_isEditingControllerType)
         {
             exitControllerTypeEditMode();
         }
-        else
-        {
-            enterControllerTypeEditMode(listComponent);
-        }
+
+        enterControllerTypeEditMode(listComponent);
         return btrue;
     }
 
@@ -671,7 +675,6 @@ namespace ITF
             m_editingControllerTypeComponent->setEditingMode(bfalse);
         }
 
-        // Restore all component selectable states
         for (std::vector<std::pair<UIComponent*, bbool>>::iterator it = m_previousSelectionStates.begin();
              it != m_previousSelectionStates.end(); ++it)
         {
@@ -757,47 +760,30 @@ namespace ITF
         return NULL;
     }
 
-    bbool Ray_ControlsRemappingMenuHelper::onMenuItemOtherAction(UIComponent* component, const StringID& action)
+    bbool Ray_ControlsRemappingMenuHelper::handleExternalEditingInput(UIComponent* component, const StringID& action)
     {
-        if (!m_isEditingControllerType)
+        if (!s_activeHelper)
             return bfalse;
 
-        // Block ALL navigation/actions while in edit mode to ensure we handle them
-        if (!component)
-            return btrue;
+        return s_activeHelper->processEditingInput(component, action);
+    }
+
+    bbool Ray_ControlsRemappingMenuHelper::processEditingInput(UIComponent* component, const StringID& action)
+    {
+        if (!m_isEditingControllerType || !component)
+            return bfalse;
 
         UIListOptionComponent* listComponent = component->DynamicCast<UIListOptionComponent>(ITF_GET_STRINGID_CRC(UIListOptionComponent, 3621365669));
         if (!listComponent || listComponent != m_editingControllerTypeComponent)
-        {
-            // Block actions on other components while editing
-            return btrue;
-        }
+            return bfalse;
 
-        // Handle back button to exit edit mode
         if (action == input_actionID_Back)
         {
             exitControllerTypeEditMode();
             return btrue;
         }
-
-        // Handle validate (A/Enter) to also exit edit mode
-        if (action == input_actionID_Valid)
-        {
-            exitControllerTypeEditMode();
-            return btrue;
-        }
-
-        // Block up/down navigation while editing
-        if (action == input_actionID_Up || action == input_actionID_UpHold ||
-            action == input_actionID_Down || action == input_actionID_DownHold)
-        {
-            return btrue;
-        }
-
         static const f32 FIRST_PRESS_DELAY = 0.35f;
         static const f32 REPEAT_RATE = 0.12f;
-
-        // Handle left press - immediate first action
         if (action == input_actionID_Left)
         {
             m_controllerTypeFirstPressed = btrue;
@@ -805,8 +791,6 @@ namespace ITF
             adjustControllerType(listComponent, -1);
             return btrue;
         }
-
-        // Handle right press - immediate first action
         if (action == input_actionID_Right)
         {
             m_controllerTypeFirstPressed = btrue;
@@ -814,15 +798,12 @@ namespace ITF
             adjustControllerType(listComponent, 1);
             return btrue;
         }
-
-        // Handle hold for repeat with initial delay
         if (action == input_actionID_LeftHold || action == input_actionID_RightHold)
         {
             m_controllerTypeFirstPressTimer += LOGICDT;
-            
+
             if (m_controllerTypeFirstPressed)
             {
-                // Wait for first press delay before starting repeat
                 if (m_controllerTypeFirstPressTimer > FIRST_PRESS_DELAY)
                 {
                     m_controllerTypeFirstPressed = bfalse;
@@ -833,7 +814,6 @@ namespace ITF
             }
             else
             {
-                // Regular repeat rate
                 m_controllerTypeInputTimer += LOGICDT;
                 if (m_controllerTypeInputTimer > REPEAT_RATE)
                 {
@@ -845,7 +825,7 @@ namespace ITF
             return btrue;
         }
 
-        return btrue; // Block all other actions while editing
+        return bfalse;
     }
 #else
     bbool Ray_ControlsRemappingMenuHelper::onMenuItemOtherAction(UIComponent* /*component*/, const StringID& /*action*/)

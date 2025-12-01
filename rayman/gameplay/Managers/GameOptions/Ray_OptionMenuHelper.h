@@ -46,7 +46,6 @@ namespace ITF
         virtual ~Ray_OptionMenuHelper();
         void activateForOptionMenu(MenuItemActionListener* mainListener);
         void onMenuItemAction(UIComponent* _UIComponent) override;
-        bbool onMenuItemOtherAction(UIComponent* _UIComponent, const StringID& _action) override;
         void UpdateMenuOnSelectionChange(UIComponent* uiComponent, bbool isSelected) override;
         void updateTimer();
         ObjectRef getNavigationOverrideTarget(UIComponent* current, f32 joyX, f32 joyY);

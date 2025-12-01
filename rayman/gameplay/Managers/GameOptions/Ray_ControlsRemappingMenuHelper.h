@@ -28,9 +28,12 @@ namespace ITF
         virtual ~Ray_ControlsRemappingMenuHelper();
         void activateForControlsRemappingMenu(MenuItemActionListener* mainListener);
         void onMenuItemAction(UIComponent* _UIComponent) override;
-        bbool onMenuItemOtherAction(UIComponent* _UIComponent, const StringID& _action) override;
         static Ray_ControlsRemappingMenuHelper* getActiveHelper();
         void updateRemappingMode(f32 deltaTime);
+#if defined(ITF_WINDOWS)
+        static bbool handleExternalEditingInput(UIComponent* component, const StringID& action);
+        bbool processEditingInput(UIComponent* component, const StringID& action);
+#endif
 
     private:
         // Button handlers

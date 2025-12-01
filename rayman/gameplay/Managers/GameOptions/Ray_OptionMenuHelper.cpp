@@ -192,23 +192,6 @@ namespace ITF
 
         enterEditMode(component, optionId);
     }
-    
-    bbool Ray_OptionMenuHelper::onMenuItemOtherAction(UIComponent* component, const StringID& action)
-    {
-        if (!component)
-            return bfalse;
-
-        if (!isEditing())
-            return bfalse;
-
-        if (action == input_actionID_Up || action == input_actionID_UpHold ||
-            action == input_actionID_Down || action == input_actionID_DownHold)
-        {
-            return btrue;
-        }
-
-        return processEditingInput(component, action);
-    }
 
     void Ray_OptionMenuHelper::UpdateMenuOnSelectionChange(UIComponent* uiComponent, bbool isSelected)
     {

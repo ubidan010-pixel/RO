@@ -35,11 +35,6 @@ namespace ITF
         return UI_MENUMANAGER->onMenuPageAction_Default1ButtonMenu(_menu, _action, _defaultAction);
     }
 
-    bbool Ray_BaseMenuHelper::onMenuItemOtherAction(UIComponent* _UIComponent, const StringID& _action)
-    {
-        return bfalse;
-    }
-
     void Ray_BaseMenuHelper::UpdateMenuOnSelectionChange(UIComponent* uiComponent, bbool isSelected)
     {
     }

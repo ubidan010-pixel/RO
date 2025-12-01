@@ -20,7 +20,6 @@ namespace ITF
         bbool isBaseMenuHelper() const override { return btrue; }
         void onMenuItemAction(UIComponent* _UIComponent) override;
         StringID onMenuPageAction(UIMenu* _menu, const StringID& _action, const StringID& _defaultAction) override;
-        bbool onMenuItemOtherAction(UIComponent* _UIComponent, const StringID& _action) override;
         void UpdateMenuOnSelectionChange(UIComponent* uiComponent, bbool isSelected) override;
 
     protected:
