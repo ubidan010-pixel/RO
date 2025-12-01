@@ -4,21 +4,12 @@
 #include "gameplay/components/UI/UIProfileSlotComponent.h"
 #endif //_ITF_UIPROFILESLOTCOMPONENT_H_
 
-#ifndef _ITF_EVENTS_H_
-#include "engine/events/Events.h"
-#endif //_ITF_EVENTS_H_
-
 #ifndef _ITF_EVENTMANAGER_H_
 #include "engine/events/EventManager.h"
 #endif //_ITF_EVENTMANAGER_H_
 
-#ifndef _ITF_SINGLETONS_H_
-#include "engine/singleton/Singletons.h"
-#endif //_ITF_SINGLETONS_H_
-
 namespace ITF
 {
-    ///////////////////////////////////////////////////////////////////////////////////////////
     IMPLEMENT_OBJECT_RTTI(UIProfileSlotComponent)
     BEGIN_SERIALIZATION_CHILD(UIProfileSlotComponent)
         BEGIN_CONDITION_BLOCK(ESerializeGroup_DataEditable)
@@ -44,42 +35,20 @@ namespace ITF
         END_CONDITION_BLOCK()
     END_SERIALIZATION()
 
-    ///////////////////////////////////////////////////////////////////////////////////////////
     UIProfileSlotComponent::UIProfileSlotComponent()
-    : Super()
-    , m_playerIndex(0)
-    , m_resetButtonPath()
-    , m_controlsPath()
-    , m_presetPath()
-    , m_playerTitlePath()
-    , m_playerTitlePathConnected()
-    , m_playerTitlePathDisconnected()
-    , m_actionsBgPath()
-    , m_actionsBgPathConnected()
-    , m_actionsBgPathDisconnected()
-    , m_actionUpPath()
-    , m_actionDownPath()
-    , m_actionLeftPath()
-    , m_actionRightPath()
-    , m_actionRunPath()
-    , m_actionJumpPath()
-    , m_actionHitPath()
-    , m_actionBackPath()
-    , m_connectControllerTextPath()
+    : m_playerIndex(0)
     , m_isControllerConnected(bfalse)
     , m_controllerType(InputAdapter::Pad_Invalid)
     , m_eventListenerRegistered(bfalse)
     {
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////////////
     UIProfileSlotComponent::~UIProfileSlotComponent()
     {
         unregisterEventListeners();
-        clear();
+        UIProfileSlotComponent::clear();
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////////////
     void UIProfileSlotComponent::clear()
     {
         m_playerIndex = 0;
@@ -105,7 +74,6 @@ namespace ITF
         m_controllerType = InputAdapter::Pad_Invalid;
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////////////
     void UIProfileSlotComponent::registerEventListeners()
     {
         if (m_eventListenerRegistered)
@@ -118,7 +86,6 @@ namespace ITF
         }
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////////////
     void UIProfileSlotComponent::unregisterEventListeners()
     {
         if (!m_eventListenerRegistered)
@@ -131,51 +98,33 @@ namespace ITF
         }
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////////////
     void UIProfileSlotComponent::onActorLoaded(Pickable::HotReloadType _hotReload)
     {
         Super::onActorLoaded(_hotReload);
-
-        // Check initial controller state
         if (INPUT_ADAPTER && m_playerIndex < JOY_MAX_COUNT)
         {
             m_isControllerConnected = INPUT_ADAPTER->isPadConnected(m_playerIndex);
             m_controllerType = INPUT_ADAPTER->getPadType(m_playerIndex);
         }
-
-        // Log initialization info
         LOG("[UIProfileSlotComponent] Initialized for player %u - Controller connected: %s, Type: %d",
             m_playerIndex,
             m_isControllerConnected ? "true" : "false",
             static_cast<i32>(m_controllerType));
-
-        // Log all connected controllers on first slot initialization
-        if (m_playerIndex == 0)
-        {
-            logAllControllersState();
-        }
-
-        // Register for controller events
         registerEventListeners();
-
-        // Update all UI elements visibility based on initial state
         updateAllVisibility();
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////////////
     void UIProfileSlotComponent::Update(f32 _deltaTime)
     {
         Super::Update(_deltaTime);
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////////////
     void UIProfileSlotComponent::onActorClearComponents()
     {
         unregisterEventListeners();
         Super::onActorClearComponents();
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////////////
     void UIProfileSlotComponent::onBecomeActive()
     {
         Super::onBecomeActive();
@@ -183,47 +132,39 @@ namespace ITF
         updateAllVisibility();
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////////////
     void UIProfileSlotComponent::onBecomeInactive()
     {
         unregisterEventListeners();
         Super::onBecomeInactive();
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////////////
     void UIProfileSlotComponent::onPressed()
     {
         Super::onPressed();
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////////////
     void UIProfileSlotComponent::onReleased()
     {
         Super::onReleased();
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////////////
     void UIProfileSlotComponent::onRollover()
     {
         Super::onRollover();
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////////////
     void UIProfileSlotComponent::onRollout()
     {
         Super::onRollout();
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////////////
     void UIProfileSlotComponent::onAction(const StringID & action)
     {
         Super::onAction(action);
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////////////
     bbool UIProfileSlotComponent::isControllerConnected() const
     {
-        // Always check current state from InputAdapter for accuracy
         if (INPUT_ADAPTER && m_playerIndex < JOY_MAX_COUNT)
         {
             return INPUT_ADAPTER->isPadConnected(m_playerIndex);
@@ -231,7 +172,6 @@ namespace ITF
         return m_isControllerConnected;
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////////////
     InputAdapter::PadType UIProfileSlotComponent::getControllerType() const
     {
         if (INPUT_ADAPTER && m_playerIndex < JOY_MAX_COUNT)
@@ -241,7 +181,6 @@ namespace ITF
         return m_controllerType;
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////////////
     void UIProfileSlotComponent::onEvent(Event* _event)
     {
         if (EventControllerStateChanged* controllerEvent =
@@ -255,35 +194,25 @@ namespace ITF
         }
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////////////
     void UIProfileSlotComponent::onControllerStateChanged(u32 padIndex, bbool connected, InputAdapter::PadType padType)
     {
-        // Only process events for our player index
         if (padIndex != m_playerIndex)
             return;
-
         bbool wasConnected = m_isControllerConnected;
         m_isControllerConnected = connected;
         m_controllerType = padType;
-
-        // Log the state change
         LOG("[UIProfileSlotComponent] Player %u controller state changed: %s -> %s (Type: %d)",
             m_playerIndex,
             wasConnected ? "connected" : "disconnected",
             connected ? "connected" : "disconnected",
             static_cast<i32>(padType));
-
-        // State changed - update UI accordingly
         if (wasConnected != connected)
         {
             updateAllVisibility();
-
-            // Log current total connected controllers
             LOG("[UIProfileSlotComponent] Total connected controllers: %u", getConnectedControllersCount());
         }
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////////////
     void UIProfileSlotComponent::setActorVisibility(const String8& actorPath, bbool visible)
     {
         if (actorPath.isEmpty() || !m_actor)
@@ -311,27 +240,22 @@ namespace ITF
         bbool visible = isControllerConnected();
         LOG("[UIProfileSlotComponent] Player %u: Updating visibility (controller %s)",
             m_playerIndex, visible ? "connected" : "disconnected");
-
-        // Header elements
         setActorVisibility(m_resetButtonPath, visible);
         setActorVisibility(m_controlsPath, visible);
         setActorVisibility(m_presetPath, visible);
 
-        // Player title background - toggle variant actors
         if (!m_playerTitlePathConnected.isEmpty() && !m_playerTitlePathDisconnected.isEmpty())
         {
             setActorVisibility(m_playerTitlePathConnected, visible);
             setActorVisibility(m_playerTitlePathDisconnected, !visible);
         }
 
-        // Actions background - toggle variant actors
         if (!m_actionsBgPathConnected.isEmpty() && !m_actionsBgPathDisconnected.isEmpty())
         {
             setActorVisibility(m_actionsBgPathConnected, visible);
             setActorVisibility(m_actionsBgPathDisconnected, !visible);
         }
 
-        // Action icons - show/hide based on connection
         setActorVisibility(m_actionUpPath, visible);
         setActorVisibility(m_actionDownPath, visible);
         setActorVisibility(m_actionLeftPath, visible);
@@ -341,11 +265,9 @@ namespace ITF
         setActorVisibility(m_actionHitPath, visible);
         setActorVisibility(m_actionBackPath, visible);
 
-        // Connect controller text - INVERTED: show when disconnected, hide when connected
         setActorVisibility(m_connectControllerTextPath, !visible);
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////////////
     u32 UIProfileSlotComponent::getConnectedControllersCount()
     {
         u32 count = 0;
@@ -362,28 +284,6 @@ namespace ITF
         return count;
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////////////
-    void UIProfileSlotComponent::logAllControllersState()
-    {
-        LOG("[UIProfileSlotComponent] === Controllers State Summary ===");
-        LOG("[UIProfileSlotComponent] Total connected: %u / %u", getConnectedControllersCount(), JOY_MAX_COUNT);
-
-        if (INPUT_ADAPTER)
-        {
-            for (u32 i = 0; i < JOY_MAX_COUNT; ++i)
-            {
-                bbool connected = INPUT_ADAPTER->isPadConnected(i);
-                InputAdapter::PadType padType = INPUT_ADAPTER->getPadType(i);
-                LOG("[UIProfileSlotComponent]   Player %u: %s (Type: %d)",
-                    i,
-                    connected ? "CONNECTED" : "disconnected",
-                    static_cast<i32>(padType));
-            }
-        }
-        LOG("[UIProfileSlotComponent] =================================");
-    }
-
-    ///////////////////////////////////////////////////////////////////////////////////////////
     IMPLEMENT_OBJECT_RTTI(UIProfileSlotComponent_Template)
     BEGIN_SERIALIZATION_CHILD(UIProfileSlotComponent_Template)
     END_SERIALIZATION()

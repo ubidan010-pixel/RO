@@ -5,11 +5,6 @@
 #include "gameplay/components/UI/UIComponent.h"
 #endif //_ITF_UICOMPONENT_H_
 
-#ifndef _ITF_INPUTADAPTER_H_
-#include "engine/AdaptersInterfaces/InputAdapter.h"
-#endif //_ITF_INPUTADAPTER_H_
-
-
 namespace ITF
 {
     class Actor;
@@ -38,32 +33,29 @@ namespace ITF
         virtual     void        onRollover          ();
         virtual     void        onRollout           ();
         virtual     void        onAction            (const StringID & action);
-        ITF_INLINE u32          getPlayerIndex() const { return m_playerIndex; }
+        u32          getPlayerIndex() const { return m_playerIndex; }
         void                    setPlayerIndex(u32 index) { m_playerIndex = index; }
-        ITF_INLINE const String8& getResetButtonPath() const { return m_resetButtonPath; }
-        ITF_INLINE const String8& getControlsPath() const { return m_controlsPath; }
-        ITF_INLINE const String8& getPresetPath() const { return m_presetPath; }
-        ITF_INLINE const String8& getPlayerTitlePath() const { return m_playerTitlePath; }
-        ITF_INLINE const String8& getPlayerTitlePathConnected() const { return m_playerTitlePathConnected; }
-        ITF_INLINE const String8& getPlayerTitlePathDisconnected() const { return m_playerTitlePathDisconnected; }
-        ITF_INLINE const String8& getActionsBgPath() const { return m_actionsBgPath; }
-        ITF_INLINE const String8& getActionsBgPathConnected() const { return m_actionsBgPathConnected; }
-        ITF_INLINE const String8& getActionsBgPathDisconnected() const { return m_actionsBgPathDisconnected; }
-        ITF_INLINE const String8& getActionUpPath() const { return m_actionUpPath; }
-        ITF_INLINE const String8& getActionDownPath() const { return m_actionDownPath; }
-        ITF_INLINE const String8& getActionLeftPath() const { return m_actionLeftPath; }
-        ITF_INLINE const String8& getActionRightPath() const { return m_actionRightPath; }
-        ITF_INLINE const String8& getActionRunPath() const { return m_actionRunPath; }
-        ITF_INLINE const String8& getActionJumpPath() const { return m_actionJumpPath; }
-        ITF_INLINE const String8& getActionHitPath() const { return m_actionHitPath; }
-        ITF_INLINE const String8& getActionBackPath() const { return m_actionBackPath; }
-        ITF_INLINE const String8& getConnectControllerTextPath() const { return m_connectControllerTextPath; }
+        const String8& getResetButtonPath() const { return m_resetButtonPath; }
+        const String8& getControlsPath() const { return m_controlsPath; }
+        const String8& getPresetPath() const { return m_presetPath; }
+        const String8& getPlayerTitlePath() const { return m_playerTitlePath; }
+        const String8& getPlayerTitlePathConnected() const { return m_playerTitlePathConnected; }
+        const String8& getPlayerTitlePathDisconnected() const { return m_playerTitlePathDisconnected; }
+        const String8& getActionsBgPath() const { return m_actionsBgPath; }
+        const String8& getActionsBgPathConnected() const { return m_actionsBgPathConnected; }
+        const String8& getActionsBgPathDisconnected() const { return m_actionsBgPathDisconnected; }
+        const String8& getActionUpPath() const { return m_actionUpPath; }
+        const String8& getActionDownPath() const { return m_actionDownPath; }
+        const String8& getActionLeftPath() const { return m_actionLeftPath; }
+        const String8& getActionRightPath() const { return m_actionRightPath; }
+        const String8& getActionRunPath() const { return m_actionRunPath; }
+        const String8& getActionJumpPath() const { return m_actionJumpPath; }
+        const String8& getActionHitPath() const { return m_actionHitPath; }
+        const String8& getActionBackPath() const { return m_actionBackPath; }
+        const String8& getConnectControllerTextPath() const { return m_connectControllerTextPath; }
         bbool                    isControllerConnected() const;
         InputAdapter::PadType    getControllerType() const;
         static u32               getConnectedControllersCount();
-        static void              logAllControllersState();
-
-        // IEventListener interface
         virtual void             onEvent(Event* _event) override;
 
     protected:
@@ -106,12 +98,8 @@ namespace ITF
         DECLARE_OBJECT_CHILD_RTTI(UIProfileSlotComponent_Template, UIComponent_Template, 4231517306);
         DECLARE_SERIALIZE();
         DECLARE_ACTORCOMPONENT_TEMPLATE(UIProfileSlotComponent);
-
-    public:
         UIProfileSlotComponent_Template();
         ~UIProfileSlotComponent_Template();
-
-    private:
     };
 
     ITF_INLINE const UIProfileSlotComponent_Template* UIProfileSlotComponent::getTemplate() const
