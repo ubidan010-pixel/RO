@@ -28,6 +28,18 @@
 #include "engine/actors/Actor.h"
 #endif
 
+#ifndef _ITF_UILISTOPTIONCOMPONENT_H_
+#include "gameplay/components/UI/UIListOptionComponent.h"
+#endif
+
+#ifndef _ITF_RAY_GAMEMANAGER_H_
+#include "rayman/gameplay/Ray_GameManager.h"
+#endif
+
+#ifndef _ITF_RAY_GAMEOPTIONNAMES_H_
+#include "rayman/gameplay/Managers/GameOptions/Ray_GameOptionNames.h"
+#endif
+
 namespace ITF
 {
     Ray_ControlsRemappingMenuHelper* Ray_ControlsRemappingMenuHelper::s_activeHelper = nullptr;
@@ -85,6 +97,13 @@ namespace ITF
           , m_remappingComponent(NULL)
           , m_remappingCooldown(0.0f)
           , m_postRemapCooldown(0.0f)
+#if defined(ITF_WINDOWS)
+          , m_isEditingControllerType(bfalse)
+          , m_editingControllerTypeComponent(NULL)
+          , m_controllerTypeInputTimer(0.0f)
+          , m_controllerTypeFirstPressTimer(0.0f)
+          , m_controllerTypeFirstPressed(btrue)
+#endif
     {
         m_menuBaseName = "controlremapping";
     }
@@ -113,6 +132,14 @@ namespace ITF
         m_isRemappingMode = bfalse;
         m_isWaitingForRelease = bfalse;
         m_postRemapCooldown = 0.0f;
+#if defined(ITF_WINDOWS)
+        m_isEditingControllerType = bfalse;
+        m_editingControllerTypeComponent = NULL;
+        m_controllerTypeInputTimer = 0.0f;
+        m_controllerTypeFirstPressTimer = 0.0f;
+        m_controllerTypeFirstPressed = btrue;
+        m_previousSelectionStates.clear();
+#endif
         m_mainListener = mainListener;
         UI_MENUMANAGER->setMenuListener(m_menuBaseName, this);
         m_menu = UI_MENUMANAGER->getMenu(m_menuBaseName);
@@ -121,6 +148,19 @@ namespace ITF
             return;
 
         s_activeHelper = this;
+
+#if defined(ITF_WINDOWS)
+        if (RAY_GAMEMANAGER)
+        {
+            UIListOptionComponent* ctrlTypeComp = findControllerTypeComponent();
+            if (ctrlTypeComp)
+            {
+                i32 currentType = RAY_GAMEMANAGER->getPCControlMode();
+                updateControllerTypeDisplay(ctrlTypeComp, currentType);
+            }
+        }
+#endif
+
         // Show the controls remapping menu
         UI_MENUMANAGER->showMenuPage(GAMEINTERFACE->getGameMenuPriority(), m_menuBaseName, btrue, this);
     }
@@ -137,6 +177,10 @@ namespace ITF
         const StringID componentId = component->getID();
         if (handleAccept(componentId) || handleCancel(componentId))
             return;
+#if defined(ITF_WINDOWS)
+        if (actorId.isValid() && handleControllerTypeAction(actorId, component))
+            return;
+#endif
         if (actorId.isValid() && handleIconAction(actorId, component))
             return;
     }
@@ -522,6 +566,10 @@ namespace ITF
     {
         cancelRemappingMode(btrue);
         m_isWaitingForRelease = bfalse;
+#if defined(ITF_WINDOWS)
+        exitControllerTypeEditMode();
+        m_previousSelectionStates.clear();
+#endif
         if (GAMEMANAGER && GAMEMANAGER->getInputManager())
         {
             GAMEMANAGER->getInputManager()->SetSuppressReceive(bfalse);
@@ -532,4 +580,277 @@ namespace ITF
             s_activeHelper = nullptr;
         }
     }
+
+#if defined(ITF_WINDOWS)
+#define CONTROLLER_OPTIONS_ID ITF_GET_STRINGID_CRC(controller_options,3547548201)
+
+    bbool Ray_ControlsRemappingMenuHelper::handleControllerTypeAction(const StringID& id, UIComponent* component)
+    {
+        if (id != CONTROLLER_OPTIONS_ID)
+            return bfalse;
+        if (UI_MENUMANAGER)
+        {
+            u32 inputPlayer = UI_MENUMANAGER->getCurrentInputPlayer();
+            if (inputPlayer != U32_INVALID && inputPlayer != 0)
+            {
+                LOG("[ControlsRemapping] Rejected: Only Player 1 can change controller type\n");
+                return btrue;
+            }
+        }
+
+        UIListOptionComponent* listComponent = component->DynamicCast<UIListOptionComponent>(ITF_GET_STRINGID_CRC(UIListOptionComponent, 3621365669));
+        if (!listComponent)
+            return bfalse;
+
+        if (m_isEditingControllerType)
+        {
+            exitControllerTypeEditMode();
+        }
+        else
+        {
+            enterControllerTypeEditMode(listComponent);
+        }
+        return btrue;
+    }
+
+    void Ray_ControlsRemappingMenuHelper::enterControllerTypeEditMode(UIListOptionComponent* component)
+    {
+        if (!component || m_isEditingControllerType)
+            return;
+
+        m_isEditingControllerType = btrue;
+        m_editingControllerTypeComponent = component;
+        m_controllerTypeInputTimer = 0.0f;
+        m_controllerTypeFirstPressTimer = 0.0f;
+        m_controllerTypeFirstPressed = btrue;
+        m_previousSelectionStates.clear();
+
+        // Disable all other components to block navigation
+        if (m_menu)
+        {
+            const ObjectRefList& componentsList = m_menu->getUIComponentsList();
+            for (u32 i = 0; i < componentsList.size(); ++i)
+            {
+                UIComponent* comp = UIMenuManager::getUIComponent(componentsList[i]);
+                if (!comp)
+                    continue;
+
+                bbool originalSelectable = comp->getCanBeSelected();
+
+                // Keep current component selectable
+                if (comp == static_cast<UIComponent*>(component))
+                {
+                    if (!originalSelectable)
+                    {
+                        m_previousSelectionStates.push_back(std::make_pair(comp, originalSelectable));
+                        comp->setCanBeSelected(btrue);
+                    }
+                    continue;
+                }
+
+                // Disable all other selectable components
+                if (originalSelectable)
+                {
+                    m_previousSelectionStates.push_back(std::make_pair(comp, originalSelectable));
+                    comp->setCanBeSelected(bfalse);
+                }
+            }
+        }
+
+        component->setEditingMode(btrue);
+        LOG("[ControlsRemapping] Entered controller type edit mode\n");
+    }
+
+    void Ray_ControlsRemappingMenuHelper::exitControllerTypeEditMode()
+    {
+        if (!m_isEditingControllerType)
+            return;
+
+        if (m_editingControllerTypeComponent)
+        {
+            m_editingControllerTypeComponent->setEditingMode(bfalse);
+        }
+
+        // Restore all component selectable states
+        for (std::vector<std::pair<UIComponent*, bbool>>::iterator it = m_previousSelectionStates.begin();
+             it != m_previousSelectionStates.end(); ++it)
+        {
+            if (it->first)
+            {
+                it->first->setCanBeSelected(it->second);
+            }
+        }
+        m_previousSelectionStates.clear();
+
+        m_isEditingControllerType = bfalse;
+        m_editingControllerTypeComponent = NULL;
+        m_controllerTypeInputTimer = 0.0f;
+        m_controllerTypeFirstPressTimer = 0.0f;
+        m_controllerTypeFirstPressed = btrue;
+        LOG("[ControlsRemapping] Exited controller type edit mode\n");
+    }
+
+    void Ray_ControlsRemappingMenuHelper::adjustControllerType(UIListOptionComponent* listComponent, i32 direction)
+    {
+        if (!listComponent || direction == 0 || !RAY_GAMEMANAGER)
+            return;
+
+        i32 currentIndex = RAY_GAMEMANAGER->getPCControlMode();
+        i32 newIndex = currentIndex + direction;
+
+        // Wrap around
+        if (newIndex < 0)
+            newIndex = PC_CONTROL_MODE_CHOICES - 1;
+        else if (newIndex >= static_cast<i32>(PC_CONTROL_MODE_CHOICES))
+            newIndex = 0;
+
+        if (newIndex == currentIndex)
+            return;
+
+        RAY_GAMEMANAGER->setPCControlMode(newIndex);
+        updateControllerTypeDisplay(listComponent, newIndex);
+        LOG("[ControlsRemapping] Controller type changed to: %s\n", RAY_GAMEMANAGER->getPCControlModeDisplayName(newIndex));
+    }
+
+    void Ray_ControlsRemappingMenuHelper::updateControllerTypeDisplay(UIListOptionComponent* listComponent, i32 index)
+    {
+        if (!listComponent || !RAY_GAMEMANAGER)
+            return;
+
+        Actor* valueActor = listComponent->getValueActor();
+        if (!valueActor)
+            return;
+
+        UIComponent* valueComp = valueActor->GetComponent<UIComponent>();
+        if (!valueComp)
+            return;
+
+        const char* displayName = RAY_GAMEMANAGER->getPCControlModeDisplayName(index);
+        if (displayName && displayName[0] != '\0')
+        {
+            valueComp->forceContent(displayName);
+        }
+    }
+
+    UIListOptionComponent* Ray_ControlsRemappingMenuHelper::findControllerTypeComponent() const
+    {
+        if (!m_menu)
+            return NULL;
+
+        const ObjectRefList& componentsList = m_menu->getUIComponentsList();
+        for (u32 i = 0; i < componentsList.size(); ++i)
+        {
+            UIComponent* comp = UIMenuManager::getUIComponent(componentsList[i]);
+            if (!comp)
+                continue;
+
+            Actor* actor = comp->GetActor();
+            if (!actor)
+                continue;
+
+            const String8& friendly = actor->getUserFriendly();
+            if (friendly == "controller_options")
+            {
+                return comp->DynamicCast<UIListOptionComponent>(ITF_GET_STRINGID_CRC(UIListOptionComponent, 3621365669));
+            }
+        }
+        return NULL;
+    }
+
+    bbool Ray_ControlsRemappingMenuHelper::onMenuItemOtherAction(UIComponent* component, const StringID& action)
+    {
+        if (!m_isEditingControllerType)
+            return bfalse;
+
+        // Block ALL navigation/actions while in edit mode to ensure we handle them
+        if (!component)
+            return btrue;
+
+        UIListOptionComponent* listComponent = component->DynamicCast<UIListOptionComponent>(ITF_GET_STRINGID_CRC(UIListOptionComponent, 3621365669));
+        if (!listComponent || listComponent != m_editingControllerTypeComponent)
+        {
+            // Block actions on other components while editing
+            return btrue;
+        }
+
+        // Handle back button to exit edit mode
+        if (action == input_actionID_Back)
+        {
+            exitControllerTypeEditMode();
+            return btrue;
+        }
+
+        // Handle validate (A/Enter) to also exit edit mode
+        if (action == input_actionID_Valid)
+        {
+            exitControllerTypeEditMode();
+            return btrue;
+        }
+
+        // Block up/down navigation while editing
+        if (action == input_actionID_Up || action == input_actionID_UpHold ||
+            action == input_actionID_Down || action == input_actionID_DownHold)
+        {
+            return btrue;
+        }
+
+        static const f32 FIRST_PRESS_DELAY = 0.35f;
+        static const f32 REPEAT_RATE = 0.12f;
+
+        // Handle left press - immediate first action
+        if (action == input_actionID_Left)
+        {
+            m_controllerTypeFirstPressed = btrue;
+            m_controllerTypeFirstPressTimer = 0.0f;
+            adjustControllerType(listComponent, -1);
+            return btrue;
+        }
+
+        // Handle right press - immediate first action
+        if (action == input_actionID_Right)
+        {
+            m_controllerTypeFirstPressed = btrue;
+            m_controllerTypeFirstPressTimer = 0.0f;
+            adjustControllerType(listComponent, 1);
+            return btrue;
+        }
+
+        // Handle hold for repeat with initial delay
+        if (action == input_actionID_LeftHold || action == input_actionID_RightHold)
+        {
+            m_controllerTypeFirstPressTimer += LOGICDT;
+            
+            if (m_controllerTypeFirstPressed)
+            {
+                // Wait for first press delay before starting repeat
+                if (m_controllerTypeFirstPressTimer > FIRST_PRESS_DELAY)
+                {
+                    m_controllerTypeFirstPressed = bfalse;
+                    m_controllerTypeInputTimer = 0.0f;
+                    i32 dir = (action == input_actionID_LeftHold) ? -1 : 1;
+                    adjustControllerType(listComponent, dir);
+                }
+            }
+            else
+            {
+                // Regular repeat rate
+                m_controllerTypeInputTimer += LOGICDT;
+                if (m_controllerTypeInputTimer > REPEAT_RATE)
+                {
+                    m_controllerTypeInputTimer = 0.0f;
+                    i32 dir = (action == input_actionID_LeftHold) ? -1 : 1;
+                    adjustControllerType(listComponent, dir);
+                }
+            }
+            return btrue;
+        }
+
+        return btrue; // Block all other actions while editing
+    }
+#else
+    bbool Ray_ControlsRemappingMenuHelper::onMenuItemOtherAction(UIComponent* /*component*/, const StringID& /*action*/)
+    {
+        return bfalse;
+    }
+#endif
 }

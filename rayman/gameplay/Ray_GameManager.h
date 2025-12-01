@@ -1762,8 +1762,9 @@ namespace ITF
         void            setVibrations(bbool enabled);
 
 #if defined(ITF_WINDOWS)
-        bbool           IsKeyboardControllerSharingEnabled() const;
-        void            setKeyboardControllerSharing(bbool enabled);
+        i32             getPCControlMode() const;
+        void            setPCControlMode(i32 mode);
+        const char*     getPCControlModeDisplayName(i32 index) const;
 #endif
         //==========================================================================
         // Option Menu - Sound Options
@@ -1855,7 +1856,7 @@ namespace ITF
         void            registerAuthAlreadyLinked();
         void            registerAuthBootCount();
 #if defined(ITF_WINDOWS)
-        void            registerPCKeyboardControllerSharingOption();
+        void            registerControllerTypeOption();
 #endif
 
         Scene*          getSceneForPersistentActor(Actor *_obj) const;

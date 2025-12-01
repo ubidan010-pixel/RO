@@ -13,9 +13,13 @@
 #include "engine/AdaptersInterfaces/InputAdapter.h"
 #endif //_ITF_INPUTADAPTER_H_
 
+#include <vector>
+#include <utility>
+
 namespace ITF
 {
     class UIComponent;
+    class UIListOptionComponent;
 
     class Ray_ControlsRemappingMenuHelper : public Ray_BaseMenuHelper
     {
@@ -24,6 +28,7 @@ namespace ITF
         virtual ~Ray_ControlsRemappingMenuHelper();
         void activateForControlsRemappingMenu(MenuItemActionListener* mainListener);
         void onMenuItemAction(UIComponent* _UIComponent) override;
+        bbool onMenuItemOtherAction(UIComponent* _UIComponent, const StringID& _action) override;
         static Ray_ControlsRemappingMenuHelper* getActiveHelper();
         void updateRemappingMode(f32 deltaTime);
 
@@ -40,6 +45,22 @@ namespace ITF
         bbool detectPhysicalControl(u32& outPhysicalControl);
         void finalizeRemapping(u32 physicalControl);
         void onClose() override;
+
+#if defined(ITF_WINDOWS)
+        bbool handleControllerTypeAction(const StringID& id, UIComponent* component);
+        void adjustControllerType(UIListOptionComponent* listComponent, i32 direction);
+        void updateControllerTypeDisplay(UIListOptionComponent* listComponent, i32 index);
+        UIListOptionComponent* findControllerTypeComponent() const;
+        bbool isControllerTypeEditing() const { return m_isEditingControllerType; }
+        void enterControllerTypeEditMode(UIListOptionComponent* component);
+        void exitControllerTypeEditMode();
+        bbool m_isEditingControllerType;
+        UIListOptionComponent* m_editingControllerTypeComponent;
+        f32 m_controllerTypeInputTimer;
+        f32 m_controllerTypeFirstPressTimer;
+        bbool m_controllerTypeFirstPressed;
+        std::vector<std::pair<UIComponent*, bbool>> m_previousSelectionStates;
+#endif
 
         static Ray_ControlsRemappingMenuHelper* s_activeHelper;
         bbool m_isRemappingMode;

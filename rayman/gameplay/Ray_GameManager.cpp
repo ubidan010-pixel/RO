@@ -11750,9 +11750,13 @@ namespace ITF
     }
 
 #if defined(ITF_WINDOWS)
-    void Ray_GameManager::registerPCKeyboardControllerSharingOption()
+    void Ray_GameManager::registerControllerTypeOption()
     {
-        m_gameOptionManager.registerBoolOption(OPTION_PC_KEYBOARD_CONTROLLER_SHARING, btrue);
+        ITF_VECTOR<i32> controllerTypes;
+        controllerTypes.push_back(PCControlMode_Keyboard);
+        controllerTypes.push_back(PCControlMode_Controller);
+        controllerTypes.push_back(PCControlMode_Hybrid);
+        m_gameOptionManager.registerIntListOption(OPTION_PC_KEYBOARD_CONTROLLER_SHARING, controllerTypes, PCControlMode_Hybrid);
     }
 #endif
 
@@ -11774,7 +11778,7 @@ namespace ITF
         registerAuthAlreadyLinked();
         registerAuthBootCount();
 #if defined(ITF_WINDOWS)
-        registerPCKeyboardControllerSharingOption();
+        registerControllerTypeOption();
 #endif
     }
 
@@ -12049,18 +12053,38 @@ namespace ITF
     }
 
 #if defined(ITF_WINDOWS)
-    bbool Ray_GameManager::IsKeyboardControllerSharingEnabled() const
+    i32 Ray_GameManager::getPCControlMode() const
     {
-        return m_gameOptionManager.getBoolOption(OPTION_PC_KEYBOARD_CONTROLLER_SHARING);
+        return m_gameOptionManager.getIntListOptionValue(OPTION_PC_KEYBOARD_CONTROLLER_SHARING, PCControlMode_Hybrid);
     }
 
-    void Ray_GameManager::setKeyboardControllerSharing(bbool enabled)
+    void Ray_GameManager::setPCControlMode(i32 type)
     {
-        m_gameOptionManager.setBoolOption(OPTION_PC_KEYBOARD_CONTROLLER_SHARING, enabled);
-        LOG("[OptionMenu] input mode Mode: %s", enabled ? "ON" : "OFF");
+        type = std::max(0, std::min(type, static_cast<i32>(PC_CONTROL_MODE_CHOICES) - 1));
+        m_gameOptionManager.setListOptionIndex(OPTION_PC_KEYBOARD_CONTROLLER_SHARING, type);
+        
+        const char* typeName = getPCControlModeDisplayName(type);
+        LOG("[OptionMenu] Controller Type: %s", typeName ? typeName : "Unknown");
+        
         if (INPUT_ADAPTER)
         {
-            INPUT_ADAPTER->SetKeyboardControllerSharing(enabled);
+            bbool sharingEnabled = (type == PCControlMode_Hybrid);
+            INPUT_ADAPTER->SetKeyboardControllerSharing(sharingEnabled);
+        }
+    }
+
+    const char* Ray_GameManager::getPCControlModeDisplayName(i32 index) const
+    {
+        switch (index)
+        {
+        case PCControlMode_Keyboard:
+            return "Keyboard";
+        case PCControlMode_Controller:
+            return "Controller";
+        case PCControlMode_Hybrid:
+            return "Hybrid";
+        default:
+            return "Unknown";
         }
     }
 #endif
@@ -12236,7 +12260,7 @@ namespace ITF
             gm->setMusicVolume(gm->getMusicVolume());
             gm->setSFXVolume(gm->getSFXVolume());
 #if defined(ITF_WINDOWS)
-            gm->setKeyboardControllerSharing(gm->IsKeyboardControllerSharingEnabled());
+            gm->setPCControlMode(gm->getPCControlMode());
 #endif
 
             if (gm->m_onGameSettingLoaded)

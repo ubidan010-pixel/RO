@@ -30,6 +30,16 @@ namespace ITF
         VIBRATION_CHOICES = 2
     };
 
+#if defined(ITF_WINDOWS)
+    enum EPCControlMode
+    {
+        PCControlMode_Keyboard = 0,
+        PCControlMode_Controller = 1,
+        PCControlMode_Hybrid = 2,
+        PC_CONTROL_MODE_CHOICES = 3
+    };
+#endif
+
     static const u32 RESOLUTION_CHOICES = 4;
     static const u32 LANGUAGE_CHOICES = 15;
     static const u32 DIAMOND_HEART_MAX_CONSECUTIVE_HITS = 10;
