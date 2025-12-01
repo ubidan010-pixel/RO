@@ -31,6 +31,10 @@ namespace ITF
 
     bbool TRCManagerAdapter_XBoxSeries::_buildAndAddMessage(ErrorContext errorContext)
     {
+        if (buildGenericMessage(errorContext))
+        {
+            return true;
+        }
         String     message;
         TRCMessage_Base* pTRCMessage = NULL;
 

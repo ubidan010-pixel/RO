@@ -39,6 +39,10 @@ namespace ITF
 
     bbool TRCManagerAdapter_Nintendo::_buildAndAddMessage(ErrorContext errorContext)
     {
+        if (buildGenericMessage(errorContext))
+        {
+            return true;
+        }
         String     message;
         TRCMessage_Base* pTRCMessage = NULL;
 

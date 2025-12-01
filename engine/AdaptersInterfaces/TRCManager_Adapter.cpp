@@ -1,5 +1,9 @@
 #include "precompiled_engine.h"
 
+#ifndef _ITF_LOCALISATIONMANAGER_H_
+#include "localisation/LocalisationManager.h"
+#endif
+
 #ifndef _ITF_SINGLETONS_H_
 #include "engine/singleton/singletons.h"
 #endif //_ITF_SINGLETONS_H_
@@ -75,7 +79,7 @@ namespace ITF
             else if ( _wantedState == disconnected && !isPadConnected)
                 returnedValue = btrue;
         }
-        
+
         return returnedValue;
     }
 
@@ -94,13 +98,13 @@ namespace ITF
 
         return !SAVEGAME_ADAPTER->hasPendingOperation();
     }
-    
+
 	// ----------------------------------------------------------
 	// TRCMessage_Base --------------------------------------
 	// ----------------------------------------------------------
-	void TRCMessage_Base::forceTexts(const String& title, const String& message) 
-	{ 
-		_message	= message; 
+	void TRCMessage_Base::forceTexts(const String& title, const String& message)
+	{
+		_message	= message;
 		_title		= title;
 		_useLocBase = bfalse;
 	}
@@ -131,8 +135,8 @@ namespace ITF
         }
         return btrue;
     }
-	bbool TRCMessage_Base::start() 
-	{ 
+	bbool TRCMessage_Base::start()
+	{
         if ( !checkStartCallback() )
             return bfalse;
 
@@ -173,7 +177,7 @@ namespace ITF
 	bbool TRCMessage_Critical::start()
 	{
 		if(!TRCMessage_Base::start()) return bfalse;
-        
+
 		InputAdapter::PressStatus buttons[JOY_MAX_BUT];
         ITF_MemSet(buttons, 0, sizeof(buttons));
 
@@ -187,7 +191,7 @@ namespace ITF
 	void TRCMessage_Critical::update()
 	{
 
-	
+
 	}
 
     // ----------------------------------------------------------
@@ -205,7 +209,7 @@ namespace ITF
         }
     }
     TRCMessage_NoButtonCallback::~TRCMessage_NoButtonCallback()
-    {        
+    {
         SF_DEL(_pCallback)
     }
 
@@ -248,14 +252,14 @@ namespace ITF
 
 	}
 
-    StringID TRCMessage_OneButton::onMenuPageAction(UIMenu * _menu, const StringID &_action, const StringID &_defaultAction) 
+    StringID TRCMessage_OneButton::onMenuPageAction(UIMenu * _menu, const StringID &_action, const StringID &_defaultAction)
     {
         if( _action != input_actionID_Valid )
         {
             return UI_MENUMANAGER->getMenuPageAction_Nothing();
         }
 
-        if(!_button.isEmpty() && _frameDisplayed != CURRENTFRAME) // Don't kill it at same frame 
+        if(!_button.isEmpty() && _frameDisplayed != CURRENTFRAME) // Don't kill it at same frame
         {
             kill();
             callOnCloseCallback();
@@ -282,19 +286,19 @@ namespace ITF
             const static StringID s_TemplateButtonLeft("template_button_left");
             const static StringID s_TemplateButtonRight("template_button_right");
 
-            UI_MENUMANAGER->changeMenuItemFriendlyByID(_baseName, s_TemplateButtonLeft, _buttonL);            
+            UI_MENUMANAGER->changeMenuItemFriendlyByID(_baseName, s_TemplateButtonLeft, _buttonL);
             UI_MENUMANAGER->changeMenuItemFriendlyByID(_baseName, s_TemplateButtonRight, _buttonR);
 
             UIMenu* menu = UI_MENUMANAGER->getMenu(_baseName);
             if(menu)
                 menu->reinitMenuSelection();
-            
+
             return btrue;
         }
-        return bfalse;        
+        return bfalse;
     }
 
-    StringID TRCMessage_TwoButton::onMenuPageAction(UIMenu * _menu, const StringID &_action, const StringID &_defaultAction) 
+    StringID TRCMessage_TwoButton::onMenuPageAction(UIMenu * _menu, const StringID &_action, const StringID &_defaultAction)
     {
         // Wait a little before taking input
         if( _action != input_actionID_Valid  || (_frameDisplayed+30 >= CURRENTFRAME))
@@ -302,7 +306,7 @@ namespace ITF
             return UI_MENUMANAGER->getMenuPageAction_Nothing();
         }
 
-        StringID currentButtonID ; 
+        StringID currentButtonID ;
         if(_menu)
         {
             UIComponent* pUIComponent = _menu->getUIComponentSelected();
@@ -312,18 +316,18 @@ namespace ITF
         if(currentButtonID == ITF_GET_STRINGID_CRC(TEMPLATE_BUTTON_RIGHT,692652888))
         {
             onRightButtonAction();
-            _answer = TRCManagerAdapter::RightButton;          
+            _answer = TRCManagerAdapter::RightButton;
         }
-            
+
         else if(currentButtonID == ITF_GET_STRINGID_CRC(TEMPLATE_BUTTON_LEFT,1255480269))
         {
             onLeftButtonAction();
-            _answer = TRCManagerAdapter::LeftButton;        
-        }	        
+            _answer = TRCManagerAdapter::LeftButton;
+        }
 
         if(_answer != TRCManagerAdapter::NoButton)
         {
-            callOnCloseCallback(_action);            
+            callOnCloseCallback(_action);
             kill();
         }
 
@@ -341,7 +345,7 @@ namespace ITF
     // ----------------------------------------------------------
     // TRCMessage_ThreeButton -----------------------------------
     // ----------------------------------------------------------
-    StringID TRCMessage_ThreeButton::onMenuPageAction(UIMenu * _menu, const StringID &_action, const StringID &_defaultAction) 
+    StringID TRCMessage_ThreeButton::onMenuPageAction(UIMenu * _menu, const StringID &_action, const StringID &_defaultAction)
     {
         if(_action == _buttonKeyM)
         {
@@ -351,7 +355,7 @@ namespace ITF
         }
 
         return TRCMessage_TwoButton::onMenuPageAction(_menu, _action, _defaultAction);
-    }    
+    }
 
     bbool TRCMessage_ThreeButton::start()
     {
@@ -361,7 +365,7 @@ namespace ITF
             UI_MENUMANAGER->changeMenuItemFriendlyByID(_baseName, s_TemplateButtonMid, _buttonM);
             return btrue;
         }
-        return bfalse;        
+        return bfalse;
     }
     void TRCMessage_ThreeButton::update()
     {
@@ -373,8 +377,8 @@ namespace ITF
     void TRCPadTask::run()
     {
         if (LOADINGSCREEN->isVisible())
-            return ; 
-   
+            return ;
+
         const u32 mainPlayer = GAMEMANAGER->getMainIndexPlayer_Internal();
         if(_frameToWait)
         {
@@ -410,10 +414,10 @@ namespace ITF
             countPlayers = 0;   // We dont have to handle the deco in the menus here
 #endif
         }
-        
+
         u32 connectedPadCount=0;
         for(u32 player = firstIndexPlayer; player < countPlayers; player++)
-        {            
+        {
             Player* pPlayer = GAMEMANAGER->isPlayableScreen() ? GAMEMANAGER->getPlayerFromActiveIndex(player): GAMEMANAGER->getPlayer(player);
             if(!pPlayer)
                 continue;
@@ -426,15 +430,15 @@ namespace ITF
             {
                 connectedPadCount++;
             }
-            else 
+            else
             {
-                if(atLeastOneConnected 
-                    && 
+                if(atLeastOneConnected
+                    &&
                    (player != (countPlayers-1) || connectedPadCount > 0 ) )
                 isPadConnected = btrue; // force to ignore status
             }
-            
-            
+
+
             if (!isPadConnected)
             {
                 // Check the time the pad is disconnected
@@ -445,7 +449,7 @@ namespace ITF
     #endif //ITF_PS3
                 {
                     if ( GAMEMANAGER->isPlayableScreen() && mainPlayer == U32_INVALID )
-                        continue; 
+                        continue;
 
                     _lastDisconnection[padIndex] = 0;
                     _currentPlayerDisconnected = atLeastOneConnected ? U32_INVALID: padIndex;
@@ -454,7 +458,7 @@ namespace ITF
                     TRC_ADAPTER->addMessage(err);
                     startSleeping();
                     break;
-                }           
+                }
             } else if ( _lastDisconnection[padIndex] != 0 )
                 _lastDisconnection[padIndex] = 0;
         }
@@ -466,7 +470,7 @@ namespace ITF
         {
             if (!INPUT_ADAPTER->isPadConnected(_currentPlayerDisconnected))
                 GAMEMANAGER->onPlayerDisconnected(_currentPlayerDisconnected);
-            else 
+            else
                 GAMEMANAGER->onPlayerReconnected(_currentPlayerDisconnected);
 
             _frameToWait = 2;
@@ -504,7 +508,7 @@ namespace ITF
         u32 messagesCount = _messages.size();
         for (u32 i = 0; i < messagesCount; i++)
         {
-            if(_messages[i]) 
+            if(_messages[i])
                 SF_DEL(_messages[i]);
         }
         _messages.clear();
@@ -514,17 +518,17 @@ namespace ITF
         u32 taskCount = _tasks.size();
         for (u32 i = 0; i < taskCount; i++)
         {
-            if(_tasks[i]) 
+            if(_tasks[i])
                 delete _tasks[i];
         }
         _tasks.clear();
 
         File::setOnFileOperationResultCallback(NULL);
 	}
-	
+
     bbool TRCManagerAdapter::existsMessage(ErrorContext errorContext) const
       {
-        if(_currentMessage && 
+        if(_currentMessage &&
             !_currentMessage->getCanBeDupplicated() &&
             _currentMessage->getContexte() == errorContext)
             return btrue;
@@ -547,11 +551,11 @@ namespace ITF
         _pTaskCaller = NULL;
     }
 
-	bbool TRCManagerAdapter::addMessage(ErrorContext errorContext, 
+	bbool TRCManagerAdapter::addMessage(ErrorContext errorContext,
         TRCMessage_PreStartCallback_t preStartCallback, void* pParams,
         TRCMessage_OnClose_t onCloseCallback, void* pParamsOnClose)
 	{
-        if (!_isInitialized || !_enable) return bfalse; 
+        if (!_isInitialized || !_enable) return bfalse;
 
         if(existsMessage(errorContext))
         {
@@ -567,7 +571,7 @@ namespace ITF
                 _messages.back()->setOnCloseCallback(onCloseCallback, pParamsOnClose);
             _newMessageProcess();
         }
-        _clearCustomParams();		
+        _clearCustomParams();
         return btrue;
 	}
 
@@ -581,10 +585,10 @@ namespace ITF
 
     bbool TRCManagerAdapter::removeListener(TRCMessage_OnClose_t onCloseCallback, void* pParamsOnClose /* = NULL */)
     {
-        TRCListener_List::iterator it = _listenersOnClose.begin(); 
+        TRCListener_List::iterator it = _listenersOnClose.begin();
         for(; it != _listenersOnClose.end();  ++it)
         {
-            if ((*it)._function == onCloseCallback && 
+            if ((*it)._function == onCloseCallback &&
                 (*it)._params == pParamsOnClose)
             {
                 _listenersOnClose.erase (it);
@@ -595,7 +599,7 @@ namespace ITF
         return bfalse;
     }
 
-    
+
     bbool TRCManagerAdapter::addTask(TRCTask* pTask)
     {
         if (!_isInitialized) return bfalse;
@@ -611,19 +615,19 @@ namespace ITF
         {
             // Switch messages
             TRCMessage_Base* tmpMessage = _messages.back();
-            _messages.pop_back();            
+            _messages.pop_back();
 
             if(!_currentMessage->isWaiting())
             {
                 _hideCurrentMessage();
                 _currentMessage->forceWaiting();
-            }            
+            }
             _messages.push_back(_currentMessage);
 
             _currentMessage = tmpMessage;
-        }        
+        }
 		else if(_messages.size()>0 && _currentMessage==NULL)
-		{		
+		{
 			_currentMessage = _messages.back();
 			_messages.pop_back();
 		}
@@ -632,10 +636,10 @@ namespace ITF
     void TRCManagerAdapter::_hideCurrentMessage()
     {
         UI_MENUMANAGER->showMenuPage(
-            _currentMessage->getDisplayPriority() == TRCMessage_Base::High ? 
+            _currentMessage->getDisplayPriority() == TRCMessage_Base::High ?
             GAMEINTERFACE->getCriticalExitMenuPriority() : GAMEINTERFACE->getTRCMenuPriority(), _currentMessage->name(), bfalse);
     }
-	
+
 	void TRCManagerAdapter::_hideAndKillCurrentMessage()
 	{
         // resume the game if needed
@@ -650,16 +654,16 @@ namespace ITF
 
         _lastErrorContext = _currentMessage->getContexte();
 
-        SF_DEL(_currentMessage);	    
+        SF_DEL(_currentMessage);
 	    _currentMessage = NULL;
 
         _isDisplayingCorruptedSaveMsg = bfalse;
 	}
-	
+
 	void TRCManagerAdapter::_showCurrentMessage()
-	{	        
+	{
 		if (_currentMessage->start())
-        {		
+        {
 		    if (GAMEMANAGER->canPause() && !GAMEMANAGER->isInPause())
             {
                 GAMEMANAGER->enterPause(bfalse);
@@ -672,10 +676,10 @@ namespace ITF
                 _openUISystemMessage(static_cast<TRCMessage_Critical*>(_currentMessage));
             } else
             {
-                UI_MENUMANAGER->showMenuPage(_currentMessage->getDisplayPriority() == TRCMessage_Base::High ? 
+                UI_MENUMANAGER->showMenuPage(_currentMessage->getDisplayPriority() == TRCMessage_Base::High ?
                     GAMEINTERFACE->getCriticalExitMenuPriority() : GAMEINTERFACE->getTRCMenuPriority(), _currentMessage->name(), btrue, _currentMessage);
-                
-                // Set menu options 
+
+                // Set menu options
                 if(_currentMessage->getAllowedPlayer()!=U32_INVALID)
                 {
                     UI_MENUMANAGER->setAllowedPadIndexOnly(_currentMessage->name(), _currentMessage->getAllowedPlayer());
@@ -689,19 +693,19 @@ namespace ITF
             }
         }
 	}
-	
+
 	bbool TRCManagerAdapter::_canDisplayMessage(bbool forcePauseMenu) const
 	{
         bbool canDisplay = bfalse;
-        if (_currentMessage && _currentMessage->getSystemPriority() == TRCMessage_Base::HighPriority) 
+        if (_currentMessage && _currentMessage->getSystemPriority() == TRCMessage_Base::HighPriority)
             canDisplay = btrue;
         else
-		    canDisplay = ( !LOADINGSCREEN->isVisible() && GAMEMANAGER->canDisplayTRCMessages() && !GAMEMANAGER->isNextOperationValid() && 
+		    canDisplay = ( !LOADINGSCREEN->isVisible() && GAMEMANAGER->canDisplayTRCMessages() && !GAMEMANAGER->isNextOperationValid() &&
             ( forcePauseMenu || !GAMEMANAGER->isInPause() ));
 
         return canDisplay;
 	}
-	
+
     void TRCManagerAdapter::_update_tasks()
     {
         u32 tasksCount = _tasks.size();
@@ -728,11 +732,11 @@ namespace ITF
         		}
         	} else if(_currentMessage->isAlive())
         	{
-	            _currentMessage->update();	
-                
-                if (! UI_MENUMANAGER->isDisplayingPriority ( _currentMessage->getDisplayPriority() == TRCMessage_Base::High ? 
+	            _currentMessage->update();
+
+                if (! UI_MENUMANAGER->isDisplayingPriority ( _currentMessage->getDisplayPriority() == TRCMessage_Base::High ?
                     GAMEINTERFACE->getCriticalExitMenuPriority() : GAMEINTERFACE->getTRCMenuPriority() ) )
-                {                  
+                {
                     LOG_TRC("Kill message ( not being displayed) ");
                     _currentMessage->kill();
                 }
@@ -757,7 +761,7 @@ namespace ITF
 
 	void TRCManagerAdapter::update()
 	{
-        if (!_isInitialized) return; 
+        if (!_isInitialized) return;
 
         _update_messages();
         _update_tasks();
@@ -876,7 +880,7 @@ namespace ITF
 
     bbool TRCManagerAdapter::isPadTaskEnable() const
     {
-        // In order to handle the "notrc" issue .. 
+        // In order to handle the "notrc" issue ..
         if (!_isInitialized)
             return btrue;
 
@@ -892,12 +896,42 @@ namespace ITF
         ITF_ASSERT_MSG(0, "pad task not found");
         return bfalse;
     }
+   bbool TRCManagerAdapter::buildGenericMessage(ErrorContext errorContext)
+    {
+        String     message;
+        TRCMessage_Base* pTRCMessage = NULL;;
+        switch(errorContext)
+        {
+            case TRCManagerAdapter::Language_Warn:
+                {
+                    pTRCMessage = new TRCMessage_OneButton(errorContext);
+                    pTRCMessage->SetForceOverPauseMenu();
+                    LocalisationId messageId,buttonId;
+                    messageId.value = 6984; // language warning text
+                    buttonId.value =4142;
+                    message = LOCALISATIONMANAGER->getText(messageId);
+                    ((TRCMessage_OneButton*)pTRCMessage)->setButton(LOCALISATIONMANAGER->getText(buttonId), input_actionID_Back);
+                    break;
+                }
+            default:
+                break;
+        }
+        if(pTRCMessage)
+        {
+            pTRCMessage->forceTexts("", message);
+            if(_pTaskCaller)
+                pTRCMessage->SetTaskCaller(_pTaskCaller);
+            _messages.push_back(pTRCMessage);
+            return btrue;
+        }
+        return false;
+    }
 
 #ifndef ITF_FINAL
     void TRCTask_DebugIO::run()
     {
 #ifdef USE_DEBUG_TRCTASK
-        InputAdapter::PressStatus	buttons[JOY_MAX_BUT];	
+        InputAdapter::PressStatus	buttons[JOY_MAX_BUT];
         for (u32 _pad = 0; _pad < JOY_MAX_COUNT; _pad++)
         {
             INPUT_ADAPTER->getGamePadButtons(InputAdapter::EnvironmentAll, _pad, buttons, JOY_MAX_BUT);
@@ -908,7 +942,7 @@ namespace ITF
                     TRC_ADAPTER->debugSetIOError(TRCManagerAdapter::IOErr_DiscNotFound);
                 else if(buttons[m_joyButton_DPadR] == InputAdapter::JustPressed)
                     TRC_ADAPTER->debugSetIOError(TRCManagerAdapter::IOErr_FileNotFound);
-                //else if(buttons[m_joyButton_DPadU] == InputAdapter::JustPressed)   
+                //else if(buttons[m_joyButton_DPadU] == InputAdapter::JustPressed)
                 //else if(buttons[m_joyButton_DPadD] == InputAdapter::JustPressed)
             }
         }
@@ -918,7 +952,7 @@ namespace ITF
     void TRCTask_DebugExit::run()
     {
 #ifdef USE_DEBUG_TRCTASK
-        InputAdapter::PressStatus	buttons[JOY_MAX_BUT];	
+        InputAdapter::PressStatus	buttons[JOY_MAX_BUT];
         for (u32 _pad = 0; _pad < JOY_MAX_COUNT; _pad++)
         {
             INPUT_ADAPTER->getGamePadButtons(InputAdapter::EnvironmentAll, _pad, buttons, JOY_MAX_BUT);

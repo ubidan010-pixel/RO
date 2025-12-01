@@ -13,7 +13,7 @@
 namespace ITF
 {
     static String buildText(u32 lineID, EContextIconType iconType = ContextIconType_Invalid)
-    {        
+    {
         static String workingStr;
         LocalisationId id;
 
@@ -40,6 +40,10 @@ namespace ITF
 
     bbool TRCManagerAdapter_PS5::_buildAndAddMessage(ErrorContext errorContext)
     {
+        if (buildGenericMessage(errorContext))
+        {
+            return true;
+        }
         String     message;
         TRCMessage_Base* pTRCMessage = NULL;
 

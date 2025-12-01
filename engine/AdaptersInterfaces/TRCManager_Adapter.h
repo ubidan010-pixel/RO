@@ -44,7 +44,7 @@ namespace ITF
     // If you want tot generate a message, just call TRCAdapter::addMessage(context, callback...)
     // The adapter will search for the best message to display
     // There is helpers too, like "checkForSpaceDisk", a call which is able to add a message
-    
+
 
 #define TRCMESSAGE_ERROR_NO			0
 #define TRCMESSAGE_ERROR_INVALID	U32_INVALID
@@ -52,7 +52,7 @@ namespace ITF
 #define TRC_PAD_TIMEOUT_PS3         2.70
 
     // ----------------------------------------------------------------------------------
-    // There 
+    // There
     class TRCMessage_Callback_Template
     {
     public:
@@ -82,7 +82,7 @@ namespace ITF
             connected,
             disconnected
         };
-        
+
         TRCMessage_Callback_WaitforPadState(PadState state, u32 pad): _wantedState(state), _pad(pad) {}
         virtual ~TRCMessage_Callback_WaitforPadState(){}
         bbool check();
@@ -94,7 +94,7 @@ namespace ITF
     class TRCMessage_Callback_WaitSaveManager: public TRCMessage_Callback_Template
     {
     public:
-        TRCMessage_Callback_WaitSaveManager(f64 _MinTimeToWait): 
+        TRCMessage_Callback_WaitSaveManager(f64 _MinTimeToWait):
           m_minTimeToWait(_MinTimeToWait), m_timer(0.0) {}
         virtual ~TRCMessage_Callback_WaitSaveManager(){}
         bbool check();
@@ -117,7 +117,7 @@ namespace ITF
         virtual void    run()=0;
         virtual void    onWakeUp(){}
         void   wakeup() { _isSleeping = bfalse; _isDisable = bfalse; onWakeUp(); }
-        
+
         bbool    isAlive() const { return _isAlive; }
         bbool    isAsync() const { return _isAsync; }
         bbool    isSleeping() const { return _isSleeping; }
@@ -132,7 +132,7 @@ namespace ITF
         TaskName getName() const { return _name; }
     protected:
         void    startSleeping() { _isSleeping = btrue; }
-    
+
         bbool _isAsync;
         bbool _isAlive;
         bbool _isSleeping;
@@ -163,7 +163,7 @@ namespace ITF
     // ----------------------------------------------------------------------------------
     class TRCHelper
     {
-    public:        
+    public:
         virtual ~TRCHelper(){}
 
         virtual void buildPlayerField(const String8& _menuName, u32 _playerIndex, bbool _asEmpty)=0;
@@ -176,7 +176,7 @@ namespace ITF
     class TRCMessage_Critical;
     typedef bbool (*TRCMessage_PreStartCallback_t)(TRCMessage_Base* pMessage, void* pParams);
     typedef void (*TRCMessage_OnClose_t)(const StringID & answer, TRCMessage_Base* pMessage, void* pParams);
-    
+
     class TRCManagerAdapter: public TemplateSingleton<TRCManagerAdapter>
 	{
     public:
@@ -215,7 +215,7 @@ namespace ITF
             Sav_CheckSpace,
             Sav_CheckSpaceBoot,
             Sav_NoEnoughSpaceBoot,
-            Sav_NoEnoughSpace, 
+            Sav_NoEnoughSpace,
             Sav_NoEnoughInode,
             Sav_OperationRunning,
             Sav_ReadFiles,
@@ -226,7 +226,7 @@ namespace ITF
             Sav_SaveAskForOverwrite,
             Sav_AskForDelete,
             Sav_UserNotSignedIn,
-            Sav_SaveAndExit,            
+            Sav_SaveAndExit,
             Sav_DeviceNoMoreAvailableForSave,
             Sav_DeviceNoMoreAvailableForLoad,
             Sav_FileNotAvailable,
@@ -235,7 +235,7 @@ namespace ITF
             Sav_CorruptedFile,
             Sav_NotOwnerOfTheSave,
             Sav_WarningBoot,
-            
+
             IO_enum			= 700,
             IO_UnexpectedError,
             IO_Corrupted,
@@ -251,6 +251,11 @@ namespace ITF
             Rwd_enum        = 800,
             Rwd_CheckSpaceBoot,
             Rwd_NoEnoughSpace,
+
+            //Language
+            Language_enum   = 900,
+            Language_Warn,
+
 
             // Online
         };
@@ -288,14 +293,14 @@ namespace ITF
 
 		void _hideAndKillCurrentMessage();
         void _hideCurrentMessage();
-        virtual bbool _buildAndAddMessage(ErrorContext errorContext){ITF_ASSERT(0);return false;}               
+        virtual bbool _buildAndAddMessage(ErrorContext errorContext){ITF_ASSERT(0);return false;}
 
         u32 _u32_customParam;
         String _string_customParam, _string_customParam2;
         TRCTask* _pTaskCaller;
         u32 _ResetCounter, _DisplayContentCounter;
         ErrorContext _lastErrorContext;
-        bbool _forcePause, _hasPausedTheGame; 
+        bbool _forcePause, _hasPausedTheGame;
         bbool _warningBootMessageDisplayed;
         IOError _ioError;
         ExitValue _debugExitValue, _currentExitValue;
@@ -304,7 +309,7 @@ namespace ITF
         void _update_tasks();
         void _update_messages();
         void _clearCustomParams();
-        
+
         typedef ITF_VECTOR<TRCListener> TRCListener_List;
         TRCListener_List _listenersOnClose;
         u32 _freeSpaceDiskKB, _neededSpaceDiskKB;
@@ -328,7 +333,7 @@ namespace ITF
         virtual void onFirstTRCFrame() {}
 
         // Check if a message is already in the queue
-        // This function is called in addMessage() 
+        // This function is called in addMessage()
         bbool    existsMessage(ErrorContext errorContext) const;
 
         // Add a new message to display, the TRCManagerAdapter will decides if we have to display the message
@@ -338,20 +343,20 @@ namespace ITF
         // @param: parameter of the pre-start callback
         // @param: A onClose callback caleed just after closed the message
         // @param: parameter of the onclose callback
-        bbool    addMessage(ErrorContext errorContext, 
+        bbool    addMessage(ErrorContext errorContext,
             TRCMessage_PreStartCallback_t preStartCallback = NULL, void* pParams = NULL,
             TRCMessage_OnClose_t onCloseCallback = NULL, void* pParamsOnClose = NULL);
-        
+
         // Kill the current message displayed
-        // Warning: use this method only if you have to... 
+        // Warning: use this method only if you have to...
         void    killCurrentMessage();
 
         // Add/remove a general listener for the "onclose" callback
-        // Warning: if you add the same function on onclose callback with "addMessage", and with "addListener", 
+        // Warning: if you add the same function on onclose callback with "addMessage", and with "addListener",
         // it will be called twice.
         void    addListener(TRCMessage_OnClose_t onCloseCallback, void* pParamsOnClose = NULL);
         bbool   removeListener(TRCMessage_OnClose_t onCloseCallback, void* pParamsOnClose = NULL);
-        
+
         // You have the possibility to add some custom parameter with context who needs it.
         // See context doc for the list
         void    setCustomParam_u32(u32 param)       { _u32_customParam = param; }
@@ -361,33 +366,34 @@ namespace ITF
         // Add a new task (can be a platform specific one), each task is permanent until it is killed
         // A task is NOT a thread, its a "frame check", called by the TRCAdapater update (see bellow)
         bbool    addTask(TRCTask* pTask);
-        
+
         // Allow the user to add a listener of the message kill, this listener is like the "onclose" callback,
         // but with a "TRCTask" and its "wakeup" callback.
-        void    setTaskCaller(TRCTask* pTaskCaller) { _pTaskCaller = pTaskCaller; }        
+        void    setTaskCaller(TRCTask* pTaskCaller) { _pTaskCaller = pTaskCaller; }
 
         // To Enable PAD check
         void    enablePadTask();
         bbool   isPadTaskEnable() const;
+        bbool buildGenericMessage(ErrorContext errorContext);
 
-        // Main process 
-        // All these functions are redefined in the children. 
+        // Main process
+        // All these functions are redefined in the children.
         // Call update each frame to in order to update the Tasks and the messages
 		virtual void	update();
 		virtual void	init();
         virtual void    term()=0;
 
-        // Disable/Enable for messages 
+        // Disable/Enable for messages
         ITF_INLINE  void disableMessagesListener() { _enable = bfalse; }
         ITF_INLINE  void enableMessagesListener() { _enable = btrue; }
 
-        // Reset and Power control 
+        // Reset and Power control
         // Several functions can call the enable/disable function, a counter will be incremented
-        // Be aware that a "disable" needs an "enable". 
+        // Be aware that a "disable" needs an "enable".
         virtual void enableRESETandPOWER()  { ITF_ASSERT(_ResetCounter > 0); _ResetCounter --; }
         virtual void disableRESETandPOWER() { _ResetCounter ++; }
 
-        // Returns if we can display game content 
+        // Returns if we can display game content
         ITF_INLINE bbool canDrawContent() const { return _DisplayContentCounter == 0; }
         ITF_INLINE void  setCanDrawContent(bbool enableDraw) { if(enableDraw) _DisplayContentCounter --; else _DisplayContentCounter ++; }
 
@@ -395,13 +401,13 @@ namespace ITF
         ITF_INLINE bbool isAFatalErrorRunning() const { return _fatalError; }
         ITF_INLINE void setFatalErrorStatus(bbool fatalErrorStatus) { _fatalError =fatalErrorStatus; }
 
-        // Returns the last error code set 
+        // Returns the last error code set
         // The error code is not formated, see getlastErrorContext() to get the last context
         i32 getcurrentErrorCode() const;
 
         // TO avoid displaying the warning boot message several times
         ITF_INLINE bbool isWarningBootMessageDisplayed() const { return _warningBootMessageDisplayed; }
-        ITF_INLINE void setWarningBootMessageIsDisplayed() { _warningBootMessageDisplayed = btrue; }     
+        ITF_INLINE void setWarningBootMessageIsDisplayed() { _warningBootMessageDisplayed = btrue; }
 
         // Returns the last error context set
         // If you want to reset the error (which is stored here until a new error is displayed)
@@ -410,7 +416,7 @@ namespace ITF
 
         // Allow the user to reset the last context after used it
         ITF_INLINE void  resetLastErrorContext() { _lastErrorContext = GenericContexte; }
-        
+
         // Check we are displaying an error (a message can be alone in the list, and not being displayed)
         bbool isDisplayingError() const;
 
@@ -422,7 +428,7 @@ namespace ITF
         TRCHelper* getTRCHelper() { return _trcHelper; }
 
         // ----------------------------------------------------------------------------
-        // Configuration: set/get needed parameters  
+        // Configuration: set/get needed parameters
         // -> Warning: they add a message if they need it
         // ----------------------------------------------------------------------------
         ITF_INLINE void setFreeSpaceDiskKB(u32 kbytes) { _freeSpaceDiskKB = kbytes; }
@@ -437,10 +443,10 @@ namespace ITF
         // -> Warning: they can add a message if they need it
         // ----------------------------------------------------------------------------
 
-        // Check the space disk, and add a message following the errorContext received 
+        // Check the space disk, and add a message following the errorContext received
         // Need a setFreeSpaceDiskKB() before using them
-        virtual bbool checkSpaceDisk(ErrorContext errorContext, u32 fsblock, u32 inode){return bfalse;}  // WII 
-        virtual bbool checkSpaceDisk(ErrorContext errorContext, u32 bytes){return bfalse;}               // Other                
+        virtual bbool checkSpaceDisk(ErrorContext errorContext, u32 fsblock, u32 inode){return bfalse;}  // WII
+        virtual bbool checkSpaceDisk(ErrorContext errorContext, u32 bytes){return bfalse;}               // Other
 
         // Return if there is a handled error during a HDD operation
         virtual bbool checkIOError(ErrorContext errorContext, i32& _errorCode){return btrue;}
@@ -462,11 +468,11 @@ namespace ITF
         ITF_INLINE bbool isASaveError(const ErrorContext e) const { return (e >=Sav_enum && e <= Sav_enum+RangeContexte); }
 		ITF_INLINE bbool isAPadError(const ErrorContext e) const { return (e >=Pad_enum && e <= Pad_enum+RangeContexte); }
         ITF_INLINE bbool isAnIOError(const ErrorContext e) const { return (e >=IO_enum && e <= IO_enum+RangeContexte); }
-		
-        // Listeners helpers 
+
+        // Listeners helpers
         ITF_INLINE u32 getListenersCount() const { return _listenersOnClose.size(); }
         ITF_INLINE TRCListener* getListener(u32 index) { if(getListenersCount()>index) return & _listenersOnClose[index]; return NULL; }
-        
+
         // Save notification status
         virtual bbool  isSaveNotificationEnable() const { return btrue; }
 
@@ -488,18 +494,18 @@ namespace ITF
     public:
     	enum SystemPriority
     	{
-    		HighPriority = 0,		// Disable RESET and POWER 
-    		NormalPriority    		
+    		HighPriority = 0,		// Disable RESET and POWER
+    		NormalPriority
     	};
 
         // If a hight priority is added, it will be displayed even if a message is active.
         enum DisplayPriority
-        {   
+        {
             Low = 0,
             Normal,
             High
         };
-    	
+
     protected:
         String	_title, _message;
         bbool	_useLocBase;
@@ -527,9 +533,9 @@ namespace ITF
 
     public:
 
-        TRCMessage_Base(String8 baseName = "", 
+        TRCMessage_Base(String8 baseName = "",
             TRCManagerAdapter::ErrorContext errorContext = TRCManagerAdapter::GenericContexte, i32 errorCode = TRCMESSAGE_ERROR_NO)
-            : _ErrorContext(errorContext), _errorCode(errorCode), _baseName(baseName), _useLocBase(true), _pTaskCaller(NULL), _isWaiting(true), 
+            : _ErrorContext(errorContext), _errorCode(errorCode), _baseName(baseName), _useLocBase(true), _pTaskCaller(NULL), _isWaiting(true),
             _preStartCallback(NULL), _pParamsPreStart(NULL),
             _onCloseCallback(NULL), _pParamsOnClose(NULL), _forceOverPauseMenu(bfalse),
             _isAlive(btrue), _systemPriority(NormalPriority), _activePlayer(U32_INVALID), _allowedPlayer(U32_INVALID),
@@ -548,7 +554,7 @@ namespace ITF
 
         ITF_INLINE void changeDisplayPriority(DisplayPriority priority) { _displayPriority = priority; }
         ITF_INLINE DisplayPriority getDisplayPriority() const { return _displayPriority; }
-        
+
         ITF_INLINE i32 error() const { return _errorCode; }
         ITF_INLINE const String8&	name() const { return _baseName; }
         ITF_INLINE const String&  message() const { return _message; }
@@ -578,7 +584,7 @@ namespace ITF
         virtual bbool	start();
 
         ///////////////////////////////////////////////////////////////////////////////////////////
-		bbool       isUsingUIMessageSystem() const { return _useUIMessageSystem; }		
+		bbool       isUsingUIMessageSystem() const { return _useUIMessageSystem; }
         SystemPriority getSystemPriority() const { return _systemPriority; }
 
         void SetTaskCaller(TRCTask* pTaskCaller) { _pTaskCaller = pTaskCaller; }
@@ -675,7 +681,7 @@ namespace ITF
 
         virtual void	update();
         virtual bbool	start();
-        
+
         void    setButton(const String& button, u32 buttonKey ) { _button = button; _buttonKey = buttonKey; }
         virtual void onMenuItemAction (UIComponent* _UIComponent);
         virtual StringID onMenuPageAction(UIMenu * /*_menu*/, const StringID & /*_key*/, const StringID &_defaultAction);
@@ -684,12 +690,12 @@ namespace ITF
         u32 _buttonKey;
     };
 
-    class TRCMessage_OneButtonWithCB: public TRCMessage_OneButton 
+    class TRCMessage_OneButtonWithCB: public TRCMessage_OneButton
     {
     public:
         TRCMessage_OneButtonWithCB(
-            TRCMessage_Callback_Template* pCallback, 
-            TRCManagerAdapter::ErrorContext errorContext = TRCManagerAdapter::GenericContexte, 
+            TRCMessage_Callback_Template* pCallback,
+            TRCManagerAdapter::ErrorContext errorContext = TRCManagerAdapter::GenericContexte,
             i32 errorCode = TRCMESSAGE_ERROR_NO) :
                     _pCallback(pCallback), TRCMessage_OneButton(errorContext, errorCode){}
         virtual ~TRCMessage_OneButtonWithCB(){ SF_DEL(_pCallback); }
@@ -705,7 +711,7 @@ namespace ITF
                     callOnCloseCallback();
                 }
             }
-            
+
         }
         virtual bbool	start()
         {
@@ -723,7 +729,7 @@ namespace ITF
     {
     public:
         TRCMessage_TwoButton(TRCManagerAdapter::ErrorContext errorContext = TRCManagerAdapter::GenericContexte, i32 errorCode = TRCMESSAGE_ERROR_NO)
-            : TRCMessage_Base("TRCMessage_TwoButton", errorContext, errorCode), 
+            : TRCMessage_Base("TRCMessage_TwoButton", errorContext, errorCode),
             _buttonKeyL(s_buttonKeyLeft), _buttonKeyR(s_buttonKeyRight), _answer(TRCManagerAdapter::NoButton)
         {}
         virtual ~TRCMessage_TwoButton(){}
@@ -735,7 +741,7 @@ namespace ITF
 
         virtual void onMenuItemAction (UIComponent* _UIComponent);
         virtual StringID onMenuPageAction(UIMenu * /*_menu*/, const StringID &_action /*_key*/, const StringID &_defaultAction);
-        
+
         virtual void onLeftButtonAction() {  }
         virtual void onRightButtonAction(){  }
     protected:
@@ -743,7 +749,7 @@ namespace ITF
         StringID _buttonKeyL, _buttonKeyR;
         TRCManagerAdapter::Answer   _answer;
     };
-    
+
     class TRCMessage_ThreeButton : public TRCMessage_TwoButton
     {
     public:
@@ -758,7 +764,7 @@ namespace ITF
         bbool	start();
 
         void    setMidButton(const String8& _button, const StringID& _buttonKey ) { _buttonM = _button; _buttonKeyM = _buttonKey; }
-     
+
         virtual StringID onMenuPageAction(UIMenu * /*_menu*/, const StringID &_action /*_key*/, const StringID &_defaultAction);
 
         virtual void onMidButtonAction() {  }
@@ -766,9 +772,9 @@ namespace ITF
         String8 _buttonM;
         StringID _buttonKeyM;
     };
-    
+
     // ---------------------------------------------------
-    // TRCTools, 
+    // TRCTools,
     // Few utils tools used by TRC
     // ---------------------------------------------------
     class TRCTools

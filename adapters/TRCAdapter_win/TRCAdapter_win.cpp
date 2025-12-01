@@ -45,6 +45,10 @@ namespace ITF
 
     bbool TRCManagerAdapter_win::_buildAndAddMessage(ErrorContext	errorContext)
     {
+        if (buildGenericMessage(errorContext))
+        {
+            return true;
+        }
         String     message;
         TRCMessage_Base* pTRCMessage = NULL;
 
