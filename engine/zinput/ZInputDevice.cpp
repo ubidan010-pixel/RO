@@ -154,16 +154,17 @@ namespace ITF
             const SInputInfo& newInfo = newDeviceInfo.m_inputInfo[i];
 
             info.m_dirty = false;
+            info.m_type = newInfo.m_type;
 
-            if ( info.m_type == SInputInfo::INPUTTYPE_AXIS )
+            if ( newInfo.m_type == SInputInfo::INPUTTYPE_AXIS )
             {
                 InputUtils::ProcessAxis(info,newInfo);
             }
-            else if ( info.m_type == SInputInfo::INPUTTYPE_BUTTON )
+            else if ( newInfo.m_type == SInputInfo::INPUTTYPE_BUTTON )
             {
                 InputUtils::ProcessButton(info,newInfo);
             }
-            else if ( info.m_type == SInputInfo::INPUTTYPE_ACCELEROMETER )
+            else if ( newInfo.m_type == SInputInfo::INPUTTYPE_ACCELEROMETER )
             {
                 InputUtils::ProcessAccelerometer(info, newInfo);
             }

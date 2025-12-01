@@ -123,6 +123,12 @@ namespace ITF
 
     void ZPad_Base::UpdateDeviceInfo(SDeviceInfo& deviceInfo)
     {
+        u32 count = Min((u32)m_deviceInfo.m_inputInfo.size(), (u32)deviceInfo.m_inputInfo.size());
+        for (u32 i = 0; i < count; ++i)
+        {
+            deviceInfo.m_inputInfo[i].m_type = m_deviceInfo.m_inputInfo[i].m_type;
+        }
+
         InputAdapter::PressStatus buttons[JOY_MAX_BUT];
         INPUT_ADAPTER->getGamePadButtons(InputAdapter::EnvironmentAll, m_id, buttons, JOY_MAX_BUT);
         f32 axes[JOY_MAX_AXES];
