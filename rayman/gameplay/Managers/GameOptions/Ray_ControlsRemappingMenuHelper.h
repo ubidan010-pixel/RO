@@ -28,6 +28,7 @@ namespace ITF
         virtual ~Ray_ControlsRemappingMenuHelper();
         void activateForControlsRemappingMenu(MenuItemActionListener* mainListener);
         void onMenuItemAction(UIComponent* _UIComponent) override;
+        ObjectRef getNavigationOverrideTarget(UIComponent* current, f32 joyX, f32 joyY) override;
         static Ray_ControlsRemappingMenuHelper* getActiveHelper();
         void updateRemappingMode(f32 deltaTime);
 #if defined(ITF_WINDOWS)
@@ -36,6 +37,15 @@ namespace ITF
 #endif
 
     private:
+        enum ENavigationDirection
+        {
+            Navigation_Up,
+            Navigation_Down,
+            Navigation_Left,
+            Navigation_Right
+        };
+        UIComponent* getNavigationTarget(UIComponent* current, ENavigationDirection direction) const;
+
         // Button handlers
         bbool handleAccept(const StringID& id);
         bbool handleCancel(const StringID& id);

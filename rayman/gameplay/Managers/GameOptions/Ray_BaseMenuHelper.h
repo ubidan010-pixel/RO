@@ -21,6 +21,7 @@ namespace ITF
         void onMenuItemAction(UIComponent* _UIComponent) override;
         StringID onMenuPageAction(UIMenu* _menu, const StringID& _action, const StringID& _defaultAction) override;
         void UpdateMenuOnSelectionChange(UIComponent* uiComponent, bbool isSelected) override;
+        virtual ObjectRef getNavigationOverrideTarget(UIComponent* current, f32 joyX, f32 joyY);
 
     protected:
         void showContextIcons();

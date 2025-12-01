@@ -581,6 +581,78 @@ namespace ITF
         }
     }
 
+    UIComponent* Ray_ControlsRemappingMenuHelper::getNavigationTarget(UIComponent* current, ENavigationDirection direction) const
+    {
+        if (!current || !m_menu)
+            return nullptr;
+
+        // For now, return nullptr to use default navigation
+        // Can be extended later with custom navigation table like Ray_OptionMenuHelper
+        return nullptr;
+    }
+
+    ObjectRef Ray_ControlsRemappingMenuHelper::getNavigationOverrideTarget(UIComponent* current, f32 joyX, f32 joyY)
+    {
+        if (!m_isActive || !m_menu || !current)
+            return ObjectRef::InvalidRef;
+
+#if defined(ITF_WINDOWS)
+        const bbool editing = m_isEditingControllerType;
+
+        const f32 absJoyX = f32_Abs(joyX);
+        const f32 absJoyY = f32_Abs(joyY);
+        if (absJoyX < MTH_EPSILON && absJoyY < MTH_EPSILON)
+            return ObjectRef::InvalidRef;
+
+        ENavigationDirection direction;
+        const bbool preferHorizontal = absJoyX >= absJoyY;
+        if (preferHorizontal)
+        {
+            if (absJoyX < MTH_EPSILON)
+                return ObjectRef::InvalidRef;
+
+            // When editing, block horizontal navigation (handled by processEditingInput for value changes)
+            if (editing)
+                return ObjectRef::InvalidRef;
+
+            direction = (joyX > 0.0f) ? Navigation_Right : Navigation_Left;
+        }
+        else
+        {
+            if (absJoyY < MTH_EPSILON)
+                return ObjectRef::InvalidRef;
+            direction = (joyY > 0.0f) ? Navigation_Down : Navigation_Up;
+        }
+
+        // When editing and navigating up/down, exit edit mode first
+        UIComponent* navigationStart = current;
+        if (editing)
+        {
+            if (m_editingControllerTypeComponent)
+            {
+                navigationStart = m_editingControllerTypeComponent;
+            }
+
+            exitControllerTypeEditMode();
+        }
+
+        if (!navigationStart)
+            navigationStart = current;
+
+        // Try custom navigation first
+        UIComponent* target = getNavigationTarget(navigationStart, direction);
+        if (target && target != navigationStart && target->getActive() && target->getCanBeSelected())
+        {
+            return target->getUIref();
+        }
+
+        // Return invalid to let UIMenuManager handle default navigation
+        return ObjectRef::InvalidRef;
+#else
+        return ObjectRef::InvalidRef;
+#endif
+    }
+
 #if defined(ITF_WINDOWS)
 #define CONTROLLER_OPTIONS_ID ITF_GET_STRINGID_CRC(controller_options,3547548201)
 
@@ -629,7 +701,7 @@ namespace ITF
         m_controllerTypeFirstPressed = btrue;
         m_previousSelectionStates.clear();
 
-        // Disable all other components to block navigation
+        // Disable all other components to block left/right D-pad navigation
         if (m_menu)
         {
             const ObjectRefList& componentsList = m_menu->getUIComponentsList();
@@ -675,6 +747,7 @@ namespace ITF
             m_editingControllerTypeComponent->setEditingMode(bfalse);
         }
 
+        // Restore all component selectable states
         for (std::vector<std::pair<UIComponent*, bbool>>::iterator it = m_previousSelectionStates.begin();
              it != m_previousSelectionStates.end(); ++it)
         {
@@ -825,11 +898,6 @@ namespace ITF
             return btrue;
         }
 
-        return bfalse;
-    }
-#else
-    bbool Ray_ControlsRemappingMenuHelper::onMenuItemOtherAction(UIComponent* /*component*/, const StringID& /*action*/)
-    {
         return bfalse;
     }
 #endif

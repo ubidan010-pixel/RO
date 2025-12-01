@@ -39,6 +39,11 @@ namespace ITF
     {
     }
 
+    ObjectRef Ray_BaseMenuHelper::getNavigationOverrideTarget(UIComponent* current, f32 joyX, f32 joyY)
+    {
+        return ObjectRef::InvalidRef;
+    }
+
     void Ray_BaseMenuHelper::showContextIcons()
     {
     }

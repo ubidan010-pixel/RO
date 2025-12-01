@@ -931,6 +931,35 @@ void UIMenuManager::applySelectionChange(UIMenu* menu, UIComponent* oldSel, UICo
                     if (handleMenuStartHorizontalNavigation(pMenu, pUIComponentSelected, joyX, joyY))
                         return;
 
+                    // Check Ray_ControlsRemappingMenuHelper first
+                    Ray_ControlsRemappingMenuHelper* controlsRemappingHelper = Ray_ControlsRemappingMenuHelper::getActiveHelper();
+                    if (controlsRemappingHelper)
+                    {
+                        ObjectRef overrideRef = controlsRemappingHelper->getNavigationOverrideTarget(pUIComponentSelected, joyX, joyY);
+                        if (overrideRef.isValid())
+                        {
+                            ObjectRef refComponentSelected = pUIComponentSelected->getUIref();
+                            if (overrideRef != refComponentSelected)
+                            {
+                                UIComponent* newSel = getUIComponent(overrideRef);
+                                if (newSel)
+                                {
+                                    Actor* overrideActor = newSel->GetActor();
+                                    if (overrideActor && overrideActor->isEnabled())
+                                    {
+                                        applySelectionChange(pMenu, pUIComponentSelected, newSel);
+                                        return;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                return;
+                            }
+                        }
+                    }
+
+                    // Check Ray_OptionMenuHelper
                     Ray_OptionMenuHelper* optionHelper = Ray_OptionMenuHelper::getActiveHelper();
                     if (optionHelper)
                     {
