@@ -11874,7 +11874,7 @@ namespace ITF
 
     void Ray_GameManager::setResolutionIndex(i32 index)
     {
-#if defined(ITF_FINAL)
+#if defined(ITF_FINAL) && defined(ITF_WINDOWS)
         GFX_ADAPTER->setResolution( m_availableResolutions[index].width,m_availableResolutions[index].height);
 #endif
         m_gameOptionManager.setListOptionIndex(OPTION_RESOLUTION, index);
