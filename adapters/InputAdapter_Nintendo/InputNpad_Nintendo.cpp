@@ -403,6 +403,14 @@ namespace ITF
     {
         UpdateNpadButtons(_buttonSet);
         UpdateNpadSticks(_analogStickL, _analogStickR);
+        m_axesPos[m_joyTrigger_Left] = (m_buttonStatus[m_joyButton_TriggerLeft] == InputAdapter::Pressed ||
+                                        m_buttonStatus[m_joyButton_TriggerLeft] == InputAdapter::JustPressed)
+                                           ? 1.0f
+                                           : 0.0f;
+        m_axesPos[m_joyTrigger_Right] = (m_buttonStatus[m_joyButton_TriggerRight] == InputAdapter::Pressed ||
+                                         m_buttonStatus[m_joyButton_TriggerRight] == InputAdapter::JustPressed)
+                                            ? 1.0f
+                                            : 0.0f;
     }
 
     void InputNpad_Nintendo::UpdateNpadButtons(const nn::hid::NpadButtonSet& _buttonSet)
