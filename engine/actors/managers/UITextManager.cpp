@@ -859,7 +859,7 @@ namespace ITF
                 case ZPad_Base::BUTTON_R_SHOULDER: return isPS5 ? "PS5_BUTTON_R1" : "PS3_BUTTON_R1";
                 case ZPad_Base::TRIGGER_LEFT:      return isPS5 ? "PS5_BUTTON_L2" : "PS3_BUTTON_L2";
                 case ZPad_Base::TRIGGER_RIGHT:     return isPS5 ? "PS5_BUTTON_R2" : "PS3_BUTTON_R2";
-                case ZPad_Base::BUTTON_SELECT:     return isPS5 ? "PS5_BUTTON_TOUCHPAD" : "PS3_BUTTON_SELECT";
+                case ZPad_Base::BUTTON_SELECT:     return isPS5 ? "PS5_TOUCHPAD" : "PS3_BUTTON_SELECT";
                 case ZPad_Base::BUTTON_START:      return isPS5 ? "PS5_BUTTON_OPTIONS" : "PS3_BUTTON_START";
                 }
             }
@@ -917,6 +917,14 @@ namespace ITF
                 case ZPad_Base::STICK_L_DOWN:      return "SWITCH_STICK_L_DOWN";
                 case ZPad_Base::STICK_L_LEFT:      return "SWITCH_STICK_L_LEFT";
                 case ZPad_Base::STICK_L_RIGHT:     return "SWITCH_STICK_L_RIGHT";
+                case ZPad_Base::STICK_RX:
+                case ZPad_Base::STICK_RY:          return "SWITCH_STICK_R";
+                case ZPad_Base::STICK_R_UP:        return "SWITCH_STICK_R_UP";
+                case ZPad_Base::STICK_R_DOWN:      return "SWITCH_STICK_R_DOWN";
+                case ZPad_Base::STICK_R_LEFT:      return "SWITCH_STICK_R_LEFT";
+                case ZPad_Base::STICK_R_RIGHT:     return "SWITCH_STICK_R_RIGHT";
+                case ZPad_Base::BUTTON_L_THUMB:    return "SWITCH_BUTTON_LSTICK";
+                case ZPad_Base::BUTTON_R_THUMB:    return "SWITCH_BUTTON_RSTICK";
                 case ZPad_Base::DPAD_UP:           return "SWITCH_PRO_DPAD_UP";
                 case ZPad_Base::DPAD_DOWN:         return "SWITCH_PRO_DPAD_DOWN";
                 case ZPad_Base::DPAD_LEFT:         return "SWITCH_PRO_DPAD_LEFT";
