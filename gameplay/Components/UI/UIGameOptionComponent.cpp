@@ -302,7 +302,7 @@ namespace ITF
         }
 
         static const Color whiteColor = Color::white();
-        static const Color yellowColor = Color(0xffffc47c);
+        static const Color yellowColor = Color(0xfffd931a);
 
         m_subMenuComponent->m_hasColorOverride = btrue;
         m_subMenuComponent->m_overrideTextColor = highlight ? whiteColor : yellowColor;

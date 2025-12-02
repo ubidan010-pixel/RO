@@ -45,16 +45,16 @@ namespace ITF
     static const u32 DIAMOND_HEART_MAX_CONSECUTIVE_HITS = 10;
     static const f32 DIAMOND_HEART_CONSECUTIVE_HIT_WINDOW = 2.0f;
 
-    static const u32 LINEID_HEART_NONE = 4294967295;
-    static const u32 LINEID_HEART_RED = 4294967295;
-    static const u32 LINEID_HEART_GOLDEN = 4294967295;
-    static const u32 LINEID_HEART_DIAMOND = 4294967295;
+    static const u32 LINEID_HEART_NONE = 4060;
+    static const u32 LINEID_HEART_RED = 7020;
+    static const u32 LINEID_HEART_GOLDEN = 7018;
+    static const u32 LINEID_HEART_DIAMOND = 7019;
 
-    static const u32 LINEID_RUN_HOLD = 4294967295;
-    static const u32 LINEID_RUN_TOGGLE = 4294967295;
+    static const u32 LINEID_RUN_HOLD = 7004;
+    static const u32 LINEID_RUN_TOGGLE = 7005;
 
-    static const u32 LINEID_VIBRATION_OFF = 4294967295;
-    static const u32 LINEID_VIBRATION_ON = 4294967295;
+    static const u32 LINEID_VIBRATION_OFF = 7022;
+    static const u32 LINEID_VIBRATION_ON = 7021;
 }
 
 #define OPTION_MENU_NAME "optionmenu"

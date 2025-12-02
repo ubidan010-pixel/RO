@@ -554,20 +554,26 @@ namespace ITF
                         if (valueComp)
                         {
                             const char* displayName = "";
+                            u32 lineId = 0;
                             if (optionId == OPTION_RESOLUTION)
                                 displayName = RAY_GAMEMANAGER->getResolutionDisplayName(currentIndex);
                             else if (optionId == OPTION_LANGUAGE)
                                 displayName = RAY_GAMEMANAGER->getLanguageDisplayName(currentIndex);
                             else if (optionId == OPTION_START_WITH_HEART)
-                                displayName = RAY_GAMEMANAGER->getStartWithHeartDisplayName(currentIndex);
+                                lineId = RAY_GAMEMANAGER->getStartWithHeartLineId(currentIndex);
                             else if (optionId == OPTION_RUN_BUTTON)
-                                displayName = RAY_GAMEMANAGER->getRunButtonDisplayName(currentIndex);
+                                lineId = RAY_GAMEMANAGER->getRunButtonLineId(currentIndex);
                             else if (optionId == OPTION_VIBRATIONS)
-                                displayName = RAY_GAMEMANAGER->getVibrationDisplayName(currentIndex);
+                                lineId = RAY_GAMEMANAGER->getVibrationLineId(currentIndex);
 
                             if (displayName && displayName[0] != '\0')
                             {
                                 valueComp->forceContent(displayName);
+                            }
+                            if (lineId != 0) {
+                                LocalisationId locId;
+                                locId = lineId;
+                                valueComp->setLineId(locId);
                             }
                         }
                     }
@@ -767,13 +773,30 @@ namespace ITF
             displayName = RAY_GAMEMANAGER->getResolutionDisplayName(index);
         else if (optionId == OPTION_LANGUAGE)
             displayName = RAY_GAMEMANAGER->getLanguageDisplayName(index);
-        else if (optionId == OPTION_START_WITH_HEART)
-            displayName = RAY_GAMEMANAGER->getStartWithHeartDisplayName(index);
-        else if (optionId == OPTION_RUN_BUTTON)
-            displayName = RAY_GAMEMANAGER->getRunButtonDisplayName(index);
-        else if (optionId == OPTION_VIBRATIONS)
-            displayName = RAY_GAMEMANAGER->getVibrationDisplayName(index);
-
+        else if (optionId == OPTION_START_WITH_HEART) {
+            u32 lineId = RAY_GAMEMANAGER->getStartWithHeartLineId(index);
+            if (lineId != 0) {
+                LocalisationId locId;
+                locId = lineId;              
+                valueComp->setLineId(locId);
+            }
+        }
+        else if (optionId == OPTION_RUN_BUTTON) {
+            u32 lineId = RAY_GAMEMANAGER->getRunButtonLineId(index);
+            if (lineId != 0) {
+                LocalisationId locId;
+                locId = lineId;
+                valueComp->setLineId(locId);
+            }
+        }
+        else if (optionId == OPTION_VIBRATIONS) {
+            u32 lineId = RAY_GAMEMANAGER->getVibrationLineId(index);
+            if (lineId != 0) {
+                LocalisationId locId;
+                locId = lineId;
+                valueComp->setLineId(locId);
+            }
+        }
         if (displayName && displayName[0] != '\0')
         {
             valueComp->forceContent(displayName);
