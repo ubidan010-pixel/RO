@@ -156,6 +156,7 @@ namespace ITF
         case InputAdapter::Pad_PS3:
             return IconSlot_PS3;
         case InputAdapter::Pad_PS5:
+        case InputAdapter::Pad_PS4:
             return IconSlot_PS5;
         case InputAdapter::Pad_Vita:
             return IconSlot_Vita;
