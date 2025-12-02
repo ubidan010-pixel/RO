@@ -478,64 +478,46 @@ namespace ITF
         if (m_connectedPlayers[0] != eNotConnected)
         {
             bbool keyboardUsed = bfalse;
-            
-            if (m_buttons[0][m_joyButton_DPadU] == Released)
+            PressStatus* keyboardButtons = m_keyboardButtons[0];
+            float* keyboardAxes = m_keyboardAxes[0];
+
+            for (u32 button = 0; button < JOY_MAX_BUT; ++button)
             {
-                PressStatus status = getKeyboardStatus(VK_UP);
-                m_buttons[0][m_joyButton_DPadU] = status;
-                if (status == Pressed || status == JustPressed) keyboardUsed = btrue;
-            }
-            if (m_buttons[0][m_joyButton_DPadD] == Released)
-            {
-                PressStatus status = getKeyboardStatus(VK_DOWN);
-                m_buttons[0][m_joyButton_DPadD] = status;
-                if (status == Pressed || status == JustPressed) keyboardUsed = btrue;
-            }
-            if (m_buttons[0][m_joyButton_DPadL] == Released)
-            {
-                PressStatus status = getKeyboardStatus(VK_LEFT);
-                m_buttons[0][m_joyButton_DPadL] = status;
-                if (status == Pressed || status == JustPressed) keyboardUsed = btrue;
-            }
-            if (m_buttons[0][m_joyButton_DPadR] == Released)
-            {
-                PressStatus status = getKeyboardStatus(VK_RIGHT);
-                m_buttons[0][m_joyButton_DPadR] = status;
-                if (status == Pressed || status == JustPressed) keyboardUsed = btrue;
+                keyboardButtons[button] = Released;
             }
 
-            if (m_buttons[0][m_joyButton_A] == Released)
+            for (u32 axis = 0; axis < JOY_MAX_AXES; ++axis)
             {
-                PressStatus status = getKeyboardStatus(VK_SPACE);
-                m_buttons[0][m_joyButton_A] = status;
-                if (status == Pressed || status == JustPressed) keyboardUsed = btrue;
-            }
-            if (m_buttons[0][m_joyButton_X] == Released)
-            {
-                PressStatus status = getKeyboardStatus('S');
-                m_buttons[0][m_joyButton_X] = status;
-                if (status == Pressed || status == JustPressed) keyboardUsed = btrue;
-            }
-            if (m_buttons[0][m_joyButton_B] == Released)
-            {
-                PressStatus status = getKeyboardStatus(VK_BACK);
-                m_buttons[0][m_joyButton_B] = status;
-                if (status == Pressed || status == JustPressed) keyboardUsed = btrue;
-            }
-            if (m_buttons[0][m_joyButton_Start] == Released)
-            {
-                PressStatus status = getKeyboardStatus(VK_ESCAPE);
-                m_buttons[0][m_joyButton_Start] = status;
-                if (status == Pressed || status == JustPressed) keyboardUsed = btrue;
+                keyboardAxes[axis] = 0.0f;
             }
 
-            if (m_axes[0][m_joyTrigger_Right] == 0.0f)
+            const auto captureButton = [&](u32 joyButton, i32 virtualKey)
             {
-                const bbool sprintPressed = (getKeyboardStatus(VK_LSHIFT) == Pressed || getKeyboardStatus(VK_LSHIFT) == JustPressed);
-                m_axes[0][m_joyTrigger_Right] = sprintPressed ? 1.0f : 0.0f;
-                if (sprintPressed) keyboardUsed = btrue;
+                PressStatus status = getKeyboardStatus(virtualKey);
+                keyboardButtons[joyButton] = status;
+                if (status == Pressed || status == JustPressed)
+                {
+                    keyboardUsed = btrue;
+                }
+            };
+
+            captureButton(m_joyButton_DPadU, VK_UP);
+            captureButton(m_joyButton_DPadD, VK_DOWN);
+            captureButton(m_joyButton_DPadL, VK_LEFT);
+            captureButton(m_joyButton_DPadR, VK_RIGHT);
+
+            captureButton(m_joyButton_A, VK_SPACE);
+            captureButton(m_joyButton_X, 'S');
+            captureButton(m_joyButton_B, VK_BACK);
+            captureButton(m_joyButton_Start, VK_ESCAPE);
+
+            const bbool sprintPressed = (getKeyboardStatus(VK_LSHIFT) == Pressed || getKeyboardStatus(VK_LSHIFT) == JustPressed);
+            keyboardAxes[m_joyTrigger_Right] = sprintPressed ? 1.0f : 0.0f;
+            if (sprintPressed)
+            {
+                keyboardUsed = btrue;
             }
-            
+
             if (keyboardUsed)
             {
                 setLastUsedInputDevice(0, InputDevice_Keyboard);

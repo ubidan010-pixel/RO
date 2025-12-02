@@ -303,6 +303,10 @@ namespace ITF
         PlayerState m_connectedPlayers[JOY_MAX_COUNT];
         float m_axes[JOY_MAX_COUNT][JOY_MAX_AXES];
         PressStatus m_buttons[JOY_MAX_COUNT][JOY_MAX_BUT];
+    #if defined(ITF_WINDOWS)
+        float m_keyboardAxes[JOY_MAX_COUNT][JOY_MAX_AXES];
+        PressStatus m_keyboardButtons[JOY_MAX_COUNT][JOY_MAX_BUT];
+    #endif
 #if defined(ITF_WINDOWS)
         virtual void OnPCControlModeChanged(PCControlMode previous, PCControlMode current);
 #endif
@@ -404,6 +408,10 @@ namespace ITF
         @param        _numButtons       Specifies how many buttons should be returned.
         */
         virtual void getGamePadButtonClasses(u32 _pad, ButtonClassMask* _buttonClasses, u32 _numButtons) const;
+    #if defined(ITF_WINDOWS)
+        void getKeyboardPadPos(u32 _pad, float* _pos, u32 _numAxes) const;
+        void getKeyboardPadButtons(u32 _pad, PressStatus* _buttons, u32 _numButtons) const;
+    #endif
 
         /**
         @param        _numPad           The index of the GamePad.

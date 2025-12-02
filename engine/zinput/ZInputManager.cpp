@@ -38,6 +38,10 @@
 
 #include "engine/zinput/XBoxSeries/ZPad_XBoxSeries.h"
 
+#if defined(ITF_WINDOWS)
+#include "engine/zinput/pc/ZPad_PCKeyboard.h"
+#endif
+
 #ifndef _ITF_ZPAD_BASE_H_
 #include "engine/zinput/ZPad_Base.h"
 #endif //_ITF_ZPAD_BASE_H_
@@ -241,11 +245,20 @@ namespace ITF
 
     }
 
-    void ZInputManager::SetRemap(u32 _playerIndex, u32 _logicalControl, u32 _physicalControl)
+        void ZInputManager::addPCKeyboard_device(u32 maxPAD)
+        {
+    #if defined(ITF_WINDOWS)
+        FOR_MAXPAD m_devices.push_back(newAlloc(mId_System, ZPad_PCKeyboard(pad)));
+    #else
+        ITF_UNUSED(maxPAD);
+    #endif
+        }
+
+    void ZInputManager::SetRemap(u32 _playerIndex, u32 _logicalControl, u32 _physicalControl, EInputSourceType _source)
     {
         for (u32 i = 0; i < m_devices.size(); ++i)
         {
-            if (m_devices[i]->GetId() == _playerIndex)
+            if (m_devices[i]->GetId() == _playerIndex && m_devices[i]->GetInputSourceType() == _source)
             {
                 m_devices[i]->SetRemap(_logicalControl, _physicalControl);
             }
@@ -254,9 +267,15 @@ namespace ITF
 
     void ZInputManager::ResetRemapping(u32 _playerIndex)
     {
+        ResetRemapping(_playerIndex, InputSource_Gamepad);
+        ResetRemapping(_playerIndex, InputSource_Keyboard);
+    }
+
+    void ZInputManager::ResetRemapping(u32 _playerIndex, EInputSourceType _source)
+    {
         for (u32 i = 0; i < m_devices.size(); ++i)
         {
-            if (m_devices[i]->GetId() == _playerIndex)
+            if (m_devices[i]->GetId() == _playerIndex && m_devices[i]->GetInputSourceType() == _source)
             {
                 m_devices[i]->ResetRemapping();
             }
@@ -311,7 +330,7 @@ namespace ITF
         return !isDirectionalControl(_physicalControl);
     }
 
-    void ZInputManager::SetActionRemap(u32 _playerIndex, EGameAction _action, u32 _physicalControl)
+    void ZInputManager::SetActionRemap(u32 _playerIndex, EGameAction _action, u32 _physicalControl, EInputSourceType _source)
     {
         const auto remapDirectionalGroup = [&](u32 upControl, u32 downControl, u32 leftControl, u32 rightControl)
         {
@@ -335,7 +354,7 @@ namespace ITF
                 if (logicalControl != U32_INVALID)
                 {
                     LOG("[ZInputManager] SetActionRemap: Player %d, Action %d -> Physical %d (Logical %d)\n", _playerIndex, directionalActions[i], physicalControls[i], logicalControl);
-                    SetRemap(_playerIndex, logicalControl, physicalControls[i]);
+                    SetRemap(_playerIndex, logicalControl, physicalControls[i], _source);
                 }
             }
         };
@@ -382,7 +401,7 @@ namespace ITF
         if (logicalControl != U32_INVALID)
         {
             LOG("[ZInputManager] SetActionRemap: Player %d, Action %d -> Physical %d (Logical %d)\n", _playerIndex, _action, _physicalControl, logicalControl);
-            SetRemap(_playerIndex, logicalControl, _physicalControl);
+            SetRemap(_playerIndex, logicalControl, _physicalControl, _source);
         }
         else
         {
@@ -468,7 +487,7 @@ namespace ITF
         return logicalControl; 
     }
 
-    u32 ZInputManager::GetFirstActiveControl(u32 _playerIndex)
+    u32 ZInputManager::GetFirstActiveControl(u32 _playerIndex, EInputSourceType* _outSource)
     {
         for (u32 i = 0; i < m_devices.size(); ++i)
         {
@@ -477,6 +496,10 @@ namespace ITF
                 u32 control = m_devices[i]->GetFirstActiveControl();
                 if (control != U32_INVALID)
                 {
+                    if (_outSource)
+                    {
+                        *_outSource = m_devices[i]->GetInputSourceType();
+                    }
                     return control;
                 }
             }

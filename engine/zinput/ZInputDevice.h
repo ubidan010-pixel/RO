@@ -11,6 +11,12 @@
 
 namespace ITF
 {
+    enum EInputSourceType
+    {
+        InputSource_Gamepad = 0,
+        InputSource_Keyboard,
+        InputSource_Count
+    };
 
 #define REGISTER_CONTROL(control,controlId)     m_controlMap[controlId] = control;
 typedef ITF_MAP<StringID,int>     ControlTranslateMap;
@@ -39,7 +45,7 @@ typedef ITF_MAP<StringID,int>     ControlTranslateMap;
         
         ITF_INLINE bbool IsDeviceValid() const
         {
-            return INPUT_ADAPTER->isPadConnected(m_id)
+            return IsSourceAllowed() && INPUT_ADAPTER->isPadConnected(m_id)
 #ifdef ITF_WII
                 && (PADTYPE_TO_FLAG(INPUT_ADAPTER->getPadType(m_id)) & m_ValidType)
 #endif // ITF_WII
@@ -48,12 +54,14 @@ typedef ITF_MAP<StringID,int>     ControlTranslateMap;
 
         ITF_INLINE u32 GetId() const { return m_id; }
 
+        virtual EInputSourceType GetInputSourceType() const { return InputSource_Gamepad; }
+
         const StringID & getSpecificConfig() const { return m_specificConfig; }
         void                SetRemap(u32 logicalControl, u32 physicalControl);
         void                ResetRemapping();
         void                ApplyRemapping(SDeviceInfo& deviceInfo);
         u32                 GetRemap(u32 logicalControl) const;
-        u32                 GetFirstActiveControl() const;
+        virtual u32         GetFirstActiveControl() const;
 
     protected:
         
@@ -78,6 +86,8 @@ typedef ITF_MAP<StringID,int>     ControlTranslateMap;
 
         // Helpers
         static u32 TranslateControl( const StringID& control, const ControlTranslateMap& map );
+
+        virtual bbool IsSourceAllowed() const { return btrue; }
     };
 
 }//namespace ITF

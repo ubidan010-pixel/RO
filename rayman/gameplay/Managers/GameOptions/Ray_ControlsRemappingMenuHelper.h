@@ -9,6 +9,10 @@
 #include "engine/zinput/ZInputManager.h"
 #endif //_ITF_ZINPUT_MANAGER_H
 
+#ifndef _ITF_INPUTDEVICE_H_
+#include "engine/zinput/ZInputDevice.h"
+#endif //_ITF_INPUTDEVICE_H_
+
 #ifndef _ITF_INPUTADAPTER_H_
 #include "engine/AdaptersInterfaces/InputAdapter.h"
 #endif //_ITF_INPUTADAPTER_H_
@@ -53,7 +57,7 @@ namespace ITF
         void clearIconDisplay(UIComponent* component);
         void restoreIconDisplay(UIComponent* component);
         void cancelRemappingMode(bbool restoreDisplay);
-        bbool detectPhysicalControl(u32& outPhysicalControl);
+        bbool detectPhysicalControl(u32& outPhysicalControl, EInputSourceType& outSource);
         void finalizeRemapping(u32 physicalControl);
         void onClose() override;
 
@@ -76,6 +80,7 @@ namespace ITF
         UIComponent* m_remappingComponent;
         f32 m_remappingCooldown;
         f32 m_postRemapCooldown;
+        EInputSourceType m_remappingSource;
 
 #if defined(ITF_WINDOWS)
         bbool m_isEditingControllerType;

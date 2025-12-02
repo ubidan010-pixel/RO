@@ -153,6 +153,7 @@ namespace ITF
           , m_remappingComponent(NULL)
           , m_remappingCooldown(0.0f)
           , m_postRemapCooldown(0.0f)
+          , m_remappingSource(InputSource_Gamepad)
 #if defined(ITF_WINDOWS)
           , m_isEditingControllerType(bfalse)
           , m_editingControllerTypeComponent(NULL)
@@ -353,6 +354,7 @@ namespace ITF
         m_remappingAction = action;
         m_remappingComponent = component;
         m_remappingCooldown = ControlsRemappingConstants::REMAPPING_COOLDOWN;
+        m_remappingSource = InputSource_Count;
         clearIconDisplay(component);
 
         if (GAMEMANAGER && GAMEMANAGER->getInputManager())
@@ -391,19 +393,21 @@ namespace ITF
         m_isRemappingMode = bfalse;
         m_remappingComponent = nullptr;
         m_remappingCooldown = 0.0f;
+        m_remappingSource = InputSource_Gamepad;
         m_isWaitingForRelease = btrue;
         m_postRemapCooldown = ControlsRemappingConstants::POST_REMAP_COOLDOWN;
         LOG("[ControlsRemapping] Entering wait-for-release state\n");
     }
 
-    bbool Ray_ControlsRemappingMenuHelper::detectPhysicalControl(u32& outPhysicalControl)
+    bbool Ray_ControlsRemappingMenuHelper::detectPhysicalControl(u32& outPhysicalControl, EInputSourceType& outSource)
     {
         outPhysicalControl = U32_INVALID;
+        outSource = InputSource_Gamepad;
 
         if (!GAMEMANAGER || !GAMEMANAGER->getInputManager())
             return bfalse;
 
-        outPhysicalControl = GAMEMANAGER->getInputManager()->GetFirstActiveControl(m_remappingPlayerIndex);
+        outPhysicalControl = GAMEMANAGER->getInputManager()->GetFirstActiveControl(m_remappingPlayerIndex, &outSource);
         return (outPhysicalControl != U32_INVALID);
     }
 
@@ -430,8 +434,10 @@ namespace ITF
             return;
         }
 
-        inputManager->SetActionRemap(m_remappingPlayerIndex, m_remappingAction, physicalControl);
-        LOG("[ControlsRemapping] Remap complete Player %d, Action %d -> Physical %d\n", m_remappingPlayerIndex + 1, m_remappingAction, physicalControl);
+        EInputSourceType appliedSource = (m_remappingSource < InputSource_Count) ? m_remappingSource : InputSource_Gamepad;
+        inputManager->SetActionRemap(m_remappingPlayerIndex, m_remappingAction, physicalControl, appliedSource);
+        LOG("[ControlsRemapping] Remap complete Player %d, Action %d -> Physical %d (Source %d)\n",
+            m_remappingPlayerIndex + 1, m_remappingAction, physicalControl, appliedSource);
         cancelRemappingMode(btrue);
     }
 
@@ -474,11 +480,13 @@ namespace ITF
         }
 
         u32 physicalControl = U32_INVALID;
-        if (!detectPhysicalControl(physicalControl))
+        EInputSourceType source = InputSource_Gamepad;
+        if (!detectPhysicalControl(physicalControl, source))
             return;
 
         if (physicalControl != U32_INVALID)
         {
+            m_remappingSource = source;
             finalizeRemapping(physicalControl);
         }
     }

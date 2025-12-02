@@ -108,6 +108,10 @@ namespace ITF
             };
         }
 
+#if defined(ITF_WINDOWS)
+        memset(m_keyboardAxes, 0, sizeof(m_keyboardAxes));
+        memset(m_keyboardButtons, 0, sizeof(m_keyboardButtons));
+#endif
         std::fill(m_PadType, m_PadType + ITF_ARRAY_SIZE(m_PadType), getDefaultPadType());
     }
 
@@ -255,6 +259,42 @@ namespace ITF
 #endif //USE_WIIMOTE_LIB
     }
 
+#if defined(ITF_WINDOWS)
+    void InputAdapter::getKeyboardPadPos(u32 _pad, float* _pos, u32 _numAxes) const
+    {
+        if (_pad >= JOY_MAX_COUNT)
+        {
+            for (u32 i = 0; i < _numAxes; ++i)
+            {
+                _pos[i] = 0.0f;
+            }
+            return;
+        }
+
+        for (u32 i = 0; i < _numAxes; ++i)
+        {
+            _pos[i] = m_keyboardAxes[_pad][i];
+        }
+    }
+
+    void InputAdapter::getKeyboardPadButtons(u32 _pad, PressStatus* _buttons, u32 _numButtons) const
+    {
+        if (_pad >= JOY_MAX_COUNT)
+        {
+            for (u32 i = 0; i < _numButtons; ++i)
+            {
+                _buttons[i] = Released;
+            }
+            return;
+        }
+
+        for (u32 i = 0; i < _numButtons; ++i)
+        {
+            _buttons[i] = m_keyboardButtons[_pad][i];
+        }
+    }
+#endif
+
     void InputAdapter::padVibration(u32 _numPad, f32 _leftMotorSpeed, f32 _rightMotorSpeed)
     {
         ITF_UNUSED(_numPad);
@@ -280,6 +320,10 @@ namespace ITF
     {
         memset(m_axes, 0, JOY_MAX_COUNT * JOY_MAX_AXES * sizeof(float));
         memset(m_buttons, 0, JOY_MAX_COUNT * JOY_MAX_BUT * sizeof(PressStatus));
+#if defined(ITF_WINDOWS)
+        memset(m_keyboardAxes, 0, JOY_MAX_COUNT * JOY_MAX_AXES * sizeof(float));
+        memset(m_keyboardButtons, 0, JOY_MAX_COUNT * JOY_MAX_BUT * sizeof(PressStatus));
+#endif
     }
 
     void InputAdapter::OnControllerConnected(u32 _padIndex,u32 _deviceID,u32 _deviceOutputID,PadType _padType)
