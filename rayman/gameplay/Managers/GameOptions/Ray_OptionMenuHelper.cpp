@@ -769,35 +769,37 @@ namespace ITF
             return;
 
         const char* displayName = "";
+        u32 lineId = 0u;
 
         if (optionId == OPTION_RESOLUTION)
+        {
             displayName = RAY_GAMEMANAGER->getResolutionDisplayName(index);
+        }
         else if (optionId == OPTION_LANGUAGE)
+        {
             displayName = RAY_GAMEMANAGER->getLanguageDisplayName(index);
-        else if (optionId == OPTION_START_WITH_HEART) {
-            u32 lineId = RAY_GAMEMANAGER->getStartWithHeartLineId(index);
-            if (lineId != 0) {
-                LocalisationId locId;
-                locId = lineId;
-                valueComp->setLineId(locId);
-            }
         }
-        else if (optionId == OPTION_RUN_BUTTON) {
-            u32 lineId = RAY_GAMEMANAGER->getRunButtonLineId(index);
-            if (lineId != 0) {
-                LocalisationId locId;
-                locId = lineId;
-                valueComp->setLineId(locId);
-            }
+        else if (optionId == OPTION_START_WITH_HEART)
+        {
+            lineId = RAY_GAMEMANAGER->getStartWithHeartLineId(index);
         }
-        else if (optionId == OPTION_VIBRATIONS) {
-            u32 lineId = RAY_GAMEMANAGER->getVibrationLineId(index);
-            if (lineId != 0) {
-                LocalisationId locId;
-                locId = lineId;
-                valueComp->setLineId(locId);
-            }
+        else if (optionId == OPTION_RUN_BUTTON)
+        {
+            lineId = RAY_GAMEMANAGER->getRunButtonLineId(index);
         }
+        else if (optionId == OPTION_VIBRATIONS)
+        {
+            lineId = RAY_GAMEMANAGER->getVibrationLineId(index);
+        }
+
+        if (lineId != 0u)
+        {
+            LocalisationId locId;
+            locId = lineId;
+            valueComp->setLineId(locId);
+            return;
+        }
+
         if (displayName && displayName[0] != '\0')
         {
             valueComp->forceContent(displayName);
