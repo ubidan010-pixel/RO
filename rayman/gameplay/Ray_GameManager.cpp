@@ -11874,7 +11874,9 @@ namespace ITF
 
     void Ray_GameManager::setResolutionIndex(i32 index)
     {
+#if defined(ITF_FINAL)
         GFX_ADAPTER->setResolution( m_availableResolutions[index].width,m_availableResolutions[index].height);
+#endif
         m_gameOptionManager.setListOptionIndex(OPTION_RESOLUTION, index);
     }
 
@@ -12074,10 +12076,10 @@ namespace ITF
     {
         type = std::max(0, std::min(type, static_cast<i32>(PC_CONTROL_MODE_CHOICES) - 1));
         m_gameOptionManager.setListOptionIndex(OPTION_PC_KEYBOARD_CONTROLLER_SHARING, type);
-        
+
         const char* typeName = getPCControlModeDisplayName(type);
         LOG("[OptionMenu] Controller Type: %s", typeName ? typeName : "Unknown");
-        
+
         if (INPUT_ADAPTER)
         {
             bbool sharingEnabled = (type == PCControlMode_Hybrid);

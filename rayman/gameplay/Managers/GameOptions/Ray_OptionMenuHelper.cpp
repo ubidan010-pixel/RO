@@ -112,6 +112,7 @@ namespace ITF
           , m_snapshotMusicVolume(0.0f)
           , m_snapshotSFXVolume(0.0f)
           , m_snapshotIntensity(0.0f)
+          , m_showLanguageWarning(bfalse)
     {
         m_menuBaseName = OPTION_MENU_NAME;
     }
@@ -777,7 +778,7 @@ namespace ITF
             u32 lineId = RAY_GAMEMANAGER->getStartWithHeartLineId(index);
             if (lineId != 0) {
                 LocalisationId locId;
-                locId = lineId;              
+                locId = lineId;
                 valueComp->setLineId(locId);
             }
         }
