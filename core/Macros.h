@@ -11,7 +11,6 @@
     #define _vsnprintf_s	vsnprintf
     #define vsprintf_s		vsprintf
 #endif // ITF_MICROSOFT
-#define ITF_USE_SDL
 #if defined(ITF_WINDOWS) && !defined(ITF_FINAL) && !defined(ITF_RETAIL)
 // ONLY USE FOR INTERNAL ARTIST
 // ENABLE FOR QUICK REVIEW SUPPORTED SAMPLER IN EDITOR

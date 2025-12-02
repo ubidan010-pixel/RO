@@ -20,10 +20,6 @@
     #include "glfw/include/gl/glfw.h"
 #endif //__glfw_h_
 
-#ifndef _ITF_INPUTADAPTER_DINPUT_H_
-#include "adapters/InputAdapter_DirectInput/InputAdapter_DINPUT.h"
-#endif //_ITF_INPUTADAPTER_DINPUT_H_
-
 #ifndef _ITF_INPUTADAPTER_SDL3_H_
 #include "adapters/InputAdapter_SDL3/InputAdapter_SDL3.h"
 #endif
@@ -138,12 +134,7 @@ namespace ITF
 
         SystemAdapter_win *adapter;
         adapter = (SystemAdapter_win*)SYSTEM_ADAPTER;
-
-#ifdef ITF_USE_SDL
         InputAdapter_SDL3* input = static_cast<InputAdapter_SDL3*>(INPUT_ADAPTER);
-#else
-        InputAdapter_DINPUT* input = static_cast<InputAdapter_DINPUT*>(INPUT_ADAPTER);
-#endif
         if(!adapter || !input)
             return DefWindowProc(hWnd, uMsg, wParam, lParam);
 
@@ -652,11 +643,8 @@ namespace ITF
         {
             // TODO: glfwDisable(GLFW_MOUSE_CURSOR);
         }
-#ifdef ITF_USE_SDL
         Singletons::get().setInputAdapter(newAlloc(mId_System, ITF::InputAdapter_SDL3()));
-#else
-        Singletons::get().setInputAdapter(newAlloc(mId_System,ITF::InputAdapter_DINPUT()));
-#endif
+
         return btrue;
     }
 
@@ -695,13 +683,7 @@ namespace ITF
         {
             HWND hActiveWindow  = GetActiveWindow();
             const bbool hasFocus = (hActiveWindow == m_hwnd);
-
-            /// Update All controllers states.
-#ifdef ITF_USE_SDL
             InputAdapter_SDL3* inputAdapter = static_cast<InputAdapter_SDL3*>(INPUT_ADAPTER);
-#else
-            InputAdapter_DINPUT* inputAdapter = static_cast<InputAdapter_DINPUT*>(INPUT_ADAPTER);
-#endif
             if (inputAdapter && (hasFocus || m_bAutoFocus))
                 inputAdapter->updateAllInputState();
         }

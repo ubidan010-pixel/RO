@@ -1,6 +1,5 @@
 ﻿#include "precompiled_InputAdapter_SDL3.h"
 #include "engine/AdaptersInterfaces/AudioMiddlewareAdapter.h"
-#ifdef ITF_USE_SDL
 #ifndef _ITF_INPUTADAPTER_SDL3_H_
 #include "InputAdapter_SDL3.h"
 #endif
@@ -782,4 +781,4 @@ namespace ITF
         return "Disconnected";
     }
 }
-#endif
+

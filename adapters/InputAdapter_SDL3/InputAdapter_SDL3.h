@@ -1,6 +1,5 @@
 ﻿#ifndef _ITF_INPUTADAPTER_SDL3_H_
 #define _ITF_INPUTADAPTER_SDL3_H_
-#ifdef ITF_USE_SDL
 #ifndef _ITF_WININPUTADAPTER_H_
 #include "engine/AdaptersInterfaces/WinInputAdapter.h"
 #endif //_ITF_WININPUTADAPTER_H_
@@ -91,5 +90,4 @@ namespace ITF
         i32 m_slotGamepad[JOY_MAX_COUNT];
     };
 }
-#endif
 #endif //_ITF_INPUTADAPTER_SDL3_H_
