@@ -202,7 +202,7 @@ namespace ITF
         {
             switch(m_pulseState)
             {
-            case Pulse_Increase: 
+            case Pulse_Increase:
                 {
                     f32 lambda = m_pulseTimer/getTemplate()->getPulseIncreaseDuration();
                     lambda = std::min(lambda,1.f);
@@ -237,12 +237,12 @@ namespace ITF
             case Pulse_Sustain:
                 {
                     reallyPulsingType = (m_pulseCount==1)?1:2;
-                    targetAdditionalScale = getTemplate()->getPulseScale(); 
+                    targetAdditionalScale = getTemplate()->getPulseScale();
                     if (m_pulseTimer>getTemplate()->getPulseSustainDuration())
                     {
                         setPulseState(Pulse_Decrease);
                     }
-                } break;       
+                } break;
             case Pulse_Decrease:
                 {
                     f32 duration;
@@ -283,7 +283,7 @@ namespace ITF
         m_scoreSizeMultiplier = targetAdditionalScale;
 
         m_currentLumScale = targetAdditionalScale;
-        
+
 
         if (m_pulseState == Pulse_None)
         {
@@ -300,7 +300,7 @@ namespace ITF
     void Ray_PlayerHudScoreComponent::onActorLoaded(Pickable::HotReloadType _hotReload)
     {
         Super::onActorLoaded(_hotReload);
-        
+
         m_lumAtlas.initialize(m_actor->getResourceGroup(),getTemplate()->getLumTexturePath(),1);
         m_characterAtlas.initialize(m_actor->getResourceGroup(),getTemplate()->getCharacterTexturePath(),1);
 		m_relic1Atlas.initialize(m_actor->getResourceGroup(),getTemplate()->getRelic1TexturePath(),1);
@@ -365,7 +365,7 @@ namespace ITF
             score.setLums(_playerIndex, score.getLums(_playerIndex) + incrementList[i]);
         }
         m_reallyPulsingType[_playerIndex] = 0;
-        incrementList.clear();        
+        incrementList.clear();
     }
 
     void Ray_PlayerHudScoreComponent::maySendScoreMultiplierParticle(u32 _playerIndex, u32 _increment)
@@ -418,7 +418,7 @@ namespace ITF
     void Ray_PlayerHudScoreComponent::addPendingScoreIncrement(u32 _playerIndex, u32 _increment)
     {
         ITF_ASSERT_CRASH(_playerIndex<s_maxPlayers, "invalid player id");
-        
+
         FixedArray<u32,maxPendingScoreIncrements> &incrementList = m_pendingScoreIncrements[_playerIndex];
 
         //
@@ -435,7 +435,7 @@ namespace ITF
             processAddPendingLum(_playerIndex);
             return; ////////////EXIT POINT
         }
-        
+
         if (incrementList.size()>=maxPendingScoreIncrements)
         {
             processAddPendingLum(_playerIndex);
@@ -480,11 +480,11 @@ namespace ITF
 		u32 fadedColor = Color(m_currentAlpha, 1,1,1).getAsU32();
 
 		if(canShowLumCaption() || isWorldMap())
-		{			
+		{
 			m_characterAtlas.addQuad(0, position-Vec2d(0,characterScale.m_y), position, position+Vec2d(characterScale.m_x, 0), position+Vec2d(characterScale.m_x,-characterScale.m_y), MTH_EPSILON,fadedColor);
 			m_characterAtlas.draw2d(UI_TEXTMANAGER->getScoreAnimDepthRank(), btrue);
 		}
-        
+
         Vec2d lumOffset(scale*getTemplate()->getLumBoxLocalPosition());
         Vec2d lumScale(scale*getTemplate()->getLumBoxLocalSize());
 
@@ -541,7 +541,7 @@ namespace ITF
 
         FontCall fontcall;
         bbool canDrawFont = bfalse;
-        
+
 
         if (alpha>0)
         {
@@ -556,7 +556,7 @@ namespace ITF
                 fontcall.setMode( FONT_ALIGN_LEFT );
                 fontcall.setFont(GFX_ADAPTER->getFontByIndex(m_pressStartFontIndex));
                 //pos.m_x -= size.m_x*0.5f;
-                ((Vec2d&)pos) += getTemplate()->getPressStartPos()*size; 
+                ((Vec2d&)pos) += getTemplate()->getPressStartPos()*size;
                 fontcall.setPosition(pos);
                 fontcall.setCount(0);
                 fontcall.setAppend(bfalse);
@@ -592,7 +592,7 @@ namespace ITF
                 {
                     m_lumCountTextTab[0].m_size = scoreHeight;
 
-                    u32 shadowColor = Color(alpha*alpha*0.25f,0,0,0).getAsU32();                
+                    u32 shadowColor = Color(alpha*alpha*0.25f,0,0,0).getAsU32();
                     fontcall.setMode( FONT_ALIGN_LEFT );
                     fontcall.setFont(GFX_ADAPTER->getFontByIndex(m_scoreFontIndex));
                     fontcall.setPosition(pos);
@@ -636,14 +636,14 @@ namespace ITF
 
 			fontcall.setMode( FONT_ALIGN_RIGHT );
 			fontcall.setFont(GFX_ADAPTER->getFontByIndex(m_scoreFontIndex));
-			//((Vec2d&)pos) += Vec2d(60.f,100.f); 
+			//((Vec2d&)pos) += Vec2d(60.f,100.f);
 			f32 relicWidth = getTemplate()->getRelicSize().m_x * actorWidth;
 			f32 relicHeight = getTemplate()->getRelicSize().m_y * actorHeight;
 			f32 relicBoxHeight = relicHeight * 2;
 
 			f32 screenWidth = (f32)GFX_ADAPTER->getScreenWidth();
 			f32 screenHeight = (f32)GFX_ADAPTER->getScreenHeight();
-			
+
 			Vec2d relicTextPos;
 			if (RAY_GAMEMANAGER->isTimeAttack())
 			{
@@ -749,7 +749,7 @@ namespace ITF
     bbool Ray_PlayerHudScoreComponent::isWorldMap()
     {
         const StringID worldMapID(Ray_GameScreen_WorldMap::GetClassCRCStatic());
-        return RAY_GAMEMANAGER->getCurrentGameScreen() == worldMapID;        
+        return RAY_GAMEMANAGER->getCurrentGameScreen() == worldMapID;
     }
 
 
@@ -772,7 +772,7 @@ namespace ITF
 
         interpolator = f32_Clamp(interpolator,0,1);
         f32 alpha = f32_Lerp(getTemplate()->getPressStartMinAlpha(), getTemplate()->getPressStartMaxAlpha(), interpolator);
-        return alpha;            
+        return alpha;
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -798,7 +798,7 @@ namespace ITF
         {
             show = btrue;
             m_captionType = Caption_Lum;
-            
+
             if ( !m_lastActive )
             {
                 m_stateChangeTimer = 0.f;
@@ -823,7 +823,7 @@ namespace ITF
 
         if ( show )
         {
-            // force-hide the hud: 
+            // force-hide the hud:
             //  - while loading / playing a cinematic
             //  - if the player cannot play this map
             //  - if the pad is disconnected
@@ -907,7 +907,7 @@ namespace ITF
 
         updateHpBar(_dt,player);
         updateLumCount(_dt);
-        
+
         m_stateChangeTimer += _dt;
         m_pressStartPulseTimer += _dt;
 
@@ -1022,6 +1022,7 @@ namespace ITF
         "[icon:WII_CLASSIC_BUTTON_B]",  // Pad_WiiClassic,
         "<N/A>",                        // Pad_Vita,
         "<N/A>",                        // Pad_CTR,
+        "<N/A>",                        // Pad_PS4
         "<N/A>",                        // Pad_PS5,
         "<N/A>",                        // Pad_NX_Joycon,
         "<N/A>",                        // Pad_NX_Joycon_Dual,
@@ -1246,7 +1247,7 @@ namespace ITF
 	{
 		String8 pressStartText;
 
-		
+
 		//TextInfo relicText (LOCALISATIONMANAGER->getText(textId).cStr(), COLOR_WHITE, 10, StringID("PressToStart"), LocalisationId::Invalid);
 		TextInfo relicText;
 		if(m_isNewCaption)

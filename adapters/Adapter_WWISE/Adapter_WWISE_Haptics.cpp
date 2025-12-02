@@ -1,6 +1,7 @@
 #include "precompiled_Adapter_WWISE.h"
 
 #include "AudioSDK/error.h"
+#include "Wrapper/WWISE_Wrapper.h"
 #ifdef ITF_SUPPORT_WWISE
 #include "adapters/Adapter_WWISE/Adapter_WWISE.h"
 #ifdef USE_PAD_HAPTICS
@@ -16,10 +17,11 @@
 #include <libScePadforPCGames/include/pad.h>
 #include <libScePadforPCGames/include/pad_audio.h>
 #include <libScePadforPCGames/include/pad_windows_static.h>
-#endif
 #include <AK/Plugin/AkMotionSinkScePadHelpers.h>
+#endif
 #include <AK/SoundEngine/Common/AkSoundEngine.h>
-namespace	ITF
+
+namespace ITF
 {
     void Adapter_WWISE::initMotionLib()
     {
@@ -27,27 +29,28 @@ namespace	ITF
         AKMOTIONSINK_STATIC_LINK_SCEPAD_FUNCTIONS
 #endif
     }
-    bbool Adapter_WWISE::registerHaptics(u32 _pad, u32 _deviceId, u32 _deviceOutputId, bbool _isSony)
+
+    bbool Adapter_WWISE::registerHaptics(u32 _pad, u32 _deviceId, u32 _deviceOutputId, InputAdapter::PadType _padType)
     {
+        if (_deviceId == AK_INVALID_DEVICE_ID)
+        {
+            AUDIO_WARNING("Invalid Register Controller Speaker pad %d with device id %d", _pad, _deviceId);
+            return bfalse;
+        }
         u32 padHandle = _deviceId;
 #ifdef ITF_WINDOWS
-        if (_isSony)
+        bbool isDualSense = _padType == InputAdapter::Pad_PS5;
+        if (isDualSense)
         {
-            ScePadControllerType padType;
-            int ret = scePadGetControllerType(_deviceId, &padType);
-            if (ret == SCE_OK && padType != SCE_PAD_CONTROLLER_TYPE_NOT_CONNECTED)
-            {
-                padHandle = padType == SCE_PAD_CONTROLLER_TYPE_DUALSENSE
-                                ? (_deviceId | AKMOTION_SCEPAD_HAPTICS_MODE)
-                                : _deviceId;
-            }
+            padHandle = _deviceId | AKMOTION_SCEPAD_HAPTICS_MODE;
         }
+
 #endif
         AkOutputSettings montionSetting(CONTROLLER_MONTION, padHandle);
         auto res = AK::SoundEngine::AddOutput(montionSetting, &m_PlayerMotionOutput[_pad]);
         if (res != AK_Success)
         {
-            AUDIO_WARNING("Register Controller Speaker error %d with pad %d",res,_pad);
+            AUDIO_WARNING("Register Controller Speaker error %d with pad %d", res, _pad);
             return bfalse;
         }
         else
@@ -59,34 +62,40 @@ namespace	ITF
     bbool Adapter_WWISE::unregisterHaptics(u32 _pad)
     {
         // AkOutputSettings montionSetting(CONTROLLER_MONTION, pad);
-        if (m_PlayerMotionOutput[_pad] != AK_INVALID_OUTPUT_DEVICE_ID)
+        if (m_PlayerMotionOutput[_pad] != AK_INVALID_DEVICE_ID)
         {
             auto res = AK::SoundEngine::RemoveOutput(m_PlayerMotionOutput[_pad]);
-            m_PlayerMotionOutput[_pad] = AK_INVALID_OUTPUT_DEVICE_ID;
+            m_PlayerMotionOutput[_pad] = AK_INVALID_DEVICE_ID;
             if (res != AK_Success)
             {
-                AUDIO_WARNING("Unregister Controller Speaker error %d with pad %d",res,_pad);
+                AUDIO_WARNING("Unregister Controller Speaker error %d with pad %d", res, _pad);
                 return bfalse;
             }
-            else {
+            else
+            {
                 return btrue;
             }
         }
         else
         {
-            AUDIO_WARNING("Register Controller Speaker error. Cant find device output %d",_pad);
+            AUDIO_WARNING("Register Controller Speaker error. Cant find device output %d", _pad);
             return bfalse;
         }
     }
 
-    bbool Adapter_WWISE::registerControllerSpeaker(u32 _pad, u32 _deviceId, u32 _deviceOutputId, bbool _isSony)
+    bbool Adapter_WWISE::registerControllerSpeaker(u32 _pad, u32 _deviceId, u32 _deviceOutputId, InputAdapter::PadType _padType)
     {
+        if (_deviceOutputId == AK_INVALID_OUTPUT_DEVICE_ID)
+        {
+            return false;
+        }
         AkOutputSettings padSpkOutputSettings;
         padSpkOutputSettings.audioDeviceShareset = CONTROLLER_SPEAKER_SHARESET;
         padSpkOutputSettings.idDevice = _deviceOutputId; //AK::GetDeviceID();
         padSpkOutputSettings.channelConfig.SetStandard(AK_SPEAKER_SETUP_STEREO);
 #ifdef ITF_WINDOWS
-        if (_isSony)
+         bbool isSonyController = _padType == InputAdapter::Pad_PS4 || _padType == InputAdapter::Pad_PS5;
+        if (isSonyController)
         {
             scePadSetAudioOutPath(static_cast<int32_t>(_deviceId), SCE_PAD_AUDIO_OUT_PATH_SPEAKER);
             ScePadVolumeGain padGain = {127, 127, 0, 127};
@@ -97,14 +106,13 @@ namespace	ITF
         AKRESULT res = AK::SoundEngine::AddOutput(padSpkOutputSettings, &m_PlayerAudioOutput[_pad]);
         if (res != AK_Success)
         {
-            AUDIO_WARNING("Register Controller Speaker error %d with pad %d",res,_pad);
+            AUDIO_WARNING("Register Controller Speaker error %d with pad %d", res, _pad);
             return bfalse;
         }
         else
         {
             return btrue;
         }
-
     }
 
     bbool Adapter_WWISE::unregisterControllerSpeaker(u32 _pad)
@@ -115,16 +123,17 @@ namespace	ITF
             m_PlayerAudioOutput[_pad] = AK_INVALID_OUTPUT_DEVICE_ID;
             if (res != AK_Success)
             {
-                AUDIO_WARNING("Unregister Controller Speaker error %d with pad %d",res,_pad);
+                AUDIO_WARNING("Unregister Controller Speaker error %d with pad %d", res, _pad);
                 return bfalse;
             }
-            else {
+            else
+            {
                 return btrue;
             }
         }
         else
         {
-            AUDIO_WARNING("Register Controller Speaker error. Cant find device output %d",_pad);
+            AUDIO_WARNING("Register Controller Speaker error. Cant find device output %d", _pad);
             return bfalse;
         }
     }
@@ -139,7 +148,6 @@ namespace	ITF
         {
             return AK::GetDeviceID(_imDevice);
         }
-
     }
 #endif
 }

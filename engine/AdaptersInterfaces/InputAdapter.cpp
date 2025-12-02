@@ -260,10 +260,10 @@ namespace ITF
         memset(m_buttons, 0, JOY_MAX_COUNT * JOY_MAX_BUT * sizeof(PressStatus));
     }
 
-    void InputAdapter::OnControllerConnected(u32 _padIndex,i32 _deviceID,i32 _deviceOutputID,bool isSony)
+    void InputAdapter::OnControllerConnected(u32 _padIndex,u32 _deviceID,u32 _deviceOutputID,PadType _padType)
     {
 #ifdef USE_PAD_HAPTICS
-        HAPTICS_MANAGER->onControllerConnected(_padIndex,_deviceID,_deviceOutputID,isSony);
+        HAPTICS_MANAGER->onControllerConnected(_padIndex,_deviceID,_deviceOutputID,_padType);
 #endif
         if (EVENTMANAGER)
         {

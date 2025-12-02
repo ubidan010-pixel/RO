@@ -20,7 +20,7 @@ namespace ITF
 {
     //////////////////////////////////////////////////////////////////////////
     // joypad port management class
-    
+
     InputAdapter_PS5::JoyPadPort::~JoyPadPort()
     {
         close();
@@ -31,6 +31,7 @@ namespace ITF
         if(!isOpened())
         {
             m_id = _id;
+            m_userId = _userID;
             m_dsPort = scePadOpen(_userID, SCE_PAD_PORT_TYPE_STANDARD, 0, NULL);
             ITF_ASSERT_SCE_RESULT_NAMED(m_dsPort, "scePadOpen");
 
@@ -80,7 +81,7 @@ namespace ITF
 
         if (m_dsConnected)
             chosenType = InputJoy_PS5::JOY_TYPE_DUALSENSE;
-        
+
         // create device object
         i32 joyPort = -1;
         if (chosenType == InputJoy_PS5::JOY_TYPE_DUALSENSE)
@@ -153,7 +154,6 @@ namespace ITF
     InputAdapter_PS5::InputAdapter_PS5()
     {
         fill(m_usersIDs.userId, SCE_USER_SERVICE_USER_ID_INVALID);
-
         ITF_VERIFY_SCE_CALL(scePadInit());
     }
 
@@ -202,7 +202,7 @@ namespace ITF
                 return;
              }
         }
-        
+
         for (u32 i = 0; i < _numButtons; i++)
             _buttons[i] = Released;
     }
@@ -225,7 +225,6 @@ namespace ITF
         int pad = 0;
         for(pad = 0; pad < SCE_USER_SERVICE_MAX_LOGIN_USERS; ++pad)
         {
-            bbool wasConnected = isPadConnected(pad);
             bbool isEffectivelyConnected = bfalse;
             if(m_joyPadPort[pad].isConnected())
             {
@@ -237,23 +236,24 @@ namespace ITF
                 if (!isEffectivelyConnected)
                     joyPadPort.checkConnection(); // update port connection to detect deconnection
             }
-            
-            if (wasConnected != isEffectivelyConnected)
-            {
-                if (isEffectivelyConnected)
-                {
-                    OnControllerConnected(pad, -1, -1, true); // PS5 is always Sony
-                }
-                else
-                {
-                    OnControllerDisconnected(pad);
-                }
-            }
-            
-            setPadConnected(pad, isEffectivelyConnected);
+            handleControllerConnection(pad,isEffectivelyConnected);
         }
     }
-
+    void InputAdapter_PS5::handleControllerConnection(u32 _pad, bbool _connected)
+    {
+        auto& controller =m_joyPadPort[_pad];
+        if (!controller.hasNotifiedConnection() && _connected)
+        {
+            OnControllerConnected(_pad, controller.getDeviceId(),controller.getDeviceOutputId(), Pad_PS5);
+            controller.setNotifiedConnection(btrue);
+        }
+        else if (controller.hasNotifiedConnection() && !_connected)
+        {
+            OnControllerDisconnected(_pad);
+           controller.setNotifiedConnection(bfalse);
+        }
+        setPadConnected(_pad, _connected);
+    }
     void InputAdapter_PS5::startRumble( u32 _numPad, f64 _time, f32 _leftMotorSpeed, f32 _rightMotorSpeed )
     {
         if (!isConnected(_numPad))

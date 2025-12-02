@@ -28,8 +28,10 @@ namespace ITF
         float getAxis(u32 _axis) const;
         InputAdapter::PressStatus getButton(u32 _button) const;
         bool isConnected() const;
-        uint32_t deviceID;
-        uint32_t deviceOutputID;
+        uint32_t m_deviceID;
+        uint32_t m_deviceOutputID;
+        InputAdapter::PadType m_padType;
+        bbool isSonyController() { return m_padType == InputAdapter::Pad_PS4 || m_padType == InputAdapter::Pad_PS5; }
 
     private:
         void updateButtonState(u32 buttonIndex, bool pressed);
@@ -63,8 +65,9 @@ namespace ITF
         void handleGamepadConnected(SDL_JoystickID instanceId);
         void handleGamepadDisconnected(SDL_JoystickID instanceId);
         void setGamepadConnected(u32 index, bool connected, InputAdapter::PadType padType);
-        void notifyDeviceConnectEvent(u32 padIndex, InputAdapter::PadType type, bbool isConnected);
-        void initSonyControllerDeviceIds(SDLGamepad& gamepad);
+        void notifyDeviceConnectEvent(u32 padIndex, InputAdapter::PadType padType, bbool isConnected);
+        bbool checkExistDeviceId(u32 deviceId);
+        void updateSonyControllerDeviceIds(u32 padIndex, SDLGamepad& gamepad);
         void initScePad(int* outScePadHandles);
         void getScePadDeviceId(int padHandle, uint32_t& outResolvedId);
         bool getMMDeviceFromPadHandle(wchar_t const* containerInfo, IMMDevice*& outMmDevice);
@@ -79,6 +82,7 @@ namespace ITF
         u32 getGamePadCount() override;
         const char* GetControllerTypeName(u32 padIndex) const override;
         void UpdatePads() override;
+
     private:
         SDLInput m_sdlInput;
         i32 m_slotGamepad[JOY_MAX_COUNT];

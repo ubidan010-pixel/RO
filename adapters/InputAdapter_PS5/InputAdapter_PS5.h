@@ -34,6 +34,7 @@ namespace ITF
         SceUserServiceUserId getUserServiceIdFromPadIndex(u32 _pad) const;
 
         void updateAllInputState() override;
+        void handleControllerConnection(u32 _pad, bbool _connected);
 
         bbool isConnected(u8 _pad) const;
 
@@ -74,8 +75,12 @@ namespace ITF
             InputJoy_PS5::JoyType getType() const;
             i32 getPort(InputJoy_PS5::JoyType _type) const; // return sce id of the open port if positive, the sce error if negative, -1 for unknown JoyType
             InputJoy_PS5* getJoyPad() const; // nullptr if not connected or connected to an unknown device
-
+            i32 getDeviceId() {return m_dsPort;} // Haptics use port as ID
+            i32 getDeviceOutputId() {return m_userId;} // Controller Speaker uses user id as device output id
             ~JoyPadPort();
+            SceUserServiceUserId m_userId;
+            bbool hasNotifiedConnection() {return m_isNotifiedConnection;}
+            void setNotifiedConnection(bbool _notify) {m_isNotifiedConnection = _notify;}
 
         private:
             bbool createJoyPad();
@@ -85,6 +90,7 @@ namespace ITF
             bbool m_dsConnected = bfalse;
             i32 m_id = -1;
             InputJoy_PS5* m_joyConnected = nullptr;
+            bbool m_isNotifiedConnection = bfalse;
         };
 
         u32 getConnectedPadIndex (u32 _padIndex) const;

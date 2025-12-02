@@ -22,6 +22,7 @@ namespace ITF
     static constexpr uint32_t DUALSENSE_ID_MARKER = 0x80000000;
     static constexpr int32_t GUID_STRING_BUFFER_SIZE = 64;
     static constexpr f32 INPUT_DEADZONE = 0.2f;
+
     static InputAdapter::PadType MapSDLGamepadTypeToPadType(const SDL_Gamepad* gamepad)
     {
         if (!gamepad)
@@ -33,7 +34,7 @@ namespace ITF
         case SDL_GAMEPAD_TYPE_PS5:
             return InputAdapter::Pad_PS5;
         case SDL_GAMEPAD_TYPE_PS4:
-            return InputAdapter::Pad_PS5;
+            return InputAdapter::Pad_PS4;
         case SDL_GAMEPAD_TYPE_PS3:
             return InputAdapter::Pad_PS3;
         case SDL_GAMEPAD_TYPE_XBOX360:
@@ -53,14 +54,13 @@ namespace ITF
     }
 
 
-
     SDLGamepad::SDLGamepad()
         : m_gamepad(nullptr)
           , m_joystickId(0)
           , m_id(-1)
           , m_connected(false)
-          , deviceID(0)
-          , deviceOutputID(0)
+          , m_deviceID(-1)
+          , m_deviceOutputID(0)
     {
         memset(m_axes, 0, sizeof(m_axes));
         memset(m_buttons, 0, sizeof(m_buttons));
@@ -143,7 +143,6 @@ namespace ITF
         updateAxisState(
             m_joyTrigger_Right,
             static_cast<f32>(SDL_GetGamepadAxis(m_gamepad, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER)) / SDL_AXIS_MAX_VALUE);
-
     }
 
     void SDLGamepad::updateButtonState(u32 buttonIndex, bool pressed)
@@ -195,6 +194,9 @@ namespace ITF
         }
         m_connected = false;
         m_joystickId = 0;
+        m_deviceID = (u32)-1;
+        m_deviceOutputID = 0;
+        m_padType = InputAdapter::Pad_Invalid;
     }
 
     float SDLGamepad::getAxis(u32 _axis) const
@@ -289,18 +291,16 @@ namespace ITF
                 break;
             }
         }
-
-        for (auto& gamepad : m_gamepads)
+        for (int k = 0; k < JOY_MAX_COUNT; k++)
         {
+            auto& gamepad = m_gamepads[k];
             gamepad.updateInputState();
+            updateSonyControllerDeviceIds(k, gamepad);
         }
     }
 
     void SDLInput::setGamepadConnected(u32 index, bool connected, InputAdapter::PadType padType)
     {
-        m_adapter->setPadConnected(index, connected);
-        m_adapter->setPadType(index, padType);
-
         if (connected)
         {
             ++m_gamepadCount;
@@ -309,7 +309,6 @@ namespace ITF
         {
             --m_gamepadCount;
         }
-
         notifyDeviceConnectEvent(index, padType, connected);
     }
 
@@ -327,6 +326,7 @@ namespace ITF
             if (m_gamepads[i].initialize(i))
             {
                 InputAdapter::PadType padType = MapSDLGamepadTypeToPadType(m_gamepads[i].getGamepad());
+                m_gamepads[i].m_padType = padType;
                 setGamepadConnected(i, true, padType);
             }
             else
@@ -369,46 +369,71 @@ namespace ITF
         }
     }
 
-    void SDLInput::notifyDeviceConnectEvent(u32 padIndex, InputAdapter::PadType type, bbool isConnected)
+    void SDLInput::notifyDeviceConnectEvent(u32 padIndex, InputAdapter::PadType padType, bbool isConnected)
     {
+        SDLGamepad& gamepad = m_gamepads[padIndex];
+        gamepad.m_padType = padType;
+        bool isSonyController = padType == InputAdapter::Pad_PS4 || gamepad.m_padType == InputAdapter::Pad_PS5;
         if (!isConnected)
         {
             m_adapter->OnControllerDisconnected(padIndex);
-            return;
-        }
-
-        SDLGamepad& gamepad = m_gamepads[padIndex];
-
-        SDL_GamepadType sdlType = SDL_GetGamepadTypeForID(gamepad.getJoystickId());
-        bool isSonyController = (sdlType == SDL_GAMEPAD_TYPE_PS5 || sdlType == SDL_GAMEPAD_TYPE_PS4);
-
-        if (isSonyController)
-        {
-            initSonyControllerDeviceIds(gamepad);
+            if (isSonyController)
+            {
+                scePadClose(gamepad.m_deviceID);
+            }
+            gamepad.cleanup();
         }
         else
         {
-            gamepad.deviceID = padIndex;
+            if (isSonyController)
+            {
+                updateSonyControllerDeviceIds(padIndex, gamepad);
+            }
+            else
+            {
+                gamepad.m_deviceID = padIndex;
+                m_adapter->OnControllerConnected(padIndex, gamepad.m_deviceID, gamepad.m_deviceOutputID, gamepad.m_padType);
+            }
         }
-
-        m_adapter->OnControllerConnected(padIndex, gamepad.deviceID, gamepad.deviceOutputID, isSonyController);
+        m_adapter->setPadConnected(padIndex, isConnected);
+        m_adapter->setPadType(padIndex, padType);
     }
 
-    void SDLInput::initSonyControllerDeviceIds(SDLGamepad& gamepad)
+    bbool SDLInput::checkExistDeviceId(u32 deviceId)
     {
-        if (gamepad.deviceID != 0)
+        for (auto& contr : m_gamepads)
+        {
+            if (contr.m_deviceID == deviceId)
+            {
+                return btrue;
+            }
+        }
+        return bfalse;
+    }
+
+    void SDLInput::updateSonyControllerDeviceIds(u32 padIndex, SDLGamepad& gamepad)
+    {
+        if (!gamepad.isSonyController() || gamepad.m_deviceID != (u32)-1)
             return;
 
         for (int i = 0; i < JOY_MAX_COUNT; ++i)
         {
+            //  m_scePadHandles[i] = scePadOpen(SCE_USER_SERVICE_STATIC_USER_ID_1 + i, SCE_PAD_PORT_TYPE_STANDARD, 0, nullptr);
             int scePadHandle = m_scePadHandles[i];
-            uint32_t resolvedId = 0;
-            getScePadDeviceId(scePadHandle, resolvedId);
-
-            if (resolvedId != 0)
+            if (scePadHandle >= 0)
             {
-                gamepad.deviceID = scePadHandle;
-
+                bbool isExistingSonyDevice = checkExistDeviceId(scePadHandle);
+                if (isExistingSonyDevice)
+                {
+                    continue;
+                }
+                uint32_t resolvedId = 0;
+                getScePadDeviceId(scePadHandle, resolvedId);
+                if (resolvedId == 0)
+                {
+                    continue;
+                }
+                gamepad.m_deviceID = scePadHandle;
                 ScePadContainerIdInfo padContainerInfo;
                 int ret = scePadGetContainerIdInformation(scePadHandle, &padContainerInfo);
                 if (ret >= 0)
@@ -417,12 +442,13 @@ namespace ITF
                     if (getMMDeviceFromPadHandle(padContainerInfo.containerInfo, pMmDevice))
                     {
 #ifdef USE_PAD_HAPTICS
-                        gamepad.deviceOutputID = AUDIO_ADAPTER->getDeviceId(pMmDevice);
+                        gamepad.m_deviceOutputID = AUDIO_ADAPTER->getDeviceId(pMmDevice);
 #endif
                         if (pMmDevice)
                             pMmDevice->Release();
                     }
                 }
+                m_adapter->OnControllerConnected(padIndex, gamepad.m_deviceID, gamepad.m_deviceOutputID, gamepad.m_padType);
                 break;
             }
         }
@@ -439,8 +465,7 @@ namespace ITF
 
         for (int i = 0; i < SCE_USER_SERVICE_MAX_LOGIN_USERS; ++i)
         {
-            outScePadHandles[i] = scePadOpen(
-                SCE_USER_SERVICE_STATIC_USER_ID_1 + i, SCE_PAD_PORT_TYPE_STANDARD, 0, nullptr);
+            outScePadHandles[i] = scePadOpen(SCE_USER_SERVICE_STATIC_USER_ID_1 + i, SCE_PAD_PORT_TYPE_STANDARD, 0, nullptr);
         }
     }
 
@@ -453,10 +478,10 @@ namespace ITF
 
         if (ret != SCE_OK || padType == SCE_PAD_CONTROLLER_TYPE_NOT_CONNECTED)
             return;
-
-        outResolvedId = (padType == SCE_PAD_CONTROLLER_TYPE_DUALSENSE)
-                            ? (padHandle | DUALSENSE_ID_MARKER)
-                            : padHandle;
+        outResolvedId = padHandle;
+        // outResolvedId = (padType == SCE_PAD_CONTROLLER_TYPE_DUALSENSE)
+        //                     ? (padHandle | DUALSENSE_ID_MARKER)
+        //                     : padHandle;
     }
 
     bool SDLInput::getMMDeviceFromPadHandle(wchar_t const* containerInfo, IMMDevice*& outMmDevice)

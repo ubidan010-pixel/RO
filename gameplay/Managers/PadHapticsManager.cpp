@@ -1,4 +1,3 @@
-
 #include "precompiled_gameplay.h"
 #ifdef USE_PAD_HAPTICS
 #ifndef __AUDIOMIDDLEWAREADAPTER_H__
@@ -10,7 +9,7 @@
 namespace ITF
 {
     PadHapticsManager::PadHapticsManager() : m_enableHaptics(btrue)
-    ,m_enableControllerSpeaker(btrue)
+                                             , m_enableControllerSpeaker(btrue)
     {
     }
 
@@ -20,23 +19,22 @@ namespace ITF
 
     void PadHapticsManager::initialize()
     {
-
     }
 
     void PadHapticsManager::update(float dt)
     {
     }
 
-    void PadHapticsManager::onControllerConnected(u32 _padIndex,u32 _deviceID,u32 _deviceOutputID,bool _isSony)
+    void PadHapticsManager::onControllerConnected(u32 _padIndex, u32 _deviceID, u32 _deviceOutputID,InputAdapter::PadType _padType)
     {
-        m_devices[_padIndex] = {_deviceID,_deviceOutputID,_isSony};
+        m_devices[_padIndex] = {_deviceID, _deviceOutputID, _padType};
         if (m_enableHaptics)
         {
-            registerHaptics(_padIndex,_deviceID,_deviceOutputID,_isSony);
+           m_devices[_padIndex].regHaptics = registerHaptics(_padIndex, _deviceID, _deviceOutputID, _padType);
         }
         if (m_enableControllerSpeaker)
         {
-            registerControllerSpeaker(_padIndex,_deviceID,_deviceOutputID,_isSony);
+           m_devices[_padIndex].regSpeaker =  registerControllerSpeaker(_padIndex, _deviceID, _deviceOutputID, _padType);
         }
     }
 
@@ -53,12 +51,13 @@ namespace ITF
         for (const auto& pair : m_devices)
         {
             const u32 pad = pair.first;
-            const DeviceInfo& info = pair.second;
-            if (enable)
+            DeviceInfo info = pair.second;
+            if (enable && !info.regHaptics)
             {
-                registerHaptics(pad,info.deviceID,info.deviceOutputID,info.isSony);
+                bbool isSuccess = registerHaptics(pad, info.deviceID, info.deviceOutputID, info.padType);
+                info.regHaptics = isSuccess;
             }
-            else
+            else if (!enable && info.regHaptics)
             {
                 unregisterHaptics(pad);
             }
@@ -69,15 +68,16 @@ namespace ITF
 
     void PadHapticsManager::enableControllerSpeaker(bbool enable)
     {
-        for (const auto& pair : m_devices)
+        for (auto& pair : m_devices)
         {
             const u32 pad = pair.first;
-            const DeviceInfo& info = pair.second;
-            if (enable)
+            DeviceInfo info = pair.second;
+            if (enable && !info.regSpeaker)
             {
-                registerControllerSpeaker(pad, info.deviceID, info.deviceOutputID, info.isSony);
+                bbool isSuccess = registerControllerSpeaker(pad, info.deviceID, info.deviceOutputID, info.padType);
+                info.regSpeaker = isSuccess;
             }
-            else
+            else if (!enable && info.regSpeaker)
             {
                 unregisterControllerSpeaker(pad);
             }
@@ -87,24 +87,25 @@ namespace ITF
     void PadHapticsManager::onSoundBankLoaded()
     {
     }
-    void PadHapticsManager::registerHaptics(u32 _padIndex,u32 _deviceID,u32 _deviceOutputID,bool isSony)
+
+    bbool PadHapticsManager::registerHaptics(u32 _padIndex, u32 _deviceID, u32 _deviceOutputID, InputAdapter::PadType _padType)
     {
-        AUDIO_ADAPTER->registerHaptics(_padIndex,_deviceID,_deviceOutputID,isSony);
+        return AUDIO_ADAPTER->registerHaptics(_padIndex, _deviceID, _deviceOutputID, _padType);
     }
 
-    void PadHapticsManager::unregisterHaptics(uint32_t _pad)
+    bbool PadHapticsManager::unregisterHaptics(uint32_t _pad)
     {
-        AUDIO_ADAPTER->unregisterHaptics(_pad);
+        return AUDIO_ADAPTER->unregisterHaptics(_pad);
     }
 
-    void PadHapticsManager::registerControllerSpeaker(u32 _padIndex,u32 _deviceID,u32 _deviceOutputID,bool isSony)
+    bbool PadHapticsManager::registerControllerSpeaker(u32 _padIndex, u32 _deviceID, u32 _deviceOutputID, InputAdapter::PadType _padType)
     {
-        AUDIO_ADAPTER->registerControllerSpeaker(_padIndex,_deviceID,_deviceOutputID,isSony);
+        return AUDIO_ADAPTER->registerControllerSpeaker(_padIndex, _deviceID, _deviceOutputID, _padType);
     }
 
-    void PadHapticsManager::unregisterControllerSpeaker(uint32_t _pad)
+    bbool PadHapticsManager::unregisterControllerSpeaker(uint32_t _pad)
     {
-        AUDIO_ADAPTER->unregisterControllerSpeaker(_pad);
+        return AUDIO_ADAPTER->unregisterControllerSpeaker(_pad);
     }
 
     PadHapticsManager* PadHapticsManager::s_instance = NULL;

@@ -4,13 +4,18 @@
 #ifndef _ITF_TEMPLATESINGLETON_H_
 #include "core/templateSingleton.h"
 #endif // ITF_TEMPLATESINGLETON_H_
-#if defined(USE_PAD_HAPTICS)&& defined(ITF_WINDOWS)
+#if defined(USE_PAD_HAPTICS)
+#if defined(ITF_WINDOWS)
 #include <mmdeviceapi.h>
 #endif
+#include "engine/AdaptersInterfaces/InputAdapter.h"
+#endif
+
 #include "engine/AdaptersInterfaces/AudioMiddlewareAdapter_Types.h"
 #include "core/serializer/ObjectFactory.h"
 #include "engine/events/IEventListener.h"
 #include "core/AdaptersInterfaces/SystemAdapter.h"
+
 
 #if defined ITF_X360 || defined ITF_DURANGO
 struct IXAudio2;
@@ -139,9 +144,9 @@ namespace	ITF
             virtual SoftwareBus* getBus(const StringID _name) = 0;
 
 #ifdef USE_PAD_HAPTICS
-	   virtual bbool registerHaptics(u32 _pad,u32 _deviceId,u32 _deviceOutputId,bbool _isSony){return bfalse;};
+	   virtual bbool registerHaptics(u32 _pad,u32 _deviceId,u32 _deviceOutputId,InputAdapter::PadType _padType){return bfalse;};
 	   virtual bbool unregisterHaptics(u32 _pad){return bfalse;};
-	   virtual bbool registerControllerSpeaker(u32 _pad,u32 _deviceId,u32 _deviceOutputId,bbool _isSony){return bfalse;};
+	   virtual bbool registerControllerSpeaker(u32 _pad,u32 _deviceId,u32 _deviceOutputId,InputAdapter::PadType _padType){return bfalse;};
 	   virtual bbool unregisterControllerSpeaker(u32 _pad){return bfalse;};
 #if defined(ITF_WINDOWS)
 	    virtual u32 getDeviceId(IMMDevice* _imDevice) {return 0;};

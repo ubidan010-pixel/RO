@@ -20,7 +20,7 @@
 
 
 #if defined(ITF_SUPPORT_WWISE)
-#if defined(ITF_WINDOWS)
+#if defined(ITF_WINDOWS) || defined(ITF_PS5)
 #define USE_PAD_HAPTICS
 #define ITF_LOG_SOUND_EVENTS
 #endif

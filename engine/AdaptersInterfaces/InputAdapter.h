@@ -262,6 +262,7 @@ namespace ITF
             Pad_WiiClassic,
             Pad_Vita,
             Pad_CTR,
+            Pad_PS4,
             Pad_PS5,
             Pad_NX_Joycon,
             Pad_NX_Joycon_Dual,
@@ -583,7 +584,7 @@ namespace ITF
         virtual u16 GetTPPosY() { return 0; }
         //CASA>
 
-        virtual void OnControllerConnected(u32 _padIndex,i32 _deviceID= -1,i32 _deviceOutputID =-1,bool isSony = false);
+        virtual void OnControllerConnected(u32 _padIndex,u32 _deviceID= -1,u32 _deviceOutputID = 0,PadType _padType = Pad_Invalid);
         virtual void OnControllerDisconnected(u32 _padIndex);
         void SetKeyboardControllerSharing(bbool enabled) { m_keyboardShareEnabled = enabled; }
         bbool IsKeyboardControllerSharingEnabled() const { return m_keyboardShareEnabled; }

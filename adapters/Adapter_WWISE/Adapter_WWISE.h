@@ -386,9 +386,9 @@ namespace	ITF
 #endif
 #ifdef USE_PAD_HAPTICS
     public:
-	    bbool registerHaptics(u32 _pad,u32 _deviceId,u32 _deviceOutputId,bbool _isSony) override;
+	    bbool registerHaptics(u32 _pad,u32 _deviceId,u32 _deviceOutputId,InputAdapter::PadType _padType) override;
 	    bbool unregisterHaptics(u32 _pad) override;
-	    bbool registerControllerSpeaker(u32 _pad,u32 _deviceId,u32 _deviceOutputId,bbool _isSony) override;
+	    bbool registerControllerSpeaker(u32 _pad,u32 _deviceId,u32 _deviceOutputId,InputAdapter::PadType _padType) override;
 	    bbool unregisterControllerSpeaker(u32 _pad) override;
 #ifdef ITF_WINDOWS
 	    u32 getDeviceId(IMMDevice* _imDevice) override;
