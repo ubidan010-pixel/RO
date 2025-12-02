@@ -36,8 +36,9 @@ namespace ITF
         static Ray_ControlsRemappingMenuHelper* getActiveHelper();
         void updateRemappingMode(f32 deltaTime);
 
-#if defined(ITF_WINDOWS)
         static bbool handleExternalEditingInput(UIComponent* component, const StringID& action);
+
+#if defined(ITF_WINDOWS)
         bbool processEditingInput(UIComponent* component, const StringID& action);
 #endif
 
