@@ -48,7 +48,7 @@ namespace ITF
         void onMenuItemAction(UIComponent* _UIComponent) override;
         void UpdateMenuOnSelectionChange(UIComponent* uiComponent, bbool isSelected) override;
         void updateTimer();
-        ObjectRef getNavigationOverrideTarget(UIComponent* current, f32 joyX, f32 joyY);
+        ObjectRef getNavigationOverrideTarget(UIComponent* current, f32 joyX, f32 joyY) override;
 
     protected:
         void onActivate() override;
