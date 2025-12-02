@@ -45,6 +45,8 @@ namespace ITF
         bbool handleAccept(const StringID& id);
         bbool handleCancel(const StringID& id);
         bbool handleIconAction(const StringID& id, UIComponent* component);
+        bbool handleResetToDefault(const StringID& id);
+        bbool parseResetButtonId(const StringID& id, u32& outPlayerIndex);
         void startRemappingMode(u32 playerIndex, ZInputManager::EGameAction action, UIComponent* component);
         bbool parseIconId(const StringID& id, u32& outPlayerIndex, ZInputManager::EGameAction& outAction);
         void clearIconDisplay(UIComponent* component);

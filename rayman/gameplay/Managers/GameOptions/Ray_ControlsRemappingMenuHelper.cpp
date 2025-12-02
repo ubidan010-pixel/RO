@@ -94,6 +94,11 @@ namespace ITF
 #define ICON_PLAYER4_HIT    ITF_GET_STRINGID_CRC(player4_hit_icon,3161019062)
 #define ICON_PLAYER4_BACK   ITF_GET_STRINGID_CRC(player4_back_icon,1461371878)
 
+#define RESET_PLAYER1_BUTTON ITF_GET_STRINGID_CRC(player1_reset_to_default,3165421879)
+#define RESET_PLAYER2_BUTTON ITF_GET_STRINGID_CRC(player2_reset_to_default,2129089661)
+#define RESET_PLAYER3_BUTTON ITF_GET_STRINGID_CRC(player3_reset_to_default,829246893)
+#define RESET_PLAYER4_BUTTON ITF_GET_STRINGID_CRC(player4_reset_to_default,1984975433)
+
     struct IconMapping
     {
         StringID iconId;
@@ -227,6 +232,8 @@ namespace ITF
         const StringID componentId = component->getID();
         if (handleAccept(componentId) || handleCancel(componentId))
             return;
+        if (actorId.isValid() && handleResetToDefault(actorId))
+            return;
 #if defined(ITF_WINDOWS)
         if (actorId.isValid() && handleControllerTypeAction(actorId, component))
             return;
@@ -249,6 +256,56 @@ namespace ITF
         if (id != CONTROLSREMAPPING_CANCEL_BUTTON)
             return bfalse;
         closeAndReturn();
+        return btrue;
+    }
+
+    bbool Ray_ControlsRemappingMenuHelper::parseResetButtonId(const StringID& id, u32& outPlayerIndex)
+    {
+        if (id == RESET_PLAYER1_BUTTON)
+        {
+            outPlayerIndex = 0;
+            return btrue;
+        }
+        if (id == RESET_PLAYER2_BUTTON)
+        {
+            outPlayerIndex = 1;
+            return btrue;
+        }
+        if (id == RESET_PLAYER3_BUTTON)
+        {
+            outPlayerIndex = 2;
+            return btrue;
+        }
+        if (id == RESET_PLAYER4_BUTTON)
+        {
+            outPlayerIndex = 3;
+            return btrue;
+        }
+        return bfalse;
+    }
+
+    bbool Ray_ControlsRemappingMenuHelper::handleResetToDefault(const StringID& id)
+    {
+        u32 playerIndex = 0;
+        if (!parseResetButtonId(id, playerIndex))
+            return bfalse;
+        if (UI_MENUMANAGER)
+        {
+            u32 inputPlayer = UI_MENUMANAGER->getCurrentInputPlayer();
+            if (inputPlayer != U32_INVALID && inputPlayer != playerIndex)
+            {
+                LOG("[ControlsRemapping] Rejected: Controller %d cannot reset Player %d controls\n",
+                    inputPlayer + 1, playerIndex + 1);
+                return btrue;
+            }
+        }
+
+        if (GAMEMANAGER && GAMEMANAGER->getInputManager())
+        {
+            GAMEMANAGER->getInputManager()->ResetRemapping(playerIndex);
+            LOG("[ControlsRemapping] Reset controls to default for Player %d\n", playerIndex + 1);
+        }
+
         return btrue;
     }
 
