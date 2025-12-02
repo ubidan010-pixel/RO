@@ -143,10 +143,14 @@ namespace ITF
 
         if (m_isEditing)
         {
+#if defined(ITF_WINDOWS)
             if (!Ray_ControlsRemappingMenuHelper::handleExternalEditingInput(this, action))
             {
                 Ray_OptionMenuHelper::handleExternalEditingInput(this, action);
             }
+#else
+            Ray_OptionMenuHelper::handleExternalEditingInput(this, action);
+#endif
         }
     }
 
