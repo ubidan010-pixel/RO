@@ -794,6 +794,7 @@ namespace ITF
             SAVEGAME_ADAPTER->signalForDeleteCorruptedFile(
                 (currentButtonID == buttonYes) ? Adapter_Savegame::CorruptedFile_Delete :
                 Adapter_Savegame::CorruptedFile_Cancel);
+            break;
         }
         case TRCManagerAdapter::UOR_WelcomeMessage:
         {
