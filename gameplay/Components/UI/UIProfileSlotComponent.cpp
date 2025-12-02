@@ -81,7 +81,7 @@ namespace ITF
 
         if (EVENTMANAGER)
         {
-            EVENTMANAGER->registerEvent(ITF_GET_STRINGID_CRC(EventControllerStateChanged, 1847293651), this);
+            EVENTMANAGER->registerEvent(ITF_GET_STRINGID_CRC(EventControllerStateChanged, 3543189344), this);
             m_eventListenerRegistered = btrue;
         }
     }
@@ -93,7 +93,7 @@ namespace ITF
 
         if (EVENTMANAGER)
         {
-            EVENTMANAGER->unregisterEvent(ITF_GET_STRINGID_CRC(EventControllerStateChanged, 1847293651), this);
+            EVENTMANAGER->unregisterEvent(ITF_GET_STRINGID_CRC(EventControllerStateChanged, 3543189344), this);
             m_eventListenerRegistered = bfalse;
         }
     }

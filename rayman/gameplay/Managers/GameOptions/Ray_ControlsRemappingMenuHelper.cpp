@@ -217,7 +217,6 @@ namespace ITF
         }
 #endif
 
-        UI_MENUMANAGER->showMenuPage(GAMEINTERFACE->getGameMenuPriority(), m_menuBaseName, btrue, this);
     }
 
     void Ray_ControlsRemappingMenuHelper::onMenuItemAction(UIComponent* component)

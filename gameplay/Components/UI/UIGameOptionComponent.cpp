@@ -1,7 +1,5 @@
 #include "precompiled_gameplay.h"
 
-#include "rayman/gameplay/Managers/GameOptions/Ray_GameOptionNames.h"
-
 #ifndef _ITF_UIGAMEOPTIONCOMPONENT_H_
 #include "gameplay/components/UI/UIGameOptionComponent.h"
 #endif //_ITF_UIGAMEOPTIONCOMPONENT_H_
@@ -22,14 +20,6 @@
 #include "engine/actors/actorcomponent.h"
 #endif //_ITF_ACTORCOMPONENT_H_
 
-#ifndef _ITF_UIMENU_H_
-#include "gameplay/components/UI/UIMenu.h"
-#endif //_ITF_UIMENU_H_
-
-#ifndef _ITF_UIMENUMANAGER_H_
-#include "engine/actors/managers/UIMenuManager.h"
-#endif //_ITF_UIMENUMANAGER_H_
-
 namespace ITF
 {
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -37,7 +27,6 @@ namespace ITF
     BEGIN_SERIALIZATION_CHILD(UIGameOptionComponent)
         BEGIN_CONDITION_BLOCK(ESerializeGroup_DataEditable)
             SERIALIZE_MEMBER("labelPath", m_labelPath);
-            SERIALIZE_MEMBER("subMenuTextId", m_subMenuTextIdPath);
         END_CONDITION_BLOCK()
     END_SERIALIZATION()
 
@@ -46,8 +35,6 @@ namespace ITF
     : Super()
     , m_labelActor(NULL)
     , m_labelColorsApplied(bfalse)
-    , m_subMenuActor(NULL)
-    , m_subMenuComponent(NULL)
     , m_selectionInitialized(bfalse)
     , m_wasSelected(bfalse)
     {
@@ -64,8 +51,6 @@ namespace ITF
     {
         m_labelActor = NULL;
         m_labelColorsApplied = bfalse;
-        m_subMenuActor = NULL;
-        m_subMenuComponent = NULL;
         m_selectionInitialized = bfalse;
         m_wasSelected = bfalse;
     }
@@ -163,7 +148,6 @@ namespace ITF
     {
         Super::onActorLoaded(_hotReload);
         resolveLabelActor();
-        resolveSubMenuActor();
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -189,8 +173,6 @@ namespace ITF
             m_wasSelected = isSelected;
             m_selectionInitialized = btrue;
         }
-
-        updateSubMenuTextColor();
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -244,68 +226,6 @@ namespace ITF
     void UIGameOptionComponent::onAction(const StringID & action)
     {
         Super::onAction(action);
-    }
-
-    void UIGameOptionComponent::resolveSubMenuActor()
-    {
-        m_subMenuActor = NULL;
-        m_subMenuComponent = NULL;
-
-        if (m_subMenuTextIdPath.isEmpty())
-            return;
-
-        ObjectPath subMenuPath;
-        ITF_STDSTRING pathStr = m_subMenuTextIdPath.cStr();
-        subMenuPath.fromString(pathStr);
-
-        if (!subMenuPath.isValid())
-            return;
-
-        Pickable* pickable = NULL;
-        if (subMenuPath.getIsAbsolute())
-        {
-            pickable = SceneObjectPathUtils::getObjectFromAbsolutePath(subMenuPath);
-        }
-        else
-        {
-            pickable = SceneObjectPathUtils::getObjectFromRelativePath(m_actor, subMenuPath);
-        }
-
-        if (pickable)
-        {
-            m_subMenuActor = pickable->DynamicCast<Actor>(ITF_GET_STRINGID_CRC(Actor, 2546623115));
-            if (m_subMenuActor)
-            {
-                m_subMenuComponent = m_subMenuActor->GetComponent<UIComponent>();
-            }
-        }
-    }
-
-    void UIGameOptionComponent::updateSubMenuTextColor()
-    {
-        if (!m_subMenuComponent || m_subMenuTextIdPath.isEmpty() || !UI_MENUMANAGER)
-            return;
-
-        UIMenu* menu = UI_MENUMANAGER->getMenu(OPTION_MENU_NAME);
-        if (!menu)
-            return;
-
-        bbool highlight = bfalse;
-        UIComponent* selectedComponent = menu->getUIComponentSelected();
-        if (selectedComponent)
-        {
-            UIGameOptionComponent* selectedOption = selectedComponent->DynamicCast<UIGameOptionComponent>(ITF_GET_STRINGID_CRC(UIGameOptionComponent, 3059104641));
-            if (selectedOption && selectedOption->getSubMenuTextIdPath() == m_subMenuTextIdPath)
-            {
-                highlight = btrue;
-            }
-        }
-
-        static const Color whiteColor = Color::white();
-        static const Color yellowColor = Color(0xfffd931a);
-
-        m_subMenuComponent->m_hasColorOverride = btrue;
-        m_subMenuComponent->m_overrideTextColor = highlight ? whiteColor : yellowColor;
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////

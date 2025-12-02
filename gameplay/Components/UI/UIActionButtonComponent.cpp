@@ -38,7 +38,8 @@ namespace ITF
     ///////////////////////////////////////////////////////////////////////////////////////////
     void UIActionButtonComponent::onActorLoaded(Pickable::HotReloadType _hotReload)
     {
-        Super::onActorLoaded(_hotReload);
+        ActorComponent::onActorLoaded(_hotReload);
+        
         if (!m_highlightBgPath.isEmpty() && m_actor)
         {
             Scene* scene = m_actor->getScene();
