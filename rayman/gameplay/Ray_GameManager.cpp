@@ -12082,7 +12082,7 @@ namespace ITF
 
         if (INPUT_ADAPTER)
         {
-            INPUT_ADAPTER->SetPCControlMode(static_cast<InputAdapter::PCControlMode>(type));
+            INPUT_ADAPTER->SetPCControlMode(static_cast<PCControlMode>(type));
         }
     }
 
