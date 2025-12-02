@@ -52,7 +52,9 @@ namespace ITF
 
     InputAdapter::InputAdapter() :
         m_focused(true),
-        m_keyboardShareEnabled(btrue),
+#if defined(ITF_WINDOWS)
+        m_pcControlMode(PCControlMode_Hybrid),
+#endif
         m_useShakeAttack(bfalse),
         m_threshold(0.0f),
         m_delay(0.0f),
@@ -108,6 +110,14 @@ namespace ITF
 
         std::fill(m_PadType, m_PadType + ITF_ARRAY_SIZE(m_PadType), getDefaultPadType());
     }
+
+#if defined(ITF_WINDOWS)
+    void InputAdapter::SetPCControlMode(PCControlMode mode)
+    {
+        const u32 clampedMode = std::min<u32>(static_cast<u32>(mode), static_cast<u32>(PCControlMode_Count - 1));
+        m_pcControlMode = static_cast<PCControlMode>(clampedMode);
+    }
+#endif
 
     void InputAdapter::addListener(Interface_InputListener* _listener, u32 _priority)
     {

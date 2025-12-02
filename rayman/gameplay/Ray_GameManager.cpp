@@ -12082,8 +12082,7 @@ namespace ITF
 
         if (INPUT_ADAPTER)
         {
-            bbool sharingEnabled = (type == PCControlMode_Hybrid);
-            INPUT_ADAPTER->SetKeyboardControllerSharing(sharingEnabled);
+            INPUT_ADAPTER->SetPCControlMode(static_cast<InputAdapter::PCControlMode>(type));
         }
     }
 
