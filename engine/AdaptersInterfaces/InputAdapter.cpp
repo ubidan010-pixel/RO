@@ -114,8 +114,20 @@ namespace ITF
 #if defined(ITF_WINDOWS)
     void InputAdapter::SetPCControlMode(PCControlMode mode)
     {
+        const PCControlMode previousMode = m_pcControlMode;
         const u32 clampedMode = std::min<u32>(static_cast<u32>(mode), static_cast<u32>(PCControlMode_Count - 1));
         m_pcControlMode = static_cast<PCControlMode>(clampedMode);
+
+        if (m_pcControlMode != previousMode)
+        {
+            OnPCControlModeChanged(previousMode, m_pcControlMode);
+        }
+    }
+
+    void InputAdapter::OnPCControlModeChanged(PCControlMode previous, PCControlMode current)
+    {
+        ITF_UNUSED(previous);
+        ITF_UNUSED(current);
     }
 #endif
 
