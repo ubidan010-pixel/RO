@@ -83,6 +83,9 @@ namespace ITF
         const char* GetControllerTypeName(u32 padIndex) const override;
         void UpdatePads() override;
 
+    protected:
+        void OnPCControlModeChanged(PCControlMode previous, PCControlMode current) override;
+
     private:
         SDLInput m_sdlInput;
         i32 m_slotGamepad[JOY_MAX_COUNT];

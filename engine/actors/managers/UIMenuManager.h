@@ -99,12 +99,13 @@ namespace ITF
 
 		virtual void Receive( u32 player, f32 axis, const StringID& action ) ;
 #if defined(ITF_WINDOWS) && (defined(ITF_FINAL) || ITF_ENABLE_EDITOR_KEYBOARD)
-		UIComponent* getUIComponentUnderMouse();
+                UIComponent* getUIComponentUnderMouse();
         bbool IsCurrentMenuVerticalScrolling() const;
-		virtual bbool onMouseButton( InputAdapter::MouseButton but, InputAdapter::PressStatus status );
-		virtual bbool onMousePos ( i32 x, i32 y );
-		virtual bbool onMouseWheel ( i32 wheelValue, i32 wheelDelta );
-		virtual bbool onKey ( i32 key, InputAdapter::PressStatus status );
+        bbool IsMouseInputAllowed() const;
+                virtual bbool onMouseButton( InputAdapter::MouseButton but, InputAdapter::PressStatus status );
+                virtual bbool onMousePos ( i32 x, i32 y );
+                virtual bbool onMouseWheel ( i32 wheelValue, i32 wheelDelta );
+                virtual bbool onKey ( i32 key, InputAdapter::PressStatus status );
 #endif // ITF_WINDOWS && ITF_FINAL
 
         //

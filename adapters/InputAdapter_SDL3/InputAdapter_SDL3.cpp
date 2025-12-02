@@ -738,6 +738,31 @@ namespace ITF
         setPadConnected(0, btrue);
     }
 
+    void InputAdapter_SDL3::OnPCControlModeChanged(PCControlMode previous, PCControlMode current)
+    {
+        ITF_UNUSED(previous);
+
+        if (current != PCControlMode_Keyboard)
+            return;
+
+        m_slotGamepad[0] = -1;
+
+        for (u32 axis = 0; axis < JOY_MAX_AXES; ++axis)
+        {
+            m_axes[0][axis] = 0.0f;
+        }
+
+        for (u32 button = 0; button < JOY_MAX_BUT; ++button)
+        {
+            m_buttons[0][button] = Released;
+        }
+
+        setPadType(0, Pad_Keyboard);
+        m_connectedPlayers[0] = ePlaying;
+        setPadConnected(0, btrue);
+        setLastUsedInputDevice(0, InputDevice_Keyboard);
+    }
+
     const char* InputAdapter_SDL3::GetControllerTypeName(u32 padIndex) const
     {
         if (padIndex >= JOY_MAX_COUNT) return "Unknown";
