@@ -849,16 +849,29 @@ namespace ITF
 
     void GFXAdapter_DX12::lockTexture(Texture* _tex, LOCKED_TEXTURE* _lockTex, u32 _flag)
     {
-        ITF_NOT_IMPLEMENTED();
-        // might need a gpu sync here
+        DX12::Texture* dx12 = static_cast<DX12::Texture*>(_tex->m_adapterimplementationData);
+        D3D12_RANGE range{ 0, 0 };
+        void* ptr = nullptr;
+        HRESULT hr = dx12->getResource()->Map(0, &range, &ptr);
+        ITF_ASSERT(SUCCEEDED(hr));
+        _lockTex->mp_Bits = ptr;
+
+        const u32 bpp = 1;
+        const u32 rowSize = _tex->getSizeX() * bpp;
+
+        constexpr u32 PitchAlign = D3D12_TEXTURE_DATA_PITCH_ALIGNMENT;
+        const u32 rowPitch = (rowSize + (PitchAlign - 1)) & ~(PitchAlign - 1);
+
+        _lockTex->m_pitch = rowPitch;
     }
 
     //----------------------------------------------------------------------------//
 
     void GFXAdapter_DX12::unlockTexture(Texture* _tex)
     {
-        ITF_NOT_IMPLEMENTED();
-        // might need a gpu sync here
+        DX12::Texture* dx12 = static_cast<DX12::Texture*>(_tex->m_adapterimplementationData);
+        D3D12_RANGE written{ 0, 0 };
+        dx12->getResource()->Unmap(0, &written);
     }
 
     //----------------------------------------------------------------------------//
@@ -1016,10 +1029,6 @@ namespace ITF
 
     void GFXAdapter_DX12::createTexture(Texture* _texture, u32 _sizeX, u32 _sizeY, u32 _mipLevel, Texture::PixFormat _pixformat, u32 _pool, bbool _dynamic)
     {
-        ITF_ASSERT(false); // TODO => used for bink, analyze what's need to be done here.
-        // Current code is creating a D3D12_HEAP_TYPE_UPLOAD texture, which is not correct for shader sampling.
-
-        // Nothing done to handle pool and dynamic for now.
         ITF_ASSERT(_pool == 1);
         ITF_ASSERT(_dynamic == false);
 

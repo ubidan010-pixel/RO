@@ -55,6 +55,8 @@ namespace  ITF
     #else
         #error "Platform not supported"
     #endif
+#elif defined(ITF_XBOX_SERIES) //||  defined(ITF_WINDOWS)
+    #include "engine/video/videoHandle_dx12.h"
 #else
 //not supported
 

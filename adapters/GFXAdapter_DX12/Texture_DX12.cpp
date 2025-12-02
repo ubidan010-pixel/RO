@@ -262,9 +262,6 @@ namespace ITF::DX12
         texture.m_descriptorHandle = _texPool.registerTexture(texture.m_resource.Get(), texture.getDebugName());
         texture.m_desc = texture.m_resource->GetDesc();
 
-        texture.m_descriptorHandle = _texPool.registerTexture(texture.m_resource.Get(), texture.getDebugName());
-        texture.m_desc = texture.m_resource->GetDesc();
-
         return texture;
     }
 

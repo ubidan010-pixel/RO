@@ -49,6 +49,11 @@
 #include "engine/gameplay/musicmanager.h"
 #endif //_ITF_MUSICMANAGER_H_
 
+#ifndef USE_PAD_HAPTICS
+#include <AK/Plugin/AkMotionSinkFactory.h>
+#include <AK/Plugin/AkMotionSourceSourceFactory.h>
+#endif
+
 #include "engine/sound/InstanceManager.h"
 
 #include "AK/Plugin/AllPluginsFactories.h"

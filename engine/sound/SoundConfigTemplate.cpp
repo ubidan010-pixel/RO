@@ -42,7 +42,7 @@ namespace ITF
         AUDIO_ADAPTER->prepareBank("UI.bnk");
         AUDIO_ADAPTER->prepareBank("Introduction.bnk");
         AUDIO_ADAPTER->prepareBank("Music.bnk");
-        AUDIO_ADAPTER->prepareBank("Music_world.bnk");
+        AUDIO_ADAPTER->prepareBank("MusicW.bnk");
         AUDIO_ADAPTER->prepareBank("Jungle.bnk");
         AUDIO_ADAPTER->prepareBank("Cinematic.bnk");
         AUDIO_ADAPTER->prepareBank("Global.bnk");
@@ -55,8 +55,7 @@ namespace ITF
         AUDIO_ADAPTER->loadBank("PlayableCharactere.bnk", this);
         AUDIO_ADAPTER->loadBank("UI.bnk", this);
         AUDIO_ADAPTER->loadBank("Introduction.bnk", this);
-        AUDIO_ADAPTER->loadBank("Music.bnk", this);
-        AUDIO_ADAPTER->loadBank("Music_world.bnk", this);
+        AUDIO_ADAPTER->loadBank("MusicW.bnk", this);
         AUDIO_ADAPTER->loadBank("Jungle.bnk", this);
         AUDIO_ADAPTER->loadBank("Cinematic.bnk", this);
         AUDIO_ADAPTER->loadBank("Global.bnk", this);
@@ -65,6 +64,7 @@ namespace ITF
         AUDIO_ADAPTER->loadBank("Mountain.bnk", this);
         AUDIO_ADAPTER->loadBank("LandofTheDead.bnk", this);
         AUDIO_ADAPTER->loadBank("Ocean.bnk", this);
+        AUDIO_ADAPTER->loadBank("Music.bnk", this);
 #endif
 
 #endif
@@ -79,7 +79,7 @@ namespace ITF
         AUDIO_ADAPTER->unprepareBank("UI.bnk");
         AUDIO_ADAPTER->unprepareBank("Introduction.bnk");
         AUDIO_ADAPTER->unprepareBank("Music.bnk");
-        AUDIO_ADAPTER->unprepareBank("Music_world.bnk");
+        AUDIO_ADAPTER->unprepareBank("MusicW.bnk");
         AUDIO_ADAPTER->unprepareBank("Jungle.bnk");
         AUDIO_ADAPTER->unprepareBank("Cinematic.bnk");
         AUDIO_ADAPTER->unprepareBank("Global.bnk");
@@ -93,7 +93,7 @@ namespace ITF
         AUDIO_ADAPTER->unloadBank("UI.bnk", this);
         AUDIO_ADAPTER->unloadBank("Introduction.bnk", this);
         AUDIO_ADAPTER->unloadBank("Music.bnk", this);
-        AUDIO_ADAPTER->unloadBank("Music_world.bnk", this);
+        AUDIO_ADAPTER->unloadBank("MusicW.bnk", this);
         AUDIO_ADAPTER->unloadBank("Jungle.bnk", this);
         AUDIO_ADAPTER->unloadBank("Cinematic.bnk", this);
         AUDIO_ADAPTER->unloadBank("Global.bnk", this);

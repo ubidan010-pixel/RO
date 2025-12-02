@@ -136,6 +136,8 @@ namespace ITF
     #ifdef ITF_XBOX_SERIES
         case GFX_TRIANGLE_FAN:
             return D3D_PRIMITIVE_TOPOLOGY_TRIANGLEFAN; // Xbox extension
+        case GFX_QUADS:
+            return D3D_PRIMITIVE_TOPOLOGY_QUADLIST;
     #endif
         default:
             break;
