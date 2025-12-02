@@ -6,6 +6,7 @@
 #include "engine/AdaptersInterfaces/WinInputAdapter.h"
 #endif //_ITF_WININPUTADAPTER_H_
 
+#include <algorithm>
 #include <limits>
 
 #ifndef ITF_SYSTEMADAPTER_WIN_H_
@@ -275,7 +276,14 @@ namespace ITF
     {
 #if defined(ITF_FINAL) || ITF_ENABLE_EDITOR_KEYBOARD
         bbool hasKeyboardInput = bfalse;
-        
+
+        if (!IsKeyboardMouseEnabled())
+        {
+            std::fill(m_keyStatus, m_keyStatus + KEY_COUNT, Released);
+            std::fill(m_keyPressTime, m_keyPressTime + KEY_COUNT, 0u);
+            return;
+        }
+
         for (u32 keyIndex = 0; keyIndex < KEY_COUNT; ++keyIndex)
         {
             const int pressed = GetKeyState(keyIndex) & 0x80;
