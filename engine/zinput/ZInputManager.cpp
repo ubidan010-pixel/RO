@@ -279,6 +279,38 @@ namespace ITF
         }
     }
 
+    bbool ZInputManager::IsActionRemapAllowed(EGameAction _action, u32 _physicalControl) const
+    {
+        const auto isDirectionalControl = [](u32 control) {
+            switch (control)
+            {
+            case ZPad_Base::DPAD_UP:
+            case ZPad_Base::DPAD_DOWN:
+            case ZPad_Base::DPAD_LEFT:
+            case ZPad_Base::DPAD_RIGHT:
+            case ZPad_Base::STICK_L_UP:
+            case ZPad_Base::STICK_L_DOWN:
+            case ZPad_Base::STICK_L_LEFT:
+            case ZPad_Base::STICK_L_RIGHT:
+            case ZPad_Base::STICK_R_UP:
+            case ZPad_Base::STICK_R_DOWN:
+            case ZPad_Base::STICK_R_LEFT:
+            case ZPad_Base::STICK_R_RIGHT:
+                return btrue;
+            default:
+                return bfalse;
+            }
+        };
+
+        const bbool isDirectionalAction = (_action == Action_Up || _action == Action_Down || _action == Action_Left || _action == Action_Right);
+        if (isDirectionalAction)
+        {
+            return isDirectionalControl(_physicalControl);
+        }
+
+        return !isDirectionalControl(_physicalControl);
+    }
+
     void ZInputManager::SetActionRemap(u32 _playerIndex, EGameAction _action, u32 _physicalControl)
     {
         const auto remapDirectionalGroup = [&](u32 upControl, u32 downControl, u32 leftControl, u32 rightControl)
@@ -335,8 +367,14 @@ namespace ITF
                 return;
 
             default:
-                break;
+                LOG("[ZInputManager] SetActionRemap rejected: Action %d cannot use Physical %d\n", _action, _physicalControl);
+                return;
             }
+        }
+        else if (!IsActionRemapAllowed(_action, _physicalControl))
+        {
+            LOG("[ZInputManager] SetActionRemap rejected: Action %d cannot use Physical %d\n", _action, _physicalControl);
+            return;
         }
 
         u32 logicalControl = GetStandardControlFromAction(_action);
