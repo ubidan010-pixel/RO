@@ -425,6 +425,12 @@ namespace ITF
             return;
         }
 
+        if (!inputManager->IsActionRemapAllowed(m_remappingAction, physicalControl))
+        {
+            LOG("[ControlsRemapping] Remap rejected Player %d, Action %d -> Physical %d\n", m_remappingPlayerIndex + 1, m_remappingAction, physicalControl);
+            return;
+        }
+
         inputManager->SetActionRemap(m_remappingPlayerIndex, m_remappingAction, physicalControl);
         LOG("[ControlsRemapping] Remap complete Player %d, Action %d -> Physical %d\n", m_remappingPlayerIndex + 1, m_remappingAction, physicalControl);
         cancelRemappingMode(btrue);

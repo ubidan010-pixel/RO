@@ -58,6 +58,7 @@ namespace  ITF
 
         void                SetRemap(u32 _playerIndex, u32 _logicalControl, u32 _physicalControl);
         void                SetActionRemap(u32 _playerIndex, EGameAction _action, u32 _physicalControl);
+        bbool               IsActionRemapAllowed(EGameAction _action, u32 _physicalControl) const;
         u32                 GetStandardControlFromAction(EGameAction _action);
         u32                 GetPhysicalFromAction(u32 _playerIndex, EGameAction _action);
         void                ResetRemapping(u32 _playerIndex);
