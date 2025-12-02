@@ -281,6 +281,64 @@ namespace ITF
 
     void ZInputManager::SetActionRemap(u32 _playerIndex, EGameAction _action, u32 _physicalControl)
     {
+        const auto remapDirectionalGroup = [&](u32 upControl, u32 downControl, u32 leftControl, u32 rightControl)
+        {
+            const EGameAction directionalActions[] = {
+                Action_Up,
+                Action_Down,
+                Action_Left,
+                Action_Right,
+            };
+
+            const u32 physicalControls[] = {
+                upControl,
+                downControl,
+                leftControl,
+                rightControl,
+            };
+
+            for (u32 i = 0; i < sizeof(directionalActions) / sizeof(directionalActions[0]); ++i)
+            {
+                u32 logicalControl = GetStandardControlFromAction(directionalActions[i]);
+                if (logicalControl != U32_INVALID)
+                {
+                    LOG("[ZInputManager] SetActionRemap: Player %d, Action %d -> Physical %d (Logical %d)\n", _playerIndex, directionalActions[i], physicalControls[i], logicalControl);
+                    SetRemap(_playerIndex, logicalControl, physicalControls[i]);
+                }
+            }
+        };
+
+        const bbool isDirectionalAction = (_action == Action_Up || _action == Action_Down || _action == Action_Left || _action == Action_Right);
+        if (isDirectionalAction)
+        {
+            switch (_physicalControl)
+            {
+            case ZPad_Base::DPAD_UP:
+            case ZPad_Base::DPAD_DOWN:
+            case ZPad_Base::DPAD_LEFT:
+            case ZPad_Base::DPAD_RIGHT:
+                remapDirectionalGroup(ZPad_Base::DPAD_UP, ZPad_Base::DPAD_DOWN, ZPad_Base::DPAD_LEFT, ZPad_Base::DPAD_RIGHT);
+                return;
+
+            case ZPad_Base::STICK_L_UP:
+            case ZPad_Base::STICK_L_DOWN:
+            case ZPad_Base::STICK_L_LEFT:
+            case ZPad_Base::STICK_L_RIGHT:
+                remapDirectionalGroup(ZPad_Base::STICK_L_UP, ZPad_Base::STICK_L_DOWN, ZPad_Base::STICK_L_LEFT, ZPad_Base::STICK_L_RIGHT);
+                return;
+
+            case ZPad_Base::STICK_R_UP:
+            case ZPad_Base::STICK_R_DOWN:
+            case ZPad_Base::STICK_R_LEFT:
+            case ZPad_Base::STICK_R_RIGHT:
+                remapDirectionalGroup(ZPad_Base::STICK_R_UP, ZPad_Base::STICK_R_DOWN, ZPad_Base::STICK_R_LEFT, ZPad_Base::STICK_R_RIGHT);
+                return;
+
+            default:
+                break;
+            }
+        }
+
         u32 logicalControl = GetStandardControlFromAction(_action);
 
         if (logicalControl != U32_INVALID)
