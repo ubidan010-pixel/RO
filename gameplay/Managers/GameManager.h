@@ -291,6 +291,7 @@ namespace ITF
                 m_controllerIconPaths[i] = Path::EmptyPath;
             }
             m_gpeIconsPath = Path::EmptyPath;
+            m_gpeExtraIconsPath = Path::EmptyPath;
             m_skipIconsPath = Path::EmptyPath;
             m_menuLogosPath = Path::EmptyPath;
         }
@@ -312,6 +313,7 @@ namespace ITF
                 m_controllerIconPaths[i] = Path::EmptyPath;
             }
             m_gpeIconsPath = Path::EmptyPath;
+            m_gpeExtraIconsPath = Path::EmptyPath;
             m_skipIconsPath = Path::EmptyPath;
             m_menuLogosPath = Path::EmptyPath;
         }
@@ -365,6 +367,7 @@ namespace ITF
         ITF_INLINE const ITF::Path& getIconsBtnPathX360() const { return getControllerIconPath(IconSlot_X360); }
         ITF_INLINE const ITF::Path& getIconsBtnPathKeyboard() const { return getControllerIconPath(IconSlot_Keyboard); }
         ITF_INLINE const ITF::Path& getIconsGpePath() const { return m_gpeIconsPath; }
+        ITF_INLINE const ITF::Path& getIconsGpeExtraPath() const { return m_gpeExtraIconsPath; }
         ITF_INLINE const ITF::Path& getIconsSkipPath() const { return m_skipIconsPath; }
         ITF_INLINE const ITF::Path& getMenuLogosPath() const { return m_menuLogosPath; }
 
@@ -408,6 +411,7 @@ namespace ITF
         ITF_VECTOR<String>          m_pressConfMaps;
         Path                        m_controllerIconPaths[IconSlot_Count];
         Path                        m_gpeIconsPath;
+        Path                        m_gpeExtraIconsPath;
         Path                        m_skipIconsPath;
         Path                        m_menuLogosPath;
 
@@ -694,6 +698,7 @@ namespace ITF
         const Path&                 getIconsBtnPathX360() const { return getIconsBtnPath(IconSlot_X360); }
         const Path&                 getIconsBtnPathKeyboard() const { return getIconsBtnPath(IconSlot_Keyboard); }
         const Path&                 getIconsGpePath() const { ITF_ASSERT_CRASH( m_configTemplate != NULL, "Template must be loaded first" ); return m_configTemplate->getIconsGpePath(); }
+        const Path&                 getIconsGpeExtraPath() const { ITF_ASSERT_CRASH( m_configTemplate != NULL, "Template must be loaded first" ); return m_configTemplate->getIconsGpeExtraPath(); }
         const Path&                 getIconsSkipPath() const { ITF_ASSERT_CRASH( m_configTemplate != NULL, "Template must be loaded first" ); return m_configTemplate->getIconsSkipPath(); }
         const Path&                 getMenuLogosPath() const { ITF_ASSERT_CRASH( m_configTemplate != NULL, "Template must be loaded first" ); return m_configTemplate->getMenuLogosPath(); }
         bbool getUsePressConfMenu() const { ITF_ASSERT_CRASH( m_configTemplate != NULL, "Template must be loaded first" ); return m_configTemplate->getUsePressConfMenu(); }

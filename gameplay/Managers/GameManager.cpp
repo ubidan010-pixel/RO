@@ -311,6 +311,7 @@ namespace ITF
             serializer->Serialize(iconDesc.key, m_controllerIconPaths[iconDesc.slot]);
         }
         SERIALIZE_MEMBER("gpeIconsPath", m_gpeIconsPath);
+        SERIALIZE_MEMBER("gpeIconsExtraPath", m_gpeExtraIconsPath);
         SERIALIZE_MEMBER("skipIconsPath", m_skipIconsPath);
         SERIALIZE_MEMBER("menuLogosPath", m_menuLogosPath);
     END_SERIALIZATION()

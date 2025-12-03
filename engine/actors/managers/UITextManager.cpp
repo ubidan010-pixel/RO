@@ -196,6 +196,8 @@ namespace ITF
     , m_buttonPath()
     , m_gpePath()
     , m_gpeMap()
+    , m_gpeExtraPath()
+    , m_gpeExtraMap()
     {
         m_currentColor = Color::black().getAsU32();
         for (u32 i = 0; i < IconSlot_Count; ++i)
@@ -203,6 +205,8 @@ namespace ITF
             m_controllerButtonTextureIds[i].invalidateResourceId();
             m_controllerButtonMaps[i].clear();
         }
+        m_gpeTextureId.invalidateResourceId();
+        m_gpeExtraTextureId.invalidateResourceId();
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -270,6 +274,14 @@ namespace ITF
         for (i32 i=0; i<gpeNamesCount; ++i)
         {
             m_gpeMap[gpeNames[i]] = i;
+        }
+
+        m_gpeExtraPath = m_template->getGpeExtraPath();
+        const ITF_VECTOR<String8>& gpeExtraNames = m_template->getGpeExtraNames();
+        i32 gpeExtraNamesCount = i32(gpeExtraNames.size());
+        for (i32 i=0; i<gpeExtraNamesCount; ++i)
+        {
+            m_gpeExtraMap[gpeExtraNames[i]] = i;
         }
 
         m_skipIconsMap["SKIP_BG"] = 0;
@@ -561,6 +573,13 @@ namespace ITF
             m_gpePath = GAMEMANAGER->getIconsGpePath();
             m_gpeTextureId = resourceGroup->addResource(Resource::ResourceType_Texture, m_gpePath);
 
+            Path extraGpePath = GAMEMANAGER->getIconsGpeExtraPath();
+            if (!extraGpePath.isEmpty())
+            {
+                m_gpeExtraPath = extraGpePath;
+                m_gpeExtraTextureId = resourceGroup->addResource(Resource::ResourceType_Texture, extraGpePath);
+            }
+
             Path skipIconsPath = GAMEMANAGER->getIconsSkipPath();
             m_skipIconsTextureId = resourceGroup->addResource(Resource::ResourceType_Texture, skipIconsPath);
 
@@ -589,9 +608,10 @@ namespace ITF
     }
 
     //////////////////////////////////////////////////////////////////////////
-    bbool UITextManager::getIconInfo(const String8& _tag, bbool& _isButton, i32& _index) const
+    bbool UITextManager::getIconInfo(const String8& _tag, bbool& _isButton, i32& _index, bbool& _isGpeExtra) const
     {
         IconMap::const_iterator it;
+        _isGpeExtra = bfalse;
 
         ControllerIconSlot slot = ControllerSlotFromIconName(_tag);
         u32 slotIndex = ControllerSlotToIndex(slot);
@@ -619,6 +639,15 @@ namespace ITF
         if (it != m_gpeMap.end())
         {
             _isButton = bfalse;
+            _index = it->second;
+            return btrue;
+        }
+
+        it = m_gpeExtraMap.find(_tag);
+        if (it != m_gpeExtraMap.end())
+        {
+            _isButton = bfalse;
+            _isGpeExtra = btrue;
             _index = it->second;
             return btrue;
         }
@@ -761,8 +790,12 @@ namespace ITF
     }
 
     //////////////////////////////////////////////////////////////////////////
-    Texture *UITextManager::getGpeTexture()
+    Texture *UITextManager::getGpeTexture(bbool _useExtra)
     {
+        if (_useExtra)
+        {
+            return (Texture*)m_gpeExtraTextureId.getResource();
+        }
         return (Texture*)m_gpeTextureId.getResource();
     }
 
@@ -820,6 +853,8 @@ namespace ITF
         SERIALIZE_CONTAINER("buttonNamesKeyboard", m_buttonNamesKeyboard);
         SERIALIZE_MEMBER("gpePath", m_gpePath);
         SERIALIZE_CONTAINER("gpeNames", m_gpeNames);
+        SERIALIZE_MEMBER("gpeExtraPath", m_gpeExtraPath);
+        SERIALIZE_CONTAINER("gpeExtraNames", m_gpeExtraNames);
     END_SERIALIZATION()
 
     ////////////////////////////////////////////////////////////////////////////

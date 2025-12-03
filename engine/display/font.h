@@ -41,6 +41,7 @@ namespace ITF
             , m_index(0)
             , m_isSkipIcon(bfalse)
             , m_isMenuLogo(bfalse)
+            , m_isGpeExtra(bfalse)
             , m_controllerType(CONTROLLER_DEFAULT)
         {}
 
@@ -49,6 +50,7 @@ namespace ITF
         i32 m_index;
         bbool m_isSkipIcon;
         bbool m_isMenuLogo;
+        bbool m_isGpeExtra;
         EControllerType m_controllerType;
     };
 

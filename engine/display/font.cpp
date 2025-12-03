@@ -935,9 +935,11 @@ void Font::writeBox(u32 color,f32 x, f32 y, f32 z, bbool _isRender2D, const Vec3
                         newicon = TAGicon();
                         newicon.m_isSkipIcon = bfalse;
                         newicon.m_isMenuLogo = bfalse;
+                        bbool isGpeExtra = bfalse;
 
-                        if (UI_TEXTMANAGER->getIconInfo(iconName8, newicon.m_isButton, newicon.m_index))
+                        if (UI_TEXTMANAGER->getIconInfo(iconName8, newicon.m_isButton, newicon.m_index, isGpeExtra))
                         {
+                            newicon.m_isGpeExtra = isGpeExtra;
                             newicon.m_controllerType = UI_TEXTMANAGER->getControllerTypeFromIcon(iconName8);
 
                             // compute space char from size of icon
@@ -999,7 +1001,7 @@ void Font::writeBox(u32 color,f32 x, f32 y, f32 z, bbool _isRender2D, const Vec3
                         newicon.m_isMenuLogo = bfalse;
                     }
 
-                    if (newicon.m_isSkipIcon || newicon.m_isMenuLogo || UI_TEXTMANAGER->getIconInfo(iconName8, newicon.m_isButton, newicon.m_index))
+                    if (newicon.m_isSkipIcon || newicon.m_isMenuLogo || UI_TEXTMANAGER->getIconInfo(iconName8, newicon.m_isButton, newicon.m_index, newicon.m_isGpeExtra))
                     {
                         newicon.m_controllerType = UI_TEXTMANAGER->getControllerTypeFromIcon(iconName8);
 
@@ -1249,6 +1251,7 @@ void Font::writeBox(u32 color,f32 x, f32 y, f32 z, bbool _isRender2D, const Vec3
         if ( tagicon.size() && _write)
         {
             Texture* gpeTexture = UI_TEXTMANAGER->getGpeTexture();
+            Texture* gpeExtraTexture = UI_TEXTMANAGER->getGpeTexture(btrue);
             Texture* skipIconsTexture = UI_TEXTMANAGER->getSkipIconsTexture();
             Texture* menuLogosTexture = UI_TEXTMANAGER->getMenuLogosTexture();
             UVdata uvData;
@@ -1268,7 +1271,9 @@ void Font::writeBox(u32 color,f32 x, f32 y, f32 z, bbool _isRender2D, const Vec3
                     texture = UI_TEXTMANAGER->getButtonTextureByType(tagicon[i].m_controllerType);
                 }
                 else
-                    texture = gpeTexture;
+                {
+                    texture = tagicon[i].m_isGpeExtra ? gpeExtraTexture : gpeTexture;
+                }
 
                 if (texture && texture->getUVAtlas())
                     uvData = texture->getUVAtlas()->getUVDatabyIndex(tagicon[i].m_index);

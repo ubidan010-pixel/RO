@@ -117,14 +117,14 @@ namespace ITF
         f32             getIconYOffset() const;
         f32             getIconXOffset() const;
 
-        bbool           getIconInfo(const String8& _tag, bbool& _isButton, i32& _index) const;
+        bbool           getIconInfo(const String8& _tag, bbool& _isButton, i32& _index, bbool& _isGpeExtra) const;
         bbool           getSkipIconInfo(const String8& _tag, i32& _index) const;
         bbool           getMenuLogoInfo(const String8& _tag, i32& _index) const;
         Texture*        getButtonTexture();
         Texture*        getButtonTexture(const String8& _iconName) const;
         Texture*        getButtonTextureByType(i32 _controllerType) const;
         EControllerType getControllerTypeFromIcon(const String8& _iconName) const;
-        Texture*        getGpeTexture();
+        Texture*        getGpeTexture(bbool _useExtra = bfalse);
         Texture*        getSkipIconsTexture();
         Texture*        getMenuLogosTexture();
         String8         GetIconForAction(u32 _playerIndex, u32 _action);
@@ -148,6 +148,7 @@ namespace ITF
         ResourceID      m_iconsGroup;
         ResourceID      m_controllerButtonTextureIds[IconSlot_Count];
         ResourceID      m_gpeTextureId;
+        ResourceID      m_gpeExtraTextureId;
         ResourceID      m_skipIconsTextureId;
 
         ///////////////////////////////////////////////////////////////////////////////////////////
@@ -178,6 +179,8 @@ namespace ITF
         IconMap                     m_controllerButtonMaps[IconSlot_Count];
         Path                        m_gpePath;
         IconMap                     m_gpeMap;
+        Path                        m_gpeExtraPath;
+        IconMap                     m_gpeExtraMap;
         IconMap                     m_skipIconsMap;
         Path                        m_menuLogosPath;
         IconMap                     m_menuLogosMap;
@@ -199,6 +202,8 @@ namespace ITF
             , m_iconXOffset(0.f)
             , m_gpePath()
             , m_gpeNames()
+            , m_gpeExtraPath()
+            , m_gpeExtraNames()
             {}
         UITextManager_Template(const Path& _path)
             : Super(_path)
@@ -207,6 +212,8 @@ namespace ITF
             , m_iconXOffset(0.f)
             , m_gpePath()
             , m_gpeNames()
+            , m_gpeExtraPath()
+            , m_gpeExtraNames()
             {}
 
         ITF_INLINE f32 getIconSize() const { return m_iconSize; }
@@ -231,6 +238,8 @@ namespace ITF
         }
         ITF_INLINE const Path& getGpePath() const { return m_gpePath; }
         ITF_INLINE const ITF_VECTOR<String8>& getGpeNames() const { return m_gpeNames; }
+        ITF_INLINE const Path& getGpeExtraPath() const { return m_gpeExtraPath; }
+        ITF_INLINE const ITF_VECTOR<String8>& getGpeExtraNames() const { return m_gpeExtraNames; }
 
     private:
         f32 m_iconSize;
@@ -249,6 +258,8 @@ namespace ITF
         ITF_VECTOR<String8> m_buttonNamesKeyboard;
         Path m_gpePath;
         ITF_VECTOR<String8> m_gpeNames;
+        Path m_gpeExtraPath;
+        ITF_VECTOR<String8> m_gpeExtraNames;
     };
 
 }
