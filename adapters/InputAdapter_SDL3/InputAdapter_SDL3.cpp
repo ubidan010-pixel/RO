@@ -1,6 +1,5 @@
 ﻿#include "precompiled_InputAdapter_SDL3.h"
 #include "engine/AdaptersInterfaces/AudioMiddlewareAdapter.h"
-#ifdef ITF_USE_SDL
 #ifndef _ITF_INPUTADAPTER_SDL3_H_
 #include "InputAdapter_SDL3.h"
 #endif
@@ -14,14 +13,101 @@
 #include <mmdeviceapi.h>
 #include <propkey.h>
 
+#include "engine/singleton/Singletons.h"
+
 namespace ITF
 {
     static constexpr f32 SDL_AXIS_MAX_VALUE = 32767.0f;
     static constexpr u32 MAX_EVENTS_PER_FRAME = 100;
     static constexpr f32 AXIS_INPUT_THRESHOLD = 0.3f;
-    static constexpr uint32_t DUALSENSE_ID_MARKER = 0x80000000;
     static constexpr int32_t GUID_STRING_BUFFER_SIZE = 64;
     static constexpr f32 INPUT_DEADZONE = 0.2f;
+    static f64 s_lastLeftMouseClick = 0.;
+
+    ITF_INLINE i32 TranslateSDLKey(SDL_Keycode keycode)
+    {
+        switch (keycode)
+        {
+        case SDLK_ESCAPE: return KEY_ESC;
+        case SDLK_RETURN: return KEY_ENTER;
+        case SDLK_BACKSPACE: return KEY_BACKSPACE;
+        case SDLK_TAB: return KEY_TAB;
+        case SDLK_SPACE: return KEY_SPACE;
+        case SDLK_PAGEUP: return KEY_PAGEUP;
+        case SDLK_PAGEDOWN: return KEY_PAGEDOWN;
+        case SDLK_END: return KEY_END;
+        case SDLK_HOME: return KEY_HOME;
+        case SDLK_LEFT: return KEY_LEFT;
+        case SDLK_UP: return KEY_UP;
+        case SDLK_RIGHT: return KEY_RIGHT;
+        case SDLK_DOWN: return KEY_DOWN;
+        case SDLK_INSERT: return KEY_INSERT;
+        case SDLK_DELETE: return KEY_DEL;
+        case SDLK_LCTRL: return KEY_LCTRL;
+        case SDLK_RCTRL: return KEY_RCTRL;
+        case SDLK_LSHIFT: return KEY_LSHIFT;
+        case SDLK_RSHIFT: return KEY_RSHIFT;
+        case SDLK_LALT: return KEY_LALT;
+        case SDLK_RALT: return KEY_RALT;
+        case SDLK_KP_0: return KEY_KP_0;
+        case SDLK_KP_1: return KEY_KP_1;
+        case SDLK_KP_2: return KEY_KP_2;
+        case SDLK_KP_3: return KEY_KP_3;
+        case SDLK_KP_4: return KEY_KP_4;
+        case SDLK_KP_5: return KEY_KP_5;
+        case SDLK_KP_6: return KEY_KP_6;
+        case SDLK_KP_7: return KEY_KP_7;
+        case SDLK_KP_8: return KEY_KP_8;
+        case SDLK_KP_9: return KEY_KP_9;
+        case SDLK_KP_MULTIPLY: return KEY_KP_MULTIPLY;
+        case SDLK_KP_PLUS: return KEY_KP_ADD;
+        case SDLK_KP_MINUS: return KEY_KP_SUBTRACT;
+        case SDLK_KP_PERIOD: return KEY_KP_DECIMAL;
+        case SDLK_KP_DIVIDE: return KEY_KP_DIVIDE;
+        case SDLK_KP_EQUALS: return KEY_KP_EQUAL;
+        case SDLK_KP_ENTER: return KEY_KP_ENTER;
+        case SDLK_PRINTSCREEN: return KEY_PRINT;
+        case SDLK_F1: return KEY_F1;
+        case SDLK_F2: return KEY_F2;
+        case SDLK_F3: return KEY_F3;
+        case SDLK_F4: return KEY_F4;
+        case SDLK_F5: return KEY_F5;
+        case SDLK_F6: return KEY_F6;
+        case SDLK_F7: return KEY_F7;
+        case SDLK_F8: return KEY_F8;
+        case SDLK_F9: return KEY_F9;
+        case SDLK_F10: return KEY_F10;
+        case SDLK_F11: return KEY_F11;
+        case SDLK_F12: return KEY_F12;
+        case SDLK_F13: return KEY_F13;
+        case SDLK_F14: return KEY_F14;
+        case SDLK_F15: return KEY_F15;
+        case SDLK_F16: return KEY_F16;
+        case SDLK_F17: return KEY_F17;
+        case SDLK_F18: return KEY_F18;
+        case SDLK_F19: return KEY_F19;
+        case SDLK_F20: return KEY_F20;
+        case SDLK_F21: return KEY_F21;
+        case SDLK_F22: return KEY_F22;
+        case SDLK_F23: return KEY_F23;
+        case SDLK_F24: return KEY_F24;
+        default:
+            if (keycode >= 32 && keycode < 256)
+                return static_cast<i32>(keycode);
+            return KEY_SPECIAL;
+        }
+    }
+
+    ITF_INLINE InputAdapter::MouseButton TranslateSDLMouseButton(u8 button)
+    {
+        switch (button)
+        {
+        case SDL_BUTTON_LEFT: return InputAdapter::MB_Left;
+        case SDL_BUTTON_RIGHT: return InputAdapter::MB_Right;
+        case SDL_BUTTON_MIDDLE: return InputAdapter::MB_Middle;
+        default: return static_cast<InputAdapter::MouseButton>(-1);
+        }
+    }
 
     static InputAdapter::PadType MapSDLGamepadTypeToPadType(const SDL_Gamepad* gamepad)
     {
@@ -222,6 +308,7 @@ namespace ITF
         : m_gamepadCount(0)
           , m_initialized(false)
           , m_adapter(nullptr)
+          , m_hiddenWindow(nullptr)
     {
         for (int i = 0; i < JOY_MAX_COUNT; ++i)
         {
@@ -240,13 +327,29 @@ namespace ITF
         if (m_initialized)
             return true;
         m_adapter = adapter;
-        if (!SDL_Init(SDL_INIT_GAMEPAD))
+        // Try to initialize full stack first
+        if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD | SDL_INIT_EVENTS) != 0)
         {
-            LOG("[SDL] - could not initialize! Error: %s\n", SDL_GetError());
+            LOG("[SDL] - SDL_Init(video|gamepad|events) failed: %s", SDL_GetError());
+            // fallback: ensure at least gamepad/events are up
+            SDL_InitSubSystem(SDL_INIT_GAMEPAD | SDL_INIT_EVENTS);
         }
-        else
+
+        const bool videoReady = SDL_WasInit(SDL_INIT_VIDEO) != 0;
+        if (videoReady)
         {
-            LOG("[SDL] - initialized successfully!\n");
+            auto* sysAdapter = static_cast<SystemAdapter_win*>(SYSTEM_ADAPTER);
+            if (sysAdapter && sysAdapter->m_hwnd)
+            {
+                SDL_PropertiesID props = SDL_CreateProperties();
+                SDL_SetPointerProperty(props, SDL_PROP_WINDOW_CREATE_WIN32_HWND_POINTER, sysAdapter->m_hwnd);
+                m_hiddenWindow = SDL_CreateWindowWithProperties(props);
+                if (!m_hiddenWindow)
+                {
+                    LOG("[SDL] - failed to wrap existing HWND for input: %s", SDL_GetError());
+                }
+                SDL_DestroyProperties(props);
+            }
         }
         refreshGamepadList();
         m_initialized = true;
@@ -262,7 +365,11 @@ namespace ITF
         {
             m_gamepads[i].cleanup();
         }
-
+        if (m_hiddenWindow)
+        {
+            SDL_DestroyWindow(m_hiddenWindow);
+            m_hiddenWindow = nullptr;
+        }
         SDL_Quit();
         m_initialized = false;
     }
@@ -287,6 +394,57 @@ namespace ITF
             case SDL_EVENT_GAMEPAD_REMOVED:
                 handleGamepadDisconnected(event.gdevice.which);
                 break;
+            case SDL_EVENT_KEY_DOWN:
+            case SDL_EVENT_KEY_UP:
+                 if (!m_adapter || event.key.repeat)
+                    break;
+                {
+                    i32 translatedKey = TranslateSDLKey(event.key.key);
+                    if (translatedKey >= 0 && translatedKey < KEY_COUNT)
+                    {
+                        m_adapter->onKey(translatedKey, (event.type == SDL_EVENT_KEY_DOWN) ? InputAdapter::Pressed : InputAdapter::Released);
+                    }
+                }
+                break;
+            case SDL_EVENT_MOUSE_BUTTON_DOWN:
+            case SDL_EVENT_MOUSE_BUTTON_UP:
+                if (!m_adapter)
+                    break;
+                {
+                    InputAdapter::MouseButton button = TranslateSDLMouseButton(event.button.button);
+                    if (button != static_cast<InputAdapter::MouseButton>(-1))
+                    {
+                        InputAdapter::PressStatus status = (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN)
+                            ? (event.button.clicks > 1 ? InputAdapter::Double_Press : InputAdapter::Pressed)
+                            : InputAdapter::Released;
+                        m_adapter->onMouseButton(button, status);
+                    }
+                }
+                break;
+            case SDL_EVENT_MOUSE_WHEEL:
+                if (m_adapter)
+                {
+                    m_adapter->onMouseWheel(static_cast<i32>(event.wheel.y));
+                }
+                break;
+            case SDL_EVENT_MOUSE_MOTION:
+                if (m_adapter)
+                {
+                    m_adapter->onMousePos(static_cast<i32>(event.motion.x), static_cast<i32>(event.motion.y));
+                }
+                break;
+            case SDL_EVENT_WINDOW_FOCUS_GAINED:
+                if (m_adapter)
+                {
+                    m_adapter->setFocus();
+                }
+                break;
+            case SDL_EVENT_WINDOW_FOCUS_LOST:
+                if (m_adapter)
+                {
+                    m_adapter->unsetFocus();
+                }
+                break;
             default:
                 break;
             }
@@ -296,6 +454,10 @@ namespace ITF
             auto& gamepad = m_gamepads[k];
             gamepad.updateInputState();
             updateSonyControllerDeviceIds(k, gamepad);
+        }
+        if (m_adapter)
+        {
+            m_adapter->dispatchEventsToListeners();
         }
     }
 
@@ -557,15 +719,19 @@ namespace ITF
     }
 
     InputAdapter_SDL3::InputAdapter_SDL3()
+        : m_lastWheelValue(0)
+          , m_lastMouseX(0)
+          , m_lastMouseY(0)
+          , m_leftMBIsPressed(bfalse)
+          , m_rightMBIsPressed(bfalse)
+          , m_middleMBIsPressed(bfalse)
     {
-        auto adapter = static_cast<SystemAdapter_win*>(SYSTEM_ADAPTER);
-        adapter->SetCallbackKeyboard(KeyCB);
-        adapter->SetCallbackMousePos(MousePosCB);
-        adapter->SetCallbackMouseWheel(MouseWheelCB);
-        adapter->SetCallbackMouseButton(MouseButtonCB);
+        ITF_MemSet(m_keys, 0, sizeof(m_keys));
+        ITF_MemSet(m_keysReleaseTime, 0, sizeof(m_keysReleaseTime));
+        ITF_MemSet(m_keyStatus, 0, sizeof(m_keyStatus));
+        ITF_MemSet(m_keyPressTime, 0, sizeof(m_keyPressTime));
 
         m_sdlInput.initialize(this);
-
         setPadConnected(0, btrue);
         memset(m_connectedPlayers, 0, JOY_MAX_COUNT * sizeof(PlayerState));
         m_connectedPlayers[0] = ePlaying;
@@ -578,6 +744,371 @@ namespace ITF
 
     InputAdapter_SDL3::~InputAdapter_SDL3()
     {
+        m_listeners.clear();
+        m_eventPool.clear();
+    }
+
+    void InputAdapter_SDL3::addListener(Interface_InputListener* _listener, u32 _priority)
+    {
+        ITF_ASSERT(_listener);
+        ListenerEntry entry;
+        entry.m_listener = _listener;
+        entry.m_priority = _priority;
+        for (u32 i = 0; i < m_listeners.size(); i++)
+        {
+            if (m_listeners[i].m_priority > _priority)
+            {
+                m_listeners.insert(entry, i);
+                return;
+            }
+        }
+        m_listeners.push_back(entry);
+    }
+
+    void InputAdapter_SDL3::removeListener(Interface_InputListener* _listener)
+    {
+        for (u32 i = 0; i < m_listeners.size(); i++)
+        {
+            if (m_listeners[i].m_listener == _listener)
+            {
+                m_listeners.eraseKeepOrder(i);
+                return;
+            }
+        }
+    }
+
+    void InputAdapter_SDL3::onMouseButton(InputAdapter::MouseButton _but, InputAdapter::PressStatus _status)
+    {
+        if (_but == MB_Left && _status == Pressed)
+        {
+            f64 thisTime = SYSTEM_ADAPTER->getTime();
+            f64 deltaTime = thisTime - s_lastLeftMouseClick;
+            if (deltaTime >= 0. && deltaTime < fDoublePressMaxDuration)
+            {
+                _status = Double_Press;
+                s_lastLeftMouseClick = thisTime - fDoublePressMaxDuration - (f64)MTH_EPSILON;
+            }
+            else
+            {
+                s_lastLeftMouseClick = thisTime;
+            }
+        }
+
+        switch (_but)
+        {
+        case MB_Left:
+            m_leftMBIsPressed = (_status != Released);
+            break;
+        case MB_Right:
+            m_rightMBIsPressed = (_status == Pressed);
+            break;
+        case MB_Middle:
+            m_middleMBIsPressed = (_status == Pressed);
+            break;
+        default:
+            break;
+        }
+
+        if (_status == Pressed || _status == Double_Press)
+        {
+            setLastUsedInputDevice(0, InputDevice_Keyboard);
+        }
+
+        pushMouseButtonEvent(_but, _status);
+    }
+
+    void InputAdapter_SDL3::onMouseWheel(i32 _wheelValue)
+    {
+        const i32 delta = _wheelValue;
+        m_lastWheelValue += delta;
+        pushMouseWheelEvent(m_lastWheelValue, delta);
+    }
+
+    void InputAdapter_SDL3::flushKeys()
+    {
+        ITF_MemSet(m_keys, 0, sizeof(m_keys));
+    }
+
+    void InputAdapter_SDL3::onKey(i32 _key, InputAdapter::PressStatus _status)
+    {
+        ITF_ASSERT((_key >= 0) && (_key < KEY_COUNT));
+
+        switch (_status)
+        {
+        case Pressed:
+            m_keys[_key] = btrue;
+            setLastUsedInputDevice(0, InputDevice_Keyboard);
+            break;
+        case Released:
+            m_keys[_key] = bfalse;
+            m_keysReleaseTime[_key] = ELAPSEDTIME;
+            break;
+        default:
+            ITF_ASSERT(0);
+        }
+        pushKeyEvent(_key, _status);
+    }
+
+    bbool InputAdapter_SDL3::isKeyPressed(i32 _key) const
+    {
+        ITF_ASSERT((_key >= 0) && (_key < KEY_COUNT));
+        return m_keys[_key];
+    }
+
+    void InputAdapter_SDL3::onMousePos(i32 _x, i32 _y)
+    {
+        m_lastMouseX = _x;
+        m_lastMouseY = _y;
+        pushMousePosEvent(_x, _y);
+    }
+
+    void InputAdapter_SDL3::getMousePos(i32& _x, i32& _y) const
+    {
+        _x = m_lastMouseX;
+        _y = m_lastMouseY;
+    }
+
+    bbool InputAdapter_SDL3::isMousePressed(MouseButton _but) const
+    {
+        switch (_but)
+        {
+        case MB_Left: return m_leftMBIsPressed;
+        case MB_Right: return m_rightMBIsPressed;
+        case MB_Middle: return m_middleMBIsPressed;
+        default: break;
+        }
+        return bfalse;
+    }
+
+    void InputAdapter_SDL3::dispatchEventsToListeners()
+    {
+        const u32 count = m_eventPool.size();
+        for (u32 evtIt = 0; evtIt < count; ++evtIt)
+        {
+            EditorEvent& editorEvent = m_eventPool[evtIt];
+            switch (editorEvent.m_eventType)
+            {
+            case IA_EventKey:
+                {
+                    const i32 key = editorEvent.m_key.m_key;
+                    const PressStatus status = editorEvent.m_key.m_status;
+                    for (u32 it = 0; it < m_listeners.size(); it++)
+                    {
+                        if (!(m_listeners[it].m_listener->onKey(key, status)))
+                            break;
+                    }
+                }
+                break;
+            case IA_EventMouseButton:
+                {
+                    const MouseButton but = editorEvent.m_but.m_but;
+                    const PressStatus status = editorEvent.m_but.m_status;
+                    for (u32 it = 0; it < m_listeners.size(); it++)
+                    {
+                        if (!(m_listeners[it].m_listener->onMouseButton(but, status)))
+                            break;
+                    }
+                }
+                break;
+            case IA_EventMousePos:
+                {
+                    const i32 x = editorEvent.m_val.m_x;
+                    const i32 y = editorEvent.m_val.m_y;
+                    for (u32 it = 0; it < m_listeners.size(); it++)
+                    {
+                        if (!(m_listeners[it].m_listener->onMousePos(x, y)))
+                            break;
+                    }
+                }
+                break;
+            case IA_EventMouseWheel:
+                {
+                    const i32 wheelValue = editorEvent.m_val.m_x;
+                    const i32 delta = editorEvent.m_val.m_y;
+                    for (u32 it = 0; it < m_listeners.size(); it++)
+                    {
+                        if (!(m_listeners[it].m_listener->onMouseWheel(wheelValue, delta)))
+                            break;
+                    }
+                }
+                break;
+            }
+        }
+        m_eventPool.clear();
+    }
+
+    void InputAdapter_SDL3::platformUpdateKeyboardState()
+    {
+#if defined(ITF_FINAL) || ITF_ENABLE_EDITOR_KEYBOARD
+        bbool hasKeyboardInput = bfalse;
+
+        for (u32 keyIndex = 0; keyIndex < KEY_COUNT; ++keyIndex)
+        {
+            const bbool pressed = m_keys[keyIndex];
+            m_keyPressTime[keyIndex] += 1;
+
+            if (pressed)
+            {
+                switch (m_keyStatus[keyIndex])
+                {
+                case Released:
+                case JustReleased:
+                    m_keyStatus[keyIndex] = JustPressed;
+                    m_keyPressTime[keyIndex] = 0;
+                    hasKeyboardInput = btrue;
+                    break;
+                case JustPressed:
+                case Pressed:
+                    m_keyStatus[keyIndex] = Pressed;
+                    hasKeyboardInput = btrue;
+                    break;
+                default: ;
+                }
+            }
+            else
+            {
+                switch (m_keyStatus[keyIndex])
+                {
+                case Released:
+                case JustReleased:
+                    m_keyStatus[keyIndex] = Released;
+                    break;
+                case JustPressed:
+                case Pressed:
+                    m_keyStatus[keyIndex] = JustReleased;
+                    break;
+                default: ;
+                }
+            }
+        }
+
+        if (hasKeyboardInput)
+        {
+            setLastUsedInputDevice(0, InputDevice_Keyboard);
+        }
+
+        updateKeyboardForPlayer0();
+#endif
+    }
+
+    InputAdapter::PressStatus InputAdapter_SDL3::getKeyboardStatus(i32 key) const
+    {
+        if (key < 0 || key >= KEY_COUNT)
+            return Released;
+        return m_keyStatus[key];
+    }
+
+    u32 InputAdapter_SDL3::getKeyboardPressTime(i32 key) const
+    {
+        if (key < 0 || key >= KEY_COUNT)
+            return std::numeric_limits<u32>::max();
+        return m_keyPressTime[key];
+    }
+
+    void InputAdapter_SDL3::pushKeyEvent(i32 _key, PressStatus _status)
+    {
+        EditorEvent evt;
+        evt.m_eventType = IA_EventKey;
+        evt.m_key.m_key = _key;
+        evt.m_key.m_status = _status;
+        m_eventPool.push_back(evt);
+    }
+
+    void InputAdapter_SDL3::pushMouseButtonEvent(MouseButton _but, PressStatus _status)
+    {
+        EditorEvent evt;
+        evt.m_eventType = IA_EventMouseButton;
+        evt.m_but.m_but = _but;
+        evt.m_but.m_status = _status;
+        m_eventPool.push_back(evt);
+    }
+
+    void InputAdapter_SDL3::pushMousePosEvent(i32 _x, i32 _y)
+    {
+        EditorEvent evt;
+        evt.m_eventType = IA_EventMousePos;
+        evt.m_val.m_x = _x;
+        evt.m_val.m_y = _y;
+        m_eventPool.push_back(evt);
+    }
+
+    void InputAdapter_SDL3::pushMouseWheelEvent(i32 _wheel, i32 _delta)
+    {
+        EditorEvent evt;
+        evt.m_eventType = IA_EventMouseWheel;
+        evt.m_val.m_x = _wheel;
+        evt.m_val.m_y = _delta;
+        m_eventPool.push_back(evt);
+    }
+
+    void InputAdapter_SDL3::updateKeyboardForPlayer0()
+    {
+        if (m_connectedPlayers[0] != eNotConnected)
+        {
+            bbool keyboardUsed = bfalse;
+
+            if (m_buttons[0][m_joyButton_DPadU] == Released)
+            {
+                PressStatus status = getKeyboardStatus(KEY_UP);
+                m_buttons[0][m_joyButton_DPadU] = status;
+                if (status == Pressed || status == JustPressed) keyboardUsed = btrue;
+            }
+            if (m_buttons[0][m_joyButton_DPadD] == Released)
+            {
+                PressStatus status = getKeyboardStatus(KEY_DOWN);
+                m_buttons[0][m_joyButton_DPadD] = status;
+                if (status == Pressed || status == JustPressed) keyboardUsed = btrue;
+            }
+            if (m_buttons[0][m_joyButton_DPadL] == Released)
+            {
+                PressStatus status = getKeyboardStatus(KEY_LEFT);
+                m_buttons[0][m_joyButton_DPadL] = status;
+                if (status == Pressed || status == JustPressed) keyboardUsed = btrue;
+            }
+            if (m_buttons[0][m_joyButton_DPadR] == Released)
+            {
+                PressStatus status = getKeyboardStatus(KEY_RIGHT);
+                m_buttons[0][m_joyButton_DPadR] = status;
+                if (status == Pressed || status == JustPressed) keyboardUsed = btrue;
+            }
+
+            if (m_buttons[0][m_joyButton_A] == Released)
+            {
+                PressStatus status = getKeyboardStatus(KEY_SPACE);
+                m_buttons[0][m_joyButton_A] = status;
+                if (status == Pressed || status == JustPressed) keyboardUsed = btrue;
+            }
+            if (m_buttons[0][m_joyButton_X] == Released)
+            {
+                PressStatus status = getKeyboardStatus('s');
+                m_buttons[0][m_joyButton_X] = status;
+                if (status == Pressed || status == JustPressed) keyboardUsed = btrue;
+            }
+            if (m_buttons[0][m_joyButton_B] == Released)
+            {
+                PressStatus status = getKeyboardStatus(KEY_BACKSPACE);
+                m_buttons[0][m_joyButton_B] = status;
+                if (status == Pressed || status == JustPressed) keyboardUsed = btrue;
+            }
+            if (m_buttons[0][m_joyButton_Start] == Released)
+            {
+                PressStatus status = getKeyboardStatus(KEY_ESC);
+                m_buttons[0][m_joyButton_Start] = status;
+                if (status == Pressed || status == JustPressed) keyboardUsed = btrue;
+            }
+
+            if (m_axes[0][m_joyTrigger_Right] == 0.0f)
+            {
+                const bbool sprintPressed = (getKeyboardStatus(KEY_LSHIFT) == Pressed || getKeyboardStatus(KEY_LSHIFT) == JustPressed);
+                m_axes[0][m_joyTrigger_Right] = sprintPressed ? 1.0f : 0.0f;
+                if (sprintPressed) keyboardUsed = btrue;
+            }
+
+            if (keyboardUsed)
+            {
+                setLastUsedInputDevice(0, InputDevice_Keyboard);
+            }
+        }
     }
 
     u32 InputAdapter_SDL3::getGamePadCount()
@@ -757,4 +1288,3 @@ namespace ITF
         return "Disconnected";
     }
 }
-#endif

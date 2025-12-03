@@ -113,7 +113,6 @@
 
 namespace ITF
 {
-
     void WinApp::onFileDrop(const String& _absoluteFile)
     {
         const String _absoluteFileNormalized = FilePath::normalizePath(_absoluteFile);
@@ -152,134 +151,26 @@ namespace ITF
         }
 
         // keyboard messages send to the keyboard callback
-        if( uMsg == WM_KEYDOWN ||
-            uMsg == WM_SYSKEYDOWN ||
-            uMsg == WM_KEYUP ||
-            uMsg == WM_SYSKEYUP )
-        {
-
-            bool bKeyDown = ( uMsg == WM_KEYDOWN || uMsg == WM_SYSKEYDOWN );
-
-            /// Virtual Key.
-            bool bLAlt = false;
-            bool bRAlt = false;
-            bool bLCtrl = false;
-            bool bRCtrl = false;
-            bool bLShift = false;
-            bool bRShift = false;
-
-            const bool bExtendedKey = (lParam & 0x01000000) != 0;
-
-            if (wParam == VK_CONTROL)
-            {
-                if (bExtendedKey)
-                    bRCtrl = true;
-                else
-                    bLCtrl = true;
-            }
-            else if (wParam == VK_SHIFT)
-            {
-                bLShift = (GetAsyncKeyState(VK_LSHIFT) & 0x8000) ? true : false;
-                bRShift = (GetAsyncKeyState(VK_RSHIFT) & 0x8000) ? true : false;
-            }
-            else if (wParam == VK_MENU)
-            {
-                if (bExtendedKey)
-                    bRAlt = true;
-                else
-                    bLAlt = true;
-
-                forward = bfalse;
-            }
-
-            bool* bKeys = adapter->m_Keys;
-
-            bKeys[ ( BYTE )( wParam & 0xFF ) ] = bKeyDown;
-
-            if( adapter->mp_KeyBoardCallback )
-                adapter->mp_KeyBoardCallback( ( unsigned int )wParam, bKeyDown, bLAlt, bRAlt, bLCtrl, bRCtrl, bLShift, bRShift, /*GetDXUTState().GetKeyboardFuncUserContext()*/0 );
-        }
-
-        if(uMsg == WM_MOUSEWHEEL)
-        {
-#if 0
-            // WM_MOUSEWHEEL passes screen mouse coords
-            // so convert them to client coords
-            int xPos = ( short )LOWORD( lParam );
-            int yPos = ( short )HIWORD( lParam );
-            POINT pt;
-            pt.x = xPos; pt.y = yPos;
-            ScreenToClient( hWnd, &pt );
-            xPos = pt.x; yPos = pt.y;
-#endif
-
-            const int nMouseWheelDelta = ( short ) HIWORD( wParam );
-
-            if (nMouseWheelDelta > 0)
-                adapter->m_mouseWheelPosition++;
-            else if (nMouseWheelDelta < 0)
-                adapter->m_mouseWheelPosition--;
-
-            if( adapter->mp_MouseWheelCallback )
-                adapter->mp_MouseWheelCallback( adapter->m_mouseWheelPosition, 0/*GetDXUTState().GetMouseFuncUserContext()*/ );
-         }
-
-        if(/*GetNotifyOnMouseMove() && */ uMsg == WM_MOUSEMOVE)
-        {
-            if( adapter->mp_MousePosCallback )
-            {
-                const int xPos = ( short ) LOWORD( lParam );
-                const int yPos = ( short ) HIWORD( lParam );
-
-                adapter->mp_MousePosCallback( xPos, yPos, 0/*GetDXUTState().GetMouseFuncUserContext()*/ );
-
-                adapter->updateMousePos(xPos, yPos);
-            }
-        }
-
-
-        u32 button = U32_INVALID;
-        i32 action = -1;
         switch(uMsg)
         {
+        case WM_KEYDOWN:
+        case WM_SYSKEYDOWN:
+        case WM_KEYUP:
+        case WM_SYSKEYUP:
+        case WM_MOUSEWHEEL:
+        case WM_MOUSEMOVE:
         case WM_LBUTTONDOWN:
-            button = (u32)ITF::InputAdapter::MB_Left;
-            action = ITF::InputAdapter::Pressed;
-        break;
-
         case WM_LBUTTONUP:
-            button = (u32)ITF::InputAdapter::MB_Left;
-            action = ITF::InputAdapter::Released;
-        break;
-
         case WM_LBUTTONDBLCLK:
-        break;
-
         case WM_RBUTTONDOWN:
-            button = (u32)ITF::InputAdapter::MB_Right;
-            action = ITF::InputAdapter::Pressed;
-        break;
-
         case WM_RBUTTONUP:
-            button = (u32)ITF::InputAdapter::MB_Right;
-            action = ITF::InputAdapter::Released;
-        break;
-
         case WM_RBUTTONDBLCLK:
-        break;
-
         case WM_MBUTTONDOWN:
-            button = (u32)ITF::InputAdapter::MB_Middle;
-            action = ITF::InputAdapter::Pressed;
-        break;
-
         case WM_MBUTTONUP:
-            button = (u32)ITF::InputAdapter::MB_Middle;
-            action = ITF::InputAdapter::Released;
-        break;
-
         case WM_MBUTTONDBLCLK:
-        break;
+            // Let SDL subclassed window procedure handle input; fall through to default.
+            forward = btrue;
+            break;
 
         case WM_COPYDATA:
         {
@@ -376,9 +267,6 @@ namespace ITF
                 return 0;
             break;
         }
-
-        if( adapter->mp_MouseButtonCallback && action != -1)
-            adapter->mp_MouseButtonCallback( button, action, 0 );
 
         return 0;
     }
