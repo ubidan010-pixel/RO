@@ -167,6 +167,13 @@
 	#endif //_ITF_INPUTADAPTER_WII_H_
 #endif //ITF_WII
 
+// TEMP -- will be removed soon
+#ifdef ITF_WINDOWS
+    #ifndef _ITF_INPUTADAPTER_DINPUT_H_
+    #include "adapters/InputAdapter_DirectInput/InputAdapter_DINPUT.h"
+    #endif //_ITF_INPUTADAPTER_DINPUT_H_
+#endif //ITF_WINDOWS
+
 #ifndef _ITF_RAY_SHOOTERCONTROLLERCOMPONENT_H_
 #include "rayman/gameplay/Components/Shooter/Ray_ShooterControllerComponent.h"
 #endif //_ITF_RAY_SHOOTERCONTROLLERCOMPONENT_H_

@@ -13,10 +13,6 @@
 #include "core/AdaptersInterfaces/SystemAdapter.h"
 #endif //_ITF_SYSTEMADAPTER_
 
-#if defined(ITF_WINDOWS)
-#include "engine/AdaptersInterfaces/PCControlMode.h"
-#endif
-
 #include <algorithm>
 #include <limits>
 
@@ -303,20 +299,11 @@ namespace ITF
         PlayerState m_connectedPlayers[JOY_MAX_COUNT];
         float m_axes[JOY_MAX_COUNT][JOY_MAX_AXES];
         PressStatus m_buttons[JOY_MAX_COUNT][JOY_MAX_BUT];
-    #if defined(ITF_WINDOWS)
-        float m_keyboardAxes[JOY_MAX_COUNT][JOY_MAX_AXES];
-        PressStatus m_keyboardButtons[JOY_MAX_COUNT][JOY_MAX_BUT];
-    #endif
-#if defined(ITF_WINDOWS)
-        virtual void OnPCControlModeChanged(PCControlMode previous, PCControlMode current);
-#endif
     private:
         bbool m_PadConnected[JOY_MAX_COUNT]{};
         PadType m_PadType[JOY_MAX_COUNT]{};
         InputDeviceType m_lastUsedInputDevice[JOY_MAX_COUNT]{};
-#if defined(ITF_WINDOWS)
-        PCControlMode m_pcControlMode;
-#endif
+        bbool m_keyboardShareEnabled;
 
         bbool m_useShakeAttack;
         f32 m_threshold;
@@ -408,10 +395,6 @@ namespace ITF
         @param        _numButtons       Specifies how many buttons should be returned.
         */
         virtual void getGamePadButtonClasses(u32 _pad, ButtonClassMask* _buttonClasses, u32 _numButtons) const;
-    #if defined(ITF_WINDOWS)
-        void getKeyboardPadPos(u32 _pad, float* _pos, u32 _numAxes) const;
-        void getKeyboardPadButtons(u32 _pad, PressStatus* _buttons, u32 _numButtons) const;
-    #endif
 
         /**
         @param        _numPad           The index of the GamePad.
@@ -603,12 +586,8 @@ namespace ITF
 
         virtual void OnControllerConnected(u32 _padIndex,u32 _deviceID= -1,u32 _deviceOutputID = 0,PadType _padType = Pad_Invalid);
         virtual void OnControllerDisconnected(u32 _padIndex);
-#if defined(ITF_WINDOWS)
-        virtual void SetPCControlMode(PCControlMode mode);
-        PCControlMode GetPCControlMode() const { return m_pcControlMode; }
-        bbool IsKeyboardControllerSharingEnabled() const { return m_pcControlMode == PCControlMode_Hybrid; }
-        bbool IsKeyboardMouseEnabled() const { return m_pcControlMode != PCControlMode_Controller; }
-#endif
+        void SetKeyboardControllerSharing(bbool enabled) { m_keyboardShareEnabled = enabled; }
+        bbool IsKeyboardControllerSharingEnabled() const { return m_keyboardShareEnabled; }
 
         ITF_INLINE InputDeviceType getLastUsedInputDevice(u32 _player) const
         {

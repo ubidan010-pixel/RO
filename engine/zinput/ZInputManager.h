@@ -4,7 +4,6 @@
 #ifndef _ITF_ACTIONMAP_H_
 #include "engine/zinput/ZActionMap.h"
 #endif //_ITF_ACTIONMAP_H_
-#include "ZInputDevice.h"
 
 #ifndef ITF_TEMPLATECLIENTHANDLER_H
 #include "engine/TemplateManager/TemplateClientHandler.h"
@@ -15,7 +14,6 @@ namespace  ITF
     class IInputListener;
     class IInputDevice;
     class ZInputManager_Template;
-    enum EInputSourceType;
     class ZInputManager
     {
 
@@ -57,16 +55,14 @@ namespace  ITF
         void                addPS5pad_device(u32 maxPAD);
         void                addNintendopad_device(u32 maxPAD);
         void                addXBoxSeries_device(u32 maxPAD);
-        void                addPCKeyboard_device(u32 maxPAD);
 
-        void                SetRemap(u32 _playerIndex, u32 _logicalControl, u32 _physicalControl, EInputSourceType _source = InputSource_Gamepad);
-        void                SetActionRemap(u32 _playerIndex, EGameAction _action, u32 _physicalControl, EInputSourceType _source = InputSource_Gamepad);
+        void                SetRemap(u32 _playerIndex, u32 _logicalControl, u32 _physicalControl);
+        void                SetActionRemap(u32 _playerIndex, EGameAction _action, u32 _physicalControl);
         bbool               IsActionRemapAllowed(EGameAction _action, u32 _physicalControl) const;
         u32                 GetStandardControlFromAction(EGameAction _action);
         u32                 GetPhysicalFromAction(u32 _playerIndex, EGameAction _action);
         void                ResetRemapping(u32 _playerIndex);
-        void                ResetRemapping(u32 _playerIndex, EInputSourceType _source);
-        u32                 GetFirstActiveControl(u32 _playerIndex, EInputSourceType* _outSource = nullptr);
+        u32                 GetFirstActiveControl(u32 _playerIndex);
 
         void                SetSuppressReceive(bbool _suppress) { m_suppressReceive = _suppress; }
         bbool               GetSuppressReceive() const { return m_suppressReceive; }

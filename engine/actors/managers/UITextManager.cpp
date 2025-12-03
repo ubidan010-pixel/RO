@@ -156,7 +156,6 @@ namespace ITF
         case InputAdapter::Pad_PS3:
             return IconSlot_PS3;
         case InputAdapter::Pad_PS5:
-        case InputAdapter::Pad_PS4:
             return IconSlot_PS5;
         case InputAdapter::Pad_Vita:
             return IconSlot_Vita;
@@ -179,53 +178,6 @@ namespace ITF
         }
 
         return IconSlot_Default;
-    }
-
-    static const char* GetKeyboardIconNameFromControl(u32 control)
-    {
-        switch (control)
-        {
-        case ZPad_Base::STICK_L_UP:
-        case ZPad_Base::DPAD_UP:
-            return "KEYBOARD_ARROW_UP";
-        case ZPad_Base::STICK_L_DOWN:
-        case ZPad_Base::DPAD_DOWN:
-            return "KEYBOARD_ARROW_DOWN";
-        case ZPad_Base::STICK_L_LEFT:
-        case ZPad_Base::DPAD_LEFT:
-            return "KEYBOARD_ARROW_LEFT";
-        case ZPad_Base::STICK_L_RIGHT:
-        case ZPad_Base::DPAD_RIGHT:
-            return "KEYBOARD_ARROW_RIGHT";
-        case ZPad_Base::TRIGGER_LEFT:
-            return "KEYBOARD_CTRL";
-        case ZPad_Base::TRIGGER_RIGHT:
-            return "KEYBOARD_SHIFT";
-        case ZPad_Base::BUTTON_FACE_SOUTH:
-            return "KEYBOARD_SPACE";
-        case ZPad_Base::BUTTON_FACE_EAST:
-            return "KEYBOARD_BACKSPACE";
-        case ZPad_Base::BUTTON_FACE_WEST:
-            return "KEYBOARD_S";
-        case ZPad_Base::BUTTON_FACE_NORTH:
-            return "KEYBOARD_W";
-        case ZPad_Base::BUTTON_L_SHOULDER:
-            return "KEYBOARD_Q";
-        case ZPad_Base::BUTTON_R_SHOULDER:
-            return "KEYBOARD_E";
-        case ZPad_Base::BUTTON_L_THUMB:
-            return "KEYBOARD_A";
-        case ZPad_Base::BUTTON_R_THUMB:
-            return "KEYBOARD_D";
-        case ZPad_Base::BUTTON_SELECT:
-            return "KEYBOARD_ENTER";
-        case ZPad_Base::BUTTON_START:
-            return "KEYBOARD_ESCAPE";
-        default:
-            break;
-        }
-
-        return "";
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -987,9 +939,6 @@ namespace ITF
             }
             break;
 
-        case IconSlot_Keyboard:
-            return GetKeyboardIconNameFromControl(control);
-
         default:
             break;
         }
@@ -1003,25 +952,13 @@ namespace ITF
         u32 physicalControl = GAMEMANAGER->getInputManager()->GetPhysicalFromAction(_playerIndex, (ZInputManager::EGameAction)_action);
         if (physicalControl == U32_INVALID)
             return String8::emptyString;
-        if (!INPUT_ADAPTER)
-        {
-            return String8::emptyString;
-        }
-        InputAdapter::PadType padType = INPUT_ADAPTER->getLastUsedPadType(_playerIndex);
-        if (padType == InputAdapter::Pad_Invalid)
-        {
-            padType = INPUT_ADAPTER->getDebugInputPadType(_playerIndex);
-        }
+        InputAdapter::PadType padType = INPUT_ADAPTER->getDebugInputPadType(_playerIndex);
         ControllerIconSlot slot = ControllerSlotFromPadType(padType);
         if (slot == IconSlot_Default)
         {
             slot = IconSlot_X360;
         }
         const char* iconName = GetIconNameFromControl(physicalControl, slot);
-        if ((!iconName || iconName[0] == '\0') && slot != IconSlot_X360)
-        {
-            iconName = GetIconNameFromControl(physicalControl, IconSlot_X360);
-        }
         if (iconName && iconName[0] != '\0')
         {
             return String8(iconName);

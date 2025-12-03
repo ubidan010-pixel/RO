@@ -1647,18 +1647,8 @@ void UIMenuManager::applySelectionChange(UIMenu* menu, UIComponent* oldSel, UICo
 
 #if defined(ITF_WINDOWS) && (defined(ITF_FINAL) || ITF_ENABLE_EDITOR_KEYBOARD)
 
-    bbool UIMenuManager::IsMouseInputAllowed() const
-    {
-        return !INPUT_ADAPTER || INPUT_ADAPTER->IsKeyboardMouseEnabled();
-    }
-
     UIComponent* UIMenuManager::getUIComponentUnderMouse()
     {
-        if (!IsMouseInputAllowed())
-        {
-            return nullptr;
-        }
-
         UIMenu* pMenu = getMenu(m_currentMenuID);
         if (!pMenu)
         {
@@ -1747,15 +1737,10 @@ void UIMenuManager::applySelectionChange(UIMenu* menu, UIComponent* oldSel, UICo
     }
 
     bbool UIMenuManager::onMouseButton( InputAdapter::MouseButton but, InputAdapter::PressStatus status )
-        {
-        if (!IsMouseInputAllowed())
-        {
-            return btrue;
-        }
-
-                switch (status)
-                {
-                case InputAdapter::Pressed:
+	{
+		switch (status)
+		{
+		case InputAdapter::Pressed:
 #ifndef ITF_FINAL
 			if (but == InputAdapter::MB_Middle)
 			{
@@ -1868,11 +1853,6 @@ void UIMenuManager::applySelectionChange(UIMenu* menu, UIComponent* oldSel, UICo
 	bbool UIMenuManager::onMousePos (i32 x, i32 y)
 	{
 
-        if (!IsMouseInputAllowed())
-        {
-            return btrue;
-        }
-
         if (m_mouseLocked)
         {
             return true;
@@ -1920,11 +1900,6 @@ void UIMenuManager::applySelectionChange(UIMenu* menu, UIComponent* oldSel, UICo
 
 	bbool UIMenuManager::onMouseWheel (i32 wheelValue, i32 wheelDelta)
 	{
-		if (!IsMouseInputAllowed())
-		{
-			return btrue;
-		}
-
 		if (IsCurrentMenuVerticalScrolling())
 		{
 			f32 joyX = 0.f;

@@ -1,5 +1,6 @@
 ﻿#ifndef _ITF_INPUTADAPTER_SDL3_H_
 #define _ITF_INPUTADAPTER_SDL3_H_
+#ifdef ITF_USE_SDL
 #ifndef _ITF_WININPUTADAPTER_H_
 #include "engine/AdaptersInterfaces/WinInputAdapter.h"
 #endif //_ITF_WININPUTADAPTER_H_
@@ -82,12 +83,10 @@ namespace ITF
         const char* GetControllerTypeName(u32 padIndex) const override;
         void UpdatePads() override;
 
-    protected:
-        void OnPCControlModeChanged(PCControlMode previous, PCControlMode current) override;
-
     private:
         SDLInput m_sdlInput;
         i32 m_slotGamepad[JOY_MAX_COUNT];
     };
 }
+#endif
 #endif //_ITF_INPUTADAPTER_SDL3_H_

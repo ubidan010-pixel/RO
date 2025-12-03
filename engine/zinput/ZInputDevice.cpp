@@ -87,6 +87,7 @@ namespace ITF
             for ( size_t j = 0; j < action.m_inputs.size(); j++ )
             {
                 ZInput& input = action.m_inputs[j];
+                ITF_ASSERT(!input.m_match[m_id]);
                 if ( !input.m_match[m_id] )
                 {
                     //Need a fix

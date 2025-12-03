@@ -165,6 +165,13 @@
 #include "engine/zinput/ZInputManager.h"
 #endif //_ITF_ZINPUT_MANAGER_H
 
+// TEMP -- will be removed soon
+#ifdef ITF_WINDOWS
+    #ifndef _ITF_INPUTADAPTER_DINPUT_H_
+    #include "adapters/InputAdapter_DirectInput/InputAdapter_DINPUT.h"
+    #endif //_ITF_INPUTADAPTER_DINPUT_H_
+#endif //ITF_WINDOWS
+
 #ifndef ITF_RAYONLINETRACKING_MANAGER_H
 	#include "rayman/gameplay/Ray_OnlineTrackingManager.h"
 #endif
