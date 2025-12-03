@@ -396,13 +396,16 @@ namespace ITF
                 break;
             case SDL_EVENT_KEY_DOWN:
             case SDL_EVENT_KEY_UP:
-                 if (!m_adapter || event.key.repeat)
+                if (!m_adapter || event.key.repeat)
                     break;
                 {
                     i32 translatedKey = TranslateSDLKey(event.key.key);
                     if (translatedKey >= 0 && translatedKey < KEY_COUNT)
                     {
-                        m_adapter->onKey(translatedKey, (event.type == SDL_EVENT_KEY_DOWN) ? InputAdapter::Pressed : InputAdapter::Released);
+                        m_adapter->onKey(translatedKey,
+                                         (event.type == SDL_EVENT_KEY_DOWN)
+                                             ? InputAdapter::Pressed
+                                             : InputAdapter::Released);
                     }
                 }
                 break;
@@ -415,8 +418,10 @@ namespace ITF
                     if (button != static_cast<InputAdapter::MouseButton>(-1))
                     {
                         InputAdapter::PressStatus status = (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN)
-                            ? (event.button.clicks > 1 ? InputAdapter::Double_Press : InputAdapter::Pressed)
-                            : InputAdapter::Released;
+                                                               ? (event.button.clicks > 1
+                                                                      ? InputAdapter::Double_Press
+                                                                      : InputAdapter::Pressed)
+                                                               : InputAdapter::Released;
                         m_adapter->onMouseButton(button, status);
                     }
                 }
@@ -554,7 +559,8 @@ namespace ITF
             else
             {
                 gamepad.m_deviceID = padIndex;
-                m_adapter->OnControllerConnected(padIndex, gamepad.m_deviceID, gamepad.m_deviceOutputID, gamepad.m_padType);
+                m_adapter->OnControllerConnected(padIndex, gamepad.m_deviceID, gamepad.m_deviceOutputID,
+                                                 gamepad.m_padType);
             }
         }
         m_adapter->setPadConnected(padIndex, isConnected);
@@ -610,7 +616,8 @@ namespace ITF
                             pMmDevice->Release();
                     }
                 }
-                m_adapter->OnControllerConnected(padIndex, gamepad.m_deviceID, gamepad.m_deviceOutputID, gamepad.m_padType);
+                m_adapter->OnControllerConnected(padIndex, gamepad.m_deviceID, gamepad.m_deviceOutputID,
+                                                 gamepad.m_padType);
                 break;
             }
         }
@@ -627,7 +634,8 @@ namespace ITF
 
         for (int i = 0; i < SCE_USER_SERVICE_MAX_LOGIN_USERS; ++i)
         {
-            outScePadHandles[i] = scePadOpen(SCE_USER_SERVICE_STATIC_USER_ID_1 + i, SCE_PAD_PORT_TYPE_STANDARD, 0, nullptr);
+            outScePadHandles[i] = scePadOpen(
+                SCE_USER_SERVICE_STATIC_USER_ID_1 + i, SCE_PAD_PORT_TYPE_STANDARD, 0, nullptr);
         }
     }
 
@@ -829,7 +837,7 @@ namespace ITF
         ITF_MemSet(m_keys, 0, sizeof(m_keys));
     }
 
-    void InputAdapter_SDL3::onKey(i32 _key, InputAdapter::PressStatus _status)
+    void InputAdapter_SDL3::onKey(i32 _key, PressStatus _status)
     {
         ITF_ASSERT((_key >= 0) && (_key < KEY_COUNT));
 
@@ -1099,7 +1107,8 @@ namespace ITF
 
             if (m_axes[0][m_joyTrigger_Right] == 0.0f)
             {
-                const bbool sprintPressed = (getKeyboardStatus(KEY_LSHIFT) == Pressed || getKeyboardStatus(KEY_LSHIFT) == JustPressed);
+                const bbool sprintPressed = (getKeyboardStatus(KEY_LSHIFT) == Pressed || getKeyboardStatus(KEY_LSHIFT)
+                    == JustPressed);
                 m_axes[0][m_joyTrigger_Right] = sprintPressed ? 1.0f : 0.0f;
                 if (sprintPressed) keyboardUsed = btrue;
             }
