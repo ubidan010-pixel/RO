@@ -139,6 +139,8 @@ namespace ITF
         EAgeGroup   m_ageGroup;
 
         void addPermissionToString(String8& _string, EPermissions _permission, const char* _permissionName) const;
+
+        friend class AccountAdapter;
     };
 
 

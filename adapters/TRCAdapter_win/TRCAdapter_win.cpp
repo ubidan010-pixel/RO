@@ -167,8 +167,6 @@ namespace ITF
             idOutro.value = 6940;
             idGameTitle.value = 6950;
 
-            // TODO fetch player name from AccountAdapter
-
             String textTitle = LOCALISATIONMANAGER->getText(idTitle);
             String textSubtitle = LOCALISATIONMANAGER->getText(idSubtitle);
             String textMain = LOCALISATIONMANAGER->getText(idMain);
@@ -176,7 +174,9 @@ namespace ITF
             String textGameTitle = LOCALISATIONMANAGER->getText(idGameTitle);
 
             String8 playerName;
-            ACCOUNT_ADAPTER->getActivePlayerName(playerName);
+            // $GS: account adapter is not yet hooked up to win64. Use UplayService for now
+            //ACCOUNT_ADAPTER->getActivePlayerName(playerName);
+            playerName = UPLAYSERVICE->getUserName();
 
             textTitle.replace("[console gamertag]", playerName);
             textSubtitle.replace("[console gamertag]", playerName);
@@ -207,8 +207,6 @@ namespace ITF
             idMain.value = 6945;
             idOutro.value = 6947;
             idGameTitle.value = 6948;
-
-            // TODO fetch player name from AccountAdapter
 
             String textTitle = LOCALISATIONMANAGER->getText(idTitle);
             String textSubtitle = LOCALISATIONMANAGER->getText(idSubtitle);

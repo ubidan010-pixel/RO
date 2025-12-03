@@ -49,7 +49,10 @@ namespace ITF
         bool isActiveAccountLinkedToUplay() { return m_isLinkedToUplay; }
         void setActiveAccountLinkedToFacebook(bool _isLinkedToFacebook) { m_isLinkedToFacebook = _isLinkedToFacebook; }
         void setActiveAccountNetworkId(const UUID& _networkId) { m_networkId = _networkId; }
-        void setActiveAccountNameOnUplay(const String8& _uplayPlatformName) { m_activeAccNameOnUplay = _uplayPlatformName; }
+        void setActiveAccountNameOnUplay(const String8& _uplayPlatformName) {
+            const_cast<Account&>(getActiveAccount()).setNameOnUplay(_uplayPlatformName);
+            m_activeAccNameOnUplay = _uplayPlatformName;
+        }
 
         virtual u32 getPlatformSpecificErrorCode() { return 0; };
 

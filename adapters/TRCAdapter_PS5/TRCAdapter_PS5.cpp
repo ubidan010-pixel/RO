@@ -143,7 +143,7 @@ namespace ITF
             String textGameTitle = LOCALISATIONMANAGER->getText(idGameTitle);
 
             String8 playerName;
-            ACCOUNT_ADAPTER->getActivePlayerName(playerName);
+            ACCOUNT_ADAPTER->getPlayerNameOnUplay(playerName);
 
             textTitle.replace("[console gamertag]", playerName);
             textSubtitle.replace("[console gamertag]", playerName);
@@ -181,7 +181,7 @@ namespace ITF
             String textGameTitle = LOCALISATIONMANAGER->getText(idGameTitle);
 
             String8 playerName;
-            ACCOUNT_ADAPTER->getActivePlayerName(playerName);
+            ACCOUNT_ADAPTER->getPlayerNameOnUplay(playerName);
 
             textTitle.replace("[console gamertag]", playerName);
             textSubtitle.replace("[console gamertag]", playerName);

@@ -353,12 +353,17 @@ namespace ITF
 #elif defined(ITF_PS5)
         const US_NS::String titleId("PPSA34569_00");
         const US_NS::GameConfigConsole gameConfigConsole(titleId);
-#elif defined(ITF_NX) || defined(ITF_OUNCE)
+#elif defined(ITF_NX)
         // This is the primary store id given to the game in the first party publishing tool
-        const US_NS::String theApplicationId("0100ac702659e000");
+        const US_NS::String theApplicationId("HAC-P-BTN6A");
         const US_NS::GameConfigConsole gameConfigConsole(theApplicationId);
+#elif defined(ITF_OUNCE)
+        const US_NS::String theApplicationId("BEE-P-ABPKA");
+        const US_NS::GameConfigConsole gameConfigConsole(theApplicationId);
+
 #elif defined(ITF_XBOX_SERIES)
-        const US_NS::String productId("48485039-5439-304e-c033-505343475400"); // This is the primary store id given to the game in the first party publishing tool
+        // https://confluence.ubisoft.com/display/onlineservices/UbiServices+Client+SDK+-+Configuring+Xbox+Products+2025.x
+        const US_NS::String productId("6562f122"); // XDK uses legacy id; GDK uses the 8 char Xbox Title ID.
         const US_NS::PartyMultiplayerPrivilegeModel model = US_NS::PartyMultiplayerPrivilegeModel::Standard; // Xbox title payment model used to check party multiplayer privileges.
         const US_NS::GameConfigConsole gameConfigConsole(productId, model);
 #endif

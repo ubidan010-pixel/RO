@@ -9,6 +9,7 @@
 #include <ubiservices/services/notification/playerNotificationCustom.h>
 #include <ubiservices/services/notification/playerNotificationUbiServices.h>
 #include <ubiservices/services/populations/populationInfo.h>
+#include <ubiservices/services/profile/profileInfo.h>
 
 #include "engine/AdaptersInterfaces/OnlineAdapter/OnlineError.h"
 #include "engine/AdaptersInterfaces/OnlineAdapter/PopulationInfo.h"
@@ -102,6 +103,8 @@ namespace ITF
         OnlineError m_sessionError;
         US_NS::AsyncResult<US_NS::Empty> m_createSessionResult;
         US_NS::AsyncResult<US_NS::Empty> m_closeSessionResult;
+
+        US_NS::Map<US_NS::ProfileId, US_NS::ProfileInfo> m_cachedProfiles;
 
         void checkUbiservicesNotifications();
 

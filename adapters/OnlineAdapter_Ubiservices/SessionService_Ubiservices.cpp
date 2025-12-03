@@ -30,6 +30,7 @@
 #include <ubiservices/services/notification/playerNotificationClient.h>
 #include <ubiservices/services/notification/playerNotificationCustom.h>
 #include <ubiservices/services/ubisoftConnect/ubisoftConnectClient.h>
+#include <ubiservices/services/profile/profile_module.h>
 
 #if defined(ITF_WINDOWS)
 #   include "adapters/AccountAdapter_win/AccountAdapter_win.h"
@@ -894,6 +895,17 @@ void SessionService_Ubiservices::refreshSessionInfo()
         if (sessionInfo.hasUserAccountLinked())
         {
             // Fetch Uplay name
+            ProfileId pId = sessionInfo.getProfileId();
+            US_NS::String sId = pId;
+            auto it = m_cachedProfiles.find(pId);
+            if (it != m_cachedProfiles.end())
+            {
+                String8 name = it->second.m_nameOnPlatform.getUtf8();
+                LOG("Found cached profile info for pid %s; name: %s", sId.getUtf8(), name.cStr());
+                ACCOUNT_ADAPTER->setActiveAccountNameOnUplay(name);
+            }
+            else
+                LOG("No cached profiles for pid %s (was it cleared it by accident?)", sId.getUtf8());
         }
         else
         {
@@ -1071,6 +1083,26 @@ OnlineError SessionService_Ubiservices::createSession()
     else if (notification.m_type == US_NS::PlayerNotificationUbiServicesType::NotificationConnect)
     {
         // You are connected and all is good!
+
+        // update profile cache
+        ProfileModule& moduleProfile = ProfileModule::module(*m_session);
+        AuthenticationModule& moduleAuth = AuthenticationModule::module(*m_session);
+
+        ProfileId pId = moduleAuth.getSessionInfo().getProfileId();
+        US_NS::Vector<ProfileId> profileQuery;
+        profileQuery.push_back(pId);
+
+        auto result = moduleProfile.requestProfiles(profileQuery);
+        result.wait();
+        if (result.hasSucceeded())
+        {
+            m_cachedProfiles = result.getResult();
+            LOG("Retrieved profiles: %d", m_cachedProfiles.size());
+        }
+
+        // update data inside Account Adapter
+        refreshSessionInfo();
+
         m_sessionError = OnlineError(OnlineError::ErrorType::Success);
         m_sessionStatus = EInternalStatus_Ready;
         return m_sessionError;
