@@ -156,6 +156,7 @@ namespace ITF
         case InputAdapter::Pad_PS3:
             return IconSlot_PS3;
         case InputAdapter::Pad_PS5:
+        case InputAdapter::Pad_PS4:
             return IconSlot_PS5;
         case InputAdapter::Pad_Vita:
             return IconSlot_Vita;
@@ -178,6 +179,118 @@ namespace ITF
         }
 
         return IconSlot_Default;
+    }
+
+    static const char* GetKeyboardIconNameFromControl(u32 control)
+    {
+        switch (control)
+        {
+        case ZPad_Base::STICK_L_UP:
+        case ZPad_Base::DPAD_UP:
+            return "KEYBOARD_ARROW_UP";
+        case ZPad_Base::STICK_L_DOWN:
+        case ZPad_Base::DPAD_DOWN:
+            return "KEYBOARD_ARROW_DOWN";
+        case ZPad_Base::STICK_L_LEFT:
+        case ZPad_Base::DPAD_LEFT:
+            return "KEYBOARD_ARROW_LEFT";
+        case ZPad_Base::STICK_L_RIGHT:
+        case ZPad_Base::DPAD_RIGHT:
+            return "KEYBOARD_ARROW_RIGHT";
+        case ZPad_Base::TRIGGER_LEFT:
+            return "KEYBOARD_CTRL";
+        case ZPad_Base::TRIGGER_RIGHT:
+            return "KEYBOARD_SHIFT";
+        case ZPad_Base::BUTTON_FACE_SOUTH:
+            return "KEYBOARD_SPACE";
+        case ZPad_Base::BUTTON_FACE_EAST:
+            return "KEYBOARD_BACKSPACE";
+        case ZPad_Base::BUTTON_FACE_WEST:
+            return "KEYBOARD_S";
+        case ZPad_Base::BUTTON_FACE_NORTH:
+            return "KEYBOARD_W";
+        case ZPad_Base::BUTTON_L_SHOULDER:
+            return "KEYBOARD_Q";
+        case ZPad_Base::BUTTON_R_SHOULDER:
+            return "KEYBOARD_E";
+        case ZPad_Base::BUTTON_L_THUMB:
+            return "KEYBOARD_A";
+        case ZPad_Base::BUTTON_R_THUMB:
+            return "KEYBOARD_D";
+        case ZPad_Base::BUTTON_SELECT:
+            return "KEYBOARD_ENTER";
+        case ZPad_Base::BUTTON_START:
+            return "KEYBOARD_ESCAPE";
+        default:
+            break;
+        }
+
+        return "";
+    }
+
+    // Helper function to get icon name from raw key code (uses KeyCode enum from InputAdapter.h)
+    static String8 GetIconNameForKeyboardKey(i32 rawKey)
+    {
+        // Special keys - use KeyCode enum values
+        switch (rawKey)
+        {
+        case KEY_UP:    return String8("KEYBOARD_ARROW_UP");
+        case KEY_DOWN:  return String8("KEYBOARD_ARROW_DOWN");
+        case KEY_LEFT:  return String8("KEYBOARD_ARROW_LEFT");
+        case KEY_RIGHT: return String8("KEYBOARD_ARROW_RIGHT");
+        case KEY_SPACE: return String8("KEYBOARD_SPACE");
+        case KEY_ESC:   return String8("KEYBOARD_ESCAPE");
+        case KEY_ENTER: return String8("KEYBOARD_ENTER");
+        case KEY_TAB:   return String8("KEYBOARD_TAB");
+        case KEY_LSHIFT:
+        case KEY_RSHIFT: return String8("KEYBOARD_SHIFT");
+        case KEY_LCTRL:
+        case KEY_RCTRL:  return String8("KEYBOARD_CTRL");
+        case KEY_LALT:
+        case KEY_RALT:   return String8("KEYBOARD_ALT");
+        case KEY_BACKSPACE: return String8("KEYBOARD_BACKSPACE");
+        case KEY_DEL:    return String8("KEYBOARD_DELETE");
+        default:
+            break;
+        }
+
+        // Letter keys (a-z) -> uppercase for display
+        if (rawKey >= 'a' && rawKey <= 'z')
+        {
+            char keyName[16];
+            snprintf(keyName, sizeof(keyName), "KEYBOARD_%c", (char)(rawKey - 'a' + 'A'));
+            return String8(keyName);
+        }
+
+        // Number keys (0-9)
+        if (rawKey >= '0' && rawKey <= '9')
+        {
+            char keyName[16];
+            snprintf(keyName, sizeof(keyName), "KEYBOARD_%c", (char)rawKey);
+            return String8(keyName);
+        }
+
+        // Unknown key - return generic
+        return String8("KEYBOARD_UNKNOWN");
+    }
+
+    // Helper function to get default key for an action (using ZInputManager::EGameAction)
+    static i32 GetDefaultKeyForAction(u32 action)
+    {
+        switch (action)
+        {
+        case ZInputManager::Action_Up:    return KEY_UP;
+        case ZInputManager::Action_Down:  return KEY_DOWN;
+        case ZInputManager::Action_Left:  return KEY_LEFT;
+        case ZInputManager::Action_Right: return KEY_RIGHT;
+        case ZInputManager::Action_Jump:  return KEY_SPACE;   // Jump
+        case ZInputManager::Action_Hit:   return 's';         // Hit
+        case ZInputManager::Action_Run:   return KEY_LSHIFT;  // Run (sprint/trigger)
+        case ZInputManager::Action_Back:  return KEY_BACKSPACE;// Back
+        default:
+            break;
+        }
+        return -1;
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -975,6 +1088,9 @@ namespace ITF
             }
             break;
 
+        case IconSlot_Keyboard:
+            return GetKeyboardIconNameFromControl(control);
+
         default:
             break;
         }
@@ -985,16 +1101,49 @@ namespace ITF
     {
         if (!GAMEMANAGER || !GAMEMANAGER->getInputManager())
             return String8::emptyString;
+        if (!INPUT_ADAPTER)
+        {
+            return String8::emptyString;
+        }
+
+        InputAdapter::PadType padType = INPUT_ADAPTER->getLastUsedPadType(_playerIndex);
+        if (padType == InputAdapter::Pad_Invalid)
+        {
+            padType = INPUT_ADAPTER->getDebugInputPadType(_playerIndex);
+        }
+
+#if defined(ITF_WINDOWS)
+        // Check for keyboard mode - display the mapped key
+        if (padType == InputAdapter::Pad_Keyboard)
+        {
+            i32 keyCode = GAMEMANAGER->getInputManager()->GetKeyboardKeyFromAction(_playerIndex, (ZInputManager::EGameAction)_action);
+            if (keyCode >= 0)
+            {
+                return GetIconNameForKeyboardKey(keyCode);
+            }
+            // Fallback to default key if keyboard device not found
+            keyCode = GetDefaultKeyForAction(_action);
+            if (keyCode >= 0)
+            {
+                return GetIconNameForKeyboardKey(keyCode);
+            }
+        }
+#endif
+
         u32 physicalControl = GAMEMANAGER->getInputManager()->GetPhysicalFromAction(_playerIndex, (ZInputManager::EGameAction)_action);
         if (physicalControl == U32_INVALID)
             return String8::emptyString;
-        InputAdapter::PadType padType = INPUT_ADAPTER->getDebugInputPadType(_playerIndex);
+
         ControllerIconSlot slot = ControllerSlotFromPadType(padType);
         if (slot == IconSlot_Default)
         {
             slot = IconSlot_X360;
         }
         const char* iconName = GetIconNameFromControl(physicalControl, slot);
+        if ((!iconName || iconName[0] == '\0') && slot != IconSlot_X360)
+        {
+            iconName = GetIconNameFromControl(physicalControl, IconSlot_X360);
+        }
         if (iconName && iconName[0] != '\0')
         {
             return String8(iconName);

@@ -99,6 +99,10 @@ namespace ITF
         void platformUpdateKeyboardState() override;
         PressStatus getKeyboardStatus(i32 key) const override;
         u32 getKeyboardPressTime(i32 key) const override;
+        i32 GetFirstPressedRawKey() const override;
+
+    protected:
+        void OnPCControlModeChanged(PCControlMode previous, PCControlMode current) override;
 
     private:
         enum EditorEventType : i32

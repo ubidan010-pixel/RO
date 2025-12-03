@@ -1013,6 +1013,18 @@ namespace ITF
         return m_keyPressTime[key];
     }
 
+    i32 InputAdapter_SDL3::GetFirstPressedRawKey() const
+    {
+        for (i32 key = 0; key < KEY_COUNT; ++key)
+        {
+            if (m_keyStatus[key] == JustPressed || m_keyStatus[key] == Pressed)
+            {
+                return key;
+            }
+        }
+        return -1;
+    }
+
     void InputAdapter_SDL3::pushKeyEvent(i32 _key, PressStatus _status)
     {
         EditorEvent evt;
@@ -1055,62 +1067,30 @@ namespace ITF
         {
             bbool keyboardUsed = bfalse;
 
-            if (m_buttons[0][m_joyButton_DPadU] == Released)
-            {
-                PressStatus status = getKeyboardStatus(KEY_UP);
-                m_buttons[0][m_joyButton_DPadU] = status;
-                if (status == Pressed || status == JustPressed) keyboardUsed = btrue;
-            }
-            if (m_buttons[0][m_joyButton_DPadD] == Released)
-            {
-                PressStatus status = getKeyboardStatus(KEY_DOWN);
-                m_buttons[0][m_joyButton_DPadD] = status;
-                if (status == Pressed || status == JustPressed) keyboardUsed = btrue;
-            }
-            if (m_buttons[0][m_joyButton_DPadL] == Released)
-            {
-                PressStatus status = getKeyboardStatus(KEY_LEFT);
-                m_buttons[0][m_joyButton_DPadL] = status;
-                if (status == Pressed || status == JustPressed) keyboardUsed = btrue;
-            }
-            if (m_buttons[0][m_joyButton_DPadR] == Released)
-            {
-                PressStatus status = getKeyboardStatus(KEY_RIGHT);
-                m_buttons[0][m_joyButton_DPadR] = status;
-                if (status == Pressed || status == JustPressed) keyboardUsed = btrue;
-            }
+            auto updateKeyboardButton = [&](u32 buttonIndex, PressStatus status) {
+                m_keyboardButtons[0][buttonIndex] = status;
 
-            if (m_buttons[0][m_joyButton_A] == Released)
-            {
-                PressStatus status = getKeyboardStatus(KEY_SPACE);
-                m_buttons[0][m_joyButton_A] = status;
-                if (status == Pressed || status == JustPressed) keyboardUsed = btrue;
-            }
-            if (m_buttons[0][m_joyButton_X] == Released)
-            {
-                PressStatus status = getKeyboardStatus('s');
-                m_buttons[0][m_joyButton_X] = status;
-                if (status == Pressed || status == JustPressed) keyboardUsed = btrue;
-            }
-            if (m_buttons[0][m_joyButton_B] == Released)
-            {
-                PressStatus status = getKeyboardStatus(KEY_BACKSPACE);
-                m_buttons[0][m_joyButton_B] = status;
-                if (status == Pressed || status == JustPressed) keyboardUsed = btrue;
-            }
-            if (m_buttons[0][m_joyButton_Start] == Released)
-            {
-                PressStatus status = getKeyboardStatus(KEY_ESC);
-                m_buttons[0][m_joyButton_Start] = status;
-                if (status == Pressed || status == JustPressed) keyboardUsed = btrue;
-            }
+                if (status == Pressed || status == JustPressed)
+                {
+                    keyboardUsed = btrue;
+                }
+            };
 
-            if (m_axes[0][m_joyTrigger_Right] == 0.0f)
+            updateKeyboardButton(m_joyButton_DPadU, getKeyboardStatus(KEY_UP));
+            updateKeyboardButton(m_joyButton_DPadD, getKeyboardStatus(KEY_DOWN));
+            updateKeyboardButton(m_joyButton_DPadL, getKeyboardStatus(KEY_LEFT));
+            updateKeyboardButton(m_joyButton_DPadR, getKeyboardStatus(KEY_RIGHT));
+
+            updateKeyboardButton(m_joyButton_A, getKeyboardStatus(KEY_SPACE));
+            updateKeyboardButton(m_joyButton_X, getKeyboardStatus('s'));
+            updateKeyboardButton(m_joyButton_B, getKeyboardStatus(KEY_BACKSPACE));
+            updateKeyboardButton(m_joyButton_Start, getKeyboardStatus(KEY_ESC));
+
+            const bbool sprintPressed = (getKeyboardStatus(KEY_LSHIFT) == Pressed || getKeyboardStatus(KEY_LSHIFT) == JustPressed);
+            m_keyboardAxes[0][m_joyTrigger_Right] = sprintPressed ? 1.0f : 0.0f;
+            if (sprintPressed)
             {
-                const bbool sprintPressed = (getKeyboardStatus(KEY_LSHIFT) == Pressed || getKeyboardStatus(KEY_LSHIFT)
-                    == JustPressed);
-                m_axes[0][m_joyTrigger_Right] = sprintPressed ? 1.0f : 0.0f;
-                if (sprintPressed) keyboardUsed = btrue;
+                keyboardUsed = btrue;
             }
 
             if (keyboardUsed)
@@ -1119,6 +1099,7 @@ namespace ITF
             }
         }
     }
+
 
     u32 InputAdapter_SDL3::getGamePadCount()
     {
@@ -1276,6 +1257,31 @@ namespace ITF
             m_connectedPlayers[0] = ePlaying;
         }
         setPadConnected(0, btrue);
+    }
+
+    void InputAdapter_SDL3::OnPCControlModeChanged(PCControlMode previous, PCControlMode current)
+    {
+        ITF_UNUSED(previous);
+
+        if (current != PCControlMode_Keyboard)
+            return;
+
+        m_slotGamepad[0] = -1;
+
+        for (u32 axis = 0; axis < JOY_MAX_AXES; ++axis)
+        {
+            m_axes[0][axis] = 0.0f;
+        }
+
+        for (u32 button = 0; button < JOY_MAX_BUT; ++button)
+        {
+            m_buttons[0][button] = Released;
+        }
+
+        setPadType(0, Pad_Keyboard);
+        m_connectedPlayers[0] = ePlaying;
+        setPadConnected(0, btrue);
+        setLastUsedInputDevice(0, InputDevice_Keyboard);
     }
 
     const char* InputAdapter_SDL3::GetControllerTypeName(u32 padIndex) const

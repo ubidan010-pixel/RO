@@ -38,6 +38,10 @@
 
 #include "engine/zinput/XBoxSeries/ZPad_XBoxSeries.h"
 
+#if defined(ITF_WINDOWS)
+#include "engine/zinput/pc/ZPad_PCKeyboard.h"
+#endif
+
 #ifndef _ITF_ZPAD_BASE_H_
 #include "engine/zinput/ZPad_Base.h"
 #endif //_ITF_ZPAD_BASE_H_
@@ -241,12 +245,34 @@ namespace ITF
 
     }
 
-    void ZInputManager::SetRemap(u32 _playerIndex, u32 _logicalControl, u32 _physicalControl)
+        void ZInputManager::addPCKeyboard_device(u32 maxPAD)
+        {
+    #if defined(ITF_WINDOWS)
+        FOR_MAXPAD m_devices.push_back(newAlloc(mId_System, ZPad_PCKeyboard(pad)));
+    #else
+        ITF_UNUSED(maxPAD);
+    #endif
+        }
+
+    void ZInputManager::SetRemap(u32 _playerIndex, u32 _logicalControl, u32 _physicalControl, EInputSourceType _source)
     {
         for (u32 i = 0; i < m_devices.size(); ++i)
         {
-            if (m_devices[i]->GetId() == _playerIndex)
+            if (m_devices[i]->GetId() == _playerIndex && m_devices[i]->GetInputSourceType() == _source)
             {
+#if defined(ITF_WINDOWS)
+                // For keyboard, _physicalControl is a raw key code
+                // We need to set the key mapping instead of the standard remap
+                if (_source == InputSource_Keyboard)
+                {
+                    ZPad_PCKeyboard* keyboardDevice = static_cast<ZPad_PCKeyboard*>(m_devices[i]);
+                    if (keyboardDevice)
+                    {
+                        keyboardDevice->SetKeyMapping(_logicalControl, static_cast<i32>(_physicalControl));
+                        continue;
+                    }
+                }
+#endif
                 m_devices[i]->SetRemap(_logicalControl, _physicalControl);
             }
         }
@@ -254,10 +280,27 @@ namespace ITF
 
     void ZInputManager::ResetRemapping(u32 _playerIndex)
     {
+        ResetRemapping(_playerIndex, InputSource_Gamepad);
+        ResetRemapping(_playerIndex, InputSource_Keyboard);
+    }
+
+    void ZInputManager::ResetRemapping(u32 _playerIndex, EInputSourceType _source)
+    {
         for (u32 i = 0; i < m_devices.size(); ++i)
         {
-            if (m_devices[i]->GetId() == _playerIndex)
+            if (m_devices[i]->GetId() == _playerIndex && m_devices[i]->GetInputSourceType() == _source)
             {
+#if defined(ITF_WINDOWS)
+                if (_source == InputSource_Keyboard)
+                {
+                    ZPad_PCKeyboard* keyboardDevice = static_cast<ZPad_PCKeyboard*>(m_devices[i]);
+                    if (keyboardDevice)
+                    {
+                        keyboardDevice->ResetKeyMappings();
+                        continue;
+                    }
+                }
+#endif
                 m_devices[i]->ResetRemapping();
             }
         }
@@ -311,8 +354,28 @@ namespace ITF
         return !isDirectionalControl(_physicalControl);
     }
 
-    void ZInputManager::SetActionRemap(u32 _playerIndex, EGameAction _action, u32 _physicalControl)
+    void ZInputManager::SetActionRemap(u32 _playerIndex, EGameAction _action, u32 _physicalControl, EInputSourceType _source)
     {
+#if defined(ITF_WINDOWS)
+        // For keyboard, we just map the raw key directly to the action's logical control
+        // No directional grouping needed - each direction can have its own key
+        if (_source == InputSource_Keyboard)
+        {
+            u32 logicalControl = GetStandardControlFromAction(_action);
+            if (logicalControl != U32_INVALID)
+            {
+                LOG("[ZInputManager] SetActionRemap (Keyboard): Player %d, Action %d -> Key %d (Logical %d)\n",
+                    _playerIndex, _action, _physicalControl, logicalControl);
+                SetRemap(_playerIndex, logicalControl, _physicalControl, _source);
+            }
+            else
+            {
+                LOG("[ZInputManager] SetActionRemap: Invalid Action %d for Player %d\n", _action, _playerIndex);
+            }
+            return;
+        }
+#endif
+
         const auto remapDirectionalGroup = [&](u32 upControl, u32 downControl, u32 leftControl, u32 rightControl)
         {
             const EGameAction directionalActions[] = {
@@ -335,7 +398,7 @@ namespace ITF
                 if (logicalControl != U32_INVALID)
                 {
                     LOG("[ZInputManager] SetActionRemap: Player %d, Action %d -> Physical %d (Logical %d)\n", _playerIndex, directionalActions[i], physicalControls[i], logicalControl);
-                    SetRemap(_playerIndex, logicalControl, physicalControls[i]);
+                    SetRemap(_playerIndex, logicalControl, physicalControls[i], _source);
                 }
             }
         };
@@ -382,7 +445,7 @@ namespace ITF
         if (logicalControl != U32_INVALID)
         {
             LOG("[ZInputManager] SetActionRemap: Player %d, Action %d -> Physical %d (Logical %d)\n", _playerIndex, _action, _physicalControl, logicalControl);
-            SetRemap(_playerIndex, logicalControl, _physicalControl);
+            SetRemap(_playerIndex, logicalControl, _physicalControl, _source);
         }
         else
         {
@@ -465,10 +528,35 @@ namespace ITF
                 return m_devices[i]->GetRemap(logicalControl);
             }
         }
-        return logicalControl; 
+        return logicalControl;
     }
 
-    u32 ZInputManager::GetFirstActiveControl(u32 _playerIndex)
+    i32 ZInputManager::GetKeyboardKeyFromAction(u32 _playerIndex, EGameAction _action)
+    {
+#if defined(ITF_WINDOWS)
+        u32 logicalControl = GetStandardControlFromAction(_action);
+        if (logicalControl == U32_INVALID) return -1;
+
+        for (u32 i = 0; i < m_devices.size(); ++i)
+        {
+            if (m_devices[i] && m_devices[i]->GetId() == _playerIndex
+                && m_devices[i]->GetInputSourceType() == InputSource_Keyboard)
+            {
+                ZPad_PCKeyboard* keyboardDevice = static_cast<ZPad_PCKeyboard*>(m_devices[i]);
+                if (keyboardDevice)
+                {
+                    return keyboardDevice->GetKeyMapping(logicalControl);
+                }
+            }
+        }
+#else
+        ITF_UNUSED(_playerIndex);
+        ITF_UNUSED(_action);
+#endif
+        return -1;
+    }
+
+    u32 ZInputManager::GetFirstActiveControl(u32 _playerIndex, EInputSourceType* _outSource)
     {
         for (u32 i = 0; i < m_devices.size(); ++i)
         {
@@ -477,6 +565,10 @@ namespace ITF
                 u32 control = m_devices[i]->GetFirstActiveControl();
                 if (control != U32_INVALID)
                 {
+                    if (_outSource)
+                    {
+                        *_outSource = m_devices[i]->GetInputSourceType();
+                    }
                     return control;
                 }
             }

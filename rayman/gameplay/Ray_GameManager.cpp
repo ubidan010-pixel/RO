@@ -5305,6 +5305,9 @@ namespace ITF
         {
             // WIN32 + X360 support
             m_inputManager->addX360pad_device(JOY_MAX_COUNT);
+#if defined(ITF_WINDOWS)
+            m_inputManager->addPCKeyboard_device(1);
+#endif
             // PS3 support
             m_inputManager->addPS3pad_device(JOY_MAX_COUNT);
             // WII support
@@ -12113,8 +12116,7 @@ namespace ITF
 
         if (INPUT_ADAPTER)
         {
-            bbool sharingEnabled = (type == PCControlMode_Hybrid);
-            INPUT_ADAPTER->SetKeyboardControllerSharing(sharingEnabled);
+            INPUT_ADAPTER->SetPCControlMode(static_cast<PCControlMode>(type));
         }
     }
 

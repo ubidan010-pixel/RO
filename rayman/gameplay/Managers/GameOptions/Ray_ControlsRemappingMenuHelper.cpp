@@ -153,6 +153,7 @@ namespace ITF
           , m_remappingComponent(NULL)
           , m_remappingCooldown(0.0f)
           , m_postRemapCooldown(0.0f)
+          , m_remappingSource(InputSource_Gamepad)
 #if defined(ITF_WINDOWS)
           , m_isEditingControllerType(bfalse)
           , m_editingControllerTypeComponent(NULL)
@@ -353,6 +354,7 @@ namespace ITF
         m_remappingAction = action;
         m_remappingComponent = component;
         m_remappingCooldown = ControlsRemappingConstants::REMAPPING_COOLDOWN;
+        m_remappingSource = InputSource_Count;
         clearIconDisplay(component);
 
         if (GAMEMANAGER && GAMEMANAGER->getInputManager())
@@ -378,6 +380,65 @@ namespace ITF
         component->forceContent(content);
     }
 
+    void Ray_ControlsRemappingMenuHelper::updateIconDisplayForKeyboard(UIComponent* component, i32 keyCode)
+    {
+        if (!component || keyCode < 0)
+            return;
+
+        String8 iconName;
+        
+        // Map key codes to icon names - format must match uitextconfig.isg (KEYBOARD_*)
+        if (keyCode >= 'a' && keyCode <= 'z')
+        {
+            // Lowercase letters - convert to uppercase for icon name
+            char letter = static_cast<char>('A' + (keyCode - 'a'));
+            iconName.setTextFormat("[icon:KEYBOARD_%c]", letter);
+        }
+        else if (keyCode >= 'A' && keyCode <= 'Z')
+        {
+            iconName.setTextFormat("[icon:KEYBOARD_%c]", static_cast<char>(keyCode));
+        }
+        else if (keyCode >= '0' && keyCode <= '9')
+        {
+            iconName.setTextFormat("[icon:KEYBOARD_%c]", static_cast<char>(keyCode));
+        }
+        else
+        {
+            // Special keys - names must match uitextconfig.isg
+            switch (keyCode)
+            {
+            case KEY_SPACE:     iconName = "[icon:KEYBOARD_SPACE]"; break;
+            case KEY_ENTER:     iconName = "[icon:KEYBOARD_ENTER]"; break;
+            case KEY_ESC:       iconName = "[icon:KEYBOARD_ESCAPE]"; break;
+            case KEY_TAB:       iconName = "[icon:KEYBOARD_TAB]"; break;
+            case KEY_BACKSPACE: iconName = "[icon:KEYBOARD_BACKSPACE]"; break;
+            case KEY_LSHIFT:    
+            case KEY_RSHIFT:    iconName = "[icon:KEYBOARD_SHIFT]"; break;
+            case KEY_LCTRL:     
+            case KEY_RCTRL:     iconName = "[icon:KEYBOARD_CTRL]"; break;
+            case KEY_LALT:      
+            case KEY_RALT:      iconName = "[icon:KEYBOARD_ALT]"; break;
+            case KEY_UP:        iconName = "[icon:KEYBOARD_ARROW_UP]"; break;
+            case KEY_DOWN:      iconName = "[icon:KEYBOARD_ARROW_DOWN]"; break;
+            case KEY_LEFT:      iconName = "[icon:KEYBOARD_ARROW_LEFT]"; break;
+            case KEY_RIGHT:     iconName = "[icon:KEYBOARD_ARROW_RIGHT]"; break;
+            case KEY_DEL:       iconName = "[icon:KEYBOARD_DELETE]"; break;
+            case KEY_HOME:      iconName = "[icon:KEYBOARD_HOME]"; break;
+            case KEY_END:       iconName = "[icon:KEYBOARD_END]"; break;
+            case KEY_PAGEUP:    iconName = "[icon:KEYBOARD_PAGE_UP]"; break;
+            case KEY_PAGEDOWN:  iconName = "[icon:KEYBOARD_PAGE_DOWN]"; break;
+            case KEY_INSERT:    iconName = "[icon:KEYBOARD_INSERT]"; break;
+            default:
+                // Fallback: show generic keyboard icon
+                iconName = "[icon:KEYBOARD_ANY]";
+                break;
+            }
+        }
+
+        LOG("[ControlsRemapping] Updating icon to: %s\n", iconName.cStr());
+        component->forceContent(String(iconName.cStr()));
+    }
+
     void Ray_ControlsRemappingMenuHelper::cancelRemappingMode(bbool restoreDisplay)
     {
         if (!m_isRemappingMode)
@@ -391,19 +452,38 @@ namespace ITF
         m_isRemappingMode = bfalse;
         m_remappingComponent = nullptr;
         m_remappingCooldown = 0.0f;
+        m_remappingSource = InputSource_Gamepad;
         m_isWaitingForRelease = btrue;
         m_postRemapCooldown = ControlsRemappingConstants::POST_REMAP_COOLDOWN;
         LOG("[ControlsRemapping] Entering wait-for-release state\n");
     }
 
-    bbool Ray_ControlsRemappingMenuHelper::detectPhysicalControl(u32& outPhysicalControl)
+    bbool Ray_ControlsRemappingMenuHelper::detectPhysicalControl(u32& outPhysicalControl, EInputSourceType& outSource)
     {
         outPhysicalControl = U32_INVALID;
+        outSource = InputSource_Gamepad;
 
         if (!GAMEMANAGER || !GAMEMANAGER->getInputManager())
             return bfalse;
 
-        outPhysicalControl = GAMEMANAGER->getInputManager()->GetFirstActiveControl(m_remappingPlayerIndex);
+#if defined(ITF_WINDOWS)
+        // First check for raw keyboard input (allows remapping to any key)
+        if (INPUT_ADAPTER && INPUT_ADAPTER->IsKeyboardMouseEnabled())
+        {
+            i32 rawKey = INPUT_ADAPTER->GetFirstPressedRawKey();
+            if (rawKey >= 0)
+            {
+                // Return the raw key code as the physical control
+                // The keyboard remapping system will handle this specially
+                outPhysicalControl = static_cast<u32>(rawKey);
+                outSource = InputSource_Keyboard;
+                return btrue;
+            }
+        }
+#endif
+
+        // Then check gamepad/standard controls
+        outPhysicalControl = GAMEMANAGER->getInputManager()->GetFirstActiveControl(m_remappingPlayerIndex, &outSource);
         return (outPhysicalControl != U32_INVALID);
     }
 
@@ -424,15 +504,31 @@ namespace ITF
             return;
         }
 
-        if (!inputManager->IsActionRemapAllowed(m_remappingAction, physicalControl))
+        // For keyboard remapping, we allow any key - validation only applies to gamepad controls
+        bbool shouldValidate = (m_remappingSource != InputSource_Keyboard);
+        if (shouldValidate && !inputManager->IsActionRemapAllowed(m_remappingAction, physicalControl))
         {
             LOG("[ControlsRemapping] Remap rejected Player %d, Action %d -> Physical %d\n", m_remappingPlayerIndex + 1, m_remappingAction, physicalControl);
             return;
         }
 
-        inputManager->SetActionRemap(m_remappingPlayerIndex, m_remappingAction, physicalControl);
-        LOG("[ControlsRemapping] Remap complete Player %d, Action %d -> Physical %d\n", m_remappingPlayerIndex + 1, m_remappingAction, physicalControl);
-        cancelRemappingMode(btrue);
+        EInputSourceType appliedSource = (m_remappingSource < InputSource_Count) ? m_remappingSource : InputSource_Gamepad;
+        inputManager->SetActionRemap(m_remappingPlayerIndex, m_remappingAction, physicalControl, appliedSource);
+        LOG("[ControlsRemapping] Remap complete Player %d, Action %d -> Physical %d (Source %d)\n",
+            m_remappingPlayerIndex + 1, m_remappingAction, physicalControl, appliedSource);
+
+#if defined(ITF_WINDOWS)
+        // For keyboard remapping, update the icon to show the new key
+        if (appliedSource == InputSource_Keyboard && m_remappingComponent)
+        {
+            updateIconDisplayForKeyboard(m_remappingComponent, static_cast<i32>(physicalControl));
+            cancelRemappingMode(bfalse);  // Don't restore old display
+        }
+        else
+#endif
+        {
+            cancelRemappingMode(btrue);
+        }
     }
 
     void Ray_ControlsRemappingMenuHelper::updateRemappingMode(f32 deltaTime)
@@ -474,11 +570,13 @@ namespace ITF
         }
 
         u32 physicalControl = U32_INVALID;
-        if (!detectPhysicalControl(physicalControl))
+        EInputSourceType source = InputSource_Gamepad;
+        if (!detectPhysicalControl(physicalControl, source))
             return;
 
         if (physicalControl != U32_INVALID)
         {
+            m_remappingSource = source;
             finalizeRemapping(physicalControl);
         }
     }
