@@ -465,25 +465,21 @@ namespace ITF
 
         if (!GAMEMANAGER || !GAMEMANAGER->getInputManager())
             return bfalse;
+        ZInputManager* inputManager = GAMEMANAGER->getInputManager();
 
 #if defined(ITF_WINDOWS)
         // First check for raw keyboard input (allows remapping to any key)
-        if (INPUT_ADAPTER && INPUT_ADAPTER->IsKeyboardMouseEnabled())
+        i32 rawKey = inputManager->GetFirstKeyboardKey(m_remappingPlayerIndex);
+        if (rawKey >= 0)
         {
-            i32 rawKey = INPUT_ADAPTER->GetFirstPressedRawKey();
-            if (rawKey >= 0)
-            {
-                // Return the raw key code as the physical control
-                // The keyboard remapping system will handle this specially
-                outPhysicalControl = static_cast<u32>(rawKey);
-                outSource = InputSource_Keyboard;
-                return btrue;
-            }
+            outPhysicalControl = static_cast<u32>(rawKey);
+            outSource = InputSource_Keyboard;
+            return btrue;
         }
 #endif
 
         // Then check gamepad/standard controls
-        outPhysicalControl = GAMEMANAGER->getInputManager()->GetFirstActiveControl(m_remappingPlayerIndex, &outSource);
+        outPhysicalControl = inputManager->GetFirstActiveControl(m_remappingPlayerIndex, &outSource);
         return (outPhysicalControl != U32_INVALID);
     }
 

@@ -144,6 +144,27 @@ namespace ITF
         return -1;
     }
 
+    void ZPad_PCKeyboard::SetRemap(u32 logicalControl, u32 physicalControl)
+    {
+        SetKeyMapping(logicalControl, static_cast<i32>(physicalControl));
+    }
+
+    void ZPad_PCKeyboard::ResetRemapping()
+    {
+        ResetKeyMappings();
+        ZPad_Base::ResetRemapping();
+    }
+
+    u32 ZPad_PCKeyboard::GetRemap(u32 logicalControl) const
+    {
+        const i32 keyCode = GetKeyMapping(logicalControl);
+        if (keyCode >= 0)
+        {
+            return static_cast<u32>(keyCode);
+        }
+        return ZPad_Base::GetRemap(logicalControl);
+    }
+
     i32 ZPad_PCKeyboard::GetDefaultKeyForButton(u32 buttonIndex)
     {
         for (const auto& mapping : kKeyboardButtonMappings)
@@ -287,7 +308,7 @@ namespace ITF
 
     i32 ZPad_PCKeyboard::GetFirstPressedRawKey() const
     {
-        if (!INPUT_ADAPTER)
+        if (!INPUT_ADAPTER || !IsSourceAllowed())
             return -1;
 
         return INPUT_ADAPTER->GetFirstPressedRawKey();

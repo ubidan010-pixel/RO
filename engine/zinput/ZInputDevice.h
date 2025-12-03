@@ -57,10 +57,10 @@ typedef ITF_MAP<StringID,int>     ControlTranslateMap;
         virtual EInputSourceType GetInputSourceType() const { return InputSource_Gamepad; }
 
         const StringID & getSpecificConfig() const { return m_specificConfig; }
-        void                SetRemap(u32 logicalControl, u32 physicalControl);
-        void                ResetRemapping();
+        virtual void        SetRemap(u32 logicalControl, u32 physicalControl);
+        virtual void        ResetRemapping();
         void                ApplyRemapping(SDeviceInfo& deviceInfo);
-        u32                 GetRemap(u32 logicalControl) const;
+        virtual u32         GetRemap(u32 logicalControl) const;
         virtual u32         GetFirstActiveControl() const;
 
     protected:

@@ -245,14 +245,14 @@ namespace ITF
 
     }
 
-        void ZInputManager::addPCKeyboard_device(u32 maxPAD)
-        {
-    #if defined(ITF_WINDOWS)
+    void ZInputManager::addPCKeyboard_device(u32 maxPAD)
+    {
+#if defined(ITF_WINDOWS)
         FOR_MAXPAD m_devices.push_back(newAlloc(mId_System, ZPad_PCKeyboard(pad)));
-    #else
+#else
         ITF_UNUSED(maxPAD);
-    #endif
-        }
+#endif
+    }
 
     void ZInputManager::SetRemap(u32 _playerIndex, u32 _logicalControl, u32 _physicalControl, EInputSourceType _source)
     {
@@ -260,19 +260,6 @@ namespace ITF
         {
             if (m_devices[i]->GetId() == _playerIndex && m_devices[i]->GetInputSourceType() == _source)
             {
-#if defined(ITF_WINDOWS)
-                // For keyboard, _physicalControl is a raw key code
-                // We need to set the key mapping instead of the standard remap
-                if (_source == InputSource_Keyboard)
-                {
-                    ZPad_PCKeyboard* keyboardDevice = static_cast<ZPad_PCKeyboard*>(m_devices[i]);
-                    if (keyboardDevice)
-                    {
-                        keyboardDevice->SetKeyMapping(_logicalControl, static_cast<i32>(_physicalControl));
-                        continue;
-                    }
-                }
-#endif
                 m_devices[i]->SetRemap(_logicalControl, _physicalControl);
             }
         }
@@ -280,8 +267,13 @@ namespace ITF
 
     void ZInputManager::ResetRemapping(u32 _playerIndex)
     {
-        ResetRemapping(_playerIndex, InputSource_Gamepad);
-        ResetRemapping(_playerIndex, InputSource_Keyboard);
+        for (u32 i = 0; i < m_devices.size(); ++i)
+        {
+            if (m_devices[i] && m_devices[i]->GetId() == _playerIndex)
+            {
+                m_devices[i]->ResetRemapping();
+            }
+        }
     }
 
     void ZInputManager::ResetRemapping(u32 _playerIndex, EInputSourceType _source)
@@ -290,17 +282,6 @@ namespace ITF
         {
             if (m_devices[i]->GetId() == _playerIndex && m_devices[i]->GetInputSourceType() == _source)
             {
-#if defined(ITF_WINDOWS)
-                if (_source == InputSource_Keyboard)
-                {
-                    ZPad_PCKeyboard* keyboardDevice = static_cast<ZPad_PCKeyboard*>(m_devices[i]);
-                    if (keyboardDevice)
-                    {
-                        keyboardDevice->ResetKeyMappings();
-                        continue;
-                    }
-                }
-#endif
                 m_devices[i]->ResetRemapping();
             }
         }
@@ -552,6 +533,27 @@ namespace ITF
 #else
         ITF_UNUSED(_playerIndex);
         ITF_UNUSED(_action);
+#endif
+        return -1;
+    }
+
+    i32 ZInputManager::GetFirstKeyboardKey(u32 _playerIndex) const
+    {
+#if defined(ITF_WINDOWS)
+        for (u32 i = 0; i < m_devices.size(); ++i)
+        {
+            if (m_devices[i] && m_devices[i]->GetId() == _playerIndex
+                && m_devices[i]->GetInputSourceType() == InputSource_Keyboard)
+            {
+                const ZPad_PCKeyboard* keyboardDevice = static_cast<const ZPad_PCKeyboard*>(m_devices[i]);
+                if (keyboardDevice)
+                {
+                    return keyboardDevice->GetFirstPressedRawKey();
+                }
+            }
+        }
+#else
+        ITF_UNUSED(_playerIndex);
 #endif
         return -1;
     }

@@ -20,6 +20,9 @@ namespace ITF
         EInputSourceType GetInputSourceType() const override { return InputSource_Keyboard; }
 
         u32 GetFirstActiveControl() const override;
+        void SetRemap(u32 logicalControl, u32 physicalControl) override;
+        void ResetRemapping() override;
+        u32 GetRemap(u32 logicalControl) const override;
         
         // Returns the first raw key that is pressed, or -1 if none
         i32 GetFirstPressedRawKey() const;
