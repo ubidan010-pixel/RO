@@ -1293,6 +1293,17 @@ void Font::writeBox(u32 color,f32 x, f32 y, f32 z, bbool _isRender2D, const Vec3
                     xOffset = (iconSize - iconWidth) * 0.5f;
                     yOffset = (iconSize - iconHeight) * 0.5f;
                 }
+                if (m_boxTransform)
+                {
+                    const f32 sx = m_boxScale.m_x;
+                    const f32 sy = m_boxScale.m_y;
+                    iconWidth  *= sx;
+                    iconHeight *= sy;
+                    xOffset    *= sx;
+                    yOffset    *= sy;
+                    xp = m_boxPos.m_x + (xp - m_boxPos.m_x) * sx;
+                    yp = m_boxPos.m_y + (yp - m_boxPos.m_y) * sy;
+                }
 
                 if (texture)
                     GFX_ADAPTER->drawQuad2D(xp + xOffset, yp + yOffset, iconWidth, iconHeight, 0.f, 0xffffffff, texture, &uvData.getUV0(), &uvData.getUV1());

@@ -130,7 +130,7 @@ namespace ITF
         String8         GetIconForAction(u32 _playerIndex, u32 _action);
         String8         GetIconFromActionTag(const String8& _tagContent);
 
-        ITF_INLINE f32  getMenuLogoScale() const { return 0.28f; }
+        ITF_INLINE f32  getMenuLogoScale() const { return 0.55f; }
 
     protected:
 
