@@ -11901,6 +11901,16 @@ namespace ITF
 
     void Ray_GameManager::setWindowed(bbool windowed)
     {
+#if defined(ITF_WINDOWS) && defined(ITF_FINAL)
+        if (windowed)
+        {
+            SYSTEM_ADAPTER->toggleShowTitleBar();
+        }
+        else
+        {
+            SYSTEM_ADAPTER->toggleFullScreen();
+        }
+#endif
         m_gameOptionManager.setBoolOption(OPTION_WINDOWED, windowed);
     }
 
