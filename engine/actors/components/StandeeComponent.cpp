@@ -62,11 +62,8 @@ namespace ITF
         {
             if (standee == worldMapTag)
             {
-                if (FILEMANAGER->fileExists(standee.m_StandeePath))
-                {
-                    setTextureFile(standee.m_StandeePath);
-                    break;
-                }
+                setTextureFile(standee.m_StandeePath);
+                break;
             }
         }
         Super::onActorLoaded(_hotReload);

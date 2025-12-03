@@ -1786,6 +1786,7 @@ namespace ITF
         // Save/Load Options
         //==========================================================================
         void            saveGameOptions();
+        void applyResolution(i32 index);
         void            loadGameOptions();
 
         //==========================================================================

@@ -113,6 +113,7 @@
 
 namespace ITF
 {
+
     void WinApp::onFileDrop(const String& _absoluteFile)
     {
         const String _absoluteFileNormalized = FilePath::normalizePath(_absoluteFile);
@@ -151,6 +152,7 @@ namespace ITF
         }
 
         // keyboard messages send to the keyboard callback
+
         switch(uMsg)
         {
         case WM_KEYDOWN:
@@ -170,7 +172,7 @@ namespace ITF
         case WM_MBUTTONDBLCLK:
             // Let SDL subclassed window procedure handle input; fall through to default.
             forward = btrue;
-            break;
+        break;
 
         case WM_COPYDATA:
         {
@@ -241,7 +243,76 @@ namespace ITF
                 }
             }
             break;
+        case WM_SIZING:
+            {
+                RECT* r = (RECT*)lParam;
+                const f32 targetRatio = 16.0f / 9.0f;
 
+                i32 width = r->right - r->left;
+                i32 height = r->bottom - r->top;
+
+                switch (wParam)
+                {
+                case WMSZ_LEFT:
+                case WMSZ_RIGHT:
+                    {
+                        // User is dragging left or right → adjust height
+                        height = (i32)(width / targetRatio);
+                        if (wParam == WMSZ_LEFT)
+                            r->top = r->bottom - height;
+                        else
+                            r->bottom = r->top + height;
+                        break;
+                    }
+                case WMSZ_TOP:
+                case WMSZ_BOTTOM:
+                    {
+                        // User is dragging top or bottom → adjust width
+                        width = (i32)(height * targetRatio);
+                        if (wParam == WMSZ_TOP)
+                            r->left = r->right - width;
+                        else
+                            r->right = r->left + width;
+                        break;
+                    }
+                case WMSZ_TOPLEFT:
+                case WMSZ_TOPRIGHT:
+                case WMSZ_BOTTOMLEFT:
+                case WMSZ_BOTTOMRIGHT:
+                    {
+                        f32 currentRatio = (f32)width/(i32)height;
+                        if (currentRatio > targetRatio)
+                        {
+                            width = (i32)(height * targetRatio);
+                        }
+                        else
+                        {
+                            height = (i32)(width / targetRatio);
+                        }
+                        switch (wParam)
+                        {
+                        case WMSZ_TOPLEFT:
+                            r->left = r->right - width;
+                            r->top = r->bottom - height;
+                            break;
+                        case WMSZ_TOPRIGHT:
+                            r->right = r->left + width;
+                            r->top = r->bottom - height;
+                            break;
+                        case WMSZ_BOTTOMLEFT:
+                            r->left = r->right - width;
+                            r->bottom = r->top + height;
+                            break;
+                        case WMSZ_BOTTOMRIGHT:
+                            r->right = r->left + width;
+                            r->bottom = r->top + height;
+                            break;
+                        }
+                        break;
+                    }
+                }
+                break; // tell Windows we handled it
+            }
         case WM_SETFOCUS:
             input->setFocus();
 
@@ -1135,7 +1206,54 @@ namespace ITF
         }
     }
 
+    void SystemAdapter_win::SetRegistryValue(const String& name, const DWORD value)
+    {
+        HKEY hKey;
+        RegCreateKeyExW(
+            HKEY_CURRENT_USER,
+            L"Software\\Ubisoft\\RaymanOrigins\\Settings\\",
+            0,
+            NULL,
+            REG_OPTION_NON_VOLATILE,
+            KEY_WRITE,
+            NULL,
+            &hKey,
+            NULL
+        );
+        RegSetValueExW(
+            hKey,
+            name.wcharCStr(),
+            0,
+            REG_DWORD,
+            reinterpret_cast<const BYTE*>(&value),
+            sizeof(DWORD)
+        );
+
+        RegCloseKey(hKey);
+    }
+    void SystemAdapter_win::SetRegistryValue(const String& name, const String& value)
+    {
+        HKEY hKey;
+        RegCreateKeyExW(
+            HKEY_CURRENT_USER,
+            L"Software\\Ubisoft\\RaymanOrigins\\Settings\\",
+            0,
+            NULL,
+            REG_OPTION_NON_VOLATILE,
+            KEY_WRITE,
+            NULL,
+            &hKey,
+            NULL
+        );
+        RegSetValueExW(
+            hKey,
+            name.wcharCStr(),
+            0,
+            REG_SZ,
+            reinterpret_cast<const BYTE*>(value.wcharCStr()),
+        static_cast<DWORD>((value.getLen() + 1) * sizeof(wchar_t))
+        );
+
+        RegCloseKey(hKey);
+    }
 } // namespace ITF
-
-
-

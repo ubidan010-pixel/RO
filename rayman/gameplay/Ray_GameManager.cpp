@@ -11617,7 +11617,20 @@ namespace ITF
         {
             const i32 w = static_cast<i32>(mode.dmPelsWidth);
             const i32 h = static_cast<i32>(mode.dmPelsHeight);
-            if (w < 1024) continue;
+            if (w < 900) continue;
+            f32 originRatio = (f32)w/h;
+            bbool matchSupportRatio = false;
+            f32 supportRatio[]={16.0f/9.0f,21.0f/9.0f};
+            const f32 epsilon = 0.01f; // tolerance for float comparison
+            for (auto support_ratio : supportRatio)
+            {
+                if (abs(originRatio - support_ratio) <epsilon)
+                {
+                    matchSupportRatio = true;
+                    break;
+                }
+            }
+            if (!matchSupportRatio) continue;
             bbool found = bfalse;
             for (u32 i = 0; i < m_availableResolutions.size(); ++i)
             {
@@ -11633,11 +11646,18 @@ namespace ITF
                 m_availableResolutions.push_back(entry);
             }
         }
+
 #endif
         if (m_availableResolutions.empty())
         {
             ResolutionEntry defaults[] = {{1280,720},{1920,1080},{2560,1440},{3840,2160}};
             for (auto& e : defaults) m_availableResolutions.push_back(e);
+        }
+        else if (!SYSTEM_ADAPTER->isFullScreenMode())
+        {
+
+            ResolutionEntry entry; entry.width = 960; entry.height = 540;
+            m_availableResolutions.push_back(entry);
         }
         Vector<i32> choices;
         choices.reserve(m_availableResolutions.size());
@@ -11874,9 +11894,6 @@ namespace ITF
 
     void Ray_GameManager::setResolutionIndex(i32 index)
     {
-#if defined(ITF_FINAL) && defined(ITF_WINDOWS)
-        GFX_ADAPTER->setResolution( m_availableResolutions[index].width,m_availableResolutions[index].height);
-#endif
         m_gameOptionManager.setListOptionIndex(OPTION_RESOLUTION, index);
     }
 
@@ -11899,13 +11916,17 @@ namespace ITF
     void Ray_GameManager::setWindowed(bbool windowed)
     {
 #if defined(ITF_WINDOWS) && defined(ITF_FINAL)
-        if (windowed)
+        bbool isWindowsMode = !SYSTEM_ADAPTER->isFullScreenMode();
+        if (isWindowsMode != windowed)
         {
-            SYSTEM_ADAPTER->toggleShowTitleBar();
-        }
-        else
-        {
-            SYSTEM_ADAPTER->toggleFullScreen();
+            if (windowed)
+            {
+                SYSTEM_ADAPTER->toggleShowTitleBar();
+            }
+            else
+            {
+                SYSTEM_ADAPTER->toggleFullScreen();
+            }
         }
 #endif
         m_gameOptionManager.setBoolOption(OPTION_WINDOWED, windowed);
@@ -12222,11 +12243,33 @@ namespace ITF
             LOG("[GameOptions] ERROR: Persistence not initialized!");
             return;
         }
-
+#ifdef ITF_WINDOWS
+        i32 resIndex = getResolutionIndex();
+        applyResolution(resIndex);
+        SYSTEM_ADAPTER->SetRegistryValue(String("FullScreen"),!isWindowed());
+#endif
         LOG("[GameOptions] Starting save operation...");
         m_gameOptionPersistence->startSaveOptions(0, onSaveOptionsComplete);
     }
+    void Ray_GameManager::applyResolution(i32 index)
+    {
+#if defined(ITF_FINAL) && defined(ITF_WINDOWS)
 
+        if ((u32)index < m_availableResolutions.size())
+        {
+            if (!SYSTEM_ADAPTER->isFullScreenMode())
+            {
+                SYSTEM_ADAPTER->setSize( m_availableResolutions[index].width,m_availableResolutions[index].height);
+            }
+            GFX_ADAPTER->setResolution( m_availableResolutions[index].width,m_availableResolutions[index].height);
+            String h,w;
+            h.setTextFormat("%d",m_availableResolutions[index].height);
+            w.setTextFormat("%d",m_availableResolutions[index].width);
+            SYSTEM_ADAPTER->SetRegistryValue(String(L"ScreenWidth"),w);
+            SYSTEM_ADAPTER->SetRegistryValue(String(L"ScreenHeight"),h);
+        }
+#endif
+    }
     void Ray_GameManager::loadGameOptions()
     {
         if (!m_gameOptionPersistence)
@@ -12272,8 +12315,6 @@ namespace ITF
         auto* gm = RAY_GAMEMANAGER;
         if (gm)
         {
-            gm->setResolutionIndex(gm->getResolutionIndex());
-            gm->setWindowed(gm->isWindowed());
             gm->setLanguageIndex(gm->getLanguageIndex());
             gm->setStartWithHeartIndex(gm->getStartWithHeartIndex());
             gm->setRunButtonMode(gm->getRunButtonMode());
@@ -12284,6 +12325,9 @@ namespace ITF
             gm->setMusicVolume(gm->getMusicVolume());
             gm->setSFXVolume(gm->getSFXVolume());
 #if defined(ITF_WINDOWS)
+            gm->setResolutionIndex(gm->getResolutionIndex());
+            gm->applyResolution(gm->getResolutionIndex());
+            gm->setWindowed(gm->isWindowed());
             gm->setPCControlMode(gm->getPCControlMode());
 #endif
 

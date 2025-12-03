@@ -1156,7 +1156,6 @@ namespace ITF
     {
         if (!RAY_GAMEMANAGER || !m_hasSnapshot)
             return;
-
         RAY_GAMEMANAGER->setResolutionIndex(m_snapshotResolutionIndex);
         RAY_GAMEMANAGER->setWindowed(m_snapshotWindowed);
         RAY_GAMEMANAGER->setLanguageIndex(m_snapshotLanguageIndex);

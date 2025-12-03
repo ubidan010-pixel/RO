@@ -60,7 +60,7 @@
 #include "core/file/filepath.h"
 #endif //_ITF_FILEPATH_H_
 
-/* 
+/*
 #ifndef _ITF_DIRECTX9_HLSL_H_
 #include "adapters/GFXAdapter_Directx9/GFXAdapter_HLSL.h"
 #endif //_ITF_DIRECTX9_HLSL_H_
@@ -157,7 +157,7 @@
 
 #include "engine/video/videoHandle.h"
 
-//#ifdef ITF_WINDOWS 
+//#ifdef ITF_WINDOWS
 #define SHADERTEST
 //#endif
 
@@ -187,7 +187,24 @@ namespace ITF
     #define SHADERGR_MOVIE   1
     #define SHADERGR_FONT    2
     #define SHADERGR_AFTERFX 3
+    UINT GFXAdapter_Directx9::GetDedicatedGPUAdapterIndex(IDirect3D9* d3d)
+    {
+        UINT adapterCount = d3d->GetAdapterCount();
 
+        for (UINT i = 0; i < adapterCount; ++i)
+        {
+            D3DADAPTER_IDENTIFIER9 id;
+            d3d->GetAdapterIdentifier(i, 0, &id);
+
+            // Check vendor
+            if (id.VendorId == 0x10DE) // NVIDIA
+                return i;
+            if (id.VendorId == 0x1002 || id.VendorId == 0x1022) // AMD
+                return i;
+        }
+
+        return D3DADAPTER_DEFAULT; // fallback
+    }
 bbool GFXAdapter_Directx9::createDXDevice(int _alphaBits, int _depthBits, int _stencilBits, bbool _fullscreen  , void* _hwnd)
 {
     // Create the D3D object, which is needed to create the D3DDevice.
@@ -195,8 +212,8 @@ bbool GFXAdapter_Directx9::createDXDevice(int _alphaBits, int _depthBits, int _s
         return 0;
 
 #ifdef ITF_X360
-    XVIDEO_MODE VideoMode; 
-    XMemSet( &VideoMode, 0, sizeof(XVIDEO_MODE) ); 
+    XVIDEO_MODE VideoMode;
+    XMemSet( &VideoMode, 0, sizeof(XVIDEO_MODE) );
     XGetVideoMode( &VideoMode );
 
     u32 width   = VideoMode.dwDisplayWidth;
@@ -225,14 +242,15 @@ bbool GFXAdapter_Directx9::createDXDevice(int _alphaBits, int _depthBits, int _s
 
     m_hwnd = (HWND)_hwnd;
     m_fullscreen = _fullscreen;
-
+    UINT gpuIndex = D3DADAPTER_DEFAULT;
 #ifdef ITF_WINDOWS
-    m_displayModeCount = m_pD3D->GetAdapterModeCount(D3DADAPTER_DEFAULT,D3DFMT_X8R8G8B8);
+    gpuIndex =   GetDedicatedGPUAdapterIndex(m_pD3D);
+    m_displayModeCount = m_pD3D->GetAdapterModeCount(gpuIndex,D3DFMT_X8R8G8B8);
 
     m_displayMode = newAlloc(mId_GfxAdapter,D3DDISPLAYMODE[m_displayModeCount]);
 
     for( u32 mode = 0; mode < m_displayModeCount; mode++ )
-        m_pD3D->EnumAdapterModes(D3DADAPTER_DEFAULT,D3DFMT_X8R8G8B8,mode,&m_displayMode[mode]);
+        m_pD3D->EnumAdapterModes(gpuIndex,D3DFMT_X8R8G8B8,mode,&m_displayMode[mode]);
 #endif //ITF_WINDOWS
 
     BuildPresentParams();
@@ -245,9 +263,9 @@ bbool GFXAdapter_Directx9::createDXDevice(int _alphaBits, int _depthBits, int _s
 
 #ifdef _USE_ZBUFFER_TILING
     bevahiorFlags = D3DCREATE_BUFFER_2_FRAMES;
-#endif  
+#endif
 
-    if( FAILED( m_pD3D->CreateDevice( D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, m_hwnd,
+    if( FAILED( m_pD3D->CreateDevice( gpuIndex, D3DDEVTYPE_HAL, m_hwnd,
                                       bevahiorFlags,&m_ppars, &m_pd3dDevice ) ) )
     {
         ITF_ASSERT_MSG(0, "FAILED( m_pD3D->CreateDevice...");
@@ -271,9 +289,9 @@ bbool GFXAdapter_Directx9::createDXDevice(int _alphaBits, int _depthBits, int _s
 /*
 #ifdef ITF_X360
     m_supportNPOTTex = 0;
-#endif 
+#endif
 */
-    /// Core Shaders.    
+    /// Core Shaders.
 	loadCoreShaders();
 	if (!createVertexDeclaration())
 		return bfalse;
@@ -356,7 +374,7 @@ GFXAdapter_Directx9::GFXAdapter_Directx9()
     mp_VDcl_PNC3T = 0;
 
     m_textureBinded.reserve(MAX_SAMPLER);
-    
+
     for (u32 index = 0;index < m_textureBinded.capacity();++index)
         m_textureBinded.push_back((void *)uPtr(-1));
     mp_oldtexBindOnShader = NULL;
@@ -415,7 +433,7 @@ GFXAdapter_Directx9::GFXAdapter_Directx9()
 
 void GFXAdapter_Directx9::destroy()
 {
-    /// cleanup vertex buffer.    
+    /// cleanup vertex buffer.
     removeInternalBuffers();
 
     AFTERFX_destroyTarget();
@@ -576,7 +594,7 @@ void GFXAdapter_Directx9::setCamera(float _x, float _y, float _z, Camera* _cam)
 
     f32 nearPlane   = 1.f;
     f32 farPlane    = 1000.f;
-    
+
 
     Vec2d topLeft = Vec2d::Zero;
     Vec2d botRight = Vec2d::One;
@@ -626,7 +644,7 @@ void GFXAdapter_Directx9::setCamera(float _x, float _y, float _z, Camera* _cam)
 
         D3DXMATRIX biasRotationMatrix;
         D3DXMatrixRotationYawPitchRoll(&biasRotationMatrix, _cam->m_biasHorizAngle, _cam->m_biasVertAngle, 0);
-        
+
         //make view vector
         Vec3d currentViewVector_tmp = _cam->m_bias_EyeToLookAt;
         D3DXVECTOR3 currentViewVector(currentViewVector_tmp.m_x, currentViewVector_tmp.m_y, currentViewVector_tmp.m_z);
@@ -643,12 +661,12 @@ void GFXAdapter_Directx9::setCamera(float _x, float _y, float _z, Camera* _cam)
 
         vEyePt = D3DXVECTOR3(_cam->m_resultingBiasedPosition.m_x, _cam->m_resultingBiasedPosition.m_y, _cam->m_resultingBiasedPosition.m_z);
         vLookatPt =  vEyePt + rotatedViewVector;
-        
+
         //Make camera matrix
-        D3DXMatrixLookAtRH( &mg_View, &vEyePt, &vLookatPt, &vUpVec );     
+        D3DXMatrixLookAtRH( &mg_View, &vEyePt, &vLookatPt, &vUpVec );
         D3DXMatrixPerspectiveFovRH( &mg_Proj, _cam->getFocale(), screenratio, nearPlane, farPlane );
 
-        
+
         //We now want to search for the new eye pos, NewEye. NewEye = CurrentEye + T.
         //The camera transform is M<_eye_pos> :
         //   We want M<NewEye>(CenterPoint) = transformedRotationCenter
@@ -685,7 +703,7 @@ void GFXAdapter_Directx9::setCamera(float _x, float _y, float _z, Camera* _cam)
         m_useRotateZCamera = bfalse;
 
     D3DXMatrixPerspectiveFovRH( &mg_Proj, _cam->getFocale(), screenratio, nearPlane, farPlane );
-   
+
     mg_WorldView = mg_World * mg_View;
     mg_WorldViewProj = mg_WorldView * mg_Proj;
 
@@ -738,7 +756,7 @@ void GFXAdapter_Directx9::updateCameraFrustumPlanes(Camera* _cam)
 
     top.m_normal = Vec3d(topPlane.x, topPlane.y, topPlane.z);
     top.m_constant = -topPlane.w;
-    
+
     bottom.m_normal = Vec3d(bottomPlane.x, bottomPlane.y, bottomPlane.z);
     bottom.m_constant = -bottomPlane.w;
 
@@ -829,7 +847,7 @@ void GFXAdapter_Directx9::init()
 
     if (getScreenWidth() == 0 || getScreenHeight() == 0)
         LOG("GFXAdapter init error : resolution = 0, call setResolution(width,height) before init");
-    
+
 #ifdef _USE_ZBUFFER_TILING
     //setRenderSceneInTarget(btrue);
     //createRenderTarget(&m_pSceneTexture, &m_pSceneSurf, getScreenWidth(), getScreenHeight(), D3DFMT_X8R8G8B8);
@@ -841,7 +859,7 @@ void GFXAdapter_Directx9::init()
     Viewport.right = getScreenWidth();
     Viewport.bottom = getScreenHeight();
     setupViewport(&Viewport);
-    
+
     setFillMode(GFX_FILL_SOLID);
 
     // Turn off culling
@@ -856,7 +874,7 @@ void GFXAdapter_Directx9::init()
 #ifdef ITF_WINDOWS
     m_pd3dDevice->SetRenderState( D3DRS_ANTIALIASEDLINEENABLE, FALSE );
 #endif
-    
+
     setDefaultAlpha();
 
     renderContext_SetDefault();
@@ -865,7 +883,7 @@ void GFXAdapter_Directx9::init()
     //setCamera(0.f, 0.f, 0.0f, 1.f);
 
     setShader(mp_defaultShader);
-  
+
     //getNewRenderTarget();
 #ifndef _USE_ZBUFFER_TILING
     getBackBuffer();
@@ -911,7 +929,7 @@ void GFXAdapter_Directx9::reshape()
 {
     if (getScreenWidth() == 0 || getScreenHeight() == 0)
         LOG("GFXAdapter init error : resolution = 0, call setResolution(width,height) before init");
-    
+
     GFX_RECT Viewport;
     Viewport.left = 0;
     Viewport.top = 0;
@@ -953,7 +971,7 @@ void  GFXAdapter_Directx9::compute3DTo2D(const Vec3d& _in, Vec3d& _out)
     viewport.Height = getScreenHeight();
     viewport.MinZ = 0.0f;
     viewport.MaxZ = 1.0f;
-          
+
     D3DXVec3Project(
         &vec2D,
         &vecSrc,
@@ -961,7 +979,7 @@ void  GFXAdapter_Directx9::compute3DTo2D(const Vec3d& _in, Vec3d& _out)
         projMat,
         viewMat,
         &worldMat
-        );    
+        );
     _out.m_x = vec2D.x;
     _out.m_y = vec2D.y;
     _out.m_z = vec2D.z;
@@ -1019,7 +1037,7 @@ void  GFXAdapter_Directx9::coord2DTo3D( const Vec2d& _in2d, float _zPlane, Vec2d
     in.y = _in2d.m_y;
     in.z = _zPlane;
     D3DXMatrixIdentity(&mg_World);
-    
+
     // no Translation.
     D3DXMATRIX view = mg_View;
     if (noTranslation)
@@ -1077,7 +1095,7 @@ void GFXAdapter_Directx9::drawScreenQuad( f32 _px, f32 _py, f32 _width, f32 _hei
         anim.m_speedRotate = 0.5f;
         computeUVAnim(&anim);
         setUVAnim(anim);
-    
+
         m_pd3dDevice->SetSamplerState(0, D3DSAMP_ADDRESSU, D3DTADDRESS_WRAP);
         m_pd3dDevice->SetSamplerState(0, D3DSAMP_ADDRESSV, D3DTADDRESS_WRAP);
 #endif
@@ -1086,7 +1104,7 @@ void GFXAdapter_Directx9::drawScreenQuad( f32 _px, f32 _py, f32 _width, f32 _hei
         quad[1].setData( Vec3d( _px - centroid, _py + _height + centroid, _z ), Vec2d( 0.f, 0.f ), _color);
         quad[2].setData( Vec3d( _px + _width - centroid, _py + centroid, _z ), Vec2d( 1.0f, 1.0f ), _color);
         quad[3].setData( Vec3d( _px + _width - centroid, _py + _height + centroid, _z ), Vec2d( 1.0f, 0.0f ), _color);
-        
+
         setVertexFormat(VertexFormat_PCT);
         DrawPrimitive(GFX_TRIANGLE_STRIP, (void*)quad, 4);
     }
@@ -1127,7 +1145,7 @@ void GFXAdapter_Directx9::drawScreenQuadC( f32 _px, f32 _py, f32 _width, f32 _he
         quad[1].setData( Vec3d( _px - _centroid, _py + _height + _centroid, _z ), Vec2d( 0.f, 0.f ), _color);
         quad[2].setData( Vec3d( _px + _width - _centroid, _py + _centroid, _z ), Vec2d( 1.0f, 1.0f ), _color);
         quad[3].setData( Vec3d( _px + _width - _centroid, _py + _height + _centroid, _z ), Vec2d( 1.0f, 0.0f ), _color);
-        
+
         setVertexFormat(VertexFormat_PCT);
         DrawPrimitive(GFX_TRIANGLE_STRIP, (void*)quad, 4);
     }
@@ -1178,7 +1196,7 @@ void GFXAdapter_Directx9::drawQuad2D( f32 _px, f32 _py, f32 _width, f32 _height,
 
         SetTextureBind(0, _tex->m_adapterimplementationData);
         setVertexFormat(VertexFormat_PCT);
-    
+
         DrawPrimitive(GFX_TRIANGLE_STRIP, (void*)quad, 4);
     }
     else
@@ -1219,7 +1237,7 @@ void GFXAdapter_Directx9::draw3DQuad( GFX_3DQUAD* _t_Quad )
         Matrix44 rotZ;
         Matrix44 rotX;
         Matrix44 rotY;
-        
+
         M44_setMatrixRotationX(&rotX, _t_Quad->m_rotation.m_x);
         M44_setMatrixRotationY(&rotY, _t_Quad->m_rotation.m_y);
         M44_setMatrixRotationZ(&rotZ, _t_Quad->m_rotation.m_z);
@@ -1253,7 +1271,7 @@ void GFXAdapter_Directx9::draw3DQuad( GFX_3DQUAD* _t_Quad )
 //----------------------------------------------------------------------------//
 
 bbool GFXAdapter_Directx9::loadTextureCooked(Texture* _texture, const char* _path)
-{ 
+{
     String filenameCooked = FILESERVER->getCookedName(_path);
     return loadTextureFromFile(_texture,filenameCooked);
 }
@@ -1261,10 +1279,10 @@ bbool GFXAdapter_Directx9::loadTextureCooked(Texture* _texture, const char* _pat
 //----------------------------------------------------------------------------//
 
 bbool GFXAdapter_Directx9::loadTextureFromFile(Texture* _texture, const String& _path)
-{ 
+{
     File* fileTexture = FILEMANAGER->openFile(_path,ITF_FILE_ATTR_READ);
     ITF_ASSERT(fileTexture);
-    
+
     u32 sizeFile = (u32) fileTexture->getLength();
     u8 *rawBuf = newAlloc(mId_Temporary,u8[sizeFile]);
     ITF_ASSERT_MSG(rawBuf, "LOAD Texture Failed out of memory %s", UTF16ToUTF8(_path.cStr()).get());
@@ -1296,17 +1314,17 @@ bbool GFXAdapter_Directx9::loadTextureFromFile(Texture* _texture, const String& 
         XGSetTextureHeaderEx
             (
             desc.Width,
-            desc.Height, 
-            texture->GetLevelCount(), 
+            desc.Height,
+            texture->GetLevelCount(),
             desc.Usage | extraDescFlags,
-            desc.Format, 
-            0, 
-            0, 
-            0, 
+            desc.Format,
+            0,
+            0,
+            0,
             XGHEADER_CONTIGUOUS_MIP_OFFSET,
             0,
-            ( D3DTexture* )_texadd, 
-            &baseSize, 
+            ( D3DTexture* )_texadd,
+            &baseSize,
             &mipSize
             );
 
@@ -1314,7 +1332,7 @@ bbool GFXAdapter_Directx9::loadTextureFromFile(Texture* _texture, const String& 
 
         // Compute the required memory for the texture data
         u32 textureDataSize = sizeFile - sizeof(D3DTexture);
- 
+
         ITF_ASSERT(baseSize + mipSize == textureDataSize);
         u8* textureData;
 
@@ -1392,7 +1410,7 @@ bbool GFXAdapter_Directx9::loadTextureFromFile(Texture* _texture, const String& 
 }
 
 bbool GFXAdapter_Directx9::loadTexture(Texture* _texture, const char* _path, u32 /*_alhpa*/)
-{   
+{
 #ifdef MODE_HRESTEXTURE_SUPPORTED
     if (_texture->hasHResVersion())
     {
@@ -1409,7 +1427,7 @@ bbool GFXAdapter_Directx9::loadTexture(Texture* _texture, const char* _path, u32
     else
     {
         RawDataContainer RawData;
-                
+
         File* textureFile = FILEMANAGER->openFile(_path,ITF_FILE_ATTR_READ);
 
         if (!textureFile)
@@ -1429,7 +1447,7 @@ bbool GFXAdapter_Directx9::loadTexture(Texture* _texture, const char* _path, u32
             SF_DEL_ARRAY(buffer);
             return bfalse;
         }
-        
+
         RawData.setData(buffer);
         RawData.setSize(size);
 
@@ -1470,7 +1488,7 @@ void GFXAdapter_Directx9::drawTriangle(const Vec2d& _p1, const Vec2d& _p2, const
 
     /// set Vertex format
     setVertexFormat(VertexFormat_PC);
-    
+
     /// draw geometrie.
     DrawPrimitive(GFX_TRIANGLES, (void*)v, 3);
 }
@@ -1499,7 +1517,7 @@ void GFXAdapter_Directx9::draw2dTriangle(const Vec2d& _p1, const Vec2d& _p2, con
     tri.v[2].m_color = _color;
 
     tri.m_rank = _rank;
-   
+
     m_Triangle2DList.push_back(tri);
 }
 
@@ -1522,7 +1540,7 @@ void GFXAdapter_Directx9::drawTriangle( const Vertex& _v1, const Vertex& _v2, co
 
     /// set alpha blend.
     setAlphaBlend(GFX_BLEND_ALPHA);
- 
+
     SetTextureBind(0, _tex->m_adapterimplementationData);
 
     /// set Vertex format
@@ -1566,7 +1584,7 @@ void GFXAdapter_Directx9::drawFlatMesh(const ITF_Mesh& _mesh)
             DrawVertexBuffer(GFX_TRIANGLES, _mesh.m_vtxBuffer, _mesh.m_ElementList[i].m_startIndex, _mesh.m_ElementList[i].m_count);
         else
             DrawIndexedVertexBuffer(GFX_TRIANGLES, _mesh.m_vtxBuffer, _mesh.m_ElementList[i].m_indexBuffer, _mesh.m_ElementList[i].m_count);
-    } 
+    }
 }
 #endif // ITF_CONSOLE_FINAL
 
@@ -1583,7 +1601,7 @@ void GFXAdapter_Directx9::drawMeshPT(const ITF_Mesh& _mesh, bbool _showWireFrame
     //setVertexFormat(VertexFormat_PT);
 
     ITF_VertexBuffer* pVertexBuffer =  _mesh.m_vtxBuffer ?   _mesh.m_vtxBuffer : _mesh.m_vtxBufferBuffered[_mesh.m_userBuffer];
-    
+
     if (m_showWireFrame < 2)
     {
     for (u32 i = 0; i < _mesh.m_ElementList.size(); i++)
@@ -1600,7 +1618,7 @@ void GFXAdapter_Directx9::drawMeshPT(const ITF_Mesh& _mesh, bbool _showWireFrame
             DrawVertexBuffer(GFX_TRIANGLES, pVertexBuffer, elem.m_startIndex, elem.m_count);
         else
             DrawIndexedVertexBuffer(GFX_TRIANGLES, pVertexBuffer, elem.m_indexBuffer, elem.m_count);
-    } 
+    }
 
     D3DXMatrixIdentity( &mg_UVmat );
     }
@@ -1629,7 +1647,7 @@ void GFXAdapter_Directx9::drawMeshPT(const ITF_Mesh& _mesh, bbool _showWireFrame
             DrawVertexBuffer(GFX_TRIANGLES, pVertexBuffer, _mesh.m_ElementList[i].m_startIndex, _mesh.m_ElementList[i].m_count);
         else
             DrawIndexedVertexBuffer(GFX_TRIANGLES,pVertexBuffer, _mesh.m_ElementList[i].m_indexBuffer, _mesh.m_ElementList[i].m_count);
-    } 
+    }
 
     /// Restore state.
     setFillMode(GFX_FILL_SOLID);
@@ -1704,21 +1722,21 @@ void GFXAdapter_Directx9::drawMesh(ITF_Mesh& _mesh, bbool _showWireFrame)
         if (_mesh.m_pMatrixOverlay)
         {
             m_pd3dDevice->SetVertexShaderConstantF( 17, (f32*)_mesh.m_pMatrixOverlay, 4 );
-        }        
+        }
 
         if (!elem.m_indexBuffer)
             DrawVertexBuffer(GFX_TRIANGLES, pVertexBuffer, elem.m_startIndex, elem.m_count);
         else
             DrawIndexedVertexBuffer(GFX_TRIANGLES, pVertexBuffer, elem.m_indexBuffer, elem.m_count);
-    
+
         postGfxMaterial(elem.m_material);
-    } 
+    }
 
     SetTextureBind(1, 0);
     SetTextureBind(2, 0);
 
     D3DXMatrixIdentity( &mg_UVmat );
- 
+
     //renderContext_SetDefault();
     }
 
@@ -1739,12 +1757,12 @@ void GFXAdapter_Directx9::drawMesh(ITF_Mesh& _mesh, bbool _showWireFrame)
     {
         if (!SetTextureResource(0, _mesh.m_ElementList[i].m_material.m_textureDiffuse))
             continue;
-        
+
         if (!_mesh.m_ElementList[i].m_indexBuffer)
             DrawVertexBuffer(GFX_TRIANGLES, pVertexBuffer, _mesh.m_ElementList[i].m_startIndex, _mesh.m_ElementList[i].m_count);
         else
             DrawIndexedVertexBuffer(GFX_TRIANGLES, pVertexBuffer, _mesh.m_ElementList[i].m_indexBuffer, _mesh.m_ElementList[i].m_count);
-    } 
+    }
 
     /// Restore state.
     setFillMode(GFX_FILL_SOLID);
@@ -1808,7 +1826,7 @@ void GFXAdapter_Directx9::draw2dBox(const Vec2d& _p, f32 _width, f32 _height, u3
     box.v[2].m_color = _color2;
     box.v[3].m_color = _color3;
     box.m_rank = _rank;
-   
+
     m_Box2DList.push_back(box);
 }
 
@@ -1824,7 +1842,7 @@ void GFXAdapter_Directx9::drawCircle(   float _x, float _y, float r, float _r, f
         _segsCount = 64;
     VertexPC v[65];
     u32 color = D3DCOLOR_ARGB(255, (u32)(_r*255.f), (u32)(_g*255.f), (u32)(_b*255.f));
-    for(u32 i = 0; i <= _segsCount; i++) 
+    for(u32 i = 0; i <= _segsCount; i++)
     {
         f32 fi = i * MTH_2PI / (float)_segsCount;
         v[i].setData(Vec3d((f32)cos(fi) * r + _x, (f32)sin(fi) * r + _y, _z), color);
@@ -1861,18 +1879,18 @@ void GFXAdapter_Directx9::drawSphere(   float _x, float _y, float r, float _r, f
 
     if (_volume )
     {
-        for(u32 i = 0; i <= _segsCount; i++) 
+        for(u32 i = 0; i <= _segsCount; i++)
         {
             f32 fi = i * MTH_2PI / (float)_segsCount;
             v[i].setData(Vec3d((f32)cos(fi) * r, (f32)sin(fi) * r, 0.f), color);
-        }   
-        
+        }
+
         D3DXMatrixInverse(&World, NULL, &mg_View);
         World._41 = _x;
         World._42 = _y;
         World._43 = _z;
         setObjectMatrix(World);
-    
+
         DrawPrimitive(GFX_LINE_STRIP, (void*)v, _segsCount+1);
     }
 
@@ -1881,7 +1899,7 @@ void GFXAdapter_Directx9::drawSphere(   float _x, float _y, float r, float _r, f
 
     if (_xaxis)
     {
-        for(u32 i = 0; i <= _segsCount; i++) 
+        for(u32 i = 0; i <= _segsCount; i++)
         {
             f32 fi = i * MTH_2PI / (float)_segsCount;
             v[i].setData(Vec3d(_x, (f32)cos(fi) * r + _y, (f32)sin(fi) * r + _z), color);
@@ -1892,7 +1910,7 @@ void GFXAdapter_Directx9::drawSphere(   float _x, float _y, float r, float _r, f
 
     if (_yaxis)
     {
-        for(u32 i = 0; i <= _segsCount; i++) 
+        for(u32 i = 0; i <= _segsCount; i++)
         {
             f32 fi = i * MTH_2PI / (float)_segsCount;
             v[i].setData(Vec3d((f32)cos(fi) * r + _x, _y, (f32)sin(fi) * r + _z), color);
@@ -1903,7 +1921,7 @@ void GFXAdapter_Directx9::drawSphere(   float _x, float _y, float r, float _r, f
 
     if (_zaxis)
     {
-        for(u32 i = 0; i <= _segsCount; i++) 
+        for(u32 i = 0; i <= _segsCount; i++)
         {
             f32 fi = i * MTH_2PI / (float)_segsCount;
             v[i].setData(Vec3d((f32)cos(fi) * r + _x, (f32)sin(fi) * r + _y, _z), color);
@@ -1960,7 +1978,7 @@ void GFXAdapter_Directx9::drawBox( const Vec2d& _pos, f32 _angle, const Vec2d& _
 
 //----------------------------------------------------------------------------//
 
-void GFXAdapter_Directx9::drawSphere(float _x, float _y, float _z, float r, int lats, int longs, int _wireFrame, float _r, float _g, float _b) 
+void GFXAdapter_Directx9::drawSphere(float _x, float _y, float _z, float r, int lats, int longs, int _wireFrame, float _r, float _g, float _b)
 {
     /// set first the shader you want to use.
     setShader(mp_defaultShader);
@@ -1968,11 +1986,11 @@ void GFXAdapter_Directx9::drawSphere(float _x, float _y, float _z, float r, int 
     /// fill vertex buffer.
     VertexPC v[65];
     u32 color = D3DCOLOR_ARGB(255, (u32)(_r*255.f), (u32)(_g*255.f), (u32)(_b*255.f));
-    for(u32 i = 0; i <= 64; i++) 
+    for(u32 i = 0; i <= 64; i++)
     {
         f32 fi = i * MTH_2PI / 64.f;
         v[i].setData(Vec3d((f32)cos(fi), (f32)sin(fi), 0.f), color);
-    }   
+    }
 
     /// set the matrix.
     D3DXMATRIX World, Scale;
@@ -1980,7 +1998,7 @@ void GFXAdapter_Directx9::drawSphere(float _x, float _y, float _z, float r, int 
     D3DXMatrixScaling(&Scale, r, r, r);
     D3DXMatrixMultiply(&World, &Scale, &World);
     setObjectMatrix(World);
-    
+
     /// set Vertex format
     setVertexFormat(VertexFormat_PC);
 
@@ -2010,7 +2028,7 @@ void GFXAdapter_Directx9::clear(u32 _buffer, f32 _r, f32 _g, f32 _b, f32 _a)
     }
 
     if(_buffer & GFX_CLEAR_STENCIL)
-    { 
+    {
         Buf |= D3DCLEAR_STENCIL;
     }
 
@@ -2150,7 +2168,7 @@ void GFXAdapter_Directx9::setAlphaBlend(GFX_BLENDMODE _Blend)
         m_pd3dDevice->SetRenderState( D3DRS_DESTBLEND, D3DBLEND_ONE );
         m_pd3dDevice->SetRenderState( D3DRS_BLENDOP, D3DBLENDOP_ADD );
         break;
-    
+
         case GFX_BLEND_MUL2X:
         m_pd3dDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE );
         m_pd3dDevice->SetRenderState( D3DRS_SRCBLEND, D3DBLEND_DESTCOLOR );
@@ -2263,7 +2281,7 @@ void GFXAdapter_Directx9::setScissorRect(GFX_RECT* _clipRect)
 void GFXAdapter_Directx9::SetTexture(int _Sampler, Texture* _Texture, bbool _linearFiltering)
 {
     void * adrtexture = NULL;
-    if (_Texture) 
+    if (_Texture)
         adrtexture = _Texture->m_adapterimplementationData;
     SetTextureBind(_Sampler, adrtexture, _linearFiltering);
 }
@@ -2339,7 +2357,7 @@ void GFXAdapter_Directx9::DrawPrimitive(PRIMITIVETYPE _type, const void* _p_Vert
     switch(_type)
     {
     default:
-    case GFX_TRIANGLES: 
+    case GFX_TRIANGLES:
         type = D3DPT_TRIANGLELIST;
         numberprimitive = _NumberVertex / 3;
         break;
@@ -2445,15 +2463,15 @@ void GFXAdapter_Directx9::unprojectPoint(const Vec2d& _in, float _viewDistance, 
     D3DXVECTOR3 p3;
     in_vec.x = 0;
     in_vec.y = 0;
-    D3DXVec3Project(&p1, &in_vec, &vp, (D3DXMATRIX*)_MatrixProj, 0, (D3DXMATRIX*)_MatrixModel); 
+    D3DXVec3Project(&p1, &in_vec, &vp, (D3DXMATRIX*)_MatrixProj, 0, (D3DXMATRIX*)_MatrixModel);
 
     in_vec.x = 1;
     in_vec.y = 0;
-    D3DXVec3Project(&p2, &in_vec, &vp, (D3DXMATRIX*)_MatrixProj, 0, (D3DXMATRIX*)_MatrixModel); 
+    D3DXVec3Project(&p2, &in_vec, &vp, (D3DXMATRIX*)_MatrixProj, 0, (D3DXMATRIX*)_MatrixModel);
 
     in_vec.x = 0;
     in_vec.y = 1;
-    D3DXVec3Project(&p3, &in_vec, &vp, (D3DXMATRIX*)_MatrixProj, 0, (D3DXMATRIX*)_MatrixModel); 
+    D3DXVec3Project(&p3, &in_vec, &vp, (D3DXMATRIX*)_MatrixProj, 0, (D3DXMATRIX*)_MatrixModel);
 
     // create plane from projected points
     D3DXPLANE surface_plane;
@@ -2464,13 +2482,13 @@ void GFXAdapter_Directx9::unprojectPoint(const Vec2d& _in, float _viewDistance, 
     in_vec.y = vp.Height * 0.5f;
     in_vec.z = -_viewDistance;
     D3DXVECTOR3 t1;
-    D3DXVec3Unproject(&t1, &in_vec, &vp, (D3DXMATRIX*)_MatrixProj, 0, (D3DXMATRIX*)_MatrixModel); 
+    D3DXVec3Unproject(&t1, &in_vec, &vp, (D3DXMATRIX*)_MatrixProj, 0, (D3DXMATRIX*)_MatrixModel);
 
     in_vec.x = _in.m_x;
     in_vec.y = _in.m_y;
     in_vec.z = 0.0f;
     D3DXVECTOR3 t2;
-    D3DXVec3Unproject(&t2, &in_vec, &vp, (D3DXMATRIX*)_MatrixProj, 0, (D3DXMATRIX*)_MatrixModel); 
+    D3DXVec3Unproject(&t2, &in_vec, &vp, (D3DXMATRIX*)_MatrixProj, 0, (D3DXMATRIX*)_MatrixModel);
 
     // get intersection of ray and plane
     D3DXVECTOR3 intersect;
@@ -2486,11 +2504,11 @@ void GFXAdapter_Directx9::setLookAtMatrix(GMatrix44* _MatrixOut, double _midx, d
 {
     const float fov = 0.523598776f;
 
-    f32 midx =(f32)_midx; 
-    f32 midy =(f32)_midy; 
+    f32 midx =(f32)_midx;
+    f32 midy =(f32)_midy;
     f32 viewDistance = (f32)  _viewDistance;
     f32 aspect = (f32) _aspect;
-    
+
     D3DXVECTOR3 eye(midx, midy, -viewDistance);
     D3DXVECTOR3 at(midx, midy, 1);
     D3DXVECTOR3 up(0, -1, 0);
@@ -2530,7 +2548,7 @@ void GFXAdapter_Directx9::generateTexture(Texture* _texture)
 void GFXAdapter_Directx9::createTexture( Texture* _texture, u32 _sizeX, u32 _sizeY, u32 _mipLevel, Texture::PixFormat _pixformat, u32 _pool, bbool _dynamic )
 {
     LPDIRECT3DTEXTURE9 d3dTex = (LPDIRECT3DTEXTURE9)_texture->m_adapterimplementationData;
-    
+
     D3DFORMAT pformat = D3DFMT_A8B8G8R8;
     D3DPOOL pool = D3DPOOL_MANAGED;
 
@@ -2617,7 +2635,7 @@ void GFXAdapter_Directx9::createTexture( Texture* _texture, u32 _sizeX, u32 _siz
 
     if (FAILED(hr))
     {
-        LOG("Direct3D9Texture::createTexture failed."); 
+        LOG("Direct3D9Texture::createTexture failed.");
         return;
     }
 
@@ -2643,13 +2661,13 @@ void GFXAdapter_Directx9::cleanupTexture(Texture* _texture)
             {
                 IDirect3DBaseTexture9* basetexture = static_cast< IDirect3DBaseTexture9* >( (D3DTexture*)_texture->m_adapterimplementationData );
                 void* textureData = (void*)(basetexture->Format.BaseAddress << 12);
-        
+
                 slotAllocatorManager::deallocatePhysicalMemory( textureData );
                 //basetexture->Release();
                 delete basetexture;
             }
             else
-#endif           
+#endif
                 hr = ((LPDIRECT3DTEXTURE9)_texture->m_adapterimplementationData)->Release();
         }
         _texture->m_adapterimplementationData = NULL;
@@ -2816,14 +2834,14 @@ void GFXAdapter_Directx9::loadFromMemory(   const void* _buffer, const Size& _te
 #endif //ITF_WINDOWS
         break;
     default:
-        LOG("Direct3D9Texture::loadFromMemory failed: Invalid PixelFormat value specified."); 
+        LOG("Direct3D9Texture::loadFromMemory failed: Invalid PixelFormat value specified.");
     }
 
     u32 levelMipmap = 1;
 
 #ifdef USE_MIPMAP
         levelMipmap = 0;
-#endif 
+#endif
 
     Size tex_sz(getAdjustedSize(_texture_size));
 
@@ -2835,7 +2853,7 @@ void GFXAdapter_Directx9::loadFromMemory(   const void* _buffer, const Size& _te
     {
         //Linear format x360
         D3DFORMAT formatCreate = pixfmt;
-        
+
         u32 * currentBuffer = (u32*)((u8*)_buffer+sizeof(ITF::DDS_HEADER));
 
 #ifdef ITF_X360
@@ -2847,7 +2865,7 @@ void GFXAdapter_Directx9::loadFromMemory(   const void* _buffer, const Size& _te
         case D3DFMT_DXT2:
             formatCreate = D3DFMT_LIN_DXT2;
             break;
-    
+
         case D3DFMT_DXT4:
             formatCreate = D3DFMT_LIN_DXT4;
             break;
@@ -2898,7 +2916,7 @@ void GFXAdapter_Directx9::loadFromMemory(   const void* _buffer, const Size& _te
 
             default:
                 {
-                   
+
 #ifdef ITF_WINDOWS
                     ITF_MemcpyWriteCombined(dst,src,count*sizeof(u32));
 #else
@@ -2955,7 +2973,7 @@ void GFXAdapter_Directx9::loadFromMemory(   const void* _buffer, const Size& _te
 
         _texture->m_datasizeX = (u32)d_dataSize.d_width;
         _texture->m_datasizeY = (u32)d_dataSize.d_height;
-        
+
    }
    else
    {
@@ -2966,7 +2984,7 @@ void GFXAdapter_Directx9::loadFromMemory(   const void* _buffer, const Size& _te
 
         if (FAILED(hr))
         {
-            LOG("Direct3D9Texture::loadFromMemory failed: Direct3D9 texture creation failed."); 
+            LOG("Direct3D9Texture::loadFromMemory failed: Direct3D9 texture creation failed.");
             return;
         }
         _texture->m_adapterimplementationData = d3dTex;
@@ -2990,7 +3008,7 @@ void GFXAdapter_Directx9::loadFromMemory(   const void* _buffer, const Size& _te
             {
                 SF_RELEASE(d3dTex);
 
-                LOG("Direct3D9Texture::loadFromMemory failed: IDirect3DTexture9::LockRect failed."); 
+                LOG("Direct3D9Texture::loadFromMemory failed: IDirect3DTexture9::LockRect failed.");
             }
             else
             {
@@ -3074,7 +3092,7 @@ void GFXAdapter_Directx9::updateTextureSize(Texture* _Tex)
 
 void GFXAdapter_Directx9::saveToMemory(void* _buffer, Texture* _Tex)
 {
-    LOG("Direct3D9Texture::saveToMemory - Unimplemented!"); 
+    LOG("Direct3D9Texture::saveToMemory - Unimplemented!");
 }
 
 //----------------------------------------------------------------------------//
@@ -3199,7 +3217,7 @@ void GFXAdapter_Directx9::initialiseRenderTarget( renderTarget* _target)
 
     createRenderTarget(&d3dTex, &surf, static_cast<UINT>(tex_sz.d_width), static_cast<UINT>(tex_sz.d_height), D3DFMT_A8R8G8B8, btrue);
 
-    if (!d3dTex) 
+    if (!d3dTex)
         return;
 
     _target->setSurface(uPtr(surf));
@@ -3209,7 +3227,7 @@ void GFXAdapter_Directx9::initialiseRenderTarget( renderTarget* _target)
 
      // Set Original data Size.
     Texture *texture = _target->getTexture();
-    
+
     texture->m_datasizeX = (u32)getWidth;
     texture->m_datasizeY = (u32)getHeight;
 
@@ -3239,7 +3257,7 @@ void GFXAdapter_Directx9::createRenderTarget(LPDIRECT3DTEXTURE9* _ptex, LPDIRECT
 #ifdef ITF_WINDOWS
     hr = D3DXCreateTexture( m_pd3dDevice, _width, height,
                         1, D3DUSAGE_RENDERTARGET, _format, D3DPOOL_DEFAULT, _ptex );
-    
+
     (*_ptex)->GetSurfaceLevel( 0, _psurf );
 
     /// clear rendertarget.
@@ -3264,9 +3282,9 @@ void GFXAdapter_Directx9::createRenderTarget(LPDIRECT3DTEXTURE9* _ptex, LPDIRECT
     {
         u32 surfacesize = XGSurfaceSize( getScreenWidth(), getScreenHeight(),
                                             D3DFMT_A8B8G8R8, D3DMULTISAMPLE_NONE );
-        
+
         SurfaceParameters.Base = surfacesize;
- 
+
         if (isUseDepthBuffer())
         {
 
@@ -3276,14 +3294,14 @@ void GFXAdapter_Directx9::createRenderTarget(LPDIRECT3DTEXTURE9* _ptex, LPDIRECT
                                                                D3DMULTISAMPLE_NONE );*/
 #else
         SurfaceParameters.Base += surfacesize;
-        
-            
+
+
             /*SurfaceParameters.HierarchicalZBase = XGHierarchicalZSize( getScreenWidth(),
                                                                getScreenHeight(),
                                                                D3DMULTISAMPLE_NONE );*/
-#endif 
+#endif
         }
-           
+
         SurfaceParameters.HierarchicalZBase = 0;
      }
 
@@ -3310,7 +3328,7 @@ void  GFXAdapter_Directx9::acquireDeviceOwnerShip()
             }
             //wait until is done;
             Synchronize::waitEvent(&m_ReleaseOwnerShipEvent);
-    
+
             Synchronize::resetEvent(&m_ReleaseOwnerShipEvent);
             m_pd3dDevice->AcquireThreadOwnership();
         }
@@ -3325,15 +3343,15 @@ void GFXAdapter_Directx9::releaseDeviceOwnerShip()
         Synchronize::setEvent(&m_AcquireOwnerShipEvent);
         m_pd3dDevice->ReleaseThreadOwnership();
     }
- 
-    
+
+
 }
 
 void GFXAdapter_Directx9::minimal_present()
 {
     if (m_pd3dDevice)
     {
-        clear( GFX_CLEAR_COLOR, 0, 0, 0, 0); 
+        clear( GFX_CLEAR_COLOR, 0, 0, 0, 0);
         m_pd3dDevice->Present(0, 0, 0, 0);
     }
 }
@@ -3364,7 +3382,7 @@ void GFXAdapter_Directx9::present()
     if (isShowDebugInfo())
         getVertexBufferManager().drawDebugVBInfo();
 #endif // ITF_FINAL
-    
+
 #if ITF_DEBUG_LEVEL > 0
     {
         for (u32 it = 0; it < m_DBGTextureQuads.size();)
@@ -3388,8 +3406,8 @@ void GFXAdapter_Directx9::present()
 
     {
 #ifdef ITF_WINDOWS
-        m_pd3dDevice->SetRenderState(D3DRS_LIGHTING, FALSE); 
-#endif // 
+        m_pd3dDevice->SetRenderState(D3DRS_LIGHTING, FALSE);
+#endif //
         //m_pd3dDevice->SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE );
         //m_pd3dDevice->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
         //m_pd3dDevice->SetRenderState(D3DRS_ZENABLE, D3DZB_FALSE);
@@ -3453,9 +3471,9 @@ void GFXAdapter_Directx9::present()
         GlobalMemoryStatus( &stat );
         f32 fps = getfPs();
         swprintf_s( cfps, 128, L"%0.02f fps Mem free :%d Mb %0.02f ms", fps,stat.dwAvailPhys / MB ,fps>=0.01f ? 1000.0f/fps : 0.0f);
-        m_FontDebug.DrawText( (f32) (m_screenWidth- rct.left-390), (f32)rct.top+20, COLOR_WHITE, cfps); 
-        m_FontDebug.DrawText( (f32) (m_screenWidth- rct.left-550), (f32)rct.top+40, COLOR_WHITE, (wchar_t*)m_extraInfo.cStr()); 
-        m_FontDebug.DrawText( (f32) (m_screenWidth- rct.left-390), (f32)rct.top+60, COLOR_WHITE, (wchar_t*)m_engineDataVersion.cStr()); 
+        m_FontDebug.DrawText( (f32) (m_screenWidth- rct.left-390), (f32)rct.top+20, COLOR_WHITE, cfps);
+        m_FontDebug.DrawText( (f32) (m_screenWidth- rct.left-550), (f32)rct.top+40, COLOR_WHITE, (wchar_t*)m_extraInfo.cStr());
+        m_FontDebug.DrawText( (f32) (m_screenWidth- rct.left-390), (f32)rct.top+60, COLOR_WHITE, (wchar_t*)m_engineDataVersion.cStr());
     }
 #endif //ITF_DISABLE_DEBUGINFO
 
@@ -3484,7 +3502,7 @@ void GFXAdapter_Directx9::present()
             m_FontDebug.DrawText( (f32)localRect.left, (f32)localRect.top, color, (wchar_t *)((*it).m_text.cStr()));
         }
     }
-    m_DBGTexts.clear();    
+    m_DBGTexts.clear();
 
 #else
     /// Debug info.
@@ -3552,7 +3570,7 @@ void GFXAdapter_Directx9::present()
 
             rct.top -= 15;
             rct.bottom = rct.top+15;
-            
+
             draw2dBox(Vec2d(f32(rct.left - 2), f32(rct.top)), txt.m_text.getLen() * 7.0f + 2, 15.0f, uColor, uColor, uColor, uColor);
             DWORD alignment = fontAlignmentToDirectXFormat(txt.m_alignment);
 
@@ -3618,11 +3636,11 @@ void GFXAdapter_Directx9::present()
     m_pd3dDevice->Swap( m_pSceneTexture, NULL );
 #endif
 
-    
+
 #ifdef ITF_X360
     MemoryBarrier();
     bbool valRelease = bfalse;//TODO interlock
-    csAutoLock cs(m_csPresent);     
+    csAutoLock cs(m_csPresent);
     {
         valRelease = m_askToReleaseOwnerShip;
     }
@@ -3633,14 +3651,14 @@ void GFXAdapter_Directx9::present()
         Synchronize::setEvent(&m_ReleaseOwnerShipEvent);
         Synchronize::waitEvent(&m_AcquireOwnerShipEvent);
         Synchronize::resetEvent(&m_AcquireOwnerShipEvent);
-        {   
-            csAutoLock cs(m_csPresent);  
+        {
+            csAutoLock cs(m_csPresent);
             m_askToReleaseOwnerShip = bfalse;
         }
 
         m_pd3dDevice->AcquireThreadOwnership();
     }
-        
+
 #endif  //ITF_X360
 }
 
@@ -3719,7 +3737,7 @@ void GFXAdapter_Directx9::doScreenCapture()
                    if (desc.Height&1)
                         desc.Height = desc.Height+1;
 
-                  
+
                    hr = D3DXCreateTexture(m_pd3dDevice, desc.Width,desc.Height, 1, D3DUSAGE_RENDERTARGET, desc.Format, D3DPOOL_DEFAULT, &texture);
                    ITF_ASSERT(hr == S_OK);
 
@@ -3728,8 +3746,8 @@ void GFXAdapter_Directx9::doScreenCapture()
 
                    texture->Release();
                }
-           
-               
+
+
                hr = m_pd3dDevice->CreateOffscreenPlainSurface(desc.Width, desc.Height,desc.Format,  D3DPOOL_SYSTEMMEM , &offscreen, NULL);
 
 
@@ -3746,7 +3764,7 @@ void GFXAdapter_Directx9::doScreenCapture()
            IDirect3DSurface9* BackBuffer = NULL;
 
            LPDIRECT3DSURFACE9 offscreen = (LPDIRECT3DSURFACE9) m_videoCapture->getCaptureBuffer()->getOffscreenBuffer();
-         
+
            HRESULT hr = m_pd3dDevice->GetRenderTarget(0, &BackBuffer);
            ITF_ASSERT(hr == S_OK);
 
@@ -3773,17 +3791,17 @@ void GFXAdapter_Directx9::doScreenCapture()
 
            if (hr==S_OK) //if for any reasons ,we failed ( screensaver..) ,we skip this frame
            {
-               
+
                pVideoCaptureBuffer->lock();
 
                m_videoCapture->resolveBufferScreen();
 
-               pVideoCaptureBuffer->unlock(); 
-               
+               pVideoCaptureBuffer->unlock();
+
            }
 
            BackBuffer->Release();
-           
+
        }
  }
 
@@ -3841,7 +3859,7 @@ void GFXAdapter_Directx9::setRenderTarget_Picking()
         setupViewport(&rcViewport);
         m_pd3dDevice->SetRenderTarget(0,m_pRenderTargetSurfacePicking);
     }
-}   
+}
 
 void* GFXAdapter_Directx9::resolvePicking()
 {
@@ -3914,7 +3932,7 @@ void GFXAdapter_Directx9::AFTERFX_startRenderTarget(Color _color)
 {
     /// already set ?
     if (m_currentRenderingSurface == m_pFullRTsurf[0]) return;
-    
+
     if (!m_pFullRTtex[0])
     {
         createRenderTarget(&m_pFullRTtex[0], &m_pFullRTsurf[0], getScreenWidth(), getScreenHeight(), D3DFMT_A8R8G8B8);
@@ -3935,7 +3953,7 @@ void GFXAdapter_Directx9::AFTERFX_startRenderTarget(Color _color)
     m_pd3dDevice->SetRenderTarget( 0, m_pFullRTsurf[1] );
     m_currentRenderingSurface = m_pFullRTsurf[1];
 
-    clear(GFX_CLEAR_COLOR, _color.getRed(), _color.getGreen(), _color.getBlue(), _color.getAlpha()); 
+    clear(GFX_CLEAR_COLOR, _color.getRed(), _color.getGreen(), _color.getBlue(), _color.getAlpha());
 //#endif
     /// z write and alpha setting.
     setDefaultAlpha();
@@ -3973,7 +3991,7 @@ void GFXAdapter_Directx9::startScreenshotMode()
     /// compute UHD backbuffer size, taking current aspect ration into account
     u32 UHDWidth = 4096;
     u32 UHDHeight = 4096;
- 
+
     if (getStrSceenshotResquest() == strScreenshotUHD())
     {
         if (m_preUHDScreenWidth>m_preUHDScreenHeight)
@@ -4042,11 +4060,11 @@ void GFXAdapter_Directx9::endScreenshotMode()
                     String path, path2;
                     int screenshotIndex=1;
 
-                    for(;;) 
+                    for(;;)
                     {
                         char name[256];
                         path = myDocumentPath;
-                        
+
                         if (getStrSceenshotResquest() == strScreenshotNormal())
                         {
                             sprintf(name, "\\UBI screenshot %03d.jpg", screenshotIndex);
@@ -4099,29 +4117,29 @@ void GFXAdapter_Directx9::endScreenshotMode()
                         DEBUGINFO->addDebugInfoDisplay(info, 5.0f);
                     }
                 }
-              
+
                 else if (getStrSceenshotResquest() == strScreenshotProfileFPS())
                 {
-                
+
                     LPD3DXBUFFER pBuffer;
                     if (!FAILED(D3DXSaveSurfaceToFileInMemory(&pBuffer , D3DXIFF_JPG, pSystemMemSurface, NULL, NULL)))
                     {
                         void* ptr = (pBuffer )->GetBufferPointer();
                         UINT len = (pBuffer )->GetBufferSize();
-        
-        
+
+
                         if(!PLUGINGATEWAY)
                             return;
                         EngineMonitorPlugin *plug = (EngineMonitorPlugin*) PLUGINGATEWAY->getPluginByName(EngineMonitorPlugin::getPluginName());
                         if(!plug)
                             return;
-        
+
                         char szFullFileName[256];
                         sprintf(szFullFileName, "%s.jpg", getStrSceenshotResquest());
-                        
+
                         plug->sendFile(szFullFileName, (char*) ptr, len, false, true);
 
-                    }        
+                    }
                     pBuffer ->Release();
                 }
 
@@ -4153,14 +4171,14 @@ void GFXAdapter_Directx9::startRendering()
 
     m_currentRenderingSurface = m_pBackBufferSurf;
 
-#if defined(ITF_WINDOWS) 
+#if defined(ITF_WINDOWS)
     if (getStrSceenshotResquest())
         startScreenshotMode();
 #endif //ITF_WINDOWS
 
     hr = m_pd3dDevice->BeginScene();
     isRender = 1;
- 
+
     if (getOverDrawMode() == 1)
     {
         startOverDrawRecord();
@@ -4173,7 +4191,7 @@ void GFXAdapter_Directx9::endRendering()
 {
     if (!isRender) return;
     HRESULT hr;
-    
+
     hr = m_pd3dDevice->EndScene();
 
     if (m_pUltraHDBackBufferSurf)
@@ -4229,7 +4247,7 @@ void GFXAdapter_Directx9::BuildPresentParams()
 
     m_ppars.Flags                   = D3DPRESENTFLAG_LOCKABLE_BACKBUFFER ;
 
-  
+
     /// synchro ??.
     if (m_waitVBL)
     {
@@ -4244,7 +4262,7 @@ void GFXAdapter_Directx9::BuildPresentParams()
     {
         //scan the res
 
-       
+
         bbool resolutionSupported = bfalse;
 
         for( u32 mode = 0; mode < m_displayModeCount; mode++ )
@@ -4259,7 +4277,7 @@ void GFXAdapter_Directx9::BuildPresentParams()
         if (resolutionSupported == bfalse)
         {
             if (m_displayModeCount && m_displayMode[m_displayModeCount-1].Format!=0)
-            {  
+            {
                 const D3DDISPLAYMODE& displayMode = m_displayMode[m_displayModeCount-1];
                 m_screenWidth   = displayMode.Width;
                 m_screenHeight  = displayMode.Height;
@@ -4294,8 +4312,8 @@ void GFXAdapter_Directx9::BuildPresentParams()
         setUseDepthBuffer(bfalse);
 
 
-    XVIDEO_MODE videoMode; 
-    XMemSet( &videoMode, 0, sizeof(XVIDEO_MODE) ); 
+    XVIDEO_MODE videoMode;
+    XMemSet( &videoMode, 0, sizeof(XVIDEO_MODE) );
     XGetVideoMode( &videoMode );
 
 
@@ -4315,8 +4333,8 @@ void GFXAdapter_Directx9::BuildPresentParams()
     m_ppars.PresentationInterval = m_waitVBL ? D3DPRESENT_INTERVAL_ONE : D3DPRESENT_INTERVAL_IMMEDIATE;
 
     setMonitorRefreshRate(videoMode.RefreshRate);
-    
-#ifdef _USE_ZBUFFER_TILING    
+
+#ifdef _USE_ZBUFFER_TILING
     m_ppars.BackBufferFormat = ( D3DFORMAT )MAKESRGBFMT( D3DFMT_A8R8G8B8 );
     m_ppars.FrontBufferFormat = ( D3DFORMAT )MAKESRGBFMT( D3DFMT_LE_X8R8G8B8 );
 
@@ -4339,13 +4357,13 @@ bbool GFXAdapter_Directx9::resetDevice(bbool _forceReset)
 #ifdef ITF_SUPPORT_IMGUI
     IMGUI_ADAPTER->onDeviceLost();
 #endif
-    
+
     BuildPresentParams();
 
     HRESULT hr;
     hr = m_pd3dDevice->Reset(&m_ppars);
 
-   
+
     if (hr == D3DERR_DEVICELOST)
     {
         Sleep(1000);
@@ -4372,8 +4390,8 @@ bbool GFXAdapter_Directx9::resetDevice(bbool _forceReset)
 
         return true;
     }
-  
-    
+
+
 
     return false;
 }
@@ -4468,7 +4486,7 @@ void GFXAdapter_Directx9::preD3DReset()
 
     /// shaders.
     for (u32 i = 0; i < mp_shaderManager.getNumberShader(); i++)
-	{    
+	{
 		if (mp_shaderManager.getShaderByIndex(i)->mp_effect)
 			hr = ((ITF_EFFECTP)mp_shaderManager.getShaderByIndex(i)->mp_effect)->OnLostDevice();
 	}
@@ -4515,7 +4533,7 @@ void GFXAdapter_Directx9::postD3DReset()
 {
 #ifdef ITF_WINDOWS
     HRESULT hr;
-    
+
     /// backBuffer and mainTarget.
     getBackBuffer();
 
@@ -4547,7 +4565,7 @@ void GFXAdapter_Directx9::postD3DReset()
         }
     }
 
-#ifdef _USE_FONTDEBUG 
+#ifdef _USE_FONTDEBUG
     /// font debug.
     if( mp_FontDebug )
         hr = mp_FontDebug->OnResetDevice();
@@ -4591,7 +4609,7 @@ HRESULT LoadFile( const CHAR* strFileName, u8** ppFileData, DWORD* pdwFileSize )
     {
         u32 lenght = 0;
         u8 * pBuffer = NULL;
-    
+
         lenght = (u32) shaderFile->getLength();
         pBuffer = newAlloc(mId_Temporary,u8[lenght]);
 
@@ -4632,13 +4650,13 @@ void GFXAdapter_Directx9::releaseShader( ITF_shader* _shaderGroup )
 	u32 np = _shaderGroup->mp_Ps.size();
 	for (u32 i = 0 ; i < np ; i++)
 	{
-		IDirect3DPixelShader9* Ps = (IDirect3DPixelShader9*)_shaderGroup->mp_Ps[i]; 
+		IDirect3DPixelShader9* Ps = (IDirect3DPixelShader9*)_shaderGroup->mp_Ps[i];
 		Ps->Release();
 	}
 	u32 nv = _shaderGroup->mp_Vs.size();
 	for (u32 i = 0 ; i < nv ; i++)
 	{
-		IDirect3DVertexShader9* Vs = (IDirect3DVertexShader9*)_shaderGroup->mp_Vs[i]; 
+		IDirect3DVertexShader9* Vs = (IDirect3DVertexShader9*)_shaderGroup->mp_Vs[i];
 		Vs->Release();
 	}
 }
@@ -4714,7 +4732,7 @@ void* GFXAdapter_Directx9::loadBinVShader(const String& _name )
         UnloadFile( pCode );
         return( 0 );
     }
- 
+
     UnloadFile( pCode );
     return pVShaderResult;
 }
@@ -4783,91 +4801,91 @@ bbool GFXAdapter_Directx9::loadShader( ITF_shader* _shaderGroup )
         shadercodeV = (uPtr)loadBinVShader("renderPCT_vsh2");
 #else
         shadercodeV = (uPtr)compileVertexShader((const char*)pCode, dwSize, "default_PC_VS");
-#endif		
+#endif
         _shaderGroup->mp_Vs.push_back(shadercodeV);//1
 
 #ifdef USE_SHADER_BIN
 		shadercodeV = (uPtr)loadBinVShader("renderPCT_vsh3");
-#else		
+#else
         shadercodeV = (uPtr)compileVertexShader((const char*)pCode, dwSize, "default_PT_VS");
-#endif		
+#endif
         _shaderGroup->mp_Vs.push_back(shadercodeV);
 
 #ifdef USE_SHADER_BIN
 		shadercodeV = (uPtr)loadBinVShader("renderPCT_vsh4");
 #else
         shadercodeV = (uPtr)compileVertexShader((const char*)pCode, dwSize, "default_PCT_Patch_VS");
-#endif		
+#endif
         _shaderGroup->mp_Vs.push_back(shadercodeV);//3
 
 #ifdef USE_SHADER_BIN
 		shadercodeV = (uPtr)loadBinVShader("renderPCT_vsh5");
 #else
         shadercodeV = (uPtr)compileVertexShader((const char*)pCode, dwSize, "default_PNCT_VS");
-#endif		
+#endif
         _shaderGroup->mp_Vs.push_back(shadercodeV);
 
 #ifdef USE_SHADER_BIN
 		shadercodeV = (uPtr)loadBinVShader("renderPCT_vsh6");
 #else
         shadercodeV = (uPtr)compileVertexShader((const char*)pCode, dwSize, "frize_PNC3T_VS");
-#endif		
+#endif
         _shaderGroup->mp_Vs.push_back(shadercodeV);//5
 
 #ifdef USE_SHADER_BIN
 		shadercodeV = (uPtr)loadBinVShader("renderPCT_vsh7");
 #else
         shadercodeV = (uPtr)compileVertexShader((const char*)pCode, dwSize, "fluid_PCT_VS");
-#endif		
+#endif
         _shaderGroup->mp_Vs.push_back(shadercodeV);
 
 #ifdef USE_SHADER_BIN
 		shadercodeV = (uPtr)loadBinVShader("renderPCT_vsh8");
 #else
         shadercodeV = (uPtr)compileVertexShader((const char*)pCode, dwSize, "fluid2_PCT_VS");
-#endif		
+#endif
         _shaderGroup->mp_Vs.push_back(shadercodeV);//7
 
 #ifdef USE_SHADER_BIN
 		shadercodeV = (uPtr)loadBinVShader("renderPCT_vsh9");
 #else
         shadercodeV = (uPtr)compileVertexShader((const char*)pCode, dwSize, "trail_PCT_VS");
-#endif		
+#endif
         _shaderGroup->mp_Vs.push_back(shadercodeV);
 
 #ifdef USE_SHADER_BIN
 		shadercodeV = (uPtr)loadBinVShader("renderPCT_vsh10");
 #else
         shadercodeV = (uPtr)compileVertexShader((const char*)pCode, dwSize, "spline_PCT_VS");
-#endif		
+#endif
         _shaderGroup->mp_Vs.push_back(shadercodeV);//9
 
 #ifdef USE_SHADER_BIN
 		shadercodeV = (uPtr)loadBinVShader("renderPCT_vsh11");
 #else
         shadercodeV = (uPtr)compileVertexShader((const char*)pCode, dwSize, "default_PCT_BezierPatch_VS");
-#endif		
+#endif
         _shaderGroup->mp_Vs.push_back(shadercodeV);
 
 #ifdef USE_SHADER_BIN
 		shadercodeV = (uPtr)loadBinVShader("renderPCT_vsh12");
 #else
         shadercodeV = (uPtr)compileVertexShader((const char*)pCode, dwSize, "default_PTambiant_VS");
-#endif		
+#endif
         _shaderGroup->mp_Vs.push_back(shadercodeV);//11
 
 #ifdef USE_SHADER_BIN
 		shadercodeV = (uPtr)loadBinVShader("renderPCT_vsh13");
 #else
         shadercodeV = (uPtr)compileVertexShader((const char*)pCode, dwSize, "refraction_PCT_VS");
-#endif		
+#endif
         _shaderGroup->mp_Vs.push_back(shadercodeV);//12
 
 #ifdef USE_SHADER_BIN
         shadercodeV = (uPtr)loadBinVShader("renderPCT_vsh14");
 #else
         shadercodeV = (uPtr)compileVertexShader((const char*)pCode, dwSize, "OVERLAY_PCBT_VS");
-#endif        
+#endif
         _shaderGroup->mp_Vs.push_back(shadercodeV);//13
 
 		/// --- pixel shader ---
@@ -4875,21 +4893,21 @@ bbool GFXAdapter_Directx9::loadShader( ITF_shader* _shaderGroup )
         shadercodeP = (uPtr)loadBinPShader("renderPCT_psh1");
 #else
         shadercodeP = (uPtr)compilePixelShader((const char*)pCode, dwSize, "default_PCT_PS");
-#endif		
+#endif
         _shaderGroup->mp_Ps.push_back(shadercodeP);//0
 
 #ifdef USE_SHADER_BIN
 		shadercodeP = (uPtr)loadBinPShader("renderPCT_psh2");
 #else
         shadercodeP = (uPtr)compilePixelShader((const char*)pCode, dwSize, "default_PC_PS");
-#endif		
+#endif
         _shaderGroup->mp_Ps.push_back(shadercodeP);
 
 #ifdef USE_SHADER_BIN
 		shadercodeP = (uPtr)loadBinPShader("renderPCT_psh3");
 #else
         shadercodeP = (uPtr)compilePixelShader((const char*)pCode, dwSize, "default_PT_PS");
-#endif		
+#endif
         _shaderGroup->mp_Ps.push_back(shadercodeP);//2
 
 		// fog: 3
@@ -4897,21 +4915,21 @@ bbool GFXAdapter_Directx9::loadShader( ITF_shader* _shaderGroup )
 		shadercodeP = (uPtr)loadBinPShader("renderPCT_psh4");
 #else
         shadercodeP = (uPtr)compilePixelShader((const char*)pCode, dwSize, "fog_PCT_PS");
-#endif		
+#endif
         _shaderGroup->mp_Ps.push_back(shadercodeP);
 
 #ifdef USE_SHADER_BIN
 		shadercodeP = (uPtr)loadBinPShader("renderPCT_psh5");
 #else
         shadercodeP = (uPtr)compilePixelShader((const char*)pCode, dwSize, "fog_PC_PS");
-#endif		
+#endif
         _shaderGroup->mp_Ps.push_back(shadercodeP);//4
 
 #ifdef USE_SHADER_BIN
 		shadercodeP = (uPtr)loadBinPShader("renderPCT_psh6");
 #else
         shadercodeP = (uPtr)compilePixelShader((const char*)pCode, dwSize, "fog_PT_PS");
-#endif		
+#endif
         _shaderGroup->mp_Ps.push_back(shadercodeP);
 
 		// overdraw: 6
@@ -4919,7 +4937,7 @@ bbool GFXAdapter_Directx9::loadShader( ITF_shader* _shaderGroup )
         shadercodeP = (uPtr)loadBinPShader("renderPCT_psh7");
 #else
         shadercodeP = (uPtr)compilePixelShader((const char*)pCode, dwSize, "overDraw_PS");
-#endif		
+#endif
         _shaderGroup->mp_Ps.push_back(shadercodeP);
 
 		// refraction: 7
@@ -4936,29 +4954,29 @@ bbool GFXAdapter_Directx9::loadShader( ITF_shader* _shaderGroup )
     {
 		uPtr shadercodeP = 0;
         uPtr shadercodeV = 0;
-        
+
 		// --- vertexShader ---
 #ifdef USE_SHADER_BIN
         shadercodeV = (uPtr)loadBinVShader("movie_vsh1");
-#else		
+#else
         shadercodeV = (uPtr)compileVertexShader((const char*)pCode, dwSize, "VS_Movie");
-#endif		
+#endif
         _shaderGroup->mp_Vs.push_back(shadercodeV);//0
 
 		/// --- pixel shader ---
 #ifdef ITF_X360
-#ifdef USE_SHADER_BIN        
+#ifdef USE_SHADER_BIN
         shadercodeP = (uPtr)loadBinPShader("movie_psh1");
-#else        
+#else
         shadercodeP = (uPtr)compilePixelShader((const char*)pCode, dwSize, "PS_Movie");
-#endif		
+#endif
         _shaderGroup->mp_Ps.push_back(shadercodeP);
 #else
-#ifdef USE_SHADER_BIN        
+#ifdef USE_SHADER_BIN
         shadercodeP = (uPtr)loadBinPShader("movie_psh1");
-#else        
+#else
         shadercodeP = (uPtr)compilePixelShader((const char*)pCode, dwSize, "PS_MovieWIN32");
-#endif		
+#endif
         _shaderGroup->mp_Ps.push_back(shadercodeP);
 #endif
         createeffect = bfalse;
@@ -4967,28 +4985,28 @@ bbool GFXAdapter_Directx9::loadShader( ITF_shader* _shaderGroup )
     {
 		uPtr shadercodeP = 0;
         uPtr shadercodeV = 0;
-        
+
 		// --- vertexShader ---
 #ifdef USE_SHADER_BIN
         shadercodeV = (u32)loadBinVShader("font_vsh1");
-#else        
+#else
         shadercodeV = (uPtr)compileVertexShader((const char*)pCode, dwSize, "VertScene");
-#endif		
+#endif
         _shaderGroup->mp_Vs.push_back(shadercodeV);//0
 
         /// --- pixel shader ---
 #ifdef USE_SHADER_BIN
         shadercodeP = (uPtr)loadBinPShader("font_psh1");
-#else        
+#else
         shadercodeP = (uPtr)compilePixelShader((const char*)pCode, dwSize, "PixWithoutOutline");
-#endif		
+#endif
         _shaderGroup->mp_Ps.push_back(shadercodeP);
 
 #ifdef USE_SHADER_BIN
         shadercodeP = (uPtr)loadBinPShader("font_psh2");
 #else
         shadercodeP = (uPtr)compilePixelShader((const char*)pCode, dwSize, "PixWithOutline");
-#endif		
+#endif
         _shaderGroup->mp_Ps.push_back(shadercodeP);
 
         createeffect = bfalse;
@@ -4997,20 +5015,20 @@ bbool GFXAdapter_Directx9::loadShader( ITF_shader* _shaderGroup )
     {
         uPtr shadercodeP = 0;
         uPtr shadercodeV = 0;
-        
+
 		// --- vertexShader ---
 #ifdef USE_SHADER_BIN
         shadercodeV = (uPtr)loadBinVShader("AfterFx_vsh1");
 #else
         shadercodeV = (uPtr)compileVertexShader((const char*)pCode, dwSize, "blur_VS");
-#endif		
+#endif
         _shaderGroup->mp_Vs.push_back(shadercodeV);//0
 
 #ifdef USE_SHADER_BIN
         shadercodeV = (uPtr)loadBinVShader("AfterFx_vsh2");
 #else
         shadercodeV = (uPtr)compileVertexShader((const char*)pCode, dwSize, "PCT1_VS");
-#endif		
+#endif
         _shaderGroup->mp_Vs.push_back(shadercodeV);//0
 
         /// --- pixel shader ---
@@ -5018,7 +5036,7 @@ bbool GFXAdapter_Directx9::loadShader( ITF_shader* _shaderGroup )
         shadercodeP = (uPtr)loadBinPShader("AfterFx_psh1");
 #else
         shadercodeP = (uPtr)compilePixelShader((const char*)pCode, dwSize, "BigBlur_PS");
-#endif		
+#endif
         _shaderGroup->mp_Ps.push_back(shadercodeP);
 
 #ifdef USE_SHADER_BIN
@@ -5048,14 +5066,14 @@ if (createeffect)
 #else
     FXLCreateEffect( m_pd3dDevice, pCode, NULL, (FXLEffect**)&_shaderGroup->mp_effect );
 #endif
-  
-   
+
+
 
 #else
     LPD3DXBUFFER pCompilationErrors = 0;
 
     hr = D3DXCreateEffect(m_pd3dDevice, ( CHAR* )pCode, dwSize,NULL,NULL,ShaderFlags|D3DXFX_LARGEADDRESSAWARE,NULL,(ITF_EFFECTP*)&_shaderGroup->mp_effect, &pCompilationErrors);
- 
+
         if (hr != S_OK)
         {
             LOG("Direct3D9Renderer: CreateShader failed : %s\n", pCompilationErrors->GetBufferPointer() );
@@ -5066,12 +5084,12 @@ if (createeffect)
 
 
 #ifdef ITF_X360//yo
-    
+
     /// get Texture Handle
     _shaderGroup->m_TextureHandle[0] = (void*)((ITF_EFFECTP)_shaderGroup->mp_effect)->GetParameterHandle("TextureSampler0");
     _shaderGroup->m_TextureHandle[1] = (void*)((ITF_EFFECTP)_shaderGroup->mp_effect)->GetParameterHandle("TextureSampler1");
     _shaderGroup->m_TextureHandle[2] = (void*)((ITF_EFFECTP)_shaderGroup->mp_effect)->GetParameterHandle("TextureSampler2");
-        
+
     /// get Matrix Handle.
     _shaderGroup->m_MatrixHandle[0] = (void*)((ITF_EFFECTP)_shaderGroup->mp_effect)->GetParameterHandle("g_mWorldViewProjection");
     _shaderGroup->m_MatrixHandle[1] = (void*)((ITF_EFFECTP)_shaderGroup->mp_effect)->GetParameterHandle("g_mUVmat");
@@ -5132,7 +5150,7 @@ if (createeffect)
     _shaderGroup->m_TextureHandle[5] = (void*)((ITF_EFFECTP)_shaderGroup->mp_effect)->GetParameterByName(NULL, "g_custom3Texture");
     _shaderGroup->m_TextureHandle[6] = (void*)((ITF_EFFECTP)_shaderGroup->mp_effect)->GetParameterByName(NULL, "g_custom4Texture");
     _shaderGroup->m_TextureHandle[7] = (void*)((ITF_EFFECTP)_shaderGroup->mp_effect)->GetParameterByName(NULL, "g_custom5Texture");
-    
+
     /// get Matrix Handle.
     _shaderGroup->m_MatrixHandle[0] = (void*)((ITF_EFFECTP)_shaderGroup->mp_effect)->GetParameterByName(NULL, "g_mWorldViewProjection");
     _shaderGroup->m_MatrixHandle[1] = (void*)((ITF_EFFECTP)_shaderGroup->mp_effect)->GetParameterByName(NULL, "g_mUVmat");
@@ -5183,7 +5201,7 @@ if (createeffect)
 
 #endif
 }
-    if (pCode) 
+    if (pCode)
         UnloadFile( pCode );
 
     return btrue;
@@ -5221,7 +5239,7 @@ void GFXAdapter_Directx9::beginShader( ITF_shader* _shader )
 void GFXAdapter_Directx9::endShader( ITF_shader* _shader )
 {
     ITF_ASSERT(m_shaderPassLastState == S_SHADERPASS_BEGIN);
-    
+
     ITF_EFFECTP effect = (ITF_EFFECTP)mp_currentShader->mp_effect;
     effect->EndPass();
 
@@ -5262,7 +5280,7 @@ void GFXAdapter_Directx9::setShaderMatrix( ITF_shader* _shader )
         D3DXMatrixTranslation(&matrixTranslation,offsetNormalizeX,offsetNormalizeY,0.0f);
 
         mg_WorldViewProj =  mg_WorldViewProj*matrixTranslation;
-   }    
+   }
 #endif //ITF_WINDOWS
 
    ITF_EFFECTP effect = (ITF_EFFECTP)_shader->mp_effect;
@@ -5277,7 +5295,7 @@ void GFXAdapter_Directx9::setShaderMatrix( ITF_shader* _shader )
 		m_pd3dDevice->SetVertexShaderConstantF( 4, (f32*)&trans, 4 );//wvp
 	}
 #endif
-   
+
 if (effect)
 {
 #ifdef ITF_X360//yo
@@ -5320,7 +5338,7 @@ void GFXAdapter_Directx9::setShader( ITF_shader* _shader)
 void GFXAdapter_Directx9::setVertexFormat( u32 _vformat )
 {
     m_currentVertexFormat = _vformat;
-    
+
     switch(_vformat)
     {
         default:
@@ -5423,11 +5441,11 @@ void GFXAdapter_Directx9::setVertexBuffer( ITF_VertexBuffer* _vertexBuffer )
 {
 
     //You must in the main thread to set the texture as available...
-    
+
     ITF_ASSERT(Synchronize::getCurrentThreadId() == ThreadSettings::m_settings[eThreadId_mainThread].m_threadID);
 
     if(!_vertexBuffer->mp_VertexBuffer) return;
-    
+
     setVertexFormat(_vertexBuffer->m_vertexFormat);
 
     m_pd3dDevice->SetStreamSource( 0, ((IDirect3DVertexBuffer9 *)_vertexBuffer->mp_VertexBuffer), _vertexBuffer->m_offset, _vertexBuffer->m_structVertexSize );
@@ -5436,7 +5454,7 @@ void GFXAdapter_Directx9::setVertexBuffer( ITF_VertexBuffer* _vertexBuffer )
 void GFXAdapter_Directx9::LockVertexBuffer( ITF_VertexBuffer* _vertexBuffer, void** _data, u32 _offset, u32 _size, u32 _flag )
 {
     HRESULT hr = S_OK;
-        
+
     u32 flag = 0;
 #if  _DEBUG
     if (Synchronize::getCurrentThreadId() == ThreadSettings::m_settings[eThreadId_mainThread].m_threadID)
@@ -5467,7 +5485,7 @@ void GFXAdapter_Directx9::LockVertexBuffer( ITF_VertexBuffer* _vertexBuffer, voi
 
     if (_vertexBuffer->mp_VertexBuffer)
         hr = ((LPDIRECT3DVERTEXBUFFER9)_vertexBuffer->mp_VertexBuffer)->Lock( _offset, _size, _data, flag);
-   
+
      if (hr!=S_OK)
         messageD3DError(hr);
 }
@@ -5536,7 +5554,7 @@ void GFXAdapter_Directx9::releaseIndexBuffer( ITF_IndexBuffer* _indexBuffer )
 void GFXAdapter_Directx9::setIndexBuffer( ITF_IndexBuffer* _indexBuffer )
 {
     if(!_indexBuffer->mp_IndexBuffer) return;
-    
+
     m_pd3dDevice->SetIndices((IDirect3DIndexBuffer9 *)_indexBuffer->mp_IndexBuffer );
 }
 
@@ -5544,7 +5562,7 @@ void GFXAdapter_Directx9::LockIndexBuffer( ITF_IndexBuffer* _indexBuffer, void**
 {
     HRESULT hr;
     hr = ((LPDIRECT3DINDEXBUFFER9)_indexBuffer->mp_IndexBuffer)->Lock( 0, _indexBuffer->m_nIndices * sizeof(u16), _data, 0);
-    
+
     if (FAILED(hr))
         messageD3DError(hr);
 }
@@ -5585,7 +5603,7 @@ void GFXAdapter_Directx9::DrawVertexBuffer( u32 _type, ITF_VertexBuffer* _vertex
     switch(_type)
     {
     default:
-    case GFX_TRIANGLES: 
+    case GFX_TRIANGLES:
         type = D3DPT_TRIANGLELIST;
         numberprimitive = _vertexNumber / 3;
         break;
@@ -5610,7 +5628,7 @@ void GFXAdapter_Directx9::DrawVertexBuffer( u32 _type, ITF_VertexBuffer* _vertex
         numberprimitive = _vertexNumber - 2;
        break;
     }
-    
+
     setVertexBuffer( _vertexBuffer );
 
 #ifndef SHADERTEST
@@ -5659,7 +5677,7 @@ void GFXAdapter_Directx9::setShaderGlobalConstant(ITF_shader* _shadergroup)
 
 void GFXAdapter_Directx9::setShaderFormat(i32 _format)
 {
-	ITF_shader* shadergroup = mp_shaderManager.getShaderByIndex(7);    
+	ITF_shader* shadergroup = mp_shaderManager.getShaderByIndex(7);
 
 	u32 vno = 0;
     u32 pno = 0;
@@ -5706,7 +5724,7 @@ void GFXAdapter_Directx9::setShaderFormat(i32 _format)
 
 void GFXAdapter_Directx9::DrawIndexedVertexBuffer( u32 _type, ITF_VertexBuffer* _vertexBuffer, ITF_IndexBuffer* _indexBuffer, u32 _indexNumber )
 {
-    if(!_vertexBuffer || !_vertexBuffer->mp_VertexBuffer) 
+    if(!_vertexBuffer || !_vertexBuffer->mp_VertexBuffer)
         return;
 
     if (!_indexNumber)
@@ -5718,7 +5736,7 @@ void GFXAdapter_Directx9::DrawIndexedVertexBuffer( u32 _type, ITF_VertexBuffer* 
     switch(_type)
     {
     default:
-    case GFX_TRIANGLES: 
+    case GFX_TRIANGLES:
         type = D3DPT_TRIANGLELIST;
         numberprimitive = _indexNumber/ 3;
         break;
@@ -5743,7 +5761,7 @@ void GFXAdapter_Directx9::DrawIndexedVertexBuffer( u32 _type, ITF_VertexBuffer* 
         numberprimitive = _indexNumber - 2;
        break;
     }
-    
+
     setIndexBuffer( _indexBuffer );
     setVertexBuffer( _vertexBuffer );
 
@@ -5768,9 +5786,9 @@ void GFXAdapter_Directx9::DrawIndexedVertexBuffer( u32 _type, ITF_VertexBuffer* 
 
 		m_pd3dDevice->DrawIndexedPrimitive((D3DPRIMITIVETYPE)_type, 0, 0, _vertexBuffer->m_nVertex, 0, numberprimitive );
 		m_pd3dDevice->SetVertexShader( 0 );
-		m_pd3dDevice->SetPixelShader( 0 );	
+		m_pd3dDevice->SetPixelShader( 0 );
 	}
-#endif     
+#endif
 }
 
 ///----------------------------------------------------------------------------//
@@ -5808,12 +5826,12 @@ void GFXAdapter_Directx9::shaderPatchFlushSize( u32 _hdiv, u32 _vdiv, u32 countP
 
     ITF_ASSERT_MSG( _hdiv != 0,"shaderPatchFlushSize hdiv is 0");
     ITF_ASSERT_MSG( _vdiv != 0,"shaderPatchFlushSize vdiv is 0");
-    
+
     if (!mp_shaderManager.getNumberVector4ConstToFlush(0)) return;
 
 #ifdef SHADERTEST
 	if (m_ShaderMode == 0)
-#endif	
+#endif
 	{
 		/// Flush control Points.
 		if (mp_currentShader->m_VectorArrayHandle[0])
@@ -5843,7 +5861,7 @@ void GFXAdapter_Directx9::shaderPatchFlushSize( u32 _hdiv, u32 _vdiv, u32 countP
 #endif
     /// draw patch.
     u32 nb = (mp_shaderManager.getNumberVector4ConstToFlush(0)/countPoint);
-   
+
     if (nb == 1)
     {
         u32 prevVdiv = _vdiv;
@@ -5856,7 +5874,7 @@ void GFXAdapter_Directx9::shaderPatchFlushSize( u32 _hdiv, u32 _vdiv, u32 countP
 		m_pd3dDevice->SetVertexShaderConstantF( 10, (f32*)&vdiv, 1 );
 	}
 	else
-#endif    
+#endif
 		mp_currentShader->setFloat(2, (f32)prevVdiv / (f32)_vdiv);
 	}
     else
@@ -5868,7 +5886,7 @@ void GFXAdapter_Directx9::shaderPatchFlushSize( u32 _hdiv, u32 _vdiv, u32 countP
 		m_pd3dDevice->SetVertexShaderConstantF( 10, (f32*)&vdiv, 1 );
 	}
 	else
-#endif    
+#endif
         mp_currentShader->setFloat(2, 1.f);
     }
 
@@ -5933,7 +5951,7 @@ void GFXAdapter_Directx9::prepareShaderPatch(GMatrix44* _matrix, f32 _z, u32 & _
 void GFXAdapter_Directx9::setShaderPreparePatch(u32 _idTech, f32 _z)
 {
 	ITF_shader* shadergroup = 0;
-	shadergroup = mp_shaderManager.getShaderByIndex(7);    
+	shadergroup = mp_shaderManager.getShaderByIndex(7);
 
 	shadergroup->m_selectedVS = _idTech;
 
@@ -5995,7 +6013,7 @@ void GFXAdapter_Directx9::prepareShaderPatchTech(GMatrix44* _matrix, f32 _z, u32
 
 #ifdef SHADERTEST
 	if (m_ShaderMode == 0)
-#endif	
+#endif
 	{
 		/// set pos z to const.
 		mp_currentShader->setFloat(1, _z);
@@ -6010,12 +6028,12 @@ void GFXAdapter_Directx9::prepareShaderPatchTech(GMatrix44* _matrix, f32 _z, u32
 
 void GFXAdapter_Directx9::shaderPatchFlush(u32 _hdiv, u32 _vdiv, u32 _pass)
 {
-    shaderPatchFlushSize( _hdiv, _vdiv, 8, _pass );   
+    shaderPatchFlushSize( _hdiv, _vdiv, 8, _pass );
 }
 
 void GFXAdapter_Directx9::shaderBezierPatchFlush(u32 _hdiv, u32 _vdiv, u32 _pass, u32 _vdivToDraw )
 {
-    shaderPatchFlushSize( _hdiv, _vdiv, 4, _pass, _vdivToDraw );   
+    shaderPatchFlushSize( _hdiv, _vdiv, 4, _pass, _vdivToDraw );
 }
 
 void GFXAdapter_Directx9::endShaderPatch()
@@ -6103,7 +6121,7 @@ bbool GFXAdapter_Directx9::shaderDrawBezierPatch32(Texture *texture, Vec2d *Poin
     }
 
     mp_shaderManager.addVector4ConstToFlush(1, 1);
- 
+
 
     /// Alphas
     for (u32 i = 0; i < 4; i++)
@@ -6222,7 +6240,7 @@ void GFXAdapter_Directx9::drawSpline(GMatrix44* _matrix, Texture* _texture, cons
 
         		m_pd3dDevice->SetVertexShaderConstantF( 17, (f32*)&bufferVect, bufferPoint );
                 m_pd3dDevice->SetVertexShaderConstantF( 13, (f32*)&v0, 1 );
-               
+
                 GFX_Vector4 vconsts((f32)bufferPoint, (f32)_height, 0.f, 0.f);
                 m_pd3dDevice->SetVertexShaderConstantF( 14, (f32*)&vconsts, 1 );
 
@@ -6240,8 +6258,8 @@ void GFXAdapter_Directx9::drawSpline(GMatrix44* _matrix, Texture* _texture, cons
                 {
                     mp_currentShader->setVectorArray(0, bufferVect, bufferPoint);
                     mp_currentShader->setVector(0, &v0);
-                    mp_currentShader->setFloat(0, (f32)bufferPoint);  
-                    mp_currentShader->setFloat(1, (f32)_height);  
+                    mp_currentShader->setFloat(0, (f32)bufferPoint);
+                    mp_currentShader->setFloat(1, (f32)_height);
                 }
                 else
                 {
@@ -6296,14 +6314,14 @@ void GFXAdapter_Directx9::drawFluid(   GMatrix44* _matrix, Texture* _texture, co
         setTextureAdressingMode(0, GFXTADDRESS_WRAP, GFXTADDRESS_WRAP);
 
     renderContext_Set();
- 
+
     setObjectMatrix((D3DXMATRIX&)*_matrix);
 
     D3DXMatrixIdentity( &mg_UVmat );
 
     u32 hdiv = MESH_DEFAULT_HDIV;
     u32 vdiv = MESH_DEFAULT_VDIV;
-    
+
     ITF_IndexBuffer *  indexBuffer  = getIndexBuffer(hdiv, vdiv);
     ITF_VertexBuffer * vertexBuffer = getVertexBuffer(hdiv, vdiv);
     ITF_ASSERT(indexBuffer && vertexBuffer);
@@ -6341,7 +6359,7 @@ void GFXAdapter_Directx9::drawFluid(   GMatrix44* _matrix, Texture* _texture, co
     {
         Color           color(_colorTab[i]);
         GFX_Vector4     &colorVectElmt = colorVect[i];
-        colorVectElmt.m_x = color.getRed(); 
+        colorVectElmt.m_x = color.getRed();
         colorVectElmt.m_y = color.getGreen();
         colorVectElmt.m_z = color.getBlue();
         colorVectElmt.m_w = color.getAlpha();
@@ -6356,7 +6374,7 @@ void GFXAdapter_Directx9::drawFluid(   GMatrix44* _matrix, Texture* _texture, co
     int vLen            = heightTabSize - 1;
     if (rest)
         heightTabSize--;
-    
+
     for (int i=0; i<(int)heightTabSize;hdivCount++)
     {
         bufferVect[hdivCount].m_x = _heightTab[i].m_x;
@@ -6375,7 +6393,7 @@ void GFXAdapter_Directx9::drawFluid(   GMatrix44* _matrix, Texture* _texture, co
         hdivCount++;
     }
 
-#ifdef SHADERTEST	
+#ifdef SHADERTEST
 	if (m_ShaderMode)
 	{
 		m_pd3dDevice->SetVertexShaderConstantF( 17, (f32*)bufferVect, hdivCount );
@@ -6407,7 +6425,7 @@ void GFXAdapter_Directx9::drawFluid(   GMatrix44* _matrix, Texture* _texture, co
 		u32 no = 7;
 		if (!mode)
 			no = 6;
-		
+
 		m_pd3dDevice->SetVertexShader( (IDirect3DVertexShader9*)shadergroup->mp_Vs[no] );
 
 		if (getOverDrawMode() > 1)
@@ -6419,7 +6437,7 @@ void GFXAdapter_Directx9::drawFluid(   GMatrix44* _matrix, Texture* _texture, co
 			else
 				m_pd3dDevice->SetPixelShader( (IDirect3DPixelShader9*)shadergroup->mp_Ps[0] );
 		}
-		
+
 		m_pd3dDevice->DrawIndexedPrimitive(D3DPT_TRIANGLELIST, 0, 0, (hdiv + 1)*(vLen + 1), 0, (hdiv*vLen*2) );
 
 		m_pd3dDevice->SetVertexShader( 0 );
@@ -6433,11 +6451,11 @@ void GFXAdapter_Directx9::drawFluid(   GMatrix44* _matrix, Texture* _texture, co
     {
         mp_currentShader->setVectorArray(0, bufferVect, hdivCount);
         mp_currentShader->setVectorArray(1, colorVect, GFXADAPTER_FLUID_COLORTAB_ENTRY_COUNT);
-        mp_currentShader->setVector(0, &v0);  
-        mp_currentShader->setVector(1, &v1);  
+        mp_currentShader->setVector(0, &v0);
+        mp_currentShader->setVector(1, &v1);
         mp_currentShader->setVector(2, &v2);
-        mp_currentShader->setFloat(0, (f32)vdiv);  
-        mp_currentShader->setFloat(1, (f32)vLen);  
+        mp_currentShader->setFloat(0, (f32)vdiv);
+        mp_currentShader->setFloat(1, (f32)vLen);
         mp_currentShader->setFloat(2, (f32)_stepCount);
         mp_currentShader->setFloat(3, (f32)_delta1);
         mp_currentShader->setFloat(4, (f32)_delta2);
@@ -6482,7 +6500,7 @@ void GFXAdapter_Directx9::drawMovie( GMatrix44* _matrix,f32 _alpha,ITF_VertexBuf
     D3DXMATRIX   mgViewSaved         = mg_View;
     D3DXMATRIX   mgWorldSaved        = mg_World;
     D3DXMATRIX   mgViewRenderSaved   = mg_ViewRender;
-        
+
     D3DXMatrixIdentity( &mg_World );
     D3DXMatrixIdentity( &mg_View );
     D3DXMatrixIdentity( &mg_ViewRender );
@@ -6490,7 +6508,7 @@ void GFXAdapter_Directx9::drawMovie( GMatrix44* _matrix,f32 _alpha,ITF_VertexBuf
 #ifdef SHADERTEST
     ITF_shader* shadergroup = mp_shaderManager.getShaderByIndex(8);
     setShader( shadergroup);
-    
+
     HRESULT hr;
     hr = m_pd3dDevice->SetVertexShader( (IDirect3DVertexShader9*)shadergroup->mp_Vs[0] );
     hr = m_pd3dDevice->SetPixelShader( (IDirect3DPixelShader9*)shadergroup->mp_Ps[0] );
@@ -6558,7 +6576,7 @@ void GFXAdapter_Directx9::drawTrail3D(Texture* _texture, Color _color, const Saf
         else
             setShader(mp_defaultShader);
     }
-    
+
     /// set Texture;
     if (_texture)
     {
@@ -6657,8 +6675,8 @@ if (m_ShaderMode)
 		m_pd3dDevice->SetVertexShaderConstantF( 8, (f32*)&vvdiv, 1 );
 		m_pd3dDevice->SetVertexShaderConstantF( 9, (f32*)&vcount, 1 );
 		m_pd3dDevice->SetVertexShaderConstantF( 10, (f32*)&vfade, 1 );
-	
-		ITF_shader* shadergroup = mp_shaderManager.getShaderByIndex(7);    
+
+		ITF_shader* shadergroup = mp_shaderManager.getShaderByIndex(7);
 		m_pd3dDevice->SetVertexShader( (IDirect3DVertexShader9*)shadergroup->mp_Vs[8] );
 
 		if (getOverDrawMode() > 1)
@@ -6680,7 +6698,7 @@ if (m_ShaderMode)
 
 		// restore color
 		static const GFX_Vector4 defaultColor(1.f, 1.f, 1.f, 1.f);
-	
+
 		m_pd3dDevice->SetVertexShaderConstantF( 13, (f32*)&defaultColor, 1 );
 }
 	else
@@ -6691,11 +6709,11 @@ if (m_ShaderMode)
     {
         mp_currentShader->setVectorArray(0, bufferVectXY, bufferVectXYCount);
         mp_currentShader->setVectorArray(1, bufferVectZ, bufferVectZCount);
-        mp_currentShader->setVector(0, &v0);  
-        mp_currentShader->setVector(1, &v1);  
+        mp_currentShader->setVector(0, &v0);
+        mp_currentShader->setVector(1, &v1);
         mp_currentShader->setVector(2, &v2);
-        mp_currentShader->setFloat(0, (f32)vdiv);  
-        mp_currentShader->setFloat(1, (f32)bufferVectXYCount);  
+        mp_currentShader->setFloat(0, (f32)vdiv);
+        mp_currentShader->setFloat(1, (f32)bufferVectXYCount);
         mp_currentShader->setFloat(2, _fadeLength);
     }
     else
@@ -6776,7 +6794,7 @@ void GFXAdapter_Directx9::prepareInternalRT()
     }
 
     m_pd3dDevice->SetRenderTarget( 0, m_pFullRTsurf[1]);
-    clear(GFX_CLEAR_COLOR, m_internRTColor.getRed(), m_internRTColor.getGreen(), m_internRTColor.getBlue(), m_internRTColor.getAlpha()); 
+    clear(GFX_CLEAR_COLOR, m_internRTColor.getRed(), m_internRTColor.getGreen(), m_internRTColor.getBlue(), m_internRTColor.getAlpha());
 }
 
 void GFXAdapter_Directx9::endInternalRT()
@@ -6803,7 +6821,7 @@ void GFXAdapter_Directx9::prepareAfterFx(bbool _nocopy)
             if (!m_pFullRTtex[1])
             {
                 createRenderTarget(&m_pFullRTtex[1], &m_pFullRTsurf[1], getScreenWidth(), getScreenHeight(), D3DFMT_A8R8G8B8);
-            }        
+            }
 
             /// if the current rendering target is the backbuffer then resolve it to texture.
             /// to the m_pFullRTtex[0].
@@ -6819,9 +6837,9 @@ void GFXAdapter_Directx9::prepareAfterFx(bbool _nocopy)
             {
                 resolve( m_pFullRTtex[1] );
                 m_pd3dDevice->SetRenderTarget( 0, m_pFullRTsurf[0]);
-    #ifndef ITF_X360 
-                clear( GFX_CLEAR_COLOR , 0, 0, 0, 0); 
-    #endif 
+    #ifndef ITF_X360
+                clear( GFX_CLEAR_COLOR , 0, 0, 0, 0);
+    #endif
                 m_pCurrentSwapSourceTexture = m_pFullRTtex[1];
                 m_pCurrentSwapRenderSurf = m_pFullRTsurf[0];
             }
@@ -6851,7 +6869,7 @@ void GFXAdapter_Directx9::endAfterfx(bbool _nocopy, GFX_BLENDMODE _finalBlend)
             m_pd3dDevice->SetSamplerState( 0, D3DSAMP_MINFILTER, D3DTEXF_POINT );
             m_pd3dDevice->SetSamplerState( 0, D3DSAMP_MAGFILTER, D3DTEXF_POINT );
             setAlphaBlend(_finalBlend);
-         
+
             drawScreenQuad(0,0,(f32)getScreenWidth(), (f32)getScreenHeight(),0, COLOR_WHITE );
 
             setAlphaBlend(GFX_BLEND_ALPHA);
@@ -6878,19 +6896,19 @@ void GFXAdapter_Directx9::AFTERFX_draw(AFX_Group* _group)
         /// to the m_pFullRTtex[0].
         if (m_currentRenderingSurface == m_pBackBufferSurf)
             copyCurrentColorBuffer(0);
-        
+
         if (!m_pFullRTtex[1])
         {
             createRenderTarget(&m_pFullRTtex[1], &m_pFullRTsurf[1], getScreenWidth(), getScreenHeight(), D3DFMT_A8R8G8B8);
-        }        
+        }
 
         m_pd3dDevice->SetRenderTarget( 0, m_pFullRTsurf[1]);
-#ifndef ITF_X360 
-        clear( GFX_CLEAR_COLOR , 0, 0, 0, 0); 
-#endif        
+#ifndef ITF_X360
+        clear( GFX_CLEAR_COLOR , 0, 0, 0, 0);
+#endif
         m_pCurrentSwapSourceTexture = m_pFullRTtex[0];
-        
-        
+
+
         m_pCurrentSwapRenderSurf = m_pFullRTsurf[1];
 
         setShader(mp_shaderManager.getShaderByIndex(1));
@@ -6915,7 +6933,7 @@ void GFXAdapter_Directx9::AFTERFX_draw(AFX_Group* _group)
         m_pd3dDevice->SetSamplerState( 0, D3DSAMP_MINFILTER, D3DTEXF_POINT );
         m_pd3dDevice->SetSamplerState( 0, D3DSAMP_MAGFILTER, D3DTEXF_POINT );
         setAlphaBlend((GFX_BLENDMODE)_group->getFinalBlend());
-         
+
         drawScreenQuad(0,0,(f32)getScreenWidth(), (f32)getScreenHeight(),0, COLOR_WHITE );
 
 
@@ -6924,8 +6942,8 @@ void GFXAdapter_Directx9::AFTERFX_draw(AFX_Group* _group)
         D3DXMATRIX mg_WorldViewProj = saveView;
 
         CAMERA->apply();
-#endif    
-    
+#endif
+
         endAfterfx(bfalse, (GFX_BLENDMODE)_group->getFinalBlend());
     }
 
@@ -6956,7 +6974,7 @@ void GFXAdapter_Directx9::createFxTargetDown2x2()
             createRenderTarget(&m_pSwapTextureDown2x2[i], &m_pSwapTextureSurfDown2x2[i], targetsizeX, targetsizeY, D3DFMT_A8R8G8B8, btrue);
 
             m_pd3dDevice->SetRenderTarget( 0, m_pSwapTextureSurfDown2x2[i]);
-            clear( GFX_CLEAR_COLOR , 0, 0, 0, 0); 
+            clear( GFX_CLEAR_COLOR , 0, 0, 0, 0);
         }
     }
 
@@ -6977,7 +6995,7 @@ void GFXAdapter_Directx9::createFxTargetDown4x4()
             createRenderTarget(&m_pSwapTextureDown4x4[i], &m_pSwapTextureSurfDown4x4[i], targetsizeX, targetsizeY, D3DFMT_A8R8G8B8, btrue);
 
             m_pd3dDevice->SetRenderTarget( 0, m_pSwapTextureSurfDown4x4[i]);
-            clear( GFX_CLEAR_COLOR , 0, 0, 0, 0); 
+            clear( GFX_CLEAR_COLOR , 0, 0, 0, 0);
         }
     }
 
@@ -7069,7 +7087,7 @@ void GFXAdapter_Directx9::copyCurrentColorBuffer(u32 _rt)
 #ifdef ITF_WINDOWS
     depthMask(0);
     depthTest(0);
- 
+
     HRESULT hr;
     if (!m_refractUse2x2)
     {
@@ -7080,7 +7098,7 @@ void GFXAdapter_Directx9::copyCurrentColorBuffer(u32 _rt)
         rect.bottom=getScreenHeight();
 
         hr = m_pd3dDevice->StretchRect(m_currentRenderingSurface,
-            &rect, m_pFullRTsurf[_rt], &rect, D3DTEXF_POINT);    
+            &rect, m_pFullRTsurf[_rt], &rect, D3DTEXF_POINT);
     }
     else
     {
@@ -7091,7 +7109,7 @@ void GFXAdapter_Directx9::copyCurrentColorBuffer(u32 _rt)
         rect.bottom=(u32)(getScreenHeight() * 0.5f);
 
         hr = m_pd3dDevice->StretchRect(m_currentRenderingSurface,
-            &rect, m_pSwapTextureSurfDown2x2[0], &rect, D3DTEXF_POINT);    
+            &rect, m_pSwapTextureSurfDown2x2[0], &rect, D3DTEXF_POINT);
     }
 
 #elif defined (ITF_X360)
@@ -7101,7 +7119,7 @@ void GFXAdapter_Directx9::copyCurrentColorBuffer(u32 _rt)
 
 void GFXAdapter_Directx9::copyTexture(int *TexHan)
 {
-    
+
 }
 
 void GFXAdapter_Directx9::resolve(LPDIRECT3DTEXTURE9 _ptex)
@@ -7170,9 +7188,9 @@ void GFXAdapter_Directx9::AFTERFX_PrepareSwapRTDown2x2()
     if (!m_pSwapTextureDown2x2[0])
         createFxTargetDown2x2();
     m_pd3dDevice->SetRenderTarget( 0, m_pSwapTextureSurfDown2x2[1]);
-    clear( GFX_CLEAR_COLOR , 0, 0, 0, 0); 
+    clear( GFX_CLEAR_COLOR , 0, 0, 0, 0);
     m_pd3dDevice->SetRenderTarget( 0, m_pSwapTextureSurfDown2x2[0]);
-    clear( GFX_CLEAR_COLOR , 0, 0, 0, 0); 
+    clear( GFX_CLEAR_COLOR , 0, 0, 0, 0);
     m_curswap = 0;
     m_pCurrentSwapRenderSurf = m_pSwapTextureSurfDown2x2[0];
 }
@@ -7182,9 +7200,9 @@ void GFXAdapter_Directx9::AFTERFX_PrepareSwapRTDown4x4()
     if (!m_pSwapTextureDown4x4[0])
         createFxTargetDown4x4();
     m_pd3dDevice->SetRenderTarget( 0, m_pSwapTextureSurfDown4x4[1]);
-    clear( GFX_CLEAR_COLOR , 0, 0, 0, 0); 
+    clear( GFX_CLEAR_COLOR , 0, 0, 0, 0);
     m_pd3dDevice->SetRenderTarget( 0, m_pSwapTextureSurfDown4x4[0]);
-    clear( GFX_CLEAR_COLOR , 0, 0, 0, 0); 
+    clear( GFX_CLEAR_COLOR , 0, 0, 0, 0);
     m_curswap = 0;
     m_pCurrentSwapRenderSurf = m_pSwapTextureSurfDown4x4[0];
 }
@@ -7198,12 +7216,12 @@ void GFXAdapter_Directx9::AFTERFX_BigBlur(f32 _factor, u32 _MaxPass, bbool _clea
     f32 W = (f32)getScreenWidth();
     f32 H = (f32)getScreenHeight();
     f32 ConvoleRevolution = 0;
-   
+
     f32 displace = 1.f*(_factor/1000.f);
     f32 ratiopixel = 1.f/W;
 
     ConvoleRevolution = 0.75f;
-    
+
 #ifdef SHADERTEST
     ITF_shader* shadergroup = 0;
 	shadergroup = mp_shaderManager.getShaderByIndex(10);
@@ -7216,7 +7234,7 @@ void GFXAdapter_Directx9::AFTERFX_BigBlur(f32 _factor, u32 _MaxPass, bbool _clea
 
     /// save old Current RT.
     LPDIRECT3DSURFACE9 savecur = m_pCurrentSwapRenderSurf;
-    
+
     if ( _clearRT )
     {
         if (_quality == GFX_QUALITY_MEDIUM)
@@ -7226,7 +7244,7 @@ void GFXAdapter_Directx9::AFTERFX_BigBlur(f32 _factor, u32 _MaxPass, bbool _clea
     }
 
     setAlphaBlend(GFX_BLEND_COPY);
-    
+
     u32 passo = 0;
     f32 centrof = 0.5f;
     if (_quality == GFX_QUALITY_MEDIUM) centrof = 0.5f * 2;
@@ -7242,7 +7260,7 @@ void GFXAdapter_Directx9::AFTERFX_BigBlur(f32 _factor, u32 _MaxPass, bbool _clea
 #ifdef SHADERTEST
         GFX_Vector4 vconst1(displace, displace, displace, displace);
 	    m_pd3dDevice->SetVertexShaderConstantF( 8, (f32*)&vconst1, 1 );
-#else        
+#else
         mp_currentShader->setFloat(0, displace);
 #endif
 
@@ -7256,7 +7274,7 @@ void GFXAdapter_Directx9::AFTERFX_BigBlur(f32 _factor, u32 _MaxPass, bbool _clea
         else if (_quality == GFX_QUALITY_LOW)
             AFTERFX_SwapTargetDown4x4();
 
-        if (_MaxPass && passo > _MaxPass) 
+        if (_MaxPass && passo > _MaxPass)
             break;
     }
 
@@ -7290,7 +7308,7 @@ void GFXAdapter_Directx9::AFTERFX_Remanence(f32 _factor, f32 _glowfactor, f32 _a
         //m_pd3dDevice->SetRenderState( D3DRS_DESTBLEND, D3DBLEND_SRCCOLOR );
         //m_pd3dDevice->SetRenderState( D3DRS_ALPHAFUNC, D3DCMP_GREATEREQUAL);
         drawScreenQuad(0,0,(f32)getScreenWidth(), (f32)getScreenHeight(), zz, COLOR_BLACK, btrue );
-        
+
         renderContext_SetDefault();
 
         setShader(mp_shaderManager.getShaderByIndex(1));
@@ -7316,7 +7334,7 @@ void GFXAdapter_Directx9::AFTERFX_Remanence(f32 _factor, f32 _glowfactor, f32 _a
 #endif
 
 #if 0
-        
+
         setAlphaBlend(GFX_BLEND_ADDALPHA);
         //setAlphaBlend(GFX_BLEND_COPY);
         mp_currentShader->m_selectedTech = 1;
@@ -7329,7 +7347,7 @@ void GFXAdapter_Directx9::AFTERFX_Remanence(f32 _factor, f32 _glowfactor, f32 _a
         m_pCurrentSourceTexture = m_pSceneTexture;
         m_pCurrentRenderSurf = m_pFullScreenSwapTextureSurf[m_curswap];
 #else
-        
+
         setAlphaBlend(GFX_BLEND_ALPHA);
         mp_currentShader->m_selectedTech = 1;
         m_pd3dDevice->SetRenderTarget( 0, m_pCurrentSwapRenderSurf );
@@ -7374,14 +7392,14 @@ void GFXAdapter_Directx9::AFTERFX_RayCenter( f32 _v1, f32 _v2, f32 _v3, f32 _v4,
 
     f32 W = (f32)getScreenWidth();
     f32 H = (f32)getScreenHeight();
-       
+
         if (_quality == GFX_QUALITY_MEDIUM)
             AFTERFX_PrepareSwapRTDown2x2();
         else if (_quality == GFX_QUALITY_LOW)
             AFTERFX_PrepareSwapRTDown4x4();
 
     setAlphaBlend(GFX_BLEND_COPY);
-    
+
     f32 centrof = 0.5f;
     if (_quality == GFX_QUALITY_MEDIUM) centrof = 0.5f * 2;
     else if (_quality == GFX_QUALITY_LOW) centrof = 0.5f  * 4;
@@ -7408,7 +7426,7 @@ void GFXAdapter_Directx9::AFTERFX_RayCenter( f32 _v1, f32 _v2, f32 _v3, f32 _v4,
         m_pd3dDevice->SetRenderTarget( 0, m_pCurrentSwapRenderSurf );
 
         SetTextureBind(0, m_pCurrentSwapSourceTexture);
-    
+
         /// shader const. <-TODO->
         mp_currentShader->setFloat(1, value);
         mp_currentShader->setInt(0, passo + 1 );
@@ -7450,7 +7468,7 @@ void GFXAdapter_Directx9::AFTERFX_RayCenter( f32 _v1, f32 _v2, f32 _v3, f32 _v4,
     m_pd3dDevice->SetRenderTarget( 0, m_pCurrentSwapRenderSurf );
     SetTextureBind(0, m_pCurrentSwapSourceTexture);
     drawScreenQuad(0.f, 0.f, W, H, 0.f, COLOR_WHITE);
- 
+
     AFTERFX_SwapFullScreenTarget();
 
     /*setAlphaBlend(GFX_BLEND_COPY);
@@ -7469,7 +7487,7 @@ void GFXAdapter_Directx9::AFTERFX_zoomCenter(f32 _factor, Vec3d _dir )
 
     f32 X,Y,fCurrentFocale ;
 	f32 ConvoleRevolution;
-	Vec3d MotionSmoothPoint, ZSDir; 
+	Vec3d MotionSmoothPoint, ZSDir;
 	//IDirect3DSurface8	*ppSurfaceLevel;
 	//HRESULT	hr;
 	//UINT uiVStride;
@@ -7484,9 +7502,9 @@ void GFXAdapter_Directx9::AFTERFX_zoomCenter(f32 _factor, Vec3d _dir )
 
     ZSDir.normalize();
 
-    fCurrentFocale = 1.0f / tanf(/*_Camera.getFocale() / */ 2.f);		
+    fCurrentFocale = 1.0f / tanf(/*_Camera.getFocale() / */ 2.f);
     //MATH_TransformVector(&MotionSmoothPoint, &GDI_gpst_CurDD->st_Camera.st_InverseMatrix , &ZSDir);
-	
+
     MotionSmoothPoint.m_x =	((fCurrentFocale) *	MotionSmoothPoint.m_x) / MotionSmoothPoint.m_z;
 	MotionSmoothPoint.m_y =	((fCurrentFocale) *	MotionSmoothPoint.m_y) / MotionSmoothPoint.m_z;
 	X =	(MotionSmoothPoint.m_x);
@@ -7523,7 +7541,7 @@ void GFXAdapter_Directx9::AFTERFX_objectsGlow(f32 _factor)
 
     setAlphaBlend(GFX_BLEND_ALPHATOCOLOR);
     drawScreenQuad(0.f, 0.f, W, H, 0.f, COLOR_WHITE, btrue);
-    
+
     setShader(mp_shaderManager.getShaderByIndex(1));
 
     /// switch rendertarget to texture and resolve it.
@@ -7539,7 +7557,7 @@ void GFXAdapter_Directx9::AFTERFX_objectsGlow(f32 _factor)
     mp_currentShader->m_selectedTech = 1;
     m_pd3dDevice->SetRenderTarget( 0, m_currentRenderingSurface );
     SetTextureBind(0, m_pCurrentSwapSourceTexture);
-    
+
     drawScreenQuad(0.f, 0.f, W, H, 0.f, COLOR_WHITE);
 }
 
@@ -7573,7 +7591,7 @@ void GFXAdapter_Directx9::AFTERFX_Glow(f32 _factor, f32 _glowfactor, f32 _addalp
 
 	m_pd3dDevice->SetTexture( 1, save );
 
-#else    
+#else
     mp_currentShader->setFloat(1, _glowfactor);
     mp_currentShader->setFloat(2, _addalpha);
     mp_currentShader->m_selectedTech = 1;
@@ -7618,7 +7636,7 @@ void GFXAdapter_Directx9::AFTERFX_ColorSetting(f32 _sat, f32 _contrast, f32 _con
 
     setShader(mp_defaultShader); ??
     drawScreenQuad(0.f, 0.f, W, H, 0.f, COLOR_WHITE);
-    
+
     AFTERFX_SwapFullScreenTarget();
 #endif
 }
@@ -7635,7 +7653,7 @@ void GFXAdapter_Directx9::AFTERFX_ColorRemap(Texture* _tex)
         m_pd3dDevice->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);
         m_pd3dDevice->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
     }
-    else 
+    else
         return;
 
     f32 W = (f32)getScreenWidth();
@@ -7650,7 +7668,7 @@ void GFXAdapter_Directx9::AFTERFX_ColorRemap(Texture* _tex)
 
     setShader(mp_defaultShader);??
     drawScreenQuad(0.f, 0.f, W, H, 0.f, COLOR_WHITE);
-    
+
     AFTERFX_SwapFullScreenTarget();
 #endif
 }
@@ -7679,7 +7697,7 @@ void GFXAdapter_Directx9::AFTERFX_ColorLevels(f32 _inBlack,  f32 _inGamma, f32 _
 
     setShader(mp_defaultShader); ??
     drawScreenQuad(0.f, 0.f, W, H, 0.f, COLOR_WHITE);
-    
+
     AFTERFX_SwapFullScreenTarget();
 #endif
 }
@@ -7711,7 +7729,7 @@ void GFXAdapter_Directx9::AFTERFX_addSceneAndMul(f32 _mul)
 
     setShader(mp_defaultShader);
     drawScreenQuad(0.f, 0.f, W, H, 0.f, COLOR_WHITE);
-    
+
     AFTERFX_SwapTargetDown4x4();
 #endif
 }
@@ -7731,7 +7749,7 @@ void GFXAdapter_Directx9::AFTERFX_byTech(u32 _tech)
     m_pd3dDevice->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
 
     drawScreenQuad(0.f, 0.f, W, H, 0.f, COLOR_WHITE);
-    
+
     AFTERFX_SwapTargetDown4x4();
 #endif
 }
@@ -7764,7 +7782,7 @@ void GFXAdapter_Directx9::AFTERFX_byTechParams(u32 _tech, f32 _p0, f32 _p1, f32 
         mp_currentShader->setFloat(4, _p3);
 
     drawScreenQuad(0.f, 0.f, W, H, 0.f, COLOR_WHITE);
-    
+
     AFTERFX_SwapTargetDown4x4();
 #endif
 }
@@ -7798,7 +7816,7 @@ void GFXAdapter_Directx9::project(const Vec3d& _in3d, Vec2d & _out2d)
     in.z = _in3d.m_z;
     D3DXVec3Project(&out, &in, &vp, &mg_Proj, &view, &mg_World);
     _out2d.m_x = out.x;
-    _out2d.m_y = out.y;    
+    _out2d.m_y = out.y;
     ITF_ASSERT(out.z>=0);
 }
 
@@ -7811,7 +7829,7 @@ f32 GFXAdapter_Directx9::ReadSurfaceFloat(void* _surf, u32 _posX, u32 _posY)
     HRESULT            hr;
     D3DLOCKED_RECT lockedRect;
     LPDIRECT3DSURFACE9 surface = (LPDIRECT3DSURFACE9)_surf;
- 
+
     hr = surface->GetDesc(&desc);
 
     RECT rect;
@@ -7824,7 +7842,7 @@ f32 GFXAdapter_Directx9::ReadSurfaceFloat(void* _surf, u32 _posX, u32 _posY)
 
 #if 1
     LPDIRECT3DSURFACE9 offscreenSurface;
-    
+
     D3DFORMAT newFormat = desc.Format;
 
     hr = m_pd3dDevice->CreateOffscreenPlainSurface(desc.Width, desc.Height,newFormat, D3DPOOL_SYSTEMMEM, &offscreenSurface, NULL);
@@ -7835,7 +7853,7 @@ f32 GFXAdapter_Directx9::ReadSurfaceFloat(void* _surf, u32 _posX, u32 _posY)
     f32* pRead = (f32*)lockedRect.pBits;
 
     returnVal = pRead[(_posY * (lockedRect.Pitch/4)) + _posX];
-    
+
     offscreenSurface->UnlockRect();
     offscreenSurface->Release();
 
@@ -7854,7 +7872,7 @@ f32 GFXAdapter_Directx9::ReadSurfaceFloat(void* _surf, u32 _posX, u32 _posY)
     f32* pRead = (f32*)lockedRect.pBits;
 
     returnVal = pRead[(_posY * (lockedRect.Pitch/4)) + _posX];
-    
+
     temp->UnlockRect(0);
     offscreenSurface->Release();
     temp->Release();
@@ -7875,7 +7893,7 @@ void GFXAdapter_Directx9::startImpostorRendering(renderTarget* _rt, f32 xmin, f3
     {
         m_pd3dDevice->Clear( 0, NULL, D3DCLEAR_TARGET, _rt->getBackGroundColor(),  1.0f, 0 );
     }
-    
+
     setOrthoView(xmin, xmax, ymin, ymax);
 
     GFX_RECT Viewport;
@@ -7931,7 +7949,7 @@ void GFXAdapter_Directx9::setGfxMaterial( const GFX_MATERIAL& _gfxMat )
         m_currentRenderingMaterialType = GFX_MAT_DEFAULT;
         break;
     case GFX_MAT_FRIEZEANIM:
-    {    
+    {
         setGfxMatDefault();
 
         GFX_Vector4 vec4;
@@ -7949,12 +7967,12 @@ void GFXAdapter_Directx9::setGfxMaterial( const GFX_MATERIAL& _gfxMat )
             vec4 = _gfxMat.m_matParams.getvParamsAt(0);
             mp_currentShader->setVector(1, &vec4);
         }
-    
+
         m_currentRenderingMaterialType = GFX_MAT_FRIEZEANIM;
     }
         break;
     case GFX_MAT_FRIEZEOVERLAY:
-        {    
+        {
             setGfxMatDefault();
 
 #ifdef SHADERTEST
@@ -8101,7 +8119,7 @@ void GFXAdapter_Directx9::createOverDrawRamp( u32 _greenPos, u32 _yellowPos, u32
 {
     if (m_overDrawRamptexture)
         m_overDrawRamptexture->Release();
-    
+
     /// internal OverDraw Texture.
     HRESULT hr;
     hr = D3DXCreateTexture(m_pd3dDevice,
@@ -8144,7 +8162,7 @@ void GFXAdapter_Directx9::createOverDrawRamp( u32 _greenPos, u32 _yellowPos, u32
             else
                 ramp = Color::red();
         }
-        
+
         ramp.m_a = 255.f;
         pData[i] = ramp.getAsU32();
     }
@@ -8261,7 +8279,7 @@ void GFXAdapter_Directx9::OverDraw_ColorRemap()
     quad[1].setData( Vec3d( 0.f - centroid, 0.f + H + centroid, 0.f ), Vec2d( 0.f, 0.f ), COLOR_WHITE);
     quad[2].setData( Vec3d( 0.f + W - centroid, 0.f + centroid, 0.f ), Vec2d( 1.0f, 1.0f ), COLOR_WHITE);
     quad[3].setData( Vec3d( 0.f + W - centroid, 0.f + H + centroid, 0.f ), Vec2d( 1.0f, 0.0f ), COLOR_WHITE);
-    
+
     setVertexFormat(VertexFormat_PCT);
     mp_currentShader->m_selectedTech = 11;
     DrawPrimitive(GFX_TRIANGLE_STRIP, (void*)quad, 4);
@@ -8329,7 +8347,7 @@ void VideoCaptureBuffer_Directx9::release()
         ITF_ASSERT(count == 0);
         m_captureOffscreenSurface = NULL;
     }
-    
+
     if (m_captureRenderTarget)
     {
         LPDIRECT3DTEXTURE9 texture = (LPDIRECT3DTEXTURE9) m_captureRenderTarget;
@@ -8349,7 +8367,7 @@ void VideoCaptureBuffer_Directx9::lock()
     LPDIRECT3DSURFACE9 surface = (LPDIRECT3DSURFACE9) m_captureOffscreenSurface;
     HRESULT hr = surface->LockRect(&lockedrect,NULL,D3DLOCK_READONLY);
     ITF_ASSERT(hr==S_OK);
-    
+
     m_dataPtr = lockedrect.pBits;
     m_pitch = lockedrect.Pitch;
 }
@@ -8361,7 +8379,7 @@ void VideoCaptureBuffer_Directx9::unlock()
     LPDIRECT3DSURFACE9 surface = (LPDIRECT3DSURFACE9) m_captureOffscreenSurface;
     surface->UnlockRect();
 
-    
+
     m_dataPtr = NULL;
 }
 
@@ -8394,9 +8412,9 @@ void* GFXAdapter_Directx9::compileVertexShader(const char* _bufferText, u32 len,
 	ID3DXBuffer* buffer = 0;
     IDirect3DVertexShader9  * pShaderResult = 0;
     HRESULT hr;
-	
+
 	hr = D3DXCompileShader( (LPCSTR)_bufferText, len, 0, 0, (LPCSTR)_functionName,  "vs_2_0", 0, &buffer, NULL, NULL );
-	
+
     if ( SUCCEEDED( hr ) )
     {
         hr = m_pd3dDevice->CreateVertexShader( (DWORD*) buffer->GetBufferPointer(), &pShaderResult );

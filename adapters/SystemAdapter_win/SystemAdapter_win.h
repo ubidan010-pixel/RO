@@ -63,6 +63,8 @@ public:
     i32     messageBox( const String& _title, const String& _msg, u32 _type,ITF_MESSAGEBOX_RESULT silentResult );
     f64     getEllaspedFromStart (  );
     void    toggleShowTitleBar();
+    void    SetRegistryValue(const String& name, DWORD value) override;
+    void    SetRegistryValue(const String& name, const String& value) override;
     void    toggleFullScreen();
     bbool   isAllowResize()         {return m_allowResize;}
 

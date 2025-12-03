@@ -18,8 +18,8 @@
 
 
 #ifdef ITF_X360//yo
-    #define ITF_EFFECTP FXLEffect* 
-    #define ITF_HANDLE FXLHANDLE 
+    #define ITF_EFFECTP FXLEffect*
+    #define ITF_HANDLE FXLHANDLE
 #else
     #define ITF_EFFECTP LPD3DXEFFECT
     #define ITF_HANDLE D3DXHANDLE
@@ -370,7 +370,7 @@ public:
  private:
      void        updateTextureSize(Texture* _Tex);
 
-     // material refract 
+     // material refract
      bbool       m_refractUse2x2;
 
     void        drawScreenQuadC(f32 _px, f32 _py, f32 _width, f32 _height, f32 _z, u32 _color, f32 _centroid, bbool _noTex = 0);
@@ -390,14 +390,14 @@ public:
 
     /// Shaders.
     void		loadCoreShaders			(	);
-	
+
 	void        setShaderConstant       (   ITF_shader* _shader    );
     void        setShaderMatrix         (   ITF_shader* _shader    );
     void        setShaderTechnique      (   ITF_shader* _shader    );
     void        setShader               (   ITF_shader* _shader    );
 
     ITF_shader* mp_defaultShader; /// default shader for basic renderer.
-    ITF_shader* mp_currentShader;    
+    ITF_shader* mp_currentShader;
     u32         m_currentVertexSize;
 
     void*       loadBinVShader          (   const String& _name );
@@ -406,7 +406,7 @@ public:
     eShaderPassLastState const          getShaderPassLastState  (   )   const {   return m_shaderPassLastState;    }
 
     // Patch shader
-    void        prepareShaderPatchTech  (   GMatrix44* _matrix, f32 _z, u32 & _hdiv, u32 & _vdiv , u32 _idTech, GFX_BLENDMODE _blendMode = GFX_BLEND_ALPHA);    
+    void        prepareShaderPatchTech  (   GMatrix44* _matrix, f32 _z, u32 & _hdiv, u32 & _vdiv , u32 _idTech, GFX_BLENDMODE _blendMode = GFX_BLEND_ALPHA);
     void        shaderPatchFlushSize    (   u32 _hdiv, u32 _vdiv, u32 countPoint, u32 _pass, u32 _vdivToDraw = U32_INVALID );
 
     /// VertexBuffer.
@@ -463,7 +463,8 @@ public:
 
     IDirect3DDevice9* getRenderingDevice        (   )   {    return m_pd3dDevice;  };
     IDirect3D9*       getD3DDevice              (   )   {    return m_pD3D;  };
-    
+
+    UINT GetDedicatedGPUAdapterIndex(IDirect3D9* d3d);
     bbool       createDXDevice            (int _alphaBits, int _depthBits, int _stencilBits, bbool _fullscreen  , void* _hwnd);
 
     void  setFullScreenMode(bbool _bMode)       {m_fullscreen = _bMode;}
@@ -493,7 +494,7 @@ public:
 
     LPDIRECT3D9             m_pD3D; // Used to create the D3DDevice
     LPDIRECT3DDEVICE9       m_pd3dDevice; // Our rendering device
-    
+
     /// Parameters.
     D3DPRESENT_PARAMETERS   m_ppars;
     D3DFORMAT               m_depthStencilFormat;
@@ -586,7 +587,7 @@ public:
     IDirect3DVertexDeclaration9* mp_VDcl_PCBT;
     IDirect3DVertexDeclaration9* mp_VDcl_PNCT;
     IDirect3DVertexDeclaration9* mp_VDcl_PNC3T;
-    
+
     ///! What the renderer thinks the max texture size is.
     u32         m_maxTextureSize;
     ///! whether the hardware supports non-power of two textures
