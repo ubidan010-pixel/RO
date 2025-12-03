@@ -1,8 +1,5 @@
 #include "precompiled_engine.h"
 
-#include "zinput/ZInputManager.h"
-#include "zinput/ZPad_Base.h"
-
 #ifndef _ITF_CHEATMANAGER_H_
 #include "engine/gameplay/CheatManager.h"
 #endif //_ITF_CHEATMANAGER_H_
@@ -168,11 +165,6 @@ bbool CheatManager::onKey( i32 _key, InputAdapter::PressStatus _keyStatus )
                     m_resetCharacterDebugTrajectories = 2;
                 }
             }
-            break;
-            case 'L':
-                {
-                    GAMEMANAGER->getInputManager()->SetActionRemap(0, ZInputManager::Action_Hit, ZPad_Base::BUTTON_FACE_SOUTH);
-                }
             break;
         }
     }
