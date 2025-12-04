@@ -402,7 +402,6 @@ namespace ITF
         }
 
         m_menuLogosMap["UBICONNECT"] = 0;
-        m_menuLogosMap["UBICONNECT_SELECT"] = 1;
 
         loadIcons();
     }

@@ -347,10 +347,6 @@
 #include "gameplay/components/UI/UIMenuItemText.h"
 #endif //_ITF_UIMENUITEMTEXT_H_
 
-#ifndef _ITF_UISELECTABLEFRIENDLYCOMPONENT_H_
-#include "gameplay/components/UI/UISelectableFriendlyComponent.h"
-#endif //_ITF_UISELECTABLEFRIENDLYCOMPONENT_H_
-
 #ifndef _ITF_TEXTUREGRAPHICCOMPONENT2D_H_
 #include "engine/actors/components/texturegraphiccomponent2D.h"
 #endif //_ITF_TEXTUREGRAPHICCOMPONENT2D_H_
@@ -1044,7 +1040,6 @@ namespace ITF
 
         // UI
         actorComponentsFactory->RegisterObject<UIMenuItemText>(ITF_GET_STRINGID_CRC(UIMenuItemText,3255902461));
-        actorComponentsFactory->RegisterObject<UISelectableFriendlyComponent>(ITF_GET_STRINGID_CRC(UISelectableFriendlyComponent,393591125));
         actorComponentsFactory->RegisterObject<UITextBox>(ITF_GET_STRINGID_CRC(UITextBox,3507273453));
         actorComponentsFactory->RegisterObject<UIComponent>(ITF_GET_STRINGID_CRC(UIComponent,2232305413));
         actorComponentsFactory->RegisterObject<UIMenuPageComponent>(ITF_GET_STRINGID_CRC(UIMenuPageComponent,1580941451));
@@ -1074,7 +1069,6 @@ namespace ITF
         templatesFactory->RegisterObject<UIButtonComponent_Template>(ITF_GET_STRINGID_CRC(UIButtonComponent_Template,684890016));
         templatesFactory->RegisterObject<UIComponent_Template>(ITF_GET_STRINGID_CRC(UIComponent_Template,1440308778));
         templatesFactory->RegisterObject<UIMenuItemText_Template>(ITF_GET_STRINGID_CRC(UIMenuItemText_Template,3322807307));
-        templatesFactory->RegisterObject<UISelectableFriendlyComponent_Template>(ITF_GET_STRINGID_CRC(UISelectableFriendlyComponent_Template,1124587126));
         templatesFactory->RegisterObject<UIMenuPageComponent_Template>(ITF_GET_STRINGID_CRC(UIMenuPageComponent_Template,4026707220));
         templatesFactory->RegisterObject<UIMenuItemComponent_Template>(ITF_GET_STRINGID_CRC(UIMenuItemComponent_Template,780160883));
         templatesFactory->RegisterObject<UIGameOptionComponent_Template>(ITF_GET_STRINGID_CRC(UIGameOptionComponent_Template,1914604504));
