@@ -18,7 +18,7 @@ namespace ITF
         {
             u32 buttonIndex;
             u32 controlIndex;
-            i32 defaultKey;  // Default keyboard key for this button
+            i32 defaultKey;  
         };
 
         struct KeyboardAxisMapping
@@ -30,39 +30,38 @@ namespace ITF
         };
 
         const KeyboardButtonMapping kKeyboardButtonMappings[] = {
-            // DPad controls
+
             { m_joyButton_DPadU,      ZPad_Base::DPAD_UP,           KEY_UP },
             { m_joyButton_DPadD,      ZPad_Base::DPAD_DOWN,         KEY_DOWN },
             { m_joyButton_DPadL,      ZPad_Base::DPAD_LEFT,         KEY_LEFT },
             { m_joyButton_DPadR,      ZPad_Base::DPAD_RIGHT,        KEY_RIGHT },
-            // Left stick controls (used by action remapping)
+
             { m_joyButton_DPadU,      ZPad_Base::STICK_L_UP,        KEY_UP },
             { m_joyButton_DPadD,      ZPad_Base::STICK_L_DOWN,      KEY_DOWN },
             { m_joyButton_DPadL,      ZPad_Base::STICK_L_LEFT,      KEY_LEFT },
             { m_joyButton_DPadR,      ZPad_Base::STICK_L_RIGHT,     KEY_RIGHT },
-            // Face buttons
+
             { m_joyButton_A,          ZPad_Base::BUTTON_FACE_SOUTH, KEY_SPACE },
             { m_joyButton_B,          ZPad_Base::BUTTON_FACE_EAST,  KEY_BACKSPACE },
             { m_joyButton_X,          ZPad_Base::BUTTON_FACE_WEST,  's' },
-            { m_joyButton_Y,          ZPad_Base::BUTTON_FACE_NORTH, 'w' },
-            // Shoulder buttons
-            { m_joyButton_LB,         ZPad_Base::BUTTON_L_SHOULDER, 'q' },
-            { m_joyButton_RB,         ZPad_Base::BUTTON_R_SHOULDER, 'e' },
-            // Thumbstick buttons
+            { m_joyButton_Y,          ZPad_Base::BUTTON_FACE_NORTH, -1 },
+
+            { m_joyButton_LB,         ZPad_Base::BUTTON_L_SHOULDER, -1 },
+            { m_joyButton_RB,         ZPad_Base::BUTTON_R_SHOULDER, KEY_LSHIFT },
+
             { m_joyButton_ThumbLeft,  ZPad_Base::BUTTON_L_THUMB,    -1 },
             { m_joyButton_ThumbRight, ZPad_Base::BUTTON_R_THUMB,    -1 },
-            // Menu buttons
+
             { m_joyButton_Start,      ZPad_Base::BUTTON_START,      KEY_ESC },
-            { m_joyButton_Back,       ZPad_Base::BUTTON_SELECT,     KEY_TAB },
+            { m_joyButton_Back,       ZPad_Base::BUTTON_SELECT,     -1 },
         };
 
-        // Axis controls that can be triggered by keyboard keys
         struct KeyboardAxisButtonMapping
         {
             u32 axisIndex;
             u32 controlIndex;
             i32 defaultKey;
-            f32 axisValue;  // Value to set when key is pressed
+            f32 axisValue;  
         };
 
         const KeyboardAxisButtonMapping kKeyboardAxisButtonMappings[] = {
@@ -103,7 +102,7 @@ namespace ITF
     {
         for (u32 i = 0; i < MAX_KEY_MAPPINGS; ++i)
         {
-            m_keyMappings[i] = -1;  // -1 means use default
+            m_keyMappings[i] = -1; 
         }
     }
 
@@ -115,17 +114,11 @@ namespace ITF
         }
 
         const i32 previousKey = GetKeyMapping(logicalControl);
-
-        // Apply the new mapping first so subsequent GetKeyMapping calls see it
         m_keyMappings[logicalControl] = keyCode;
-
-        // Clearing the binding: nothing else to resolve
         if (keyCode < 0)
         {
             return;
         }
-
-        // Ensure uniqueness: if another control was using this key, give it the old key
         for (u32 i = 0; i < MAX_KEY_MAPPINGS; ++i)
         {
             if (i == logicalControl)
@@ -143,12 +136,10 @@ namespace ITF
     {
         if (logicalControl < MAX_KEY_MAPPINGS)
         {
-            // If custom mapping exists, return it
             if (m_keyMappings[logicalControl] >= 0)
             {
                 return m_keyMappings[logicalControl];
             }
-            // Otherwise find default key for this control in button mappings
             for (const auto& mapping : kKeyboardButtonMappings)
             {
                 if (mapping.controlIndex == logicalControl)
@@ -156,7 +147,6 @@ namespace ITF
                     return mapping.defaultKey;
                 }
             }
-            // Also check axis button mappings (triggers)
             for (const auto& mapping : kKeyboardAxisButtonMappings)
             {
                 if (mapping.controlIndex == logicalControl)
@@ -226,7 +216,6 @@ namespace ITF
         if (!INPUT_ADAPTER)
             return;
 
-        // Read raw keyboard state for remapped keys
         InputAdapter::PressStatus buttons[JOY_MAX_BUT];
         float axes[JOY_MAX_AXES];
         
@@ -240,11 +229,7 @@ namespace ITF
             axes[i] = 0.0f;
         }
 
-        // Apply keyboard mappings - check both custom remaps and defaults
-        // Track which buttons have been set by custom mappings to avoid conflicts
         bbool buttonSetByCustomMapping[JOY_MAX_BUT] = { bfalse };
-        
-        // First pass: apply custom remapped keys only
         for (const auto& mapping : kKeyboardButtonMappings)
         {
             if (mapping.controlIndex < MAX_KEY_MAPPINGS && m_keyMappings[mapping.controlIndex] >= 0)
@@ -255,19 +240,13 @@ namespace ITF
                 {
                     buttons[mapping.buttonIndex] = status;
                 }
-                // Mark this button as handled by custom mapping (even if not pressed)
                 buttonSetByCustomMapping[mapping.buttonIndex] = btrue;
             }
         }
-        
-        // Second pass: apply default keys only for buttons not handled by custom mappings
         for (const auto& mapping : kKeyboardButtonMappings)
         {
-            // Skip if this button was already handled by a custom mapping
             if (buttonSetByCustomMapping[mapping.buttonIndex])
                 continue;
-                
-            // Skip if this control has a custom mapping (handled in first pass)
             if (mapping.controlIndex < MAX_KEY_MAPPINGS && m_keyMappings[mapping.controlIndex] >= 0)
                 continue;
             
@@ -280,11 +259,7 @@ namespace ITF
                 }
             }
         }
-
-        // Apply axis button mappings (triggers mapped to keyboard keys)
         bbool axisSetByCustomMapping[JOY_MAX_AXES] = { bfalse };
-        
-        // First pass: custom mappings
         for (const auto& mapping : kKeyboardAxisButtonMappings)
         {
             if (mapping.controlIndex < MAX_KEY_MAPPINGS && m_keyMappings[mapping.controlIndex] >= 0)
@@ -298,8 +273,6 @@ namespace ITF
                 axisSetByCustomMapping[mapping.axisIndex] = btrue;
             }
         }
-        
-        // Second pass: default keys
         for (const auto& mapping : kKeyboardAxisButtonMappings)
         {
             if (axisSetByCustomMapping[mapping.axisIndex])
@@ -317,6 +290,39 @@ namespace ITF
                 }
             }
         }
+
+        i32 upKey = GetKeyMapping(ZPad_Base::STICK_L_UP);
+        i32 downKey = GetKeyMapping(ZPad_Base::STICK_L_DOWN);
+        i32 leftKey = GetKeyMapping(ZPad_Base::STICK_L_LEFT);
+        i32 rightKey = GetKeyMapping(ZPad_Base::STICK_L_RIGHT);
+        
+        if (upKey < 0) upKey = KEY_UP;
+        if (downKey < 0) downKey = KEY_DOWN;
+        if (leftKey < 0) leftKey = KEY_LEFT;
+        if (rightKey < 0) rightKey = KEY_RIGHT;
+        
+        InputAdapter::PressStatus upStatus = INPUT_ADAPTER->getKeyboardStatus(upKey);
+        InputAdapter::PressStatus downStatus = INPUT_ADAPTER->getKeyboardStatus(downKey);
+        InputAdapter::PressStatus leftStatus = INPUT_ADAPTER->getKeyboardStatus(leftKey);
+        InputAdapter::PressStatus rightStatus = INPUT_ADAPTER->getKeyboardStatus(rightKey);
+        
+        f32 stickX = 0.0f;
+        f32 stickY = 0.0f;
+        
+        if (IsKeyboardButtonActive(leftStatus))
+            stickX = -1.0f;
+        else if (IsKeyboardButtonActive(rightStatus))
+            stickX = 1.0f;
+            
+        if (IsKeyboardButtonActive(upStatus))
+            stickY = 1.0f;
+        else if (IsKeyboardButtonActive(downStatus))
+            stickY = -1.0f;
+        
+        if (fabs(axes[m_joyStickLeft_X]) < 0.001f)
+            axes[m_joyStickLeft_X] = stickX;
+        if (fabs(axes[m_joyStickLeft_Y]) < 0.001f)
+            axes[m_joyStickLeft_Y] = stickY;
 
         UpdateAxisValues(deviceInfo, axes);
         UpdateButtonStates(deviceInfo, buttons);
@@ -344,13 +350,9 @@ namespace ITF
         {
             return U32_INVALID;
         }
-
-        // Check mapped buttons using current key mappings
         for (const auto& mapping : kKeyboardButtonMappings)
         {
             i32 keyToCheck = -1;
-            
-            // Check if there's a custom remap for this control
             if (mapping.controlIndex < MAX_KEY_MAPPINGS && m_keyMappings[mapping.controlIndex] >= 0)
             {
                 keyToCheck = m_keyMappings[mapping.controlIndex];
@@ -369,8 +371,6 @@ namespace ITF
                 }
             }
         }
-
-        // Check axis mappings
         InputAdapter::PressStatus shiftStatus = INPUT_ADAPTER->getKeyboardStatus(KEY_LSHIFT);
         if (IsKeyboardButtonActive(shiftStatus))
         {

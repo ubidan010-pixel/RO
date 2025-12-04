@@ -28,10 +28,10 @@ namespace	ITF
             {
                 if(_playRequest.m_soundEventID == Wwise_dbg_BreakOnEventID)
                 {
-                    AUDIO_LOG("HIT Play Wwise event \"%s\".", getWwiseNameFromID(_playRequest.m_soundEventID));
+                    // AUDIO_LOG("HIT Play Wwise event \"%s\".", getWwiseNameFromID(_playRequest.m_soundEventID));
                 }
 
-                AUDIO_LOG("Play Wwise event \"%d\".", _playRequest.m_soundEventID);
+                // AUDIO_LOG("Play Wwise event \"%d\".", _playRequest.m_soundEventID);
             }
         }
 #ifdef ITF_LOG_SOUND_EVENTS
