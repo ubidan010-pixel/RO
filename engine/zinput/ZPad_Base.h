@@ -67,7 +67,7 @@ namespace ITF
         virtual void InitDeviceInfo() override;
 
         virtual void UpdateDeviceInfo(SDeviceInfo& deviceInfo) override;
-        virtual void UpdateDeviceInfoRaw(SDeviceInfo& deviceInfo);
+        virtual void UpdateDeviceInfoRaw(SDeviceInfo& deviceInfo) override;
 
         virtual PhysicalButtonMapping GetPhysicalButtonMapping() const = 0;
 
