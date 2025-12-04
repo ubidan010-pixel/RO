@@ -56,11 +56,11 @@ namespace ITF
         bbool parseIconId(const StringID& id, u32& outPlayerIndex, ZInputManager::EGameAction& outAction);
         void clearIconDisplay(UIComponent* component);
         void restoreIconDisplay(UIComponent* component);
-        void updateIconDisplayForKeyboard(UIComponent* component, i32 keyCode);
         void cancelRemappingMode(bbool restoreDisplay);
         bbool detectPhysicalControl(u32& outPhysicalControl, EInputSourceType& outSource);
         void finalizeRemapping(u32 physicalControl);
         void onClose() override;
+        EInputSourceType getActiveSourceForReset(u32 playerIndex) const;
 
 #if defined(ITF_WINDOWS)
         bbool handleControllerTypeAction(const StringID& id, UIComponent* component);

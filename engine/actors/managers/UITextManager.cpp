@@ -254,7 +254,6 @@ namespace ITF
             break;
         }
 
-        // Letter keys (a-z) -> uppercase for display
         if (rawKey >= 'a' && rawKey <= 'z')
         {
             char keyName[16];
@@ -262,19 +261,15 @@ namespace ITF
             return String8(keyName);
         }
 
-        // Number keys (0-9)
         if (rawKey >= '0' && rawKey <= '9')
         {
             char keyName[16];
             snprintf(keyName, sizeof(keyName), "KEYBOARD_%c", (char)rawKey);
             return String8(keyName);
         }
-
-        // Unknown key - return generic
         return String8("KEYBOARD_UNKNOWN");
     }
 
-    // Helper function to get default key for an action (using ZInputManager::EGameAction)
     static i32 GetDefaultKeyForAction(u32 action)
     {
         switch (action)
@@ -283,10 +278,10 @@ namespace ITF
         case ZInputManager::Action_Down:  return KEY_DOWN;
         case ZInputManager::Action_Left:  return KEY_LEFT;
         case ZInputManager::Action_Right: return KEY_RIGHT;
-        case ZInputManager::Action_Jump:  return KEY_SPACE;   // Jump
-        case ZInputManager::Action_Hit:   return 's';         // Hit
-        case ZInputManager::Action_Run:   return KEY_LSHIFT;  // Run (sprint/trigger)
-        case ZInputManager::Action_Back:  return KEY_BACKSPACE;// Back
+        case ZInputManager::Action_Jump:  return KEY_SPACE;
+        case ZInputManager::Action_Hit:   return 's';
+        case ZInputManager::Action_Run:   return KEY_LSHIFT;
+        case ZInputManager::Action_Back:  return KEY_BACKSPACE;
         default:
             break;
         }
@@ -1114,7 +1109,23 @@ namespace ITF
         }
 
 #if defined(ITF_WINDOWS)
-        if (padType == InputAdapter::Pad_Keyboard)
+        bool useKeyboardIcons;
+        PCControlMode pcMode = INPUT_ADAPTER->GetPCControlMode();
+        switch (pcMode)
+        {
+        case PCControlMode_Keyboard:
+            useKeyboardIcons = true;
+            break;
+        case PCControlMode_Controller:
+            useKeyboardIcons = false;
+            break;
+        case PCControlMode_Hybrid:
+        default:
+            useKeyboardIcons = (INPUT_ADAPTER->getLastUsedInputDevice(_playerIndex) == InputDevice_Keyboard);
+            break;
+        }
+
+        if (useKeyboardIcons && INPUT_ADAPTER->IsKeyboardMouseEnabled())
         {
             i32 keyCode = GAMEMANAGER->getInputManager()->GetKeyboardKeyFromAction(_playerIndex, (ZInputManager::EGameAction)_action);
             if (keyCode >= 0)
