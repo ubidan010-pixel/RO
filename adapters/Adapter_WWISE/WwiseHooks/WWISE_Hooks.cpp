@@ -115,10 +115,6 @@ namespace	ITF
             return;
 
 
-        char* errorstring;
-        CONVERT_OSCHAR_TO_CHAR(_errorString, errorstring);
-
-
 	char	actorName[128];
 
         if(_gameObjID == Wwise::AkGameObject::GLOBAL_GAME_OBJECT_ID)
