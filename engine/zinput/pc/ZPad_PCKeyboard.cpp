@@ -337,6 +337,88 @@ namespace ITF
         ApplyDirectionRemapping(deviceInfo, axes, buttons);
     }
 
+    void ZPad_PCKeyboard::UpdateDeviceInfoRaw(SDeviceInfo& deviceInfo)
+    {
+        u32 count = Min((u32)m_deviceInfo.m_inputInfo.size(), (u32)deviceInfo.m_inputInfo.size());
+        for (u32 i = 0; i < count; ++i)
+        {
+            deviceInfo.m_inputInfo[i].m_type = m_deviceInfo.m_inputInfo[i].m_type;
+        }
+
+        if (!INPUT_ADAPTER)
+            return;
+
+        InputAdapter::PressStatus buttons[JOY_MAX_BUT];
+        float axes[JOY_MAX_AXES];
+        for (u32 i = 0; i < JOY_MAX_BUT; ++i)
+        {
+            buttons[i] = InputAdapter::Released;
+        }
+        for (u32 i = 0; i < JOY_MAX_AXES; ++i)
+        {
+            axes[i] = 0.0f;
+        }
+
+        for (const auto& mapping : kKeyboardButtonMappings)
+        {
+            if (mapping.defaultKey >= 0)
+            {
+                InputAdapter::PressStatus status = INPUT_ADAPTER->getKeyboardStatus(mapping.defaultKey);
+                if (IsKeyboardButtonActive(status))
+                {
+                    buttons[mapping.buttonIndex] = status;
+                }
+            }
+        }
+
+        for (const auto& mapping : kKeyboardAxisButtonMappings)
+        {
+            if (mapping.defaultKey >= 0)
+            {
+                InputAdapter::PressStatus status = INPUT_ADAPTER->getKeyboardStatus(mapping.defaultKey);
+                if (IsKeyboardButtonActive(status))
+                {
+                    axes[mapping.axisIndex] = mapping.axisValue;
+                }
+            }
+        }
+
+        InputAdapter::PressStatus upStatus = INPUT_ADAPTER->getKeyboardStatus(KEY_UP);
+        InputAdapter::PressStatus downStatus = INPUT_ADAPTER->getKeyboardStatus(KEY_DOWN);
+        InputAdapter::PressStatus leftStatus = INPUT_ADAPTER->getKeyboardStatus(KEY_LEFT);
+        InputAdapter::PressStatus rightStatus = INPUT_ADAPTER->getKeyboardStatus(KEY_RIGHT);
+
+        f32 stickX = 0.0f;
+        f32 stickY = 0.0f;
+
+        if (IsKeyboardButtonActive(leftStatus))
+            stickX = -1.0f;
+        else if (IsKeyboardButtonActive(rightStatus))
+            stickX = 1.0f;
+
+        if (IsKeyboardButtonActive(upStatus))
+            stickY = 1.0f;
+        else if (IsKeyboardButtonActive(downStatus))
+            stickY = -1.0f;
+
+        if (fabs(axes[m_joyStickLeft_X]) < 0.001f)
+            axes[m_joyStickLeft_X] = stickX;
+        if (fabs(axes[m_joyStickLeft_Y]) < 0.001f)
+            axes[m_joyStickLeft_Y] = stickY;
+
+        if (stickX != 0.0f || stickY != 0.0f)
+        {
+            buttons[m_joyButton_DPadU] = InputAdapter::Released;
+            buttons[m_joyButton_DPadD] = InputAdapter::Released;
+            buttons[m_joyButton_DPadL] = InputAdapter::Released;
+            buttons[m_joyButton_DPadR] = InputAdapter::Released;
+        }
+
+        UpdateAxisValues(deviceInfo, axes);
+        UpdateButtonStates(deviceInfo, buttons);
+        UpdatePlatformSpecificControls(deviceInfo, buttons, axes);
+    }
+
     bbool ZPad_PCKeyboard::IsSourceAllowed() const
     {
         return INPUT_ADAPTER && INPUT_ADAPTER->IsKeyboardMouseEnabled();

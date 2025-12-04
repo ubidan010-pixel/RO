@@ -77,12 +77,33 @@ namespace ITF
 
     void IInputDevice::ImplProcessActions( ActionMap& actionMap )
     {
+        ImplProcessActionsWithCategory(actionMap, InputCategory_Gameplay);
+    }
+
+    namespace
+    {
+        ITF_INLINE bbool ShouldUseRawInput(const StringID& actionName)
+        {
+            const char* name = actionName.getDebugString();
+            if (!name) return bfalse;
+            if (name[0] == 'W' && name[1] == 'M' && name[2] == '_')
+                return btrue;
+            if (name[0] == 'M' && name[1] == 'E' && name[2] == 'N' && name[3] == 'U' && name[4] == '_')
+                return btrue;
+            return bfalse;
+        }
+    }
+
+    void IInputDevice::ImplProcessActionsWithCategory( ActionMap& actionMap, EInputCategory category )
+    {
         if(!IsDeviceValid())  return;
 
         // ProcessActions
         for ( u32 i = 0; i < actionMap.size(); i++ )
         {
             ZAction& action = actionMap[i];
+            bbool useRawInput = (category == InputCategory_Menu) || ShouldUseRawInput(action.m_action);
+            SDeviceInfo& deviceInfoToUse = useRawInput ? m_deviceInfoRaw : m_deviceInfo;
 
             for ( size_t j = 0; j < action.m_inputs.size(); j++ )
             {
@@ -94,9 +115,9 @@ namespace ITF
                     input.m_translatedControl = TranslateControl(input.m_control,m_controlMap);
 
                     u32 control = input.m_translatedControl;
-                    if ( control != U32_INVALID )
+                    if ( control != U32_INVALID && control < deviceInfoToUse.m_inputInfo.size() )
                     {
-						SInputInfo &inputInfo = m_deviceInfo.m_inputInfo[control];
+						SInputInfo &inputInfo = deviceInfoToUse.m_inputInfo[control];
                         InputUtils::UpdateActionInput(input,inputInfo, m_id);
 
                         if ( input.m_match[m_id] )
@@ -140,7 +161,6 @@ namespace ITF
         if(!IsDeviceValid())  return;
 
         u32 maxControls = m_deviceInfo.m_inputInfo.size();
-
         static SDeviceInfo newDeviceInfo;
         newDeviceInfo.m_inputInfo.resize( Max(maxControls, (u32)newDeviceInfo.m_inputInfo.size()) );
 
@@ -168,11 +188,47 @@ namespace ITF
                 InputUtils::ProcessAccelerometer(info, newInfo);
             }
         }
+        u32 maxControlsRaw = m_deviceInfoRaw.m_inputInfo.size();
+        if (maxControlsRaw > 0)
+        {
+            static SDeviceInfo newDeviceInfoRaw;
+            newDeviceInfoRaw.m_inputInfo.resize( Max(maxControlsRaw, (u32)newDeviceInfoRaw.m_inputInfo.size()) );
+
+            ITF_MemSet(&newDeviceInfoRaw.m_inputInfo[0], 0, sizeof(SInputInfo)*maxControlsRaw);
+            UpdateDeviceInfoRaw(newDeviceInfoRaw);
+
+            for ( u32 i = 0; i < maxControlsRaw; i++ )
+            {
+                SInputInfo& info = m_deviceInfoRaw.m_inputInfo[i];
+                const SInputInfo& newInfo = newDeviceInfoRaw.m_inputInfo[i];
+
+                info.m_dirty = false;
+                info.m_type = newInfo.m_type;
+
+                if ( newInfo.m_type == SInputInfo::INPUTTYPE_AXIS )
+                {
+                    InputUtils::ProcessAxis(info,newInfo);
+                }
+                else if ( newInfo.m_type == SInputInfo::INPUTTYPE_BUTTON )
+                {
+                    InputUtils::ProcessButton(info,newInfo);
+                }
+                else if ( newInfo.m_type == SInputInfo::INPUTTYPE_ACCELEROMETER )
+                {
+                    InputUtils::ProcessAccelerometer(info, newInfo);
+                }
+            }
+        }
     }
 
     void IInputDevice::ProcessActions( ActionMap * actionMap )
     {
         ImplProcessActions((*actionMap));
+    }
+
+    void IInputDevice::ProcessActionsWithCategory( ActionMap * actionMap, EInputCategory category )
+    {
+        ImplProcessActionsWithCategory((*actionMap), category);
     }
 
     void IInputDevice::Update()

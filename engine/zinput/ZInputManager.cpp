@@ -180,9 +180,15 @@ namespace ITF
 
     void ZInputManager::process_actionDevices( ActionMapInternal* _actionMapInternal )
     {
+        EInputCategory inputCategory = InputCategory_Gameplay;
+        if (_actionMapInternal->_category == Cat_Menu)
+        {
+            inputCategory = InputCategory_Menu;
+        }
+
         for (u32 i = 0; i < m_devices.size(); ++i)
         {
-            m_devices[i]->ProcessActions( &_actionMapInternal->_actionMap );
+            m_devices[i]->ProcessActionsWithCategory( &_actionMapInternal->_actionMap, inputCategory );
         }
     }
 

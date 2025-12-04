@@ -23,11 +23,7 @@ namespace ITF
         void SetRemap(u32 logicalControl, u32 physicalControl) override;
         void ResetRemapping() override;
         u32 GetRemap(u32 logicalControl) const override;
-        
-        // Returns the first raw key that is pressed, or -1 if none
         i32 GetFirstPressedRawKey() const;
-
-        // Keyboard-specific remapping: maps a logical control to a raw key code
         void SetKeyMapping(u32 logicalControl, i32 keyCode);
         i32 GetKeyMapping(u32 logicalControl) const;
         void ResetKeyMappings();
@@ -35,13 +31,12 @@ namespace ITF
     protected:
         PhysicalButtonMapping GetPhysicalButtonMapping() const override;
         void UpdateDeviceInfo(SDeviceInfo& deviceInfo) override;
+        void UpdateDeviceInfoRaw(SDeviceInfo& deviceInfo) override;
         bbool IsSourceAllowed() const override;
 
     private:
-        // Maps logical control index to raw key code (-1 = use default)
+
         i32 m_keyMappings[MAX_KEY_MAPPINGS];
-        
-        // Default key for a given virtual button index
         static i32 GetDefaultKeyForButton(u32 buttonIndex);
     };
 } // namespace ITF

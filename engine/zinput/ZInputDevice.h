@@ -11,6 +11,12 @@
 
 namespace ITF
 {
+    enum EInputCategory
+    {
+        InputCategory_Gameplay = 0,
+        InputCategory_Menu,
+        InputCategory_Count
+    };
     enum EInputSourceType
     {
         InputSource_Gamepad = 0,
@@ -42,6 +48,7 @@ typedef ITF_MAP<StringID,int>     ControlTranslateMap;
 
         void    Update( );
         void    ProcessActions ( ActionMap * actionMap );
+        void    ProcessActionsWithCategory ( ActionMap * actionMap, EInputCategory category );
         
         ITF_INLINE bbool IsDeviceValid() const
         {
@@ -67,12 +74,15 @@ typedef ITF_MAP<StringID,int>     ControlTranslateMap;
         
         void    ImplUpdate();
         void    ImplProcessActions( ActionMap& actionMap );
+        void    ImplProcessActionsWithCategory( ActionMap& actionMap, EInputCategory category );
 
         virtual void   InitDeviceInfo()= 0;
         virtual void   UpdateDeviceInfo( SDeviceInfo& deviceInfo )=0;
+        virtual void   UpdateDeviceInfoRaw( SDeviceInfo& deviceInfo ) { UpdateDeviceInfo(deviceInfo); }
 
 
-        SDeviceInfo                 m_deviceInfo;
+        SDeviceInfo                 m_deviceInfo;          
+        SDeviceInfo                 m_deviceInfoRaw;       
         u32                         m_id;
         ControlTranslateMap         m_controlMap;
         bbool                       m_initialized;
