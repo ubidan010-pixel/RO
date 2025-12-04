@@ -38,7 +38,8 @@ namespace ITF
         void uninitFirstParty();
 
         String8 generateBuildId();
-        const char* getUSApplicationId();
+        const char* getApplicationId();
+        const char* getSku();
 
         // EAL area
         eal_log_dll_interface m_ealLogInterface;

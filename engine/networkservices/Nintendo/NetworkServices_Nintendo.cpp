@@ -27,6 +27,7 @@ namespace ITF
         , m_memoryPoolBuffer(nullptr)
         , m_connectionRequested(false)
         , m_nextStatusUpdateTime(0.0)
+        , m_platformErrorCode(0)
     {
     }
 
@@ -64,6 +65,9 @@ namespace ITF
             return;
         }
 #endif
+
+        // try network right away
+        m_connectionRequested = true;
     }
 
     void NetworkServices_Nintendo::terminate()
@@ -122,54 +126,50 @@ namespace ITF
     {
         f64 currentTime = SYSTEM_ADAPTER->getTime();
 
-        if (!nn::nifm::IsNetworkRequestOnHold())
-        {
-            if (nn::nifm::IsNetworkAvailable())
-            {
-                nn::socket::InAddr ipAddress;
-                nn::socket::InAddr subnetMask;
-                nn::socket::InAddr defaultGateway;
-                nn::socket::InAddr preferredDns;
-                nn::socket::InAddr alternateDns;
-
-                nn::Result result = nn::nifm::GetCurrentIpConfigInfo(&ipAddress, &subnetMask, &defaultGateway, &preferredDns, &alternateDns);
-                if (result.IsSuccess())
-                {
-                    m_ipAddress = nn::socket::InetNtoa(ipAddress);
-
-                    LOG("IP configuration:\n"
-                        "  - IP address.....: %s\n"
-                        "  - Subnet mask....: %s\n"
-                        "  - Default gateway: %s\n"
-                        "  - Preferred DNS..: %s\n"
-                        "  - Alternate DNS..: %s",
-                        m_ipAddress.cStr(),
-                        nn::socket::InetNtoa(subnetMask),
-                        nn::socket::InetNtoa(defaultGateway),
-                        nn::socket::InetNtoa(preferredDns),
-                        nn::socket::InetNtoa(alternateDns));
-
-                    setNetworkStatus(ENetworkStatus_Ready);
-                    m_nextStatusUpdateTime = currentTime + m_statusUpdateTimeInterval;
-                }
-                else
-                {
-                    LOG("nn::nifm::GetCurrentIpConfigInfo() failed with result 0x%08X", result.GetInnerValueForDebug());
-                    setNetworkStatus(ENetworkStatus_Error);
-                }
-            }
-            else
-            {
-                setNetworkStatus(ENetworkStatus_Error);
-            }
-        }
-        else if (m_connectionRequested)
+        if (m_connectionRequested)
         {
             nn::nifm::SubmitNetworkRequest();
             m_connectionRequested = false;
         }
-    }
+        else if (nn::nifm::IsNetworkAvailable())
+        {
+            nn::socket::InAddr ipAddress;
+            nn::socket::InAddr subnetMask;
+            nn::socket::InAddr defaultGateway;
+            nn::socket::InAddr preferredDns;
+            nn::socket::InAddr alternateDns;
 
+            nn::Result result = nn::nifm::GetCurrentIpConfigInfo(&ipAddress, &subnetMask, &defaultGateway, &preferredDns, &alternateDns);
+            if (result.IsSuccess())
+            {
+                m_ipAddress = nn::socket::InetNtoa(ipAddress);
+
+                LOG("IP configuration:\n"
+                    "  - IP address.....: %s\n"
+                    "  - Subnet mask....: %s\n"
+                    "  - Default gateway: %s\n"
+                    "  - Preferred DNS..: %s\n"
+                    "  - Alternate DNS..: %s",
+                    m_ipAddress.cStr(),
+                    nn::socket::InetNtoa(subnetMask),
+                    nn::socket::InetNtoa(defaultGateway),
+                    nn::socket::InetNtoa(preferredDns),
+                    nn::socket::InetNtoa(alternateDns));
+
+                setNetworkStatus(ENetworkStatus_Ready);
+                m_nextStatusUpdateTime = currentTime + m_statusUpdateTimeInterval;
+            }
+            else
+            {
+                LOG("nn::nifm::GetCurrentIpConfigInfo() failed with result 0x%08X", result.GetInnerValueForDebug());
+                setNetworkStatus(ENetworkStatus_Error);
+            }
+        }
+        else if (!nn::nifm::IsNetworkRequestOnHold())
+        {
+            setNetworkStatus(ENetworkStatus_Error);
+        }
+    }
 
     void NetworkServices_Nintendo::updateNetworkWhenReady()
     {

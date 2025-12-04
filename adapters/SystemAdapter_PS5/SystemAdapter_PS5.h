@@ -37,6 +37,7 @@ public:
     virtual ITF_TERRITORY getSystemTerritory() const override;
 
     virtual ITF_LANGUAGE getSystemLanguage(const ITF_LANGUAGE* _supportedLanguages, u32 _supportedCount, ITF_LANGUAGE _defaultLanguage) const override;
+    virtual bbool isTrialMode() const override { return m_isTrialMode; }
 
     // On PS5 it returns a generic user name, not the system one
     virtual String userName() const override;
@@ -80,6 +81,7 @@ private:
     void updateSystemServiceEvents();
     void updateUsers();
     void updatePauseState();
+    void updateTrialSkuFlag();
 
     i32 getUserIdx(i32 _userID);
     i32 getUnusedUserIdx();
@@ -117,6 +119,7 @@ private:
 
     bool m_splashScreenHidden = false;
 
+    bbool m_isTrialMode = bfalse;
     SceUserServiceUserId m_initialUserId = -1;
 };
 

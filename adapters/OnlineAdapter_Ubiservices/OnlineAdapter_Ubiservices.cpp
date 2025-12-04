@@ -303,7 +303,7 @@ namespace ITF
         m_initialized = true;
     }
 
-    const char* OnlineAdapter_Ubiservices::getUSApplicationId()
+    const char* OnlineAdapter_Ubiservices::getApplicationId()
     {
 #ifdef ITF_WINDOWS
         return "1e243814-1c99-4b7d-a2dd-e67c84712812";
@@ -318,14 +318,30 @@ namespace ITF
 #endif
     }
 
+    const char* OnlineAdapter_Ubiservices::getSku()
+    {
+#ifdef ITF_WINDOWS
+        return "PC_WW";
+#elif ITF_PS5
+        return "PS5_WW";
+#elif ITF_NX
+        return "NX_WW";
+#elif ITF_OUNCE
+        return "OUNCE_WW";
+#elif ITF_XBOX_SERIES
+        return "XS_WW";
+#endif
+    }
+
     void OnlineAdapter_Ubiservices::configureUbiservices(const ubiservices::String& _buildId)
     {
-        const US_NS::ApplicationId applicationId(getUSApplicationId());
+        const US_NS::ApplicationId applicationId(getApplicationId());
         US_NS::String applicationBuildId(_buildId);
         US_NS::OnlineAccessContext onlineAccessContext = US_NS::OnlineAccessContext::Standard;
         US_NS::ProfilePolicy profilePolicy = US_NS::ProfilePolicy::UseUplayProfile;
 
-        const US_NS::String sku("Full");
+        const US_NS::String gameVersion(SYSTEM_ADAPTER->isTrialMode() ? "Trial": "Full");
+        const US_NS::String sku(getSku());
         const US_NS::Vector<US_NS::EventTypeInfo> eventTypesForSaveGame;
         const US_NS::StringJson gameStartEventCustomData = "{}";
         const US_NS::String secretKey;
@@ -334,7 +350,7 @@ namespace ITF
         bool isExtendedEventPlayerSessionEnabled = false;
 
         US_NS::GameConfigEvent gameConfigEvent = US_NS::GameConfigEvent(
-                US_SDK_VERSION_CONST_CHAR
+                gameVersion
                 , sku
                 , eventTypesForSaveGame
                 , gameStartEventCustomData
@@ -354,11 +370,11 @@ namespace ITF
         const US_NS::String titleId("PPSA34569_00");
         const US_NS::GameConfigConsole gameConfigConsole(titleId);
 #elif defined(ITF_NX)
-        // This is the primary store id given to the game in the first party publishing tool
-        const US_NS::String theApplicationId("HAC-P-BTN6A");
+        // NintendoApplicationId
+        const US_NS::String theApplicationId("0x0100ac702659e000");
         const US_NS::GameConfigConsole gameConfigConsole(theApplicationId);
 #elif defined(ITF_OUNCE)
-        const US_NS::String theApplicationId("BEE-P-ABPKA");
+        const US_NS::String theApplicationId("0x04005b00265a0000");
         const US_NS::GameConfigConsole gameConfigConsole(theApplicationId);
 
 #elif defined(ITF_XBOX_SERIES)

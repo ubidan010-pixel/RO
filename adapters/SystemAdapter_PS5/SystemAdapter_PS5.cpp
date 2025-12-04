@@ -54,8 +54,11 @@ namespace ITF
 
         ITF_VERIFY_SCE_CALL(sceSysmoduleLoadModule(SCE_SYSMODULE_NP_CPP_WEB_API));
         ITF_VERIFY_SCE_CALL(sceSysmoduleLoadModule(SCE_SYSMODULE_NP_ENTITLEMENT_ACCESS));
-        SceNpEntitlementAccessInitParam initParam2{};
-        SceNpEntitlementAccessBootParam	bootParam2{};
+
+        SceNpEntitlementAccessInitParam initParam2;
+        SceNpEntitlementAccessBootParam	bootParam2;
+        memset(&initParam2, 0, sizeof(SceNpEntitlementAccessInitParam));
+        memset(&bootParam2, 0, sizeof(SceNpEntitlementAccessBootParam));
         ITF_VERIFY_SCE_CALL(sceNpEntitlementAccessInitialize(&initParam2, &bootParam2));
 
         fill(m_usersIDs.userId, SCE_USER_SERVICE_USER_ID_INVALID);
@@ -83,6 +86,8 @@ namespace ITF
 
         initTitleId();
         initUsers();
+
+        updateTrialSkuFlag();
         return btrue;
     }
 
@@ -607,6 +612,20 @@ namespace ITF
             m_splashScreenHidden = btrue;
             sceSystemServiceHideSplashScreen();
         }
+    }
+
+    void SystemAdapter_PS5::updateTrialSkuFlag()
+    {
+        SceNpEntitlementAccessSkuFlag skuFlag = 0;
+        SceNpEntitlementAccessGameTrialsFlag gameTrialsFlag = 0;
+
+        ITF_VERIFY_SCE_CALL(sceNpEntitlementAccessGetSkuFlag(&skuFlag));
+        ITF_VERIFY_SCE_CALL(sceNpEntitlementAccessGetGameTrialsFlag(&gameTrialsFlag));
+
+        m_isTrialMode = (skuFlag == SCE_NP_ENTITLEMENT_ACCESS_SKU_FLAG_TRIAL) ||
+            (gameTrialsFlag == SCE_NP_ENTITLEMENT_ACCESS_GAME_TRIALS_FLAG_ON);
+
+        LOG("sku flag:%d game trials flag:%d, mode: %s", skuFlag, gameTrialsFlag, m_isTrialMode ? "Trial" : "Full");
     }
 
 } // namespace ITF

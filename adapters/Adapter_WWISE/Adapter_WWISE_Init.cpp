@@ -519,6 +519,13 @@ namespace	ITF
 		// Initialize communications (not in release build!)
 		AkCommSettings	commSettings;
 		AK_Comm_GetDefaultInitSettings(commSettings);
+
+#ifdef ITF_NX
+        // on Switch 1 we init sockets lib in NetworkServices to poll connectivity
+        // WWise should skip it
+        commSettings.bInitSystemLib = false;
+#endif
+
         AK_Comm_Init(commSettings);
 #endif // AK_OPTIMIZED
 
