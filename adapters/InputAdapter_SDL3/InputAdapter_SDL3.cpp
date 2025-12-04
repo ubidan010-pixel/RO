@@ -327,11 +327,9 @@ namespace ITF
         if (m_initialized)
             return true;
         m_adapter = adapter;
-        // Try to initialize full stack first
         if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD | SDL_INIT_EVENTS) != 0)
         {
             LOG("[SDL] - SDL_Init(video|gamepad|events) failed: %s", SDL_GetError());
-            // fallback: ensure at least gamepad/events are up
             SDL_InitSubSystem(SDL_INIT_GAMEPAD | SDL_INIT_EVENTS);
         }
 
