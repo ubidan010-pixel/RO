@@ -134,7 +134,7 @@ namespace ITF
         m_menu = UI_MENUMANAGER->getMenu(OPTION_MENU_NAME);
         if (!m_menu)
             return;
-
+        RAY_GAMEMANAGER->registerResolutionOption();
         onActivate();
         initializeMenuState();
     }
@@ -283,6 +283,7 @@ namespace ITF
         if (RAY_GAMEMANAGER)
         {
             RAY_GAMEMANAGER->saveGameOptions();
+            RAY_GAMEMANAGER->applyGameSetting();
         }
 
         closeAndReturn();

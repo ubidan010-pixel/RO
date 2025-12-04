@@ -1,14 +1,6 @@
 ﻿#ifndef _ITF_RAY_GAMEOPTIONNAMES_H_
 #define _ITF_RAY_GAMEOPTIONNAMES_H_
 
-#ifndef _ITF_STRINGID_H_
-#include "core/StringID.h"
-#endif //_ITF_STRINGID_H_
-
-#if defined(ITF_WINDOWS)
-#include "engine/AdaptersInterfaces/PCControlMode.h"
-#endif
-
 namespace ITF
 {
     enum EHealthModifier

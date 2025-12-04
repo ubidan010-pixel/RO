@@ -341,12 +341,18 @@ namespace ITF
             {
                 SDL_PropertiesID props = SDL_CreateProperties();
                 SDL_SetPointerProperty(props, SDL_PROP_WINDOW_CREATE_WIN32_HWND_POINTER, sysAdapter->m_hwnd);
+                SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_RESIZABLE_BOOLEAN, true);
                 m_hiddenWindow = SDL_CreateWindowWithProperties(props);
+                SDL_DestroyProperties(props);
+
                 if (!m_hiddenWindow)
                 {
                     LOG("[SDL] - failed to wrap existing HWND for input: %s", SDL_GetError());
                 }
-                SDL_DestroyProperties(props);
+                else
+                {
+                    SDL_SetWindowResizable(m_hiddenWindow, true);
+                }
             }
         }
         refreshGamepadList();

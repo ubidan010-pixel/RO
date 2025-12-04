@@ -1786,6 +1786,8 @@ namespace ITF
         // Save/Load Options
         //==========================================================================
         void            saveGameOptions();
+        void applyGameSetting();
+        bbool applyWindowsMode(bbool isFullScreen);
         void applyResolution(i32 index);
         void            loadGameOptions();
 
@@ -1796,6 +1798,7 @@ namespace ITF
         void            setAuthAlreadyLinked(bbool linked);
         i32             getAuthBootCount() const;
         void            setAuthBootCount(i32 count);
+        void            registerResolutionOption();
 
         //CASA::VITA::TARIK::Fresco
         ITF_INLINE const ITF_VECTOR<Vec2d>& getFrescoGamePlayProgressionInfo() const { return m_configTemplate->getFrescoGamePlayProgressionInfo(); }
@@ -1843,7 +1846,6 @@ namespace ITF
         void            releaseRewardResources();
 
         void            registerAllGameOptions();
-        void            registerResolutionOption();
         void            registerWindowedOption();
         void            registerLanguageOption();
         void            registerStartWithHeartOption();

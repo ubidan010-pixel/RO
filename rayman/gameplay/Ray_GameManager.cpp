@@ -11918,20 +11918,6 @@ namespace ITF
 
     void Ray_GameManager::setWindowed(bbool windowed)
     {
-#if defined(ITF_WINDOWS) && defined(ITF_FINAL)
-        bbool isWindowsMode = !SYSTEM_ADAPTER->isFullScreenMode();
-        if (isWindowsMode != windowed)
-        {
-            if (windowed)
-            {
-                SYSTEM_ADAPTER->toggleShowTitleBar();
-            }
-            else
-            {
-                SYSTEM_ADAPTER->toggleFullScreen();
-            }
-        }
-#endif
         m_gameOptionManager.setBoolOption(OPTION_WINDOWED, windowed);
     }
 
@@ -12245,14 +12231,51 @@ namespace ITF
             LOG("[GameOptions] ERROR: Persistence not initialized!");
             return;
         }
-#ifdef ITF_WINDOWS
-        i32 resIndex = getResolutionIndex();
-        applyResolution(resIndex);
-        SYSTEM_ADAPTER->SetRegistryValue(String("FullScreen"),!isWindowed());
-#endif
         LOG("[GameOptions] Starting save operation...");
         m_gameOptionPersistence->startSaveOptions(0, onSaveOptionsComplete);
     }
+    void Ray_GameManager::applyGameSetting()
+    {
+#if defined(ITF_WINDOWS) && defined(ITF_FINAL)
+        bbool isFullScreen = !isWindowed();
+        bbool hasApplied = applyWindowsMode(isFullScreen);
+        i32 resIndex = getResolutionIndex();
+        if (hasApplied && isFullScreen)
+        {
+            // Windowed mode has 960-540 res which fullscreen doesn't have
+            // Need to reset to highest one if user is back from 960-540 in windowed mode to fullscreen
+            if (resIndex >= (i32)m_availableResolutions.size())
+            {
+                setResolutionIndex(0);
+                resIndex = 0; // Heightest one
+            }
+        }
+        applyResolution(resIndex);
+#endif
+    }
+
+    bbool Ray_GameManager::applyWindowsMode(bbool isFullScreen)
+    {
+#if defined(ITF_WINDOWS) && defined(ITF_FINAL)
+        SYSTEM_ADAPTER->SetRegistryValue(String("FullScreen"),isFullScreen);
+        bbool isCurrentFullScreen = SYSTEM_ADAPTER->isFullScreenMode();
+        bbool newRequestFullScreen = isFullScreen;
+        if (isCurrentFullScreen != newRequestFullScreen)
+        {
+            if (newRequestFullScreen)
+            {
+                SYSTEM_ADAPTER->toggleFullScreen();
+            }
+            else
+            {
+                SYSTEM_ADAPTER->toggleShowTitleBar();
+            }
+            return btrue;
+        }
+#endif
+        return bfalse;
+    }
+
     void Ray_GameManager::applyResolution(i32 index)
     {
 #if defined(ITF_FINAL) && defined(ITF_WINDOWS)
