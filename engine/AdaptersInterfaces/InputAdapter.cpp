@@ -1,6 +1,13 @@
 #include "precompiled_engine.h"
 
-#include "gameplay/managers/GameManager.h"
+#ifndef _ITF_RAY_GAMEMANAGER_H_
+#include "rayman/gameplay/Ray_GameManager.h"
+#endif //_ITF_RAY_GAMEMANAGER_H_
+
+#ifndef _ITF_ZINPUT_MANAGER_H
+#include "engine/zinput/ZInputManager.h"
+#endif //_ITF_ZINPUT_MANAGER_H
+
 #ifdef USE_PAD_HAPTICS
 #include "gameplay/Managers/PadHapticsManager.h"
 #endif
@@ -356,7 +363,10 @@ namespace ITF
     {
         if (_player >= JOY_MAX_COUNT)
             return;
-
+        if (RAY_GAMEMANAGER->getInputManager()->GetSuppressReceive())
+        {
+            return;
+        }
         InputDeviceType previousType = m_lastUsedInputDevice[_player];
         if (previousType == _deviceType)
             return;
