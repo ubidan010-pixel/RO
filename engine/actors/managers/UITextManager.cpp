@@ -228,10 +228,10 @@ namespace ITF
         return "";
     }
 
-    // Helper function to get icon name from raw key code (uses KeyCode enum from InputAdapter.h)
+  
+#if defined(ITF_WINDOWS)
     static String8 GetIconNameForKeyboardKey(i32 rawKey)
     {
-        // Special keys - use KeyCode enum values
         switch (rawKey)
         {
         case KEY_UP:    return String8("KEYBOARD_ARROW_UP");
@@ -292,6 +292,7 @@ namespace ITF
         }
         return -1;
     }
+#endif // ITF_WINDOWS
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     UITextManager::UITextManager ()
