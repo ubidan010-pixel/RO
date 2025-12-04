@@ -167,10 +167,7 @@ namespace ITF
     SoundManager::SoundManager()
     {
 
-#ifndef ITF_SUPPORT_RAKI
         sound::Volume::init();
-#endif
-
         m_instances.resize(MaxSoundInstances);
         m_streamInstances.resize(MaxStreamInstances);
         m_modifierFactory.RegisterObject<ScreenRollOff>(ITF_GET_STRINGID_CRC(ScreenRollOff,1323053104));

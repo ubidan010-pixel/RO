@@ -408,4 +408,26 @@ namespace ITF
         }
         return Pad_Keyboard;
     }
+
+    bbool InputAdapter::IsPressStartButton(u32 _player) const
+    {
+        if (_player >= JOY_MAX_COUNT)
+            return bfalse;
+        PressStatus buttons[JOY_MAX_BUT];
+        getGamePadButtons(EnvironmentLua, _player, buttons, JOY_MAX_BUT);
+        
+        if (buttons[m_joyButton_Start] == JustReleased)
+            return btrue;
+
+#if defined(ITF_WINDOWS)
+        if (_player == 0 && IsKeyboardMouseEnabled())
+        {
+            PressStatus kbStatus = getKeyboardStatus(KEY_ESC);
+            if (kbStatus == JustReleased)
+                return btrue;
+        }
+#endif
+
+        return bfalse;
+    }
 } // namespace ITF

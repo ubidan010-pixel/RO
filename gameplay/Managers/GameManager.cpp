@@ -853,10 +853,7 @@ namespace ITF
                     {
                         if (!SYSTEM_ADAPTER->isOSUIActive() && getPlayer(i)->getActiveAndPersistent())
                         {
-                            InputAdapter::PressStatus buttons[JOY_MAX_BUT];
-                            INPUT_ADAPTER->getGamePadButtons(InputAdapter::EnvironmentLua, i, buttons, JOY_MAX_BUT);
-
-                            if (buttons[m_joyButton_Start] == InputAdapter::JustReleased)
+                            if (INPUT_ADAPTER->IsPressStartButton(i))
                             {
                                 if(!m_isInPause)
                                 {

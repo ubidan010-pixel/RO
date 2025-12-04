@@ -120,7 +120,7 @@
 #include "engine/AdaptersInterfaces/AudioMiddlewareAdapter.h"
 
 #if defined(ITF_PS5)
-#define MAX_TIME_OFFSET ( 0.130f )
+#define MAX_TIME_OFFSET ( 0.04f )
 #else
 #define MAX_TIME_OFFSET ( 0.02f )
 #endif

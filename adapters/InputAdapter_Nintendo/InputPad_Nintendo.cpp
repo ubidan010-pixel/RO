@@ -85,6 +85,14 @@ namespace ITF
             #endif
             }
         }
+        if (_buttonId == m_joyButton_TriggerLeft)
+        {
+            m_axesPos[m_joyTrigger_Left] = _isPressed ? 1.0f : 0.0f;
+        }
+        else if (_buttonId == m_joyButton_TriggerRight)
+        {
+            m_axesPos[m_joyTrigger_Right] = _isPressed ? 1.0f : 0.0f;
+        }
     }
 
 } // namespace ITF
