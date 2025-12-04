@@ -27,10 +27,10 @@ namespace ITF
     void UISelectableFriendlyComponent::applyFriendlyFromSelection()
     {
         const bbool isSelected = (getIsSelected() || m_forceSelected);
-        const String8& targetFriendly = isSelected && !m_selectedFriendly.isEmpty()
-                                            ? m_selectedFriendly
-                                            : m_defaultFriendly;
-
+        // const String8& targetFriendly = isSelected && !m_selectedFriendly.isEmpty()
+        //                                     ? m_selectedFriendly
+        //                                     : m_defaultFriendly;
+        const String8& targetFriendly = m_selectedFriendly;
         if (targetFriendly.isEmpty())
         {
             return;
