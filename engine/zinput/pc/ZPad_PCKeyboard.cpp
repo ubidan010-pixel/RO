@@ -18,7 +18,7 @@ namespace ITF
         {
             u32 buttonIndex;
             u32 controlIndex;
-            i32 defaultKey;  
+            i32 defaultKey;
         };
 
         struct KeyboardAxisMapping
@@ -61,7 +61,7 @@ namespace ITF
             u32 axisIndex;
             u32 controlIndex;
             i32 defaultKey;
-            f32 axisValue;  
+            f32 axisValue;
         };
 
         const KeyboardAxisButtonMapping kKeyboardAxisButtonMappings[] = {
@@ -102,7 +102,7 @@ namespace ITF
     {
         for (u32 i = 0; i < MAX_KEY_MAPPINGS; ++i)
         {
-            m_keyMappings[i] = -1; 
+            m_keyMappings[i] = -1;
         }
     }
 
@@ -218,8 +218,6 @@ namespace ITF
 
         InputAdapter::PressStatus buttons[JOY_MAX_BUT];
         float axes[JOY_MAX_AXES];
-        
-        // Initialize to released
         for (u32 i = 0; i < JOY_MAX_BUT; ++i)
         {
             buttons[i] = InputAdapter::Released;
@@ -249,7 +247,7 @@ namespace ITF
                 continue;
             if (mapping.controlIndex < MAX_KEY_MAPPINGS && m_keyMappings[mapping.controlIndex] >= 0)
                 continue;
-            
+
             if (mapping.defaultKey >= 0)
             {
                 InputAdapter::PressStatus status = INPUT_ADAPTER->getKeyboardStatus(mapping.defaultKey);
@@ -277,10 +275,10 @@ namespace ITF
         {
             if (axisSetByCustomMapping[mapping.axisIndex])
                 continue;
-                
+
             if (mapping.controlIndex < MAX_KEY_MAPPINGS && m_keyMappings[mapping.controlIndex] >= 0)
                 continue;
-            
+
             if (mapping.defaultKey >= 0)
             {
                 InputAdapter::PressStatus status = INPUT_ADAPTER->getKeyboardStatus(mapping.defaultKey);
@@ -291,38 +289,46 @@ namespace ITF
             }
         }
 
-        i32 upKey = GetKeyMapping(ZPad_Base::STICK_L_UP);
-        i32 downKey = GetKeyMapping(ZPad_Base::STICK_L_DOWN);
-        i32 leftKey = GetKeyMapping(ZPad_Base::STICK_L_LEFT);
-        i32 rightKey = GetKeyMapping(ZPad_Base::STICK_L_RIGHT);
-        
+        i32 upKey = GetKeyMapping(STICK_L_UP);
+        i32 downKey = GetKeyMapping(STICK_L_DOWN);
+        i32 leftKey = GetKeyMapping(STICK_L_LEFT);
+        i32 rightKey = GetKeyMapping(STICK_L_RIGHT);
+
         if (upKey < 0) upKey = KEY_UP;
         if (downKey < 0) downKey = KEY_DOWN;
         if (leftKey < 0) leftKey = KEY_LEFT;
         if (rightKey < 0) rightKey = KEY_RIGHT;
-        
+
         InputAdapter::PressStatus upStatus = INPUT_ADAPTER->getKeyboardStatus(upKey);
         InputAdapter::PressStatus downStatus = INPUT_ADAPTER->getKeyboardStatus(downKey);
         InputAdapter::PressStatus leftStatus = INPUT_ADAPTER->getKeyboardStatus(leftKey);
         InputAdapter::PressStatus rightStatus = INPUT_ADAPTER->getKeyboardStatus(rightKey);
-        
+
         f32 stickX = 0.0f;
         f32 stickY = 0.0f;
-        
+
         if (IsKeyboardButtonActive(leftStatus))
             stickX = -1.0f;
         else if (IsKeyboardButtonActive(rightStatus))
             stickX = 1.0f;
-            
+
         if (IsKeyboardButtonActive(upStatus))
             stickY = 1.0f;
         else if (IsKeyboardButtonActive(downStatus))
             stickY = -1.0f;
-        
+
         if (fabs(axes[m_joyStickLeft_X]) < 0.001f)
             axes[m_joyStickLeft_X] = stickX;
         if (fabs(axes[m_joyStickLeft_Y]) < 0.001f)
             axes[m_joyStickLeft_Y] = stickY;
+
+        if (stickX != 0.0f || stickY != 0.0f)
+        {
+            buttons[m_joyButton_DPadU] = InputAdapter::Released;
+            buttons[m_joyButton_DPadD] = InputAdapter::Released;
+            buttons[m_joyButton_DPadL] = InputAdapter::Released;
+            buttons[m_joyButton_DPadR] = InputAdapter::Released;
+        }
 
         UpdateAxisValues(deviceInfo, axes);
         UpdateButtonStates(deviceInfo, buttons);
@@ -352,7 +358,7 @@ namespace ITF
         }
         for (const auto& mapping : kKeyboardButtonMappings)
         {
-            i32 keyToCheck = -1;
+            i32 keyToCheck;
             if (mapping.controlIndex < MAX_KEY_MAPPINGS && m_keyMappings[mapping.controlIndex] >= 0)
             {
                 keyToCheck = m_keyMappings[mapping.controlIndex];

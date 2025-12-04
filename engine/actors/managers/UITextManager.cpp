@@ -228,7 +228,7 @@ namespace ITF
         return "";
     }
 
-  
+
 #if defined(ITF_WINDOWS)
     static String8 GetIconNameForKeyboardKey(i32 rawKey)
     {
@@ -1114,7 +1114,6 @@ namespace ITF
         }
 
 #if defined(ITF_WINDOWS)
-        // Check for keyboard mode - display the mapped key
         if (padType == InputAdapter::Pad_Keyboard)
         {
             i32 keyCode = GAMEMANAGER->getInputManager()->GetKeyboardKeyFromAction(_playerIndex, (ZInputManager::EGameAction)_action);
@@ -1122,7 +1121,6 @@ namespace ITF
             {
                 return GetIconNameForKeyboardKey(keyCode);
             }
-            // Fallback to default key if keyboard device not found
             keyCode = GetDefaultKeyForAction(_action);
             if (keyCode >= 0)
             {

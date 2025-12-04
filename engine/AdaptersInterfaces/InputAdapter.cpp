@@ -388,7 +388,7 @@ namespace ITF
         {
             return Pad_Keyboard;
         }
-        else if (deviceType == InputDevice_Gamepad)
+        if (deviceType == InputDevice_Gamepad)
         {
             return getDebugInputPadType(_player);
         }
