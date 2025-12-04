@@ -35,7 +35,7 @@ namespace	ITF
             }
         }
 #ifdef ITF_LOG_SOUND_EVENTS
-	    AUDIO_LOG("HIT Play Wwise event \"%s\".", getWwiseNameFromID(_playRequest.m_soundEventID));
+	    // AUDIO_LOG("HIT Play Wwise event \"%s\".", getWwiseNameFromID(_playRequest.m_soundEventID));
 #endif
 #endif
 
