@@ -44,16 +44,8 @@ private:
 
     ITF_INLINE const Ray_TutorialComponent_Template* getTemplate() const;
 
-    void show(f32 _dt);
+    void show();
     void hide();
-    void setup(InputAdapter::PadType _padType);
-    void setupWii(f32 _dt);
-    void setupSwitch(f32 _dt);
-
-    void updateSetup(f32 _dt);
-    void reset();
-
-    UIMenu* getUIMenu();
 
     bbool isSprintTutorialDisabled() const;
     void disableSprintTutorialIfNeeded();
@@ -61,12 +53,6 @@ private:
     bbool m_active;
     bbool m_wasShown;
     bbool m_wasVisible;
-
-    f32 m_padCountdown;
-    typedef ITF_VECTOR<InputAdapter::PadType> PadTypeList;
-    PadTypeList m_padTypes;
-    u32 m_padTypeIndex;
-    InputAdapter::PadType m_padType;
 
     PlayerDetectorComponent* m_playerDetector;
 };
@@ -84,36 +70,12 @@ public:
 
     ITF_INLINE bbool getStartsActive() const { return m_startsActive; }
     ITF_INLINE bbool isSprintTutorial() const { return m_isSprintTutorial; }
-    ITF_INLINE f32 getPadDisplayDuration() const { return m_padDisplayDuration; }
-    ITF_INLINE LocalisationId getNunchukWiiLineId() const { return m_nunchukWiiLineId; }
-    ITF_INLINE LocalisationId getSidewayWiiLineId() const { return m_sidewayWiiLineId; }
-    ITF_INLINE LocalisationId getClassicWiiLineId() const { return m_classicWiiLineId; }
-    ITF_INLINE LocalisationId getPs3LineId() const { return m_ps3LineId; }
-    ITF_INLINE LocalisationId getVitaLineId() const { return m_vitaLineId; }
-    ITF_INLINE LocalisationId getCtrLineId() const { return m_ctrLineId; }
-    ITF_INLINE LocalisationId getX360LineId() const { return m_x360LineId; }
-    ITF_INLINE LocalisationId getPS5LineId() const { return m_ps5LineId; }
-    ITF_INLINE LocalisationId getNXJoyconLineId() const { return m_nxJoyConLineId; }
-    ITF_INLINE LocalisationId getNXJoyconDualLineId() const { return m_nxJoyConDualLineId; }
-    ITF_INLINE LocalisationId getNXProLineId() const { return m_nxProLineId; }
-    ITF_INLINE LocalisationId getXBoxLineId() const { return m_xboxLineId; }
+    ITF_INLINE LocalisationId getLineId() const { return m_lineId; }
 
 private:
     bbool m_startsActive;
     bbool m_isSprintTutorial;
-    f32 m_padDisplayDuration;
-    LocalisationId m_nunchukWiiLineId;
-    LocalisationId m_sidewayWiiLineId;
-    LocalisationId m_classicWiiLineId;
-    LocalisationId m_ps3LineId;
-    LocalisationId m_vitaLineId;
-    LocalisationId m_ctrLineId;
-    LocalisationId m_x360LineId;
-    LocalisationId m_ps5LineId;
-    LocalisationId m_nxJoyConLineId;
-    LocalisationId m_nxJoyConDualLineId;
-    LocalisationId m_nxProLineId;
-    LocalisationId m_xboxLineId;
+    LocalisationId m_lineId;
 };
 
 //------------------------------------------------------------------------------

@@ -11,15 +11,6 @@
 
 namespace ITF {
 
-//------------------------------------------------------------------------------
-enum ETutorialConfigIcon
-{
-    ConfigIcon_None,
-    ConfigIcon_SidewayWii,
-    ConfigIcon_NunchukWii,
-    ConfigIcon_ClassicWii,
-};
-
 class TutorialTextComponent : public ActorComponent
 {
     DECLARE_OBJECT_CHILD_RTTI(TutorialTextComponent, ActorComponent,2460478030)
@@ -40,11 +31,10 @@ public:
     virtual void                                onBecomeInactive();
     virtual void                                Update( f32 _dt );
 
-    void                                        show( const LocalisationId& _id, InputAdapter::PadType _padType );
+    void                                        show( const LocalisationId& _id );
     void                                        hide() { m_receiveHide = btrue; m_receiveShow = bfalse; m_locIdToShow = LocalisationId::Invalid; m_receiveForceHide = bfalse; }
     void                                        forceHide() { m_receiveForceHide = btrue; }
     bbool                                       isFinishHiding() const;
-    const Vec2d&                                getIconPos() const { return m_iconPos; }
 
 #ifdef ITF_SUPPORT_EDITOR
     virtual void                                onEditorCreated( class Actor* _original );
@@ -56,18 +46,13 @@ private:
     ITF_INLINE const class TutorialTextComponent_Template* getTemplate() const;
 
     void                                        updatePosition();
-    void                                        updateIconPos();
-    void                                        updateIconActor();
 
     class InGameTextComponent*                  m_inGameTextComponent;
     class AnimatedComponent*                    m_animatedComponent;
 
     Vec2d                                       m_relativePos;
-    Vec2d                                       m_iconPos;
     LocalisationId                              m_locIdToShow;
     LocalisationId                              m_currentLocId;
-    InputAdapter::PadType                       m_padToShow;
-    InputAdapter::PadType                       m_currentPad;
     bbool                                       m_hiding;
     bbool                                       m_receiveHide;
     bbool                                       m_receiveShow;
@@ -88,12 +73,10 @@ public:
     virtual ~TutorialTextComponent_Template();
 
     const Vec2d&                                getAnimSize() const { return m_animSize; }
-    const StringID&                             getIconPoint() const { return m_iconPoint; }
 
 private:
 
     Vec2d                                       m_animSize;
-    StringID                                    m_iconPoint;
 };
 
 ITF_INLINE const TutorialTextComponent_Template* TutorialTextComponent::getTemplate() const { return static_cast<const TutorialTextComponent_Template*>(m_template); }

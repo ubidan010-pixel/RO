@@ -834,7 +834,7 @@ namespace ITF
         // Tutorial texts
         void            setTutorialMsgActor( ObjectRef _ref ) { m_tutorialMsgActor = _ref; }
         ActorRef        getTutorialMsgActor() const { return m_tutorialMsgActor; }
-        void            showTutorialText( const LocalisationId& _id, InputAdapter::PadType _padType = InputAdapter::Pad_Invalid );
+        void            showTutorialText( const LocalisationId& _id );
         void            hideTutorialText();
         void            forceHideTutorialText();
         void            disableTutorialActor();

@@ -1018,7 +1018,7 @@ namespace ITF
         m_theGameScreen->hideTutorial();
     }
 
-    void GameManager::showTutorialText( const LocalisationId& _id, InputAdapter::PadType _padType )
+    void GameManager::showTutorialText( const LocalisationId& _id )
     {
         Actor* msg = m_tutorialMsgActor.getActor();
 
@@ -1028,7 +1028,7 @@ namespace ITF
 
             if ( tutorialTxtComponent )
             {
-                tutorialTxtComponent->show(_id,_padType);
+                tutorialTxtComponent->show(_id);
                 msg->enable();
             }
         }
