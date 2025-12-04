@@ -109,9 +109,33 @@ namespace ITF
 
     void ZPad_PCKeyboard::SetKeyMapping(u32 logicalControl, i32 keyCode)
     {
-        if (logicalControl < MAX_KEY_MAPPINGS)
+        if (logicalControl >= MAX_KEY_MAPPINGS)
         {
-            m_keyMappings[logicalControl] = keyCode;
+            return;
+        }
+
+        const i32 previousKey = GetKeyMapping(logicalControl);
+
+        // Apply the new mapping first so subsequent GetKeyMapping calls see it
+        m_keyMappings[logicalControl] = keyCode;
+
+        // Clearing the binding: nothing else to resolve
+        if (keyCode < 0)
+        {
+            return;
+        }
+
+        // Ensure uniqueness: if another control was using this key, give it the old key
+        for (u32 i = 0; i < MAX_KEY_MAPPINGS; ++i)
+        {
+            if (i == logicalControl)
+                continue;
+
+            if (GetKeyMapping(i) == keyCode)
+            {
+                m_keyMappings[i] = previousKey;
+                break;
+            }
         }
     }
 
