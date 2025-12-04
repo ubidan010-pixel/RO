@@ -156,7 +156,7 @@ namespace	ITF
 #else
         AudioSDK::safeStringCopy(actorName, " ");
 #endif
-	
+
 
 		// translate AkOSChar -> char (AkOSChar could be char or wchar_t)
 	//	char	ansiString[512];
@@ -165,11 +165,11 @@ namespace	ITF
 
 		if(_errorLevel == AK::Monitor::ErrorLevel_Error)
 		{
-            AUDIO_WARNING("[WWISE ERROR] %s (\"%s\" code %d) - AkPlayingID %d", errorstring, Wwise::Helper::getAkErrorCodeString(_errorCode), _errorCode,  _playingID);
+            // AUDIO_WARNING("[WWISE ERROR] %s (\"%s\" code %d) - AkPlayingID %d", errorstring, Wwise::Helper::getAkErrorCodeString(_errorCode), _errorCode,  _playingID);
 		}
 		else
 		{
-			AUDIO_LOG("%s [WWISE MESSAGE] %s (\"%s\" code %d) - AkPlayingID %d", actorName, errorstring, Wwise::Helper::getAkErrorCodeString(_errorCode), _errorCode,  _playingID);
+			// AUDIO_LOG("%s [WWISE MESSAGE] %s (\"%s\" code %d) - AkPlayingID %d", actorName, errorstring, Wwise::Helper::getAkErrorCodeString(_errorCode), _errorCode,  _playingID);
 		}
 #endif
 	}
