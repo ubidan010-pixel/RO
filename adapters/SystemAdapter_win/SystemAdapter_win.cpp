@@ -156,11 +156,11 @@ namespace ITF
         switch(uMsg)
         {
         case WM_SYSKEYDOWN:
-            {
-               (static_cast<GFXAdapter_Directx9*>(GFX_ADAPTER))->ChangeMonitor(1);
-                forward = true;
-                break;
-            }
+            // {
+            //    (static_cast<GFXAdapter_Directx9*>(GFX_ADAPTER))->ChangeMonitor(1);
+            //     forward = true;
+            //     break;
+            // }
         case WM_KEYDOWN:
 
         case WM_KEYUP:
