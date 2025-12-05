@@ -62,6 +62,8 @@ namespace ITF
 
         virtual void hideStartupSplashScreen() override;
 
+        virtual bbool isBackAndSelectButtonsInverted() const override { return btrue; }
+
         // ISystemNotificationListener_Nintendo implementation
         virtual void onSystemNotification(const nn::oe::Message& _message) override;
 

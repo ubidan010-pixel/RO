@@ -16,6 +16,10 @@
 #include "engine/zinput/ZPad_Base.h"
 #endif //_ITF_ZPAD_BASE_H_
 
+#ifndef _ITF_SYSTEMADAPTER_
+#include "core/AdaptersInterfaces/SystemAdapter.h"
+#endif //_ITF_SYSTEMADAPTER_
+
 namespace ITF
 {
     namespace
@@ -92,6 +96,19 @@ namespace ITF
                 return btrue;
             return bfalse;
         }
+
+        // Swap SOUTH and EAST buttons when platform requires it (NX/Ounce/Japan PS5)
+        ITF_INLINE u32 ApplyButtonSwapIfNeeded(u32 control)
+        {
+            if (SYSTEM_ADAPTER && SYSTEM_ADAPTER->isBackAndSelectButtonsInverted())
+            {
+                if (control == ZPad_Base::BUTTON_FACE_SOUTH)
+                    return ZPad_Base::BUTTON_FACE_EAST;
+                if (control == ZPad_Base::BUTTON_FACE_EAST)
+                    return ZPad_Base::BUTTON_FACE_SOUTH;
+            }
+            return control;
+        }
     }
 
     void IInputDevice::ImplProcessActionsWithCategory( ActionMap& actionMap, EInputCategory category )
@@ -115,6 +132,9 @@ namespace ITF
                     input.m_translatedControl = TranslateControl(input.m_control,m_controlMap);
 
                     u32 control = input.m_translatedControl;
+                    // Apply button swap for platforms that need SOUTH/EAST swapped (NX/Ounce/Japan PS5)
+                    control = ApplyButtonSwapIfNeeded(control);
+                    
                     if ( control != U32_INVALID && control < deviceInfoToUse.m_inputInfo.size() )
                     {
 						SInputInfo &inputInfo = deviceInfoToUse.m_inputInfo[control];

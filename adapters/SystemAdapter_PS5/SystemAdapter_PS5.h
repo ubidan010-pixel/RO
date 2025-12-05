@@ -53,6 +53,8 @@ public:
 
     virtual void hideStartupSplashScreen() override;
 
+    virtual bbool isBackAndSelectButtonsInverted() const override;
+
     String8 getUserSystemName(u32 _userIndexControlerId) const;
 
     enum class SystemEventType : u32

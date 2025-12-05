@@ -393,6 +393,13 @@ namespace ITF
         return static_cast<ITF_TERRITORY>(m_userDefinedAppParam1);
     }
 
+    bbool SystemAdapter_PS5::isBackAndSelectButtonsInverted() const
+    {
+        int32_t languageSys = SCE_SYSTEM_PARAM_LANG_ENGLISH_US;
+        sceSystemServiceParamGetInt(SCE_SYSTEM_SERVICE_PARAM_ID_LANG, &languageSys);
+        return (languageSys == SCE_SYSTEM_PARAM_LANG_JAPANESE) ? btrue : bfalse;
+    }
+
     static ITF_LANGUAGE convertSceLanguage(int32_t languageSys)
     {
         switch (languageSys)

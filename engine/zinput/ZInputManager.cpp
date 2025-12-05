@@ -46,6 +46,10 @@
 #include "engine/zinput/ZPad_Base.h"
 #endif //_ITF_ZPAD_BASE_H_
 
+#ifndef _ITF_SYSTEMADAPTER_
+#include "core/AdaptersInterfaces/SystemAdapter.h"
+#endif //_ITF_SYSTEMADAPTER_
+
 // ---------------------------------------------------------------
 
 namespace ITF
@@ -295,6 +299,9 @@ namespace ITF
 
     u32 ZInputManager::GetStandardControlFromAction(EGameAction _action)
     {
+        // Check if SOUTH and EAST buttons should be swapped (e.g., for NX/Ounce/Japan PS5)
+        bbool swapSouthEast = SYSTEM_ADAPTER && SYSTEM_ADAPTER->isBackAndSelectButtonsInverted();
+        
         switch (_action)
         {
         case Action_Up:    return ZPad_Base::STICK_L_UP;
@@ -302,9 +309,9 @@ namespace ITF
         case Action_Left:  return ZPad_Base::STICK_L_LEFT;
         case Action_Right: return ZPad_Base::STICK_L_RIGHT;
         case Action_Run:   return ZPad_Base::TRIGGER_RIGHT;
-        case Action_Jump:  return ZPad_Base::BUTTON_FACE_SOUTH;
+        case Action_Jump:  return swapSouthEast ? ZPad_Base::BUTTON_FACE_EAST : ZPad_Base::BUTTON_FACE_SOUTH;
         case Action_Hit:   return ZPad_Base::BUTTON_FACE_WEST;
-        case Action_Back:  return ZPad_Base::BUTTON_FACE_EAST;
+        case Action_Back:  return swapSouthEast ? ZPad_Base::BUTTON_FACE_SOUTH : ZPad_Base::BUTTON_FACE_EAST;
         default: return U32_INVALID;
         }
     }
