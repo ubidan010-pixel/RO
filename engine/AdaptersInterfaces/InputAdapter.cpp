@@ -59,6 +59,9 @@ namespace ITF
 
     InputAdapter::InputAdapter() :
         m_focused(true),
+        m_connectedPlayers{},
+        m_axes{},
+        m_buttons{},
 #if defined(ITF_WINDOWS)
         m_pcControlMode(PCControlMode_Hybrid),
 #endif
@@ -74,9 +77,9 @@ namespace ITF
         m_environmentInput = EnvironmentEngine | EnvironmentLua;
         m_buttonMode = MixedMode;
 
-        for (u32 i = 0; i < JOY_MAX_COUNT; ++i)
+        for (auto& i : m_lastUsedInputDevice)
         {
-            m_lastUsedInputDevice[i] = InputDevice_None;
+            i = InputDevice_None;
         }
 
         for (u32 i = 0; i < JOY_MAX_BUT; i++)
@@ -112,7 +115,7 @@ namespace ITF
             default:
                 m_buttonClasses[i] = BUTTONCLASS_UNKNOWN;
                 break;
-            };
+            }
         }
 
 #if defined(ITF_WINDOWS)
@@ -126,7 +129,7 @@ namespace ITF
     void InputAdapter::SetPCControlMode(PCControlMode mode)
     {
         const PCControlMode previousMode = m_pcControlMode;
-        const u32 clampedMode = std::min<u32>(static_cast<u32>(mode), static_cast<u32>(PCControlMode_Count - 1));
+        const u32 clampedMode = std::min<u32>(static_cast<u32>(mode), PCControlMode_Count - 1);
         m_pcControlMode = static_cast<PCControlMode>(clampedMode);
 
         if (m_pcControlMode != previousMode)
@@ -137,33 +140,33 @@ namespace ITF
 
     void InputAdapter::OnPCControlModeChanged(PCControlMode previous, PCControlMode current)
     {
-        ITF_UNUSED(previous);
-        ITF_UNUSED(current);
+        ITF_UNUSED(previous)
+        ITF_UNUSED(current)
     }
 #endif
 
     void InputAdapter::addListener(Interface_InputListener* _listener, u32 _priority)
     {
-        ITF_UNUSED(_listener);
-        ITF_UNUSED(_priority);
+        ITF_UNUSED(_listener)
+        ITF_UNUSED(_priority)
     }
 
     void InputAdapter::removeListener(Interface_InputListener* _listener)
     {
-        ITF_UNUSED(_listener);
+        ITF_UNUSED(_listener)
     }
 
     InputAdapter::~InputAdapter() = default;
 
-    void InputAdapter::onMouseButton(InputAdapter::MouseButton _but, InputAdapter::PressStatus _status)
+    void InputAdapter::onMouseButton(MouseButton _but, PressStatus _status)
     {
-        ITF_UNUSED(_but);
-        ITF_UNUSED(_status);
+        ITF_UNUSED(_but)
+        ITF_UNUSED(_status)
     }
 
     void InputAdapter::onMouseWheel(i32 _wheelValue)
     {
-        ITF_UNUSED(_wheelValue);
+        ITF_UNUSED(_wheelValue)
     }
 
     void InputAdapter::flushKeys()
@@ -171,22 +174,22 @@ namespace ITF
     }
 
 
-    void InputAdapter::onKey(i32 _key, InputAdapter::PressStatus _status)
+    void InputAdapter::onKey(i32 _key, PressStatus _status)
     {
-        ITF_UNUSED(_key);
-        ITF_UNUSED(_status);
+        ITF_UNUSED(_key)
+        ITF_UNUSED(_status)
     }
 
     bbool InputAdapter::isKeyPressed(i32 _key) const
     {
-        ITF_UNUSED(_key);
+        ITF_UNUSED(_key)
         return bfalse;
     }
 
     void InputAdapter::onMousePos(i32 _x, i32 _y)
     {
-        ITF_UNUSED(_x);
-        ITF_UNUSED(_y);
+        ITF_UNUSED(_x)
+        ITF_UNUSED(_y)
     }
 
     void InputAdapter::getMousePos(i32& _x, i32& _y) const
@@ -304,14 +307,14 @@ namespace ITF
 
     void InputAdapter::padVibration(u32 _numPad, f32 _leftMotorSpeed, f32 _rightMotorSpeed)
     {
-        ITF_UNUSED(_numPad);
-        ITF_UNUSED(_leftMotorSpeed);
-        ITF_UNUSED(_rightMotorSpeed);
+        ITF_UNUSED(_numPad)
+        ITF_UNUSED(_leftMotorSpeed)
+        ITF_UNUSED(_rightMotorSpeed)
     }
 
     bbool InputAdapter::isMousePressed(MouseButton _but) const
     {
-        ITF_UNUSED(_but);
+        ITF_UNUSED(_but)
         return bfalse;
     }
 
@@ -376,13 +379,13 @@ namespace ITF
 
     InputAdapter::PressStatus InputAdapter::getKeyboardStatus(i32 key) const
     {
-        ITF_UNUSED(key);
+        ITF_UNUSED(key)
         return Released;
     }
 
     u32 InputAdapter::getKeyboardPressTime(i32 key) const
     {
-        ITF_UNUSED(key);
+        ITF_UNUSED(key)
         return std::numeric_limits<u32>::max();
     }
 
@@ -415,7 +418,7 @@ namespace ITF
             return bfalse;
         PressStatus buttons[JOY_MAX_BUT];
         getGamePadButtons(EnvironmentLua, _player, buttons, JOY_MAX_BUT);
-        
+
         if (buttons[m_joyButton_Start] == JustReleased)
             return btrue;
 

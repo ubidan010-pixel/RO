@@ -292,12 +292,10 @@ namespace ITF
             ePlaying
         };
 
-    private:
     protected:
         ButtonClassMask m_buttonClasses[JOY_MAX_BUT];
         u32 m_environmentInput;
         ButtonMode m_buttonMode;
-        bbool m_inMenu;
         bbool m_focused;
 
         PlayerState m_connectedPlayers[JOY_MAX_COUNT];
