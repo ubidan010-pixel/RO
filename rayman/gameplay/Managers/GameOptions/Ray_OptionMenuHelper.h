@@ -58,6 +58,7 @@ namespace ITF
         bbool handleResetToDefault(const StringID& id);
         bbool handleAccept(const StringID& id);
         bbool handleCancel(const StringID& id);
+        bbool handleConnect(const StringID& id);
 
         void initializeMenuState();
         void enterEditMode(UIComponent* component, const StringID& optionId);

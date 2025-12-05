@@ -12,6 +12,20 @@
 #include "engine/actors/actor.h"
 #endif
 
+#ifndef _ITF_UPLAYSERVICE_
+#include "engine/networkservices/UPlayService.h"
+#endif
+
+#ifndef _ITF_ONLINEADAPTER_H_
+#include "engine/AdaptersInterfaces/OnlineAdapter/OnlineAdapter.h"
+#include "engine/AdaptersInterfaces/OnlineAdapter/OnlineError.h"
+#endif
+
+#ifndef ITF_ONLINE_ADAPTER_UBISERVICES_H
+#include "adapters/OnlineAdapter_Ubiservices/OnlineAdapter_Ubiservices.h"
+#include "adapters/OnlineAdapter_Ubiservices/SessionService_Ubiservices.h"
+#endif //ITF_ONLINE_ADAPTER_UBISERVICES_H
+
 #ifndef _ITF_UIMENU_H_
 #include "gameplay/components/UI/UIMenu.h"
 #endif
@@ -152,6 +166,7 @@ namespace ITF
         if (componentId.isValid())
         {
             if (componentId == OPTIONMENU_RESET_TO_DEFAULT_BUTTON ||
+                componentId == OPTIONMENU_UBISOFTCONNECT_BUTTON ||
                 componentId == OPTIONMENU_ACCEPT_BUTTON ||
                 componentId == OPTIONMENU_CANCEL_BUTTON)
             {
@@ -167,7 +182,8 @@ namespace ITF
 
             }
 
-            if (handleResetToDefault(componentId) || handleAccept(componentId) || handleCancel(componentId))
+            if (handleResetToDefault(componentId) || handleConnect(componentId) ||
+                handleAccept(componentId) || handleCancel(componentId))
             {
                 return;
             }
@@ -272,6 +288,34 @@ namespace ITF
 
         refreshAllOptionVisuals();
 
+        return btrue;
+    }
+
+    bbool Ray_OptionMenuHelper::handleConnect(const StringID& id)
+    {
+        if (id != OPTIONMENU_UBISOFTCONNECT_BUTTON)
+            return bfalse;
+
+#if defined(ITF_WINDOWS) && defined(ITF_SUPPORT_UPLAY)
+        if (!UPLAYSERVICE || UPLAYSERVICE->isOverlayActive())
+            return bfalse;
+
+        i32 ret = UPLAYSERVICE->showOverlay();
+        if (ret)
+        {
+            TRC_ADAPTER->addMessage(TRCManagerAdapter::ErrorContext::UOR_FirstPartyOffline);
+        }
+#elif defined(ITF_SUPPORT_UBISERVICES)
+        if (!ONLINE_ADAPTER)
+            return bfalse;
+
+        OnlineError ret = ONLINE_ADAPTER->getSessionService()->launchConnect();
+        LOG("[UBICONNECT] - Ray_OptionMenuHelper: overlay returned: %d", ret.getCode());
+        if (ret.getType() != OnlineError::Success)
+        {
+            TRC_ADAPTER->addMessage(TRCManagerAdapter::ErrorContext::UOR_FirstPartyOffline);
+        }
+#endif
         return btrue;
     }
 

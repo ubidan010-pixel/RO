@@ -47,6 +47,7 @@ namespace ITF
 
 // Action buttons
 #define OPTIONMENU_RESET_TO_DEFAULT_BUTTON    ITF_GET_STRINGID_CRC(reset_to_default_button,2697802978)
+#define OPTIONMENU_UBISOFTCONNECT_BUTTON      ITF_GET_STRINGID_CRC(ubisoftconnect_button,3586303504)
 #define OPTIONMENU_ACCEPT_BUTTON              ITF_GET_STRINGID_CRC(accept_button,25226343)
 #define OPTIONMENU_CANCEL_BUTTON              ITF_GET_STRINGID_CRC(cancel_button,4260770984)
 
