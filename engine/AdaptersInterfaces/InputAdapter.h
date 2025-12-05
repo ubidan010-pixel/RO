@@ -608,8 +608,6 @@ namespace ITF
         PCControlMode GetPCControlMode() const { return m_pcControlMode; }
         bbool IsKeyboardControllerSharingEnabled() const { return m_pcControlMode == PCControlMode_Hybrid; }
         bbool IsKeyboardMouseEnabled() const { return m_pcControlMode != PCControlMode_Controller; }
-
-        // Returns the first raw keyboard key that is currently pressed, or -1 if none
         virtual i32 GetFirstPressedRawKey() const { return -1; }
 #endif
 

@@ -1259,6 +1259,11 @@ namespace ITF
         if (m_slotGamepad[0] == -1)
         {
             m_connectedPlayers[0] = ePlaying;
+            if (share)
+            {
+                setPadType(0, Pad_Keyboard);
+                setLastUsedInputDevice(0, InputDevice_Keyboard);
+            }
         }
         setPadConnected(0, btrue);
     }
