@@ -25,13 +25,21 @@ namespace ITF
         virtual String8 getToken();
         inline virtual bbool isOverlayActive() { return m_isOverlayActive; }
 
+        virtual bbool isClientConnected() override;
+        virtual bbool isClientOnline() override;
+        virtual String8 getUserName() override;
+        virtual String8 getUserEmail() override;
+
     private:
         UPC_Context* m_Context;
         bbool m_isInitialized;
         bbool m_isOverlayActive;
 
+        UPC_User* m_user;
+        const char* m_userEmail;
         String8 m_language;
 
+        static void onUserGet(UPC_int32 aResult, void* aData);
         static void showOverlayCallback(UPC_Event* inEvent, void* inData);
     };
 

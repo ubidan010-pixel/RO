@@ -145,7 +145,7 @@
 #include "adapters/RewardAdapter_PS5/RewardAdapter_PS5.h"
 #include "adapters/RewardAdapter_xboxseries/RewardAdapter_xboxseries.h"
 
-
+#include "adapters/AccountAdapter_win/AccountAdapter_win.h"
 #include "adapters/AccountAdapter_PS5/AccountAdapter_PS5.h"
 #include "adapters/AccountAdapter_xboxseries/AccountAdapter_xboxseries.h"
 #include "adapters/AccountAdapter_Nintendo/AccountAdapter_Nintendo.h"

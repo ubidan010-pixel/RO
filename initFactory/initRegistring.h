@@ -83,6 +83,7 @@ REGISTER_ITF_PARENT(OnlineTrackingAdapter_win32, OnlineTrackingAdapter)
 #endif //ITF_SUPPORT_ONLINETRACKING
 
 REGISTER_ITF_PARENT(RewardAdapter_win, RewardAdapter)
+REGISTER_ITF_PARENT(AccountAdapter_win, AccountAdapter)
 #ifdef ITF_SUPPORT_IMGUI
 REGISTER_ITF_PARENT(ImGuiAdapter_win, ImGuiAdapter)
 #endif

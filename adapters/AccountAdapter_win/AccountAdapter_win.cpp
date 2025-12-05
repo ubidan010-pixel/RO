@@ -63,7 +63,7 @@ namespace ITF
         m_activeAccount.setPermissions(Account::EPermissions_All);
         m_activeAccount.setAgeGroup(Account::EAgeGroup_Adult);
 
-        LOG("The active account has been created:");
+        LOG("[AccountAdapter] The active account has been created:");
         m_activeAccount.dumpToLog();
 
         m_activeAccountInd = 0;
@@ -75,11 +75,13 @@ namespace ITF
     {
         m_activeAccount.setName(UPLAYSERVICE->getUserName());
         m_activeAccount.setEmail(UPLAYSERVICE->getUserEmail());
+        m_activeAccount.setLinkedToUplay(true);
+        m_activeAccount.setSignedOnPlatformNetwork(true);
 
         m_activeAccount.setPermissions(Account::EPermissions_All);
         m_activeAccount.setAgeGroup(Account::EAgeGroup_Adult);
 
-        LOG("The active account has been created:");
+        LOG("[AccountAdapter] The active account has been created:");
         m_activeAccount.dumpToLog();
 
         m_activeAccountInd = 0;
@@ -90,11 +92,22 @@ namespace ITF
     {
         updateAccountConnectionStatus();
         AccountAdapter::update();
+
+        // poll ~2 times; Uplay get name is retrieved shortly after
+        if (m_activeAccount.getName().isEmpty())
+        {
+            String8 name = UPLAYSERVICE->getUserName();
+            if (!name.isEmpty())
+            {
+                LOG("[AccountAdapter] obtained name from UPlay: %s", name.cStr());
+                m_activeAccount.setName(name);
+            }
+        }
     }
 
     void AccountAdapter_win::updateAccountConnectionStatus()
     {
-        if(m_uplayClientConnected != UPLAYSERVICE->isClientConnected())
+        if (m_uplayClientConnected != UPLAYSERVICE->isClientConnected())
         {
             m_uplayClientConnected = ~m_uplayClientConnected;
             m_activeAccount.setSignedOnPlatformNetwork((m_uplayClientConnected && m_uplayClientOnline) ? true : false);
