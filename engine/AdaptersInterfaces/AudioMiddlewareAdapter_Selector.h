@@ -8,25 +8,27 @@
 #if defined(ITF_PS5) || defined(ITF_WINDOWS) || defined(ITF_NX) || defined(ITF_OUNCE) || defined(ITF_XBOX_SERIES)
 
 
-#if defined(ITF_WINDOWS) && defined(ITF_FINAL) && !defined(ITF_RETAIL)
-#define ITF_WWISE_PROFILE
-#endif
+	#if defined(ITF_WINDOWS) && defined(ITF_FINAL) && !defined(ITF_RETAIL)
+		#define ITF_WWISE_PROFILE
+	#endif
 
-#define ITF_SUPPORT_WWISE
+	#define ITF_SUPPORT_WWISE
 
 #else
-#define ITF_SUPPORT_RAKI
+	#define ITF_SUPPORT_RAKI
 #endif
-
 
 #if defined(ITF_SUPPORT_WWISE)
-#if defined(ITF_WINDOWS) || defined(ITF_PS5)
-#define USE_PAD_HAPTICS
-#define ITF_LOG_SOUND_EVENTS
-#endif
-#if defined(ITF_SUPPORT_RAKI)
-#error "(macros.h) : Choose only one audio engine"
-#endif
+	#if defined(ITF_WINDOWS) || defined(ITF_PS5)
+		#define USE_PAD_HAPTICS
+		#if defined(ITF_DEBUG) || defined(ITF_RELEASE)
+			#define ITF_LOG_SOUND_EVENTS
+		#endif
+	#endif
+
+	#if defined(ITF_SUPPORT_RAKI)
+	#error "(macros.h) : Choose only one audio engine"
+	#endif
 #endif
 
 
