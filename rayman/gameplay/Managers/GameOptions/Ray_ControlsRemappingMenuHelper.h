@@ -70,6 +70,7 @@ namespace ITF
         void updateControllerTypeDisplay(UIListOptionComponent* listComponent, i32 index);
         UIListOptionComponent* findControllerTypeComponent() const;
         bbool isControllerTypeEditing() const { return m_isEditingControllerType; }
+        void updateControllerTypeEditing(f32 deltaTime);
 #endif
 
         static Ray_ControlsRemappingMenuHelper* s_activeHelper;

@@ -12116,7 +12116,7 @@ namespace ITF
         m_gameOptionManager.setListOptionIndex(OPTION_PC_KEYBOARD_CONTROLLER_SHARING, type);
 
         const char* typeName = getPCControlModeDisplayName(type);
-        LOG("[OptionMenu] Controller Type: %s", typeName ? typeName : "Unknown");
+        LOG("[ControlsRemapping] Controller Type: %s", typeName ? typeName : "Unknown");
 
         if (INPUT_ADAPTER)
         {

@@ -459,6 +459,10 @@ namespace ITF
 
     void Ray_ControlsRemappingMenuHelper::updateRemappingMode(f32 deltaTime)
     {
+#if defined(ITF_WINDOWS)
+        updateControllerTypeEditing(deltaTime);
+#endif
+
         if (m_isWaitingForRelease)
         {
             m_postRemapCooldown -= deltaTime;
@@ -756,6 +760,15 @@ namespace ITF
 #endif
     }
 
+    void Ray_ControlsRemappingMenuHelper::updateControllerTypeEditing(f32 deltaTime)
+    {
+        if (!m_isEditingControllerType || !m_editingControllerTypeComponent)
+            return;
+
+        m_controllerTypeFirstPressTimer += deltaTime;
+        m_controllerTypeInputTimer += deltaTime;
+    }
+
     bbool Ray_ControlsRemappingMenuHelper::processEditingInput(UIComponent* component, const StringID& action)
     {
         if (!m_isEditingControllerType || !component)
@@ -775,6 +788,7 @@ namespace ITF
         {
             m_controllerTypeFirstPressed = btrue;
             m_controllerTypeFirstPressTimer = 0.0f;
+            m_controllerTypeInputTimer = 0.0f;
             adjustControllerType(listComponent, -1);
             return btrue;
         }
@@ -782,30 +796,29 @@ namespace ITF
         {
             m_controllerTypeFirstPressed = btrue;
             m_controllerTypeFirstPressTimer = 0.0f;
+            m_controllerTypeInputTimer = 0.0f;
             adjustControllerType(listComponent, 1);
             return btrue;
         }
         if (action == input_actionID_LeftHold || action == input_actionID_RightHold)
         {
-            m_controllerTypeFirstPressTimer += LOGICDT;
+            i32 dir = (action == input_actionID_LeftHold) ? -1 : 1;
 
             if (m_controllerTypeFirstPressed)
             {
                 if (m_controllerTypeFirstPressTimer > ControlsRemappingConstants::CONTROLLER_TYPE_FIRST_PRESS_DELAY)
                 {
                     m_controllerTypeFirstPressed = bfalse;
+                    m_controllerTypeFirstPressTimer = 0.0f;
                     m_controllerTypeInputTimer = 0.0f;
-                    i32 dir = (action == input_actionID_LeftHold) ? -1 : 1;
                     adjustControllerType(listComponent, dir);
                 }
             }
             else
             {
-                m_controllerTypeInputTimer += LOGICDT;
                 if (m_controllerTypeInputTimer > ControlsRemappingConstants::CONTROLLER_TYPE_REPEAT_RATE)
                 {
                     m_controllerTypeInputTimer = 0.0f;
-                    i32 dir = (action == input_actionID_LeftHold) ? -1 : 1;
                     adjustControllerType(listComponent, dir);
                 }
             }
