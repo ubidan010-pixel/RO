@@ -1199,7 +1199,7 @@ namespace ITF
           , m_preloadedPrologueReady(bfalse)
           , m_gameOptionPersistence(NULL)
           , m_trcHelper(NULL)
-          ,m_languageIndexChangedInGame(-1)
+          , m_languageIndexChangedInGame(-1)
     {
         ITF_MemSet(m_lastPadType, U32_INVALID, sizeof(m_lastPadType));
 
@@ -2629,7 +2629,7 @@ namespace ITF
 
 #ifdef ITF_SUPPORT_CHEAT
         for (ITF_VECTOR<String>::const_iterator it = m_configTemplate->getMaps().begin(); it != m_configTemplate->
-             getMaps().end(); ++it)
+                                                                                                getMaps().end(); ++it)
         {
             UI_MENUMANAGER->addDebugMenuMap(newAlloc(mId_UI, DebugMenuEntryLoadMap(*it)));
         }
@@ -2929,6 +2929,7 @@ namespace ITF
         LOG("[CHEAT] - unlock all level");
         RAY_GAMEMANAGER->saveGameState(false, RAY_GAMEMANAGER->getCurrentSlotIndex());
     }
+
     void Ray_GameManager::cheatMaxCurrency()
     {
         Ray_PersistentGameData_Universe* universe = getPersistentGameData();
@@ -3306,7 +3307,7 @@ namespace ITF
     {
         m_currentScore.setFrom(m_currentScore_Checkpoint);
         m_currentLevelData.setFrom(&m_currentLevelData_Checkpoint,
-                                   btrue/*we want to be able to interrupt a cut scene even if was not saved*/,bfalse/* _copyFoundRelicMask */);
+                                   btrue/*we want to be able to interrupt a cut scene even if was not saved*/, bfalse/* _copyFoundRelicMask */);
     }
 
     void Ray_GameManager::updateDisconnectedPlayersStatus()
@@ -3868,14 +3869,16 @@ namespace ITF
         postGameScreenChange<Ray_GameScreen_MainMenu>(bfalse);
         ChangeLanguageInGame();
     }
+
     void Ray_GameManager::ChangeLanguageInGame()
     {
-        if (m_languageIndexChangedInGame!=-1 && m_languageIndexChangedInGame != LOCALISATIONMANAGER->getCurrentLanguage())
+        if (m_languageIndexChangedInGame != -1 && m_languageIndexChangedInGame != LOCALISATIONMANAGER->getCurrentLanguage())
         {
             u32 index = static_cast<u32>(m_languageIndexChangedInGame);
             setLanguageIndex(index);
         }
     }
+
     void Ray_GameManager::goToLevelStats()
     {
         postGameScreenChange<Ray_GameScreen_LevelStats>(bfalse);
@@ -4889,10 +4892,10 @@ namespace ITF
         u32 seqIndex = isPlayingSeq(&m_changePageSequence);
 
 
-    if (seqIndex == U32_INVALID)
-    {
-        m_changePageSequence.start(_enterPoint,
-                                   _exitPoint,
+        if (seqIndex == U32_INVALID)
+        {
+            m_changePageSequence.start(_enterPoint,
+                                       _exitPoint,
                                        _finalPoint,
                                        _verticalEjectToFinalPoint,
                                        _player,
@@ -11621,13 +11624,13 @@ namespace ITF
             const i32 w = static_cast<i32>(mode.dmPelsWidth);
             const i32 h = static_cast<i32>(mode.dmPelsHeight);
             if (w < 900) continue;
-            f32 originRatio = (f32)w/h;
+            f32 originRatio = (f32)w / h;
             bbool matchSupportRatio = false;
-            f32 supportRatio[]={16.0f/9.0f,21.0f/9.0f};
+            f32 supportRatio[] = {16.0f / 9.0f, 21.0f / 9.0f};
             const f32 epsilon = 0.01f; // tolerance for float comparison
             for (auto support_ratio : supportRatio)
             {
-                if (abs(originRatio - support_ratio) <epsilon)
+                if (abs(originRatio - support_ratio) <= epsilon)
                 {
                     matchSupportRatio = true;
                     break;
@@ -11645,7 +11648,9 @@ namespace ITF
             }
             if (!found)
             {
-                ResolutionEntry entry; entry.width = w; entry.height = h;
+                ResolutionEntry entry;
+                entry.width = w;
+                entry.height = h;
                 m_availableResolutions.push_back(entry);
             }
         }
@@ -11653,15 +11658,26 @@ namespace ITF
 #endif
         if (m_availableResolutions.empty())
         {
-            ResolutionEntry defaults[] = {{1280,720},{1920,1080},{2560,1440},{3840,2160}};
+            ResolutionEntry defaults[] = {{1280, 720}, {1920, 1080}, {2560, 1440}, {3840, 2160}};
             for (auto& e : defaults) m_availableResolutions.push_back(e);
         }
         else if (!SYSTEM_ADAPTER->isFullScreenMode())
         {
-
-            ResolutionEntry entry; entry.width = 960; entry.height = 540;
+            ResolutionEntry entry;
+            entry.width = 960;
+            entry.height = 540;
             m_availableResolutions.push_back(entry);
         }
+        sort(
+            m_availableResolutions.begin(),
+            m_availableResolutions.end(),
+            [](const ResolutionEntry& a, const ResolutionEntry& b)
+            {
+                if (a.width != b.width)
+                    return a.width > b.width;
+                return a.height > b.height;
+            }
+        );
         Vector<i32> choices;
         choices.reserve(m_availableResolutions.size());
         for (u32 i = 0; i < m_availableResolutions.size(); ++i) choices.push_back(static_cast<i32>(i));
@@ -11925,10 +11941,12 @@ namespace ITF
     {
         return m_gameOptionManager.getListOptionIndex(OPTION_LANGUAGE);
     }
+
     void Ray_GameManager::setPendingLanguageIndex(i32 index)
     {
         m_languageIndexChangedInGame = index;
     }
+
     void Ray_GameManager::setLanguageIndex(i32 index)
     {
         m_gameOptionManager.setListOptionIndex(OPTION_LANGUAGE, index);
@@ -11946,21 +11964,21 @@ namespace ITF
         // Use ITF_LANGUAGE enum values
         switch (index)
         {
-        case ITF_LANGUAGE_ENGLISH:              return "English";
-        case ITF_LANGUAGE_FRENCH:               return "French";
-        case ITF_LANGUAGE_ITALIAN:              return "Italian";
-        case ITF_LANGUAGE_GERMAN:               return "German";
-        case ITF_LANGUAGE_SPANISH:              return "Spanish";
-        case ITF_LANGUAGE_PORTUGUESE:           return "Portuguese";
-        case ITF_LANGUAGE_JAPANESE:             return "Japanese";
-        case ITF_LANGUAGE_TRADITIONALCHINESE:   return "Traditional Chinese";
-        case ITF_LANGUAGE_SIMPLIFIEDCHINESE:    return "Simplified Chinese";
-        case ITF_LANGUAGE_RUSSIAN:              return "Russian";
-        case ITF_LANGUAGE_POLISH:               return "Polish";
-        case ITF_LANGUAGE_KOREAN:               return "Korean";
-        case ITF_LANGUAGE_DUTCH:                return "Dutch";
-        case ITF_LANGUAGE_CZECH:                return "Czech";
-        case ITF_LANGUAGE_HUNGARIAN:            return "Hungarian";
+        case ITF_LANGUAGE_ENGLISH: return "English";
+        case ITF_LANGUAGE_FRENCH: return "French";
+        case ITF_LANGUAGE_ITALIAN: return "Italian";
+        case ITF_LANGUAGE_GERMAN: return "German";
+        case ITF_LANGUAGE_SPANISH: return "Spanish";
+        case ITF_LANGUAGE_PORTUGUESE: return "Portuguese";
+        case ITF_LANGUAGE_JAPANESE: return "Japanese";
+        case ITF_LANGUAGE_TRADITIONALCHINESE: return "Traditional Chinese";
+        case ITF_LANGUAGE_SIMPLIFIEDCHINESE: return "Simplified Chinese";
+        case ITF_LANGUAGE_RUSSIAN: return "Russian";
+        case ITF_LANGUAGE_POLISH: return "Polish";
+        case ITF_LANGUAGE_KOREAN: return "Korean";
+        case ITF_LANGUAGE_DUTCH: return "Dutch";
+        case ITF_LANGUAGE_CZECH: return "Czech";
+        case ITF_LANGUAGE_HUNGARIAN: return "Hungarian";
         default: return "Unknown";
         }
     }
@@ -11984,9 +12002,9 @@ namespace ITF
     {
         switch (index)
         {
-        case HealthModifier_Default:      return "No";
-        case HealthModifier_RedHeart:     return "Red";
-        case HealthModifier_GoldenHeart:  return "Golden";
+        case HealthModifier_Default: return "No";
+        case HealthModifier_RedHeart: return "Red";
+        case HealthModifier_GoldenHeart: return "Golden";
         case HealthModifier_DiamondHeart: return "Diamond";
         default: return "Unknown";
         }
@@ -11996,11 +12014,11 @@ namespace ITF
     {
         switch (index)
         {
-            case HealthModifier_Default:      return LINEID_HEART_NONE;
-            case HealthModifier_RedHeart:     return LINEID_HEART_RED;
-            case HealthModifier_GoldenHeart:  return LINEID_HEART_GOLDEN;
-            case HealthModifier_DiamondHeart: return LINEID_HEART_DIAMOND;
-            default:                          return LINEID_HEART_NONE;
+        case HealthModifier_Default: return LINEID_HEART_NONE;
+        case HealthModifier_RedHeart: return LINEID_HEART_RED;
+        case HealthModifier_GoldenHeart: return LINEID_HEART_GOLDEN;
+        case HealthModifier_DiamondHeart: return LINEID_HEART_DIAMOND;
+        default: return LINEID_HEART_NONE;
         }
     }
 
@@ -12051,7 +12069,7 @@ namespace ITF
         m_gameOptionManager.setListOptionIndex(OPTION_VIBRATIONS, mode);
         LOG("[OptionMenu] Vibrations: %s", mode == VibrationMode_On ? "ON" : "OFF");
 #ifdef USE_PAD_HAPTICS
-            HAPTICS_MANAGER->enableHaptics(mode);
+        HAPTICS_MANAGER->enableHaptics(mode);
 #endif
     }
 
@@ -12138,7 +12156,7 @@ namespace ITF
         m_gameOptionManager.setFloatOption(OPTION_MASTER_VOLUME, volume);
         LOG("[OptionMenu] Master Volume: %.2f (%.0f%%)", volume, volume * 100.0f);
 #if defined(ITF_SUPPORT_WWISE)
-        Adapter_AudioMiddleware *audioAdapter = Adapter_AudioMiddleware::getptr();
+        Adapter_AudioMiddleware* audioAdapter = Adapter_AudioMiddleware::getptr();
         if (audioAdapter)
             audioAdapter->setMasterVolume(Volume(volume, false));
 #endif
@@ -12234,30 +12252,31 @@ namespace ITF
         LOG("[GameOptions] Starting save operation...");
         m_gameOptionPersistence->startSaveOptions(0, onSaveOptionsComplete);
     }
-    void Ray_GameManager::applyGameSetting()
+
+    void Ray_GameManager::applyGameSetting(bbool hasChangedRes)
     {
 #if defined(ITF_WINDOWS) && defined(ITF_FINAL)
+        bbool needChangeRes = hasChangedRes;
         bbool isFullScreen = !isWindowed();
         bbool hasApplied = applyWindowsMode(isFullScreen);
         i32 resIndex = getResolutionIndex();
         if (hasApplied && isFullScreen)
         {
-            // Windowed mode has 960-540 res which fullscreen doesn't have
-            // Need to reset to highest one if user is back from 960-540 in windowed mode to fullscreen
-            if (resIndex >= (i32)m_availableResolutions.size())
-            {
-                setResolutionIndex(0);
-                resIndex = 0; // Heightest one
-            }
+            needChangeRes = btrue;
+            setResolutionIndex(0);
+            resIndex = 0; // Heightest one
         }
-        applyResolution(resIndex);
+        if (needChangeRes)
+        {
+            applyResolution(resIndex);
+        }
 #endif
     }
 
     bbool Ray_GameManager::applyWindowsMode(bbool isFullScreen)
     {
 #if defined(ITF_WINDOWS) && defined(ITF_FINAL)
-        SYSTEM_ADAPTER->SetRegistryValue(String("FullScreen"),isFullScreen);
+        SYSTEM_ADAPTER->SetRegistryValue(String("FullScreen"), isFullScreen);
         bbool isCurrentFullScreen = SYSTEM_ADAPTER->isFullScreenMode();
         bbool newRequestFullScreen = isFullScreen;
         if (isCurrentFullScreen != newRequestFullScreen)
@@ -12284,17 +12303,18 @@ namespace ITF
         {
             if (!SYSTEM_ADAPTER->isFullScreenMode())
             {
-                SYSTEM_ADAPTER->setSize( m_availableResolutions[index].width,m_availableResolutions[index].height);
+                SYSTEM_ADAPTER->setSize(m_availableResolutions[index].width, m_availableResolutions[index].height);
             }
-            GFX_ADAPTER->setResolution( m_availableResolutions[index].width,m_availableResolutions[index].height);
-            String h,w;
-            h.setTextFormat("%d",m_availableResolutions[index].height);
-            w.setTextFormat("%d",m_availableResolutions[index].width);
-            SYSTEM_ADAPTER->SetRegistryValue(String(L"ScreenWidth"),w);
-            SYSTEM_ADAPTER->SetRegistryValue(String(L"ScreenHeight"),h);
+            GFX_ADAPTER->setResolution(m_availableResolutions[index].width, m_availableResolutions[index].height);
+            String h, w;
+            h.setTextFormat("%d", m_availableResolutions[index].height);
+            w.setTextFormat("%d", m_availableResolutions[index].width);
+            SYSTEM_ADAPTER->SetRegistryValue(String(L"ScreenWidth"), w);
+            SYSTEM_ADAPTER->SetRegistryValue(String(L"ScreenHeight"), h);
         }
 #endif
     }
+
     void Ray_GameManager::loadGameOptions()
     {
         if (!m_gameOptionPersistence)

@@ -155,8 +155,14 @@ namespace ITF
 
         switch(uMsg)
         {
-        case WM_KEYDOWN:
         case WM_SYSKEYDOWN:
+            {
+               (static_cast<GFXAdapter_Directx9*>(GFX_ADAPTER))->ChangeMonitor(1);
+                forward = true;
+                break;
+            }
+        case WM_KEYDOWN:
+
         case WM_KEYUP:
         case WM_SYSKEYUP:
         case WM_MOUSEWHEEL:
@@ -364,6 +370,7 @@ namespace ITF
         {
             RECT wnd_size = {0,0,_width, _height};
             DWORD style = _fullscreen?WS_POPUP:WS_OVERLAPPEDWINDOW;
+            style &= ~WS_MAXIMIZEBOX; //disable maximize button
             AdjustWindowRect(&wnd_size, WS_OVERLAPPEDWINDOW, FALSE);
 
             window = CreateWindow(wndClass.lpszClassName, (const wchar_t *)_name.cStr(),
@@ -1025,6 +1032,7 @@ namespace ITF
         {
             style &= ~WS_POPUP;
             style |= WS_OVERLAPPEDWINDOW;
+            style &= ~WS_MAXIMIZEBOX; // disalbe Maximize button
             mustChangeWindowMode = btrue;
             windowMode = SW_SHOWNORMAL;
             if (m_windowRectWhenGoingToFakeFullscreen_Valid)

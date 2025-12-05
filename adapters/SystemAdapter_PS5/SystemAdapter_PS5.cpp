@@ -134,7 +134,7 @@ namespace ITF
             ITF_ASSERT_SCE_RESULT(videoOutHdl);
         }
         m_hwnd = reinterpret_cast<void*>(videoOutHdl);
-
+        
         if (!gfxadapter->createDevice(videoOutHdl))
                 return bfalse;
 

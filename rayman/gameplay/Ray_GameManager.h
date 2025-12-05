@@ -1786,7 +1786,7 @@ namespace ITF
         // Save/Load Options
         //==========================================================================
         void            saveGameOptions();
-        void applyGameSetting();
+        void applyGameSetting(bbool hasChangedRes);
         bbool applyWindowsMode(bbool isFullScreen);
         void applyResolution(i32 index);
         void            loadGameOptions();

@@ -327,7 +327,7 @@ namespace ITF
         if (RAY_GAMEMANAGER)
         {
             RAY_GAMEMANAGER->saveGameOptions();
-            RAY_GAMEMANAGER->applyGameSetting();
+            RAY_GAMEMANAGER->applyGameSetting(RAY_GAMEMANAGER->getResolutionIndex() !=m_snapshotResolutionIndex);
         }
 
         closeAndReturn();

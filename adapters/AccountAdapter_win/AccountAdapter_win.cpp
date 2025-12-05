@@ -25,6 +25,12 @@ namespace ITF
     void AccountAdapter_win::initialize()
     {
 #ifdef ITF_UPLAYPC
+        if (!UPLAYSERVICE || !CONFIG->m_enableUplay)
+        {
+            LOG("[AccountAdapter] Uplay is disabled; use uplay=1 runtime arg");
+            return;
+        }
+
         createActiveAccountUplay();
         m_uplayClientOnline = UPLAYSERVICE->isClientOnline();
 #else
@@ -73,8 +79,11 @@ namespace ITF
 
     void AccountAdapter_win::createActiveAccountUplay()
     {
-        m_activeAccount.setName(UPLAYSERVICE->getUserName());
-        m_activeAccount.setEmail(UPLAYSERVICE->getUserEmail());
+        if (UPLAYSERVICE && CONFIG->m_enableUplay)
+        {
+            m_activeAccount.setName(UPLAYSERVICE->getUserName());
+            m_activeAccount.setEmail(UPLAYSERVICE->getUserEmail());
+        }
         m_activeAccount.setLinkedToUplay(true);
         m_activeAccount.setSignedOnPlatformNetwork(true);
 
@@ -93,6 +102,9 @@ namespace ITF
         updateAccountConnectionStatus();
         AccountAdapter::update();
 
+        if (!UPLAYSERVICE || !CONFIG->m_enableUplay)
+            return;
+
         // poll ~2 times; Uplay get name is retrieved shortly after
         if (m_activeAccount.getName().isEmpty())
         {
@@ -107,6 +119,9 @@ namespace ITF
 
     void AccountAdapter_win::updateAccountConnectionStatus()
     {
+        if (!UPLAYSERVICE || !CONFIG->m_enableUplay)
+            return;
+
         if (m_uplayClientConnected != UPLAYSERVICE->isClientConnected())
         {
             m_uplayClientConnected = ~m_uplayClientConnected;
