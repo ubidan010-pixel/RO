@@ -138,6 +138,10 @@ namespace ITF
         ITF_ASSERT(_numPad < JOY_MAX_COUNT);
         if (_numPad < JOY_MAX_COUNT)
         {
+            if (m_PadType[_numPad] == _type)
+            {
+                return;
+            }
             m_PadType[_numPad] = _type;
             const auto name = magic_enum::enum_name(_type);
             if (!name.empty())
