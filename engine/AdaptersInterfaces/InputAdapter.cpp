@@ -203,7 +203,6 @@ namespace ITF
     {
     }
 
-
     void InputAdapter::onKey(i32 _key, PressStatus _status)
     {
         ITF_UNUSED(_key)

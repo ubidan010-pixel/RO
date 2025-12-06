@@ -16,10 +16,6 @@
 #if defined(ITF_WINDOWS)
 #include "engine/AdaptersInterfaces/PCControlMode.h"
 #endif
-
-#include <algorithm>
-#include <limits>
-
 namespace ITF
 {
     enum KeyCode
@@ -599,14 +595,11 @@ namespace ITF
         bbool IsKeyboardMouseEnabled() const { return m_pcControlMode != PCControlMode_Controller; }
         virtual i32 GetFirstPressedRawKey() const { return -1; }
 #endif
-
-        ITF_INLINE InputDeviceType getLastUsedInputDevice(u32 _player) const
+        InputDeviceType getLastUsedInputDevice(u32 _player) const
         {
             return (_player < JOY_MAX_COUNT) ? m_lastUsedInputDevice[_player] : InputDevice_None;
         }
-
         void setLastUsedInputDevice(u32 _player, InputDeviceType _deviceType);
-
         PadType getLastUsedPadType(u32 _player) const;
         virtual PressStatus getKeyboardStatus(i32 key) const;
         bbool IsPressStartButton(u32 _player) const;

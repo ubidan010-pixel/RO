@@ -1270,7 +1270,7 @@ namespace ITF
 
     void InputAdapter_SDL3::OnPCControlModeChanged(PCControlMode previous, PCControlMode current)
     {
-        ITF_UNUSED(previous);
+        ITF_UNUSED(previous)
 
         if (current != PCControlMode_Keyboard)
             return;
