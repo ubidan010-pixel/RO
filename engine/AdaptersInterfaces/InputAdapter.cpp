@@ -31,6 +31,8 @@
 #include "engine/events/EventManager.h"
 #endif //_ITF_EVENTMANAGER_H_
 
+#include "core/error/magic_enum.hpp"
+
 #ifdef ITF_WINDOWS
 #include <windows.h>
 #endif
@@ -123,6 +125,30 @@ namespace ITF
         memset(m_keyboardButtons, 0, sizeof(m_keyboardButtons));
 #endif
         std::fill(m_PadType, m_PadType + ITF_ARRAY_SIZE(m_PadType), getDefaultPadType());
+    }
+
+    InputAdapter::PadType InputAdapter::getPadType(u32 _numPad) const
+    {
+        ITF_ASSERT(_numPad < JOY_MAX_COUNT);
+        return (_numPad < JOY_MAX_COUNT) ? m_PadType[_numPad] : Pad_Other;
+    }
+
+    void InputAdapter::setPadType(u32 _numPad, PadType _type)
+    {
+        ITF_ASSERT(_numPad < JOY_MAX_COUNT);
+        if (_numPad < JOY_MAX_COUNT)
+        {
+            m_PadType[_numPad] = _type;
+            const auto name = magic_enum::enum_name(_type);
+            if (!name.empty())
+            {
+                LOG("InputAdapter: pad %u set to type %.*s\n", _numPad, static_cast<int>(name.size()), name.data());
+            }
+            else
+            {
+                LOG("InputAdapter: pad %u set to type %d\n", _numPad, static_cast<int>(_type));
+            }
+        }
     }
 
 #if defined(ITF_WINDOWS)

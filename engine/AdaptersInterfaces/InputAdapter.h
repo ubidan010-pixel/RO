@@ -455,18 +455,9 @@ namespace ITF
         Set/Get the type of pad corresponding to the target and the pad extension (for WII)
         @param        _numPad           The index of the GamePad.
         */
-        ITF_INLINE PadType getPadType(u32 _numPad) const
-        {
-            ITF_ASSERT(_numPad < JOY_MAX_COUNT);
-            return (_numPad < JOY_MAX_COUNT) ? m_PadType[_numPad] : Pad_Other;
-        }
+        PadType getPadType(u32 _numPad) const;
 
-        ITF_INLINE void setPadType(u32 _numPad, PadType _type)
-        {
-            ITF_ASSERT(_numPad < JOY_MAX_COUNT);
-            if (_numPad < JOY_MAX_COUNT)
-                m_PadType[_numPad] = _type;
-        }
+        void setPadType(u32 _numPad, PadType _type);
 
         // debug input for menus / context icons etc
         ITF_INLINE PadType getDebugInputPadType(u32 _numPad) const
