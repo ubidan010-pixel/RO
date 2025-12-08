@@ -32,9 +32,50 @@
 #include "rayman/gameplay/Managers/GameOptions/Ray_BaseMenuHelper.h"
 #endif //_ITF_RAY_BASEMENUHELPER_H_
 
+#ifndef _ITF_ZPAD_BASE_H_
+#include "engine/zinput/ZPad_Base.h"
+#endif //_ITF_ZPAD_BASE_H_
+
+#ifndef _ITF_SYSTEMADAPTER_
+#include "core/AdaptersInterfaces/SystemAdapter.h"
+#endif //_ITF_SYSTEMADAPTER_
+
 namespace ITF {
 
 #define CONTEXTICONSCONFIG_PATH GETPATH_ALIAS("contexticons")
+
+const ContextIconsManager::ButtonIconMapping ContextIconsManager::s_iconMapping_X360 = 
+    { "X360_BUTTON_A", "X360_BUTTON_B", "X360_BUTTON_X", "X360_BUTTON_Y" };
+
+const ContextIconsManager::ButtonIconMapping ContextIconsManager::s_iconMapping_XboxSeries = 
+    { "XBOX_BUTTON_A", "XBOX_BUTTON_B", "XBOX_BUTTON_X", "XBOX_BUTTON_Y" };
+
+const ContextIconsManager::ButtonIconMapping ContextIconsManager::s_iconMapping_PS3 = 
+    { "PS3_BUTTON_CROSS", "PS3_BUTTON_CIRCLE", "PS3_BUTTON_SQUARE", "PS3_BUTTON_TRIANGLE" };
+
+const ContextIconsManager::ButtonIconMapping ContextIconsManager::s_iconMapping_PS5 = 
+    { "PS5_BUTTON_CROSS", "PS5_BUTTON_CIRCLE", "PS5_BUTTON_SQUARE", "PS5_BUTTON_TRIANGLE" };
+
+const ContextIconsManager::ButtonIconMapping ContextIconsManager::s_iconMapping_Switch_Joycon = 
+    { "SWITCH_JOYCON_DPAD_DOWN", "SWITCH_JOYCON_DPAD_RIGHT", "SWITCH_JOYCON_DPAD_LEFT", "SWITCH_JOYCON_DPAD_UP" };
+
+const ContextIconsManager::ButtonIconMapping ContextIconsManager::s_iconMapping_Switch_Pro = 
+    { "SWITCH_BUTTON_A", "SWITCH_BUTTON_B", "SWITCH_BUTTON_Y", "SWITCH_BUTTON_X" };
+
+const ContextIconsManager::ButtonIconMapping ContextIconsManager::s_iconMapping_Wii_Sideway = 
+    { "WII_BUTTON_2", "WII_BUTTON_1", "WII_BUTTON_MINUS", nullptr };
+
+const ContextIconsManager::ButtonIconMapping ContextIconsManager::s_iconMapping_Wii_Nunchuk = 
+    { "WII_BUTTON_A", "WII_BUTTON_B", "WII_BUTTON_MINUS", nullptr };
+
+const ContextIconsManager::ButtonIconMapping ContextIconsManager::s_iconMapping_Wii_Classic = 
+    { "WII_CLASSIC_BUTTON_B", "WII_CLASSIC_BUTTON_A", "WII_CLASSIC_BUTTON_Y", "WII_CLASSIC_BUTTON_X" };
+
+const ContextIconsManager::ButtonIconMapping ContextIconsManager::s_iconMapping_Keyboard = 
+    { "KEYBOARD_SPACE", "KEYBOARD_BACKSPACE", "KEYBOARD_S", "KEYBOARD_W" };
+
+const ContextIconsManager::ButtonIconMapping ContextIconsManager::s_iconMapping_Fallback = 
+    { "BUTTON_SOUTH", "BUTTON_EAST", "BUTTON_WEST", "BUTTON_NORTH" };
 
 //------------------------------------------------------------------------------
 ContextIconsManager::ContextIconsManager()
@@ -250,6 +291,31 @@ EContextIconType ContextIconsManager::getType(EContextIcon _icon) const
 }
 
 //------------------------------------------------------------------------------
+const EPhysicalButtonAction ContextIconsManager::s_iconToActionMap[ContextIcon_Count] =
+{
+    // ContextIcon_Select
+    PhysicalButtonAction_Confirm,
+    // ContextIcon_Continue
+    PhysicalButtonAction_Confirm,
+    // ContextIcon_Enter
+    PhysicalButtonAction_Confirm,
+    // ContextIcon_Skip
+    PhysicalButtonAction_Back,
+    // ContextIcon_Back
+    PhysicalButtonAction_Back,
+    // ContextIcon_Retry
+    PhysicalButtonAction_Back,
+    // ContextIcon_Delete
+    PhysicalButtonAction_Delete,
+    // ContextIcon_RayHome
+    PhysicalButtonAction_HomeMap,
+    // ContextIcon_Controls
+    PhysicalButtonAction_Delete,
+    // ContextIcon_SpeedUp
+    PhysicalButtonAction_Confirm,
+};
+
+//------------------------------------------------------------------------------
 const EContextIconType ContextIconsManager::s_iconsTypes[ContextIcon_Count] =
 {
     // ContextIcon_Select
@@ -275,6 +341,112 @@ const EContextIconType ContextIconsManager::s_iconsTypes[ContextIcon_Count] =
 };
 
 //------------------------------------------------------------------------------
+EPhysicalButtonAction ContextIconsManager::getPhysicalButtonAction(EContextIcon _icon) const
+{
+    if (_icon < 0 || _icon >= ContextIcon_Count)
+    {
+        return PhysicalButtonAction_Invalid;
+    }
+    return s_iconToActionMap[_icon];
+}
+
+//------------------------------------------------------------------------------
+u32 ContextIconsManager::getPhysicalButtonForAction(EPhysicalButtonAction _action, bbool _isInverted) const
+{
+    // Default mapping: South = Confirm, East = Back
+    // When inverted (NX/OUNCE/PS5_SIEJ): South = Back, East = Confirm
+    
+    switch (_action)
+    {
+    case PhysicalButtonAction_Confirm:
+        return _isInverted ? ZPad_Base::BUTTON_FACE_EAST : ZPad_Base::BUTTON_FACE_SOUTH;
+        
+    case PhysicalButtonAction_Back:
+        return _isInverted ? ZPad_Base::BUTTON_FACE_SOUTH : ZPad_Base::BUTTON_FACE_EAST;
+        
+    case PhysicalButtonAction_Delete:
+    case PhysicalButtonAction_HomeMap:
+        return ZPad_Base::BUTTON_FACE_WEST;
+        
+    default:
+        return ZPad_Base::BUTTON_FACE_SOUTH;
+    }
+}
+
+//------------------------------------------------------------------------------
+const ContextIconsManager::ButtonIconMapping& ContextIconsManager::getButtonMappingForPadType(InputAdapter::PadType _padType)
+{
+    switch (_padType)
+    {
+    case InputAdapter::Pad_X360:
+        return s_iconMapping_X360;
+    case InputAdapter::Pad_GenericXBox:
+        return s_iconMapping_XboxSeries;
+    case InputAdapter::Pad_PS3:
+        return s_iconMapping_PS3;
+    case InputAdapter::Pad_PS4:
+    case InputAdapter::Pad_PS5:
+        return s_iconMapping_PS5;
+    case InputAdapter::Pad_NX_Joycon:
+        return s_iconMapping_Switch_Joycon;
+    case InputAdapter::Pad_NX_Joycon_Dual:
+    case InputAdapter::Pad_NX_Pro:
+        return s_iconMapping_Switch_Pro;
+    case InputAdapter::Pad_WiiSideWay:
+        return s_iconMapping_Wii_Sideway;
+    case InputAdapter::Pad_WiiNunchuk:
+        return s_iconMapping_Wii_Nunchuk;
+    case InputAdapter::Pad_WiiClassic:
+        return s_iconMapping_Wii_Classic;
+    case InputAdapter::Pad_Keyboard:
+        return s_iconMapping_Keyboard;
+    default:
+        return s_iconMapping_Fallback;
+    }
+}
+
+//------------------------------------------------------------------------------
+String8 ContextIconsManager::formatIconTag(const char* _iconName)
+{
+    if (!_iconName || !_iconName[0])
+        return String8("<N/A>");
+    
+    return String8("[icon:") + _iconName + "]";
+}
+
+//------------------------------------------------------------------------------
+String8 ContextIconsManager::getIconNameForPhysicalButton(u32 _physicalButton, InputAdapter::PadType _padType, bbool _isInverted) const
+{
+    bbool platformHasSwappedLayout = (_padType == InputAdapter::Pad_NX_Joycon ||
+                                       _padType == InputAdapter::Pad_NX_Joycon_Dual ||
+                                       _padType == InputAdapter::Pad_NX_Pro ||
+                                       _padType == InputAdapter::Pad_Other); 
+    
+    u32 displayButton = _physicalButton;
+    
+    if (platformHasSwappedLayout != _isInverted)
+    {
+        if (_physicalButton == ZPad_Base::BUTTON_FACE_SOUTH)
+            displayButton = ZPad_Base::BUTTON_FACE_EAST;
+        else if (_physicalButton == ZPad_Base::BUTTON_FACE_EAST)
+            displayButton = ZPad_Base::BUTTON_FACE_SOUTH;
+    }
+    
+    const ButtonIconMapping& mapping = getButtonMappingForPadType(_padType);
+    const char* iconName = nullptr;
+    if (displayButton == ZPad_Base::BUTTON_FACE_SOUTH)
+        iconName = mapping.south;
+    else if (displayButton == ZPad_Base::BUTTON_FACE_EAST)
+        iconName = mapping.east;
+    else if (displayButton == ZPad_Base::BUTTON_FACE_WEST)
+        iconName = mapping.west;
+    else if (displayButton == ZPad_Base::BUTTON_FACE_NORTH)
+        iconName = mapping.north;
+    
+    return formatIconTag(iconName);
+}
+
+//------------------------------------------------------------------------------
 const String8& ContextIconsManager::getIconStr(u32 _padType, EContextIconType _context)
 {
     ITF_ASSERT(_padType<InputAdapter::PadType_Count);
@@ -286,7 +458,31 @@ const String8& ContextIconsManager::getIconStr(u32 _padType, EContextIconType _c
     if(!m_template)
         return String8::emptyString;
 
-    return m_template->getButtonNames()[_padType][_context];
+    EPhysicalButtonAction action = PhysicalButtonAction_Invalid;
+    switch (_context)
+    {
+    case ContextIconType_Select:
+        action = PhysicalButtonAction_Confirm;
+        break;
+    case ContextIconType_Back:
+        action = PhysicalButtonAction_Back;
+        break;
+    case ContextIconType_Delete:
+        action = PhysicalButtonAction_Delete;
+        break;
+    case ContextIconType_RayHome:
+        action = PhysicalButtonAction_HomeMap;
+        break;
+    default:
+        action = PhysicalButtonAction_Confirm;
+        break;
+    }
+    bbool isInverted = SYSTEM_ADAPTER->isBackAndSelectButtonsInverted();
+    u32 physicalButton = getPhysicalButtonForAction(action, isInverted);
+    InputAdapter::PadType padType = static_cast<InputAdapter::PadType>(_padType);
+    static String8 s_iconStrCache;
+    s_iconStrCache = getIconNameForPhysicalButton(physicalButton, padType, isInverted);
+    return s_iconStrCache;
 }
 
 //------------------------------------------------------------------------------
@@ -383,24 +579,18 @@ void ContextIconsManager::setupIcon(EContextIcon _icon, UIComponent* _iconUI, UI
     }
     else
     {
-        // get index of the player in control
-        // NB[LaurentCou]: assumes the main player is always the one concerned,
-        // we'll have to adapt this for the pause menu which should be controlled
-        // by whoever opened it
+        // Get the player in control (main player)
         u32 mainPlayer = GAMEMANAGER->getMainIndexPlayer();
 
-        // invert display for valid/back but only *internally*, otherwise the
-        // sequence player skipping gets inverted twice...
-        // => fix for RO-17619 & RO-17620
-        // NOTE[LaurentCou]: this could be my last contribution to Rayman
-        // Origins, and that's for the Japanese HD version so:
-        // "GO RAYMAN GO, KICK MARIO'S BUTT!!!" :)
-        EContextIconType iconType = s_iconsTypes[_icon];
+        // Get controller type
         InputAdapter::PadType padType = INPUT_ADAPTER->getLastUsedPadType(mainPlayer);
         if (padType == InputAdapter::Pad_Invalid) return;
-        String8 content = m_template->getButtonNames()[padType][iconType];
+        EPhysicalButtonAction action = getPhysicalButtonAction(_icon);
+        if (action == PhysicalButtonAction_Invalid) return;
+        bbool isInverted = SYSTEM_ADAPTER->isBackAndSelectButtonsInverted();
+        u32 physicalButton = getPhysicalButtonForAction(action, isInverted);
+        String8 content = getIconNameForPhysicalButton(physicalButton, padType, isInverted);
         _iconUI->forceContent(content);
-
         LocalisationId lineId = m_template->getLineIds()[_icon];
         _textUI->setLineId(lineId);
         _textUI->fillContent();

@@ -19,6 +19,15 @@ namespace ITF {
 class ContextIconsManager_Template;
 class UIComponent;
 class TextureGraphicComponent2D;
+enum EPhysicalButtonAction
+{
+    PhysicalButtonAction_Confirm = 0,  // Usually mapped to BUTTON_FACE_SOUTH
+    PhysicalButtonAction_Back,         // Usually mapped to BUTTON_FACE_EAST
+    PhysicalButtonAction_Delete,       // Usually mapped to BUTTON_FACE_WEST
+    PhysicalButtonAction_HomeMap,      // Usually mapped to BUTTON_FACE_WEST
+    PhysicalButtonAction_Count,
+    PhysicalButtonAction_Invalid = -1
+};
 
 //------------------------------------------------------------------------------
 class ContextIconsManager
@@ -57,11 +66,37 @@ private:
         UIComponent* iconUI;
         UIComponent* textUI;
     };
+    
+    struct ButtonIconMapping
+    {
+        const char* south;
+        const char* east;
+        const char* west;
+        const char* north;
+    };
+    
     Map<EContextIcon,IconDataHolder> m_iconData;
     void setupMenu();
     void setupIcon(EContextIcon _icon, UIComponent* _iconUI, UIComponent* _textUI);
 
-    static const EContextIconType s_iconsTypes[ContextIcon_Count];
+    EPhysicalButtonAction getPhysicalButtonAction(EContextIcon _icon) const;
+    u32 getPhysicalButtonForAction(EPhysicalButtonAction _action, bbool _isInverted) const;
+    String8 getIconNameForPhysicalButton(u32 _physicalButton, InputAdapter::PadType _padType, bbool _isInverted) const;
+    static const ButtonIconMapping& getButtonMappingForPadType(InputAdapter::PadType _padType);
+    static String8 formatIconTag(const char* _iconName);
+    static const EPhysicalButtonAction s_iconToActionMap[ContextIcon_Count];
+    static const EContextIconType s_iconsTypes[ContextIcon_Count];  
+    static const ButtonIconMapping s_iconMapping_X360;
+    static const ButtonIconMapping s_iconMapping_XboxSeries;
+    static const ButtonIconMapping s_iconMapping_PS3;
+    static const ButtonIconMapping s_iconMapping_PS5;
+    static const ButtonIconMapping s_iconMapping_Switch_Joycon;
+    static const ButtonIconMapping s_iconMapping_Switch_Pro;
+    static const ButtonIconMapping s_iconMapping_Wii_Sideway;
+    static const ButtonIconMapping s_iconMapping_Wii_Nunchuk;
+    static const ButtonIconMapping s_iconMapping_Wii_Classic;
+    static const ButtonIconMapping s_iconMapping_Keyboard;
+    static const ButtonIconMapping s_iconMapping_Fallback;
 
     ContextIconsManager_Template* m_template;
     Path m_configPath;
