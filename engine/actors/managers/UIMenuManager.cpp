@@ -1551,51 +1551,19 @@ void UIMenuManager::applySelectionChange(UIMenu* menu, UIComponent* oldSel, UICo
         const bbool skipValidation = IsFreeAccessMenu(m_currentMenuID);
         if (!skipValidation)
         {
-            u32 mainIndex   = ( GAMEMANAGER->getMainIndexPlayer_Internal() );
-            u32 pauseOwner  = ( GAMEMANAGER->getIndexPauseOwner() );
-
-            // First case: we have to check the pad is allowed to access the menu
             if ( pMenu->isPadAllowed(player) == bfalse )
             {
                 return ;
             }
-            // Second case: Test if the current menu is only available for a specific player
+
             if ( pMenu->getAllowedIndexPadOnly() != U32_INVALID )
             {
                 if ( pMenu->getAllowedIndexPadOnly() != player )
                     return ;
             }
-            // Third case: we have to check the pause menu and the main menu
-            // and they are only available for a specific player too (main player or pause owner)
             else
             {
-                if( mainIndex != U32_INVALID && mainIndex != player)
-                {
-                    // MainMenu ?
-                    if ( !GAMEMANAGER->isPlayableScreen() )
-                        return ;
-                }
-
-                if ( pauseOwner != player )
-                {
-                    // Owner not set yet
-                    if ( GAMEMANAGER->isInPause() && pauseOwner == U32_INVALID )
-                    {
-                        // Not an active player??
-                        if ( GAMEMANAGER->getActiveAndPersistentPlayer(player) == NULL )
-                        {
-                            return;
-                        }
-
-                        GAMEMANAGER->setIndexPauseOwner(player);
-                    }
-
-                    // Pause menu ?
-                    else if ( GAMEMANAGER->isPlayableScreen() && !TRC_ADAPTER->isDisplayingError())
-                        return ;
-                }
-
-                // First menu validated is the press start button
+                u32 mainIndex = GAMEMANAGER->getMainIndexPlayer_Internal();
                 if ( (action == input_actionID_Valid || action == input_actionID_Start) && mainIndex == U32_INVALID )
                 {
 #ifdef ITF_WII

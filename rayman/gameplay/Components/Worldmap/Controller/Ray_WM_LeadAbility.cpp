@@ -1180,7 +1180,8 @@ void Ray_WM_LeadAbility::startTeleportToWorldSelection()
 //------------------------------------------------------------------------------
 void Ray_WM_LeadAbility::Receive( u32 deviceID /* player */, f32 axis, const StringID& action )
 {
-    if (GAMEMANAGER->getMainIndexPlayer() != deviceID || GAMEMANAGER->isInPause())
+    const u32 mainIndex = GAMEMANAGER->getMainIndexPlayer_Internal();
+    if (mainIndex == U32_INVALID || GAMEMANAGER->isInPause())
     {
         return; 
     }
