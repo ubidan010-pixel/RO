@@ -5,9 +5,12 @@
 #include "Ray_GameOptionManager.h"
 #endif //_ITF_RAY_GAMEOPTIONMANAGER_H_
 
+#ifndef _ITF_INPUTDEVICE_H_
+#include "engine/zinput/ZInputDevice.h"
+#endif //_ITF_INPUTDEVICE_H_
+
 namespace ITF
 {
-    enum EInputSourceType;
 
     class Ray_GameOptionSerializer
     {
