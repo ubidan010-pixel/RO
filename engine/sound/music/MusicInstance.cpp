@@ -303,6 +303,7 @@ void MusicInstance::reinit()
     m_synchronizationData.m_samplePosition = 0;
     m_synchronizationData.m_timePositionSec = 0;
     m_synchronizationData.m_soundDurationSec = 0;
+    m_pendingStop.exchange( 0);
 
 #ifndef ITF_SUPPORT_RAKI
     if (AUDIO_ADAPTER && m_wwiseObjectref.isValid())
@@ -335,26 +336,26 @@ const u64 MusicInstance::getRemainingTimeSec()
 }
 #endif
 
-void MusicInstance::update( f32 _dt )
+void MusicInstance::update(f32 _dt)
 {
 #ifdef USE_MUSICINSTANCE
 #ifdef ITF_SUPPORT_RAKI
     const u64 samplePosition = m_sound ? m_sound->getSamplePosition() : 0;
 
     bool enableNewAsyncReadRequests = isPlaying() && !isStopping();
-    m_dataProvider.update( enableNewAsyncReadRequests );
-    
-    if ( m_sound )
+    m_dataProvider.update(enableNewAsyncReadRequests);
+
+    if (m_sound)
     {
 
         m_sound->update();
 
 
-        if ( m_sound->isStopped() && ( m_state != stopped ) )
+        if (m_sound->isStopped() && (m_state != stopped))
         {
 #ifdef LOG_MUSICINSTANCE
-            RAKI_OUTPUT( "0x%x MusicInstance::update calling stopVoice isStopped: %s - %d", this, 
-                m_sound->isStopped() ? "TRUE" : "false", m_state );
+            RAKI_OUTPUT("0x%x MusicInstance::update calling stopVoice isStopped: %s - %d", this,
+                m_sound->isStopped() ? "TRUE" : "false", m_state);
 #endif // LOG_MUSICINSTANCE
 
             stopVoice();
@@ -364,6 +365,21 @@ void MusicInstance::update( f32 _dt )
     }
 
 #else
+    if (!isPlaying() && !m_nextNodeToPlay.isValid())
+    {
+        return;
+    }
+    const bool hasPendingStop = m_pendingStop.exchange(0) != 0;
+    if ( !AUDIO_ADAPTER->isPlaying(m_playingHandle)&& !hasPendingStop && (m_state != stopped))
+    {
+        #ifdef LOG_MUSICINSTANCE
+                RAKI_OUTPUT("0x%x MusicInstance::update calling stopVoice isStopped:  %d", this, m_state);
+        #endif // LOG_MUSICINSTANCE
+        stopVoice();
+        return;
+    }
+
+
     bool enableNewAsyncReadRequests = isPlaying() && !isStopping();
     m_dataProvider.update(enableNewAsyncReadRequests);
     //getsample position
@@ -372,8 +388,10 @@ void MusicInstance::update( f32 _dt )
 //         remaimtime = getRemainingTimeSec();
 
     u32 posinsec = 0;
-    if (m_playingHandle.isValid())
-        posinsec = (u32) (AUDIO_ADAPTER->getSourcePlayPosition(m_playingHandle) * 0.001);
+     if (m_playingHandle.isValid())
+     {
+        posinsec = (u32)(AUDIO_ADAPTER->getSourcePlayPosition(m_playingHandle) * 0.001);
+    }
     const u64 samplePosition = posinsec * DEFAULT_SAMPLING_RATE;
 
 #endif
@@ -647,7 +665,8 @@ void MusicInstance::notifyEnd( const MusicPart* _musicPart)
         synchronizationData.setAsEndNotification(_musicPart);
 
         m_synchronizationDataArray.write(synchronizationData);
-      //  Atomic::increment(m_pendingStop);
+        m_pendingStop++;
+
     }
 }
 
@@ -985,11 +1004,18 @@ void MusicInstance::stop(f32 _fadeTime /*= 0.0f*/)
     m_nextNodeToPlay    = StringID::Invalid;
     m_nextFadeTime      = 0.0f;
     m_nextVolume        = 0.0f;
+    m_pendingStop.exchange( 0);
 }
 
 
 bbool MusicInstance::isPlaying() const
 {
+    if (m_nextNodeToPlay.isValid())
+        return btrue;
+
+//     if (m_pendingStop)
+//         return btrue;
+
     return m_state != stopped;
 }
 
@@ -1203,7 +1229,7 @@ void MusicInstance::notifySoundEnded(const void* _clientData)
         synchronizationData.setAsEndNotification(musicPart);
 
         m_synchronizationDataArray.write(synchronizationData);
-      //  Atomic::increment(m_pendingStop);
+        m_pendingStop++;
     }
 }
 
@@ -1323,15 +1349,15 @@ void MusicInstanceSimple::update( f32 _dt )
     {
         m_fadeCurrentTime += _dt;
 
-//         if( m_nextNodeToPlay != StringID::Invalid
-//             && m_lastSamplePosition > samplePosition)
-//         {
-//             // Apply short fade to avoid brutal volume increase
-//             m_fadeCurrentTime   = 0.0f;
-//             m_fadeTotalTime     = 0.5;
-//             m_fadeStartVolume   = getLinearVolume();
-//             m_fadeEndVolume     = 1.0f;
-//         }
+        if( m_nextNodeToPlay != StringID::Invalid
+            && m_lastSamplePosition > samplePosition)
+        {
+            // Apply short fade to avoid brutal volume increase
+            m_fadeCurrentTime   = 0.0f;
+            m_fadeTotalTime     = 0.5;
+            m_fadeStartVolume   = getLinearVolume();
+            m_fadeEndVolume     = 1.0f;
+        }
 
         // Reached end of fade ?
         if (m_fadeCurrentTime >= m_fadeTotalTime)

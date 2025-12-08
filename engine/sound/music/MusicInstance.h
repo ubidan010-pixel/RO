@@ -10,6 +10,7 @@
 #ifndef _ITF_MUSICTREE_H_
 #include "engine/blendTree/MusicTree/MusicTree.h"
 #endif //_ITF_MUSICTREE_H_
+#include <atomic>
 
 
 
@@ -208,6 +209,9 @@ namespace ITF
         bbool                               m_waitingToReinit;
         SoundHandle                         m_playingHandle = SoundHandle::getInvalidHandle();
         ObjectRef                           m_wwiseObjectref = ITF_INVALID_OBJREF;
+       
+        std::atomic<unsigned> m_pendingStop = 0;
+
 
         struct SynchronizationData
         {
