@@ -603,6 +603,7 @@ namespace ITF
         PadType getLastUsedPadType(u32 _player) const;
         virtual PressStatus getKeyboardStatus(i32 key) const;
         bbool IsPressStartButton(u32 _player) const;
+        bbool IsActionPressed(u32 _player, u32 _action) const;
 
     protected:
         virtual u32 getKeyboardPressTime(i32 key) const;

@@ -462,4 +462,33 @@ namespace ITF
 
         return bfalse;
     }
+
+    bbool InputAdapter::IsActionPressed(u32 _player, u32 _action) const
+    {
+        if (_player >= JOY_MAX_COUNT)
+            return bfalse;
+
+        ZInputManager* inputManager = RAY_GAMEMANAGER->getInputManager();
+        if (!inputManager)
+            return bfalse;
+
+        // Check Gamepad
+        u32 physicalControl = inputManager->GetPhysicalFromAction(_player, (ZInputManager::EGameAction)_action);
+        if (physicalControl < JOY_MAX_BUT)
+        {
+            PressStatus buttons[JOY_MAX_BUT];
+            getGamePadButtons(EnvironmentLua, _player, buttons, JOY_MAX_BUT);
+            if (buttons[physicalControl] == Pressed || buttons[physicalControl] == JustPressed)
+                return btrue;
+        }
+
+        // Check Keyboard
+        i32 key = inputManager->GetKeyboardKeyFromAction(_player, (ZInputManager::EGameAction)_action);
+        if (key != -1 && isKeyPressed(key))
+        {
+            return btrue;
+        }
+
+        return bfalse;
+    }
 } // namespace ITF

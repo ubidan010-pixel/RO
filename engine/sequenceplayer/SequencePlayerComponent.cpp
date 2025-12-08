@@ -4,6 +4,10 @@
 #include "engine/sequenceplayer/SequencePlayerComponent.h"
 #endif //_ITF_SEQUENCEPLAYERCOMPONENT_H_
 
+#ifndef _ITF_ZINPUT_MANAGER_H
+#include "engine/zinput/ZInputManager.h"
+#endif //_ITF_ZINPUT_MANAGER_H
+
 #ifndef _ITF_RESOURCEMANAGER_H_
 #include "engine/resources/ResourceManager.h"
 #endif //_ITF_RESOURCEMANAGER_H_
@@ -1073,7 +1077,9 @@ void SequencePlayerComponent::updateSkipInput( f32 _deltaTime )
         InputAdapter::PressStatus buttons[JOY_MAX_BUT];
         INPUT_ADAPTER->getGamePadButtons(InputAdapter::EnvironmentAll, mainPlayerIndex, buttons, JOY_MAX_BUT);
 
-        if (buttons[m_joyButton_B] == InputAdapter::Pressed || buttons[m_joyButton_B] == InputAdapter::JustPressed)
+        bbool isSkipPressed = INPUT_ADAPTER->IsActionPressed(mainPlayerIndex, ZInputManager::Action_Back);
+
+        if (isSkipPressed)
         {
             if (!m_isSkipButtonHeld)
             {
