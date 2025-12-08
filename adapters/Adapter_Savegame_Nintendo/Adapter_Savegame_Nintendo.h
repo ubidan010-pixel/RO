@@ -6,6 +6,7 @@
 #include "engine/AdaptersInterfaces/Adapter_Savegame.h"
 
 #include <nn/account/account_Types.h>
+#include <deque>
 
 namespace ITF
 {
@@ -135,14 +136,6 @@ namespace ITF
         virtual void signalAnswerToLoadCantFind(ChoiceWhenLoadCantFind _choice) override {}
 
     private:
-    private:
-
-        // A thread executing save/load operations.
-        // Result of the operations are copied in main thread in update()
-        Thread m_operationThread{};
-        u32 operationThreadMethod();
-
-        void setupMemorySaveArea();
 
         struct SaveDataEntry
         {
@@ -158,6 +151,36 @@ namespace ITF
 
             Vector<File> m_files;
         };
+
+        struct WriteSample
+        {
+            f64 timeSeconds;
+            u32 ops;
+            u32 bytes;
+        };
+
+        struct PendingSaveOp
+        {
+            SaveDataEntry data;
+            u32 payloadSize = 0;
+            u32 slotIndex = 0;
+            String8 fileToLoad;
+        };
+
+        std::deque<WriteSample> m_writeWindow;      // sliding window of writes (last 60s)
+        std::deque<PendingSaveOp> m_pendingSaves;   // saves deferred for TRC0011 budget
+
+        bool tryConsumeWriteBudget(u32 payloadSize);
+        void pruneWriteWindow(f64 nowSeconds);
+        void enqueuePendingSave(SaveDataEntry&& data, u32 payloadSize, u32 slotIndex, const String8& fileToLoad);
+        bool scheduleNextPendingSave();
+
+        // A thread executing save/load operations.
+        // Result of the operations are copied in main thread in update()
+        Thread m_operationThread{};
+        u32 operationThreadMethod();
+
+        void setupMemorySaveArea();
 
         struct Operation
         {

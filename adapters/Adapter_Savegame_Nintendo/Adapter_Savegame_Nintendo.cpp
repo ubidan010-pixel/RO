@@ -19,6 +19,15 @@
 namespace ITF
 {
 
+    namespace
+    {
+        constexpr u32 kMaxWriteOpsPerWindow = 128;                 // TRC0011: max ops per 60s
+        constexpr u32 kMaxWriteBytesPerWindow = 64 * 1024 * 1024;  // TRC0011: max bytes per 60s
+        constexpr f64 kWriteWindowSeconds = 60.0;
+        constexpr u32 kWriteOpsPerSave = 4;                        // SetFileSize + Write header + Write payload + Commit
+        constexpr u32 kWriteHeaderBytes = sizeof(u32);             // size field written before payload
+    }
+
     static constexpr u32 MAX_SAVE_DATA_MEMORY_SIZE = 1 * 1024 * 1024;
 
     Adapter_Savegame_Nintendo::Adapter_Savegame_Nintendo() = default;
@@ -381,6 +390,15 @@ namespace ITF
         const u8* srcDataEnd = srcData + _dataSize;
         file.data.assign(srcData, srcDataEnd);
 
+        const u32 payloadSize = _dataSize;
+
+        if (!tryConsumeWriteBudget(payloadSize))
+        {
+            LOG("[SAVE ADAPTER] TRC0011 throttle: deferring save slot %u (payload=%u bytes)", _slotIndex, payloadSize);
+            enqueuePendingSave(std::move(saveData), payloadSize, _slotIndex, _baseName);
+            return Error_Ok;
+        }
+
         // m_currentSavegame (returned by getLastLoadedOrSavedData) will be updated in the main thread, after the operation.
         // We set here the fileIdxToLoad
         m_fileIdxToLoad = _slotIndex;
@@ -406,6 +424,7 @@ namespace ITF
 
     void Adapter_Savegame_Nintendo::update()
     {
+        scheduleNextPendingSave();
         bool savedUpdated = false;
 
         {
@@ -427,5 +446,72 @@ namespace ITF
                 m_currentSavegame = m_currentFullSaveData.m_files[m_fileIdxToLoad].data;
             }
         }
+    }
+
+    void Adapter_Savegame_Nintendo::pruneWriteWindow(f64 nowSeconds)
+    {
+        while (!m_writeWindow.empty() && (nowSeconds - m_writeWindow.front().timeSeconds) > kWriteWindowSeconds)
+        {
+            m_writeWindow.pop_front();
+        }
+    }
+
+    bool Adapter_Savegame_Nintendo::tryConsumeWriteBudget(u32 payloadSize)
+    {
+        const f64 now = SYSTEM_ADAPTER->getTime();
+        pruneWriteWindow(now);
+
+        u32 currentOps = 0;
+        u32 currentBytes = 0;
+        for (const auto& sample : m_writeWindow)
+        {
+            currentOps += sample.ops;
+            currentBytes += sample.bytes;
+        }
+
+        const u32 saveOps = kWriteOpsPerSave;
+        const u32 saveBytes = kWriteHeaderBytes + payloadSize;
+
+        if ((currentOps + saveOps) > kMaxWriteOpsPerWindow || (currentBytes + saveBytes) > kMaxWriteBytesPerWindow)
+        {
+            return false;
+        }
+
+        m_writeWindow.push_back({ now, saveOps, saveBytes });
+        return true;
+    }
+
+    void Adapter_Savegame_Nintendo::enqueuePendingSave(SaveDataEntry&& data, u32 payloadSize, u32 slotIndex, const String8& fileToLoad)
+    {
+        PendingSaveOp pending;
+        pending.data = std::move(data);
+        pending.payloadSize = payloadSize;
+        pending.slotIndex = slotIndex;
+        pending.fileToLoad = fileToLoad;
+        m_pendingSaves.push_back(std::move(pending));
+    }
+
+    bool Adapter_Savegame_Nintendo::scheduleNextPendingSave()
+    {
+        bool scheduled = false;
+
+        while (!m_pendingSaves.empty())
+        {
+            PendingSaveOp& pending = m_pendingSaves.front();
+
+            if (!tryConsumeWriteBudget(pending.payloadSize))
+            {
+                break;
+            }
+
+            m_fileIdxToLoad = pending.slotIndex;
+            m_fileToLoad = pending.fileToLoad;
+
+            addSaveOperation(std::move(pending.data));
+            m_pendingSaves.pop_front();
+            scheduled = true;
+        }
+
+        return scheduled;
     }
 }
