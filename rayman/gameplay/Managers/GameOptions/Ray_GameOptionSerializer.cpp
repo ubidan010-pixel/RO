@@ -8,10 +8,141 @@
 #include "rayman/gameplay/Ray_GameManager.h"
 #endif
 
+#ifndef _ITF_ZINPUT_MANAGER_H
+#include "engine/zinput/ZInputManager.h"
+#endif
+
+#ifndef _ITF_ACTIONMAP_H_
+#include "engine/zinput/ZActionMap.h"
+#endif
+
+#ifndef _ITF_INPUTDEVICE_H_
+#include "engine/zinput/ZInputDevice.h"
+#endif
+
+#ifndef _ITF_ZPAD_BASE_H_
+#include "engine/zinput/ZPad_Base.h"
+#endif
+
+#if defined(ITF_WINDOWS)
+#include "engine/zinput/pc/ZPad_PCKeyboard.h"
+#endif
+
 #define SERIALIZER_LOG(format, ...) LOG("[GameOptionSerializer] - " format, ##__VA_ARGS__)
 
 namespace ITF
 {
+    namespace
+    {
+        struct RemapBlockHeader
+        {
+            u32 playerCount;
+            u32 sourceCount;
+        };
+    }
+
+    u32 Ray_GameOptionSerializer::GetMaxControlCountForSource(EInputSourceType source)
+    {
+#if defined(ITF_WINDOWS)
+        if (source == InputSource_Keyboard)
+        {
+            return ZPad_PCKeyboard::MAX_KEY_MAPPINGS;
+        }
+#endif
+        return ZPad_Base::CONTROL_MAX;
+    }
+
+    void Ray_GameOptionSerializer::serializeRemappings(Vector<u8>& buffer)
+    {
+        RemapBlockHeader header;
+        header.playerCount = ACTIONMAP_MAX_PLAYER;
+        header.sourceCount = InputSource_Count;
+
+        Ray_GameManager* gm = RAY_GAMEMANAGER;
+        ZInputManager* inputManager = (gm) ? gm->getInputManager() : nullptr;
+
+        writeU32(buffer, header.playerCount);
+        writeU32(buffer, header.sourceCount);
+
+        for (u32 player = 0; player < header.playerCount; ++player)
+        {
+            for (u32 source = 0; source < header.sourceCount; ++source)
+            {
+                ITF_VECTOR<u32> mapping;
+                bbool hasMapping = (inputManager && inputManager->GetRemapping(player, (EInputSourceType)source, mapping));
+                writeBool(buffer, hasMapping);
+                if (hasMapping)
+                {
+                    writeU32(buffer, (u32)mapping.size());
+                    for (u32 value : mapping)
+                    {
+                        writeU32(buffer, value);
+                    }
+                }
+                else
+                {
+                    writeU32(buffer, 0);
+                }
+            }
+        }
+    }
+
+    bbool Ray_GameOptionSerializer::deserializeRemappings(const u8*& ptr, const u8* end)
+    {
+        if (!checkBounds(ptr, end, sizeof(u32) * 2))
+        {
+            SERIALIZER_LOG("Cannot deserialize remappings: missing block header");
+            return bfalse;
+        }
+
+        RemapBlockHeader header;
+        header.playerCount = readU32(ptr, end);
+        header.sourceCount = readU32(ptr, end);
+
+        Ray_GameManager* gm = RAY_GAMEMANAGER;
+        ZInputManager* inputManager = (gm) ? gm->getInputManager() : nullptr;
+
+        for (u32 player = 0; player < header.playerCount; ++player)
+        {
+            for (u32 source = 0; source < header.sourceCount; ++source)
+            {
+                if (!checkBounds(ptr, end, sizeof(u8) + sizeof(u32)))
+                {
+                    SERIALIZER_LOG("Cannot deserialize remappings: truncated data for player %u source %u", player, source);
+                    return bfalse;
+                }
+
+                bbool hasMapping = readBool(ptr, end);
+                u32 mappingCount = readU32(ptr, end);
+
+                if (!hasMapping || mappingCount == 0)
+                {
+                    continue;
+                }
+
+                if (!checkBounds(ptr, end, sizeof(u32) * mappingCount))
+                {
+                    SERIALIZER_LOG("Cannot deserialize remappings: insufficient data for player %u source %u (count=%u)", player, source, mappingCount);
+                    return bfalse;
+                }
+
+                ITF_VECTOR<u32> mapping;
+                mapping.resize(mappingCount);
+                for (u32 i = 0; i < mappingCount; ++i)
+                {
+                    mapping[i] = readU32(ptr, end);
+                }
+
+                if (inputManager)
+                {
+                    inputManager->ApplyRemapping(player, (EInputSourceType)source, mapping);
+                }
+            }
+        }
+
+        return btrue;
+    }
+
     void Ray_GameOptionSerializer::serialize(const Ray_GameOptionManager& manager, Vector<u8>& buffer)
     {
         buffer.clear();
@@ -77,6 +208,8 @@ namespace ITF
             }
         }
 
+        serializeRemappings(buffer);
+
         SERIALIZER_LOG("Serialization complete. Total size: %u bytes", buffer.size());
     }
 
@@ -110,8 +243,8 @@ namespace ITF
             return bfalse;
         }
 
-    u32 optionCount = readU32(ptr, end);
-    SERIALIZER_LOG("Deserializing %u options (version %u)", optionCount, version);
+        u32 optionCount = readU32(ptr, end);
+        SERIALIZER_LOG("Deserializing %u options (version %u)", optionCount, version);
 
         for (u32 i = 0; i < optionCount; ++i)
         {
@@ -236,6 +369,13 @@ namespace ITF
                 return bfalse;
             }
         }
+        if (ptr < end)
+        {
+            if (!deserializeRemappings(ptr, end))
+            {
+                SERIALIZER_LOG("Warning: remapping data could not be fully deserialized; using defaults");
+            }
+        }
 
         SERIALIZER_LOG("Deserialization complete");
         return btrue;
@@ -244,12 +384,12 @@ namespace ITF
     u32 Ray_GameOptionSerializer::computeFormatSignatureCRC()
     {
         u32 gameSaveCRC = 0;
-        
+
         if (RAY_GAMEMANAGER)
         {
             gameSaveCRC = RAY_GAMEMANAGER->computeSaveCodeCRC();
         }
-        
+
         SERIALIZER_LOG("computeFormatSignatureCRC: using game CRC = 0x%08x (unified with game saves)", gameSaveCRC);
         return gameSaveCRC;
     }
@@ -278,6 +418,17 @@ namespace ITF
             case Ray_GameOption::OptionType_Float:
                 size += sizeof(f32);
                 break;
+            }
+        }
+        size += sizeof(u32) * 2;
+        for (u32 player = 0; player < ACTIONMAP_MAX_PLAYER; ++player)
+        {
+            for (u32 source = 0; source < InputSource_Count; ++source)
+            {
+                size += sizeof(u8);
+                size += sizeof(u32);
+                u32 maxControls = GetMaxControlCountForSource((EInputSourceType)source);
+                size += sizeof(u32) * maxControls;
             }
         }
 

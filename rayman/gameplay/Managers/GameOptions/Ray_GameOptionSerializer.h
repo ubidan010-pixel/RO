@@ -7,6 +7,8 @@
 
 namespace ITF
 {
+    enum EInputSourceType;
+
     class Ray_GameOptionSerializer
     {
     public:
@@ -31,6 +33,10 @@ namespace ITF
         static bbool readBool(const u8*& ptr, const u8* end);
         static StringID readStringID(const u8*& ptr, const u8* end);
         static bbool checkBounds(const u8* ptr, const u8* end, u32 size);
+
+        static u32 GetMaxControlCountForSource(EInputSourceType source);
+        static void serializeRemappings(Vector<u8>& buffer);
+        static bbool deserializeRemappings(const u8*& ptr, const u8* end);
     };
 } // namespace ITF
 

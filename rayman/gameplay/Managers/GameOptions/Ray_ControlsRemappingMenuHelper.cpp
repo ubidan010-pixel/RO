@@ -247,6 +247,11 @@ namespace ITF
         if (id != CONTROLSREMAPPING_ACCEPT_BUTTON)
             return bfalse;
 
+        if (RAY_GAMEMANAGER)
+        {
+            RAY_GAMEMANAGER->saveGameOptions();
+        }
+
         closeAndReturn();
         return btrue;
     }

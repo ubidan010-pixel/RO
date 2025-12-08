@@ -301,7 +301,7 @@ namespace ITF
     {
         // Check if SOUTH and EAST buttons should be swapped (e.g., for NX/Ounce/Japan PS5)
         bbool swapSouthEast = SYSTEM_ADAPTER && SYSTEM_ADAPTER->isBackAndSelectButtonsInverted();
-        
+
         switch (_action)
         {
         case Action_Up:    return ZPad_Base::STICK_L_UP;
@@ -589,6 +589,63 @@ namespace ITF
             }
         }
         return U32_INVALID;
+    }
+
+    bbool ZInputManager::GetRemapping(u32 _playerIndex, EInputSourceType _source, ITF_VECTOR<u32>& _outMapping)
+    {
+        for (u32 i = 0; i < m_devices.size(); ++i)
+        {
+            IInputDevice* device = m_devices[i];
+            if (!device || device->GetId() != _playerIndex || device->GetInputSourceType() != _source)
+                continue;
+
+            u32 mappingCount = ZPad_Base::CONTROL_MAX;
+#if defined(ITF_WINDOWS)
+            if (_source == InputSource_Keyboard)
+            {
+                if (ZPad_PCKeyboard* keyboard = static_cast<ZPad_PCKeyboard*>(device))
+                {
+                    mappingCount = ZPad_PCKeyboard::MAX_KEY_MAPPINGS;
+                }
+            }
+#endif
+            _outMapping.resize(mappingCount);
+            for (u32 c = 0; c < mappingCount; ++c)
+            {
+                _outMapping[c] = device->GetRemap(c);
+            }
+            return btrue;
+        }
+        return bfalse;
+    }
+
+    void ZInputManager::ApplyRemapping(u32 _playerIndex, EInputSourceType _source, const ITF_VECTOR<u32>& _mapping)
+    {
+        for (u32 i = 0; i < m_devices.size(); ++i)
+        {
+            IInputDevice* device = m_devices[i];
+            if (!device || device->GetId() != _playerIndex || device->GetInputSourceType() != _source)
+                continue;
+
+            device->ResetRemapping();
+
+            u32 mappingCount = Min(_mapping.size(), static_cast<u32>(ZPad_Base::CONTROL_MAX));
+#if defined(ITF_WINDOWS)
+            if (_source == InputSource_Keyboard)
+            {
+                if (ZPad_PCKeyboard* keyboard = static_cast<ZPad_PCKeyboard*>(device))
+                {
+                    mappingCount = Min((u32)_mapping.size(), (u32)ZPad_PCKeyboard::MAX_KEY_MAPPINGS);
+                }
+            }
+#endif
+
+            for (u32 c = 0; c < mappingCount; ++c)
+            {
+                device->SetRemap(c, _mapping[c]);
+            }
+            return;
+        }
     }
 
     IMPLEMENT_OBJECT_RTTI(ZInputManager_Template)
