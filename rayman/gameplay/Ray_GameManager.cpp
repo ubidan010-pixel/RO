@@ -12112,7 +12112,21 @@ namespace ITF
 
     void Ray_GameManager::setPCControlMode(i32 type)
     {
+        const i32 currentMode = getPCControlMode();
         type = std::max(0, std::min(type, static_cast<i32>(PC_CONTROL_MODE_CHOICES) - 1));
+
+#if defined(ITF_WINDOWS)
+        if (type == PCControlMode_Controller && currentMode != PCControlMode_Controller)
+        {
+            const u32 padCount = (INPUT_ADAPTER) ? INPUT_ADAPTER->getGamePadCount() : 0;
+            if (padCount == 0)
+            {
+                LOG("[ControlsRemapping] Controller mode blocked: no controllers connected\n");
+                return;
+            }
+        }
+#endif
+
         m_gameOptionManager.setListOptionIndex(OPTION_PC_KEYBOARD_CONTROLLER_SHARING, type);
 
         const char* typeName = getPCControlModeDisplayName(type);

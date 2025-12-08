@@ -686,20 +686,35 @@ namespace ITF
         if (!listComponent || direction == 0 || !RAY_GAMEMANAGER)
             return;
 
-        i32 currentIndex = RAY_GAMEMANAGER->getPCControlMode();
-        i32 newIndex = currentIndex + direction;
+        const i32 currentIndex = RAY_GAMEMANAGER->getPCControlMode();
+        const auto hasConnectedController = []() -> bbool {
+            return (INPUT_ADAPTER && INPUT_ADAPTER->getGamePadCount() > 0);
+        };
 
-        if (newIndex < 0)
-            newIndex = PC_CONTROL_MODE_CHOICES - 1;
-        else if (newIndex >= static_cast<i32>(PC_CONTROL_MODE_CHOICES))
-            newIndex = 0;
+        i32 candidateIndex = currentIndex;
+        for (u32 attempt = 0; attempt < PC_CONTROL_MODE_CHOICES; ++attempt)
+        {
+            candidateIndex += direction;
+            if (candidateIndex < 0)
+                candidateIndex = PC_CONTROL_MODE_CHOICES - 1;
+            else if (candidateIndex >= static_cast<i32>(PC_CONTROL_MODE_CHOICES))
+                candidateIndex = 0;
 
-        if (newIndex == currentIndex)
+            if (candidateIndex == PCControlMode_Controller && !hasConnectedController())
+            {
+                LOG("[ControlsRemapping] Skipping Controller mode: no controllers connected\n");
+                continue;
+            }
+            break;
+        }
+
+        if (candidateIndex == currentIndex)
             return;
 
-        RAY_GAMEMANAGER->setPCControlMode(newIndex);
-        updateControllerTypeDisplay(listComponent, newIndex);
-        LOG("[ControlsRemapping] Controller type changed to: %s\n", RAY_GAMEMANAGER->getPCControlModeDisplayName(newIndex));
+        RAY_GAMEMANAGER->setPCControlMode(candidateIndex);
+        updateControllerTypeDisplay(listComponent, candidateIndex);
+        LOG("[ControlsRemapping] Controller type changed to: %s\n",
+            RAY_GAMEMANAGER->getPCControlModeDisplayName(candidateIndex));
     }
 
     void Ray_ControlsRemappingMenuHelper::updateControllerTypeDisplay(UIListOptionComponent* listComponent, i32 index)
