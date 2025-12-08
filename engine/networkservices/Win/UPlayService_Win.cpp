@@ -220,6 +220,9 @@ namespace ITF
 
     String8 UPlayService_Win::getUserEmail()
     {
+        if (!m_isInitialized || m_Context == NULL)
+            return String8::emptyString;
+
         if (!m_userEmail)
         {
             int ret = UPC_EmailGet_Extended(m_Context, &m_userEmail);

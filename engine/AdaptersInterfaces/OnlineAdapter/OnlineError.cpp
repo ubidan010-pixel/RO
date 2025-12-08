@@ -26,7 +26,8 @@ namespace
         "Not Initialized",
         "Authentication",
         "Ubisoft Connect",
-        "News"
+        "News",
+        "Profile"
     };
     ITF_ASSERT_STATIC(ITF_ARRAY_SIZE(subtype_strings) == OnlineError::ErrorSubtypeCount, "The array containing the strings for online error subtypes doesn't have the proper size");
 }

@@ -30,6 +30,8 @@
 #include "core/Config.h"
 #endif //_ITF_CONFIG_H_
 
+#include "engine/AdaptersInterfaces/OnlineAdapter/OnlineError.h"
+
 namespace ITF
 {
     class Event : public IRTTIObject
@@ -1045,19 +1047,23 @@ namespace ITF
     class EventOnlineSessionCreated : public Event
     {
         DECLARE_OBJECT_CHILD_RTTI(EventOnlineSessionCreated, Event, 3563070614);
-        DECLARE_SERIALIZE()
     public:
         EventOnlineSessionCreated() {}
+
     private:
     };
 
     class EventOnlineSessionError : public Event
     {
         DECLARE_OBJECT_CHILD_RTTI(EventOnlineSessionError, Event, 112577091);
-        DECLARE_SERIALIZE()
     public:
-        EventOnlineSessionError() {}
+        EventOnlineSessionError(): m_error() {}
+        EventOnlineSessionError(OnlineError _err): m_error(_err) {}
+
+        ITF_INLINE OnlineError& getError() { return m_error; };
+
     private:
+        OnlineError m_error;
     };
 
     class EventControllerStateChanged : public Event

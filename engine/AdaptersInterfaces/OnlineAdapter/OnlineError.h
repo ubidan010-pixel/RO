@@ -37,6 +37,7 @@ public:
         Authentication,         // Ubiservices auth errors
         Connect,                // Connect launching errors
         News,                   // Errors in fetching news
+        Profile,                // Errors in fetching profiles
         ErrorSubtypeCount       // KEEP IT LAST (Internal use)
     };
 

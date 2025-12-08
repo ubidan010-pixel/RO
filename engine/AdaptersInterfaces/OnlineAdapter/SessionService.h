@@ -36,7 +36,14 @@ public:
     virtual bool isNewsFeatureSwitchEnabled() const = 0;
 
     virtual OnlineError launchConnect(const String8& _deepLink = "", std::list<std::pair<String8, String8> > _params = {}) = 0;
+
+    // Sync version, runs on calling thread, returns OnlineError::Success or specific fail.
     virtual OnlineError createSession() = 0;
+
+    // Async version, OnlineAdapter thread, returns immediately
+    // Broadcasts EventOnlineSessionError / EventOnlineSessionCreated
+    virtual void createSessionAsync() = 0;
+
     virtual bool hasUserAccountLinked() = 0;
 
     virtual bool getConstantValue(String8 _parameterGroupName, StringID _parameterName, StringID _fieldName, f32 &_fieldValue) const = 0;

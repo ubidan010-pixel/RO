@@ -21,6 +21,8 @@
 #include "rayman/gameplay/Managers/GameOptions/Ray_ControlsRemappingMenuHelper.h"
 #endif //_ITF_RAY_CONTROLSREMAPPINGMENUHELPER_H_
 
+#include "engine/AdaptersInterfaces/OnlineAdapter/OnlineError.h"
+
 #include <future>
 
 namespace ITF
@@ -28,7 +30,9 @@ namespace ITF
     class TRCMessage_Base;
     //////////////////////////////////////////////////////////////////////////
     ///The main menu
-    class Ray_GameScreen_MainMenu : public GameScreenBase, public UIMenuManager::MenuItemActionListener
+    class Ray_GameScreen_MainMenu : public GameScreenBase,
+        public UIMenuManager::MenuItemActionListener,
+        public IEventListener
     {
         DECLARE_OBJECT_CHILD_RTTI(Ray_GameScreen_MainMenu,GameScreenBase,1338236129)
     public:
@@ -52,6 +56,8 @@ namespace ITF
         virtual StringID onMenuPageAction(UIMenu *_menu, const StringID & _action, const StringID &_defaultAction);
 
         virtual bbool onMenuItemOtherAction(UIComponent* _UIComponent, const StringID & _action);
+
+        virtual void onEvent(Event* _event);
 
         bbool onUserSignedInOut(u32 _playerIndex, bbool _signedIn, bbool _isOnlineStatusChange);
         bbool  updateSelectedSlot(const StringID& _id);
@@ -158,6 +164,8 @@ namespace ITF
 
         void onPressStartAction();
 
+        void onCreateSessionSuccess();
+        void onCreateSessionError(OnlineError _err);
         void onWelcomeMessagePressConnect();
         void onWelcomeMessagePressBack();
         void onWelcomeBackMessagePressConnect();

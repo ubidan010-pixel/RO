@@ -8,7 +8,7 @@ namespace ITF
 class LogicDataTable;
 class LogicDataProperty;
 class LogicDataBase;
-
+class Color;
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 class LogicDataTable : public LogicDataProperty

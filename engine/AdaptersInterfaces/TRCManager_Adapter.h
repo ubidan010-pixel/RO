@@ -201,6 +201,7 @@ namespace ITF
             UOR_CreateSessionError, // linked account & account not locked
             UOR_LockedAccount,
             UOR_News,
+            UOR_PleaseWait,
 
             Pad_enum		= 500,
             Pad_DisconnectingDuringTitleScreen,

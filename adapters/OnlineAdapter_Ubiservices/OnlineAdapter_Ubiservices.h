@@ -24,6 +24,7 @@ namespace ITF
         virtual void initialize();
         virtual void update();
         virtual void terminate();
+        virtual void setOfflineMode(bbool _isOffline);
 
         US_NS::SharedPtr<US_NS::Session> getSession();
 

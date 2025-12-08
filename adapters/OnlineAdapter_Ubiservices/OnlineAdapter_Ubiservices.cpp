@@ -17,6 +17,7 @@
 #include "engine/localisation/LocalisationManager.h"
 #include "engine/singleton/Singletons.h"
 #include "engine/networkservices/UPlayService.h"
+#include "engine/AdaptersInterfaces/OnlineAdapter/BuildId.h"
 
 #include <ubiservices/ubiservicesSdk.h>
 #include <ubiservices/facade.h>
@@ -65,6 +66,7 @@ using namespace ubiservices;
 
 namespace ITF
 {
+    // Creates a generic-looking build ID that doesn't increment automatically
     String8 OnlineAdapter_Ubiservices::generateBuildId()
     {
         String8 buildId;
@@ -135,8 +137,7 @@ namespace ITF
 #if defined(ITF_SUPPORT_ONLINETRACKING)
         m_trackingService->update();
 #endif
-        // state machine not tested for Alpha
-        //m_sessionService->update();
+        m_sessionService->update();
         m_newsService->update();
     }
 
@@ -255,10 +256,10 @@ namespace ITF
         int returnCode = usJsonInitializer.initialize(*FirstPartyInit_BF::s_jsonInitializer, *FirstPartyInit_BF::s_allocator);
         if (returnCode < 0)
         {
-            LOG("[Ubiservices] sce::Json::Initializer initialize() error %d.\n", returnCode);
+            LOG("[OnlineAdapter] sce::Json::Initializer initialize() error %d.\n", returnCode);
         }
 #endif
-        LOG("[Ubiservices] initFirstParty OK");
+        LOG("[OnlineAdapter] initFirstParty OK");
     }
 
     void OnlineAdapter_Ubiservices::uninitFirstParty()
@@ -275,12 +276,17 @@ namespace ITF
         FirstPartyInit_BF::s_allocator.release();
 #endif
 
-        LOG("[Ubiservices] uninitFirstParty OK");
+        LOG("[OnlineAdapter] uninitFirstParty OK");
     }
 
     void OnlineAdapter_Ubiservices::initializeUbiservices()
     {
-        String8 buildId = generateBuildId();
+        // use Jenkins build string
+        String8 buildId = APPLICATION_BUILD_ID;
+
+        // If we're not on a Jenkins build, send the fallback string
+        if (buildId.strstr("#UC") != NULL)
+            buildId = generateBuildId();
 
         US_NS::LoggingHelper::enableMultiLines(true);
         US_NS::LoggingHelper::enableVerbose(true);
@@ -295,7 +301,7 @@ namespace ITF
         ITF::ITF_LANGUAGE itfLang = LOCALISATIONMANAGER->getCurrentLanguage();
         bool bOk = convertITFtoUSLanguage(itfLang, lang, locale);
 
-        LOG("[Ubiservices] localize language %s / %s. itfknown: %d", lang.cStr(), locale.cStr(), bOk);
+        LOG("[OnlineAdapter] localize language %s / %s. itfknown: %d", lang.cStr(), locale.cStr(), bOk);
         US_NS::LocalizationHelper::setLocaleCode(US_NS::String::formatText("%s-%s", lang.cStr(), locale.cStr()));
 
         m_sessionService->initialize();
@@ -394,7 +400,7 @@ namespace ITF
         US_NS::ConfigureResult res = m_sdk->configure(gameConfig);
         if (res == ConfigureResult::Success)
         {
-            LOG("[Ubiservices] configure OK!");
+            LOG("[OnlineAdapter] configure OK!");
         }
     }
 
@@ -411,6 +417,23 @@ namespace ITF
             m_session = US_NS::Session::create(*m_sdk);
 
         return m_session;
+    }
+
+    void OnlineAdapter_Ubiservices::setOfflineMode(bbool _offline)
+    {
+        SessionService_Ubiservices* pService = (SessionService_Ubiservices*)m_sessionService;
+        if (_offline == btrue)
+        {
+            LOG("[OnlineAdapter] going offline...");
+            // order is important; deleteSession internally sets a different state
+            pService->deleteSession();
+            pService->m_sessionStatus = SessionService_Ubiservices::EInternalStatus_Offline;
+        }
+        else
+        {
+            LOG("[OnlineAdapter] start creating a session...");
+            pService->createSessionAsync();
+        }
     }
 } // namespace ITF
 

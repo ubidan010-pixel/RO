@@ -189,6 +189,9 @@ namespace ITF
 #ifdef ITF_SUPPORT_NETWORKSERVICES
         SF_DEL(m_validUser);
 #endif //ITF_SUPPORT_NETWORKSERVICES
+
+        EVENTMANAGER->unregisterEvent(ITF_GET_STRINGID_CRC(EventOnlineSessionCreated, 3563070614), this);
+        EVENTMANAGER->unregisterEvent(ITF_GET_STRINGID_CRC(EventOnlineSessionError, 112577091), this);
     }
     ///////////////////////////////////////////////////////////////////////////////////////////
     void Ray_GameScreen_MainMenu::onWorldLoaded()
@@ -308,6 +311,10 @@ namespace ITF
         RAY_GAMEMANAGER->cheatMaxCurrency();
         RAY_GAMEMANAGER->saveGameState(false, RAY_GAMEMANAGER->getCurrentSlotIndex());
 #endif
+
+        // Ubiservices events
+        EVENTMANAGER_REGISTER_EVENT_LISTENER(ITF_GET_STRINGID_CRC(EventOnlineSessionCreated, 3563070614), this);
+        EVENTMANAGER_REGISTER_EVENT_LISTENER(ITF_GET_STRINGID_CRC(EventOnlineSessionError, 112577091), this);
     }
     ///////////////////////////////////////////////////////////////////////////////////////////
     void Ray_GameScreen_MainMenu::updatePlayerIndex()
@@ -810,6 +817,17 @@ namespace ITF
                 pThis->onWelcomeBackMessagePressConnect();
             break;
         }
+        case TRCManagerAdapter::UOR_PleaseWait:
+        {
+            // Timed out
+            if (pThis->m_state == State_Online_UpdateSession)
+            {
+                LOG("[Auth] Timed out creating session.");
+                ONLINE_ADAPTER->setOfflineMode(btrue);
+                pThis->setState(State_ShowingMainMenu_SaveLoad_Root);
+            }
+            break;
+        }
         }
     }
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -1234,15 +1252,15 @@ namespace ITF
     ////////////////////////////////////////////////////////////////////////////////////////////
     // https://confluence.ubisoft.com/display/onlineservices/UC+Authentication+-+In-game+Flows
     // Offline Mode w. Crossplay
-    // $GS: sync method, so music and update() do stop for 5-10s while processing the session.
-    // Beta goal: rewrite this async with the FSM in SessionService >(^.^)<
+    // $GS: createSession is the sync method, so music and update() stop for 5-10s
+    // Replaced it with startCreateSession & onEvent() notifications >(^.^)<
     void Ray_GameScreen_MainMenu::enter_OnlineCreateSession()
     {
 #if ITF_SUPPORT_UBISERVICES
         setState(State_Online_UpdateSession);
 
         // 1st party services ok?
-        if (NETWORKSERVICES && !NETWORKSERVICES->isNetworkReady())
+        if (!NETWORKSERVICES || !NETWORKSERVICES->isNetworkReady())
         {
             ONLINE_ADAPTER->setOfflineMode(true);
             TRC_ADAPTER->addMessage(TRCManagerAdapter::UOR_FirstPartyOffline);
@@ -1250,92 +1268,13 @@ namespace ITF
             return;
         }
 
-        OnlineError result = ONLINE_ADAPTER->getSessionService()->createSession();
-        if (result.getType() == OnlineError::Success)
+        if (ONLINE_ADAPTER && CONFIG->m_enableUbiServices)
         {
-            // fetch news
-            m_newsUpdateFuture = std::async(&Ray_GameScreen_MainMenu::fetchNews, this);
+            // Has 120 timeout, we kill it either on EventOnlineSessionCreated or Error.
+            // If it's not killed, it will trigger a Timeout / UOR_FirstPartyOffline.
+            TRC_ADAPTER->addMessage(TRCManagerAdapter::ErrorContext::UOR_PleaseWait);
 
-            // Boot flags
-            i32 bootCounter = RAY_GAMEMANAGER->getAuthBootCount();
-
-            // if we get here on 1st boot, account was pre-linked; save it.
-            if (bootCounter == 1)
-            {
-                RAY_GAMEMANAGER->setAuthAlreadyLinked(btrue);
-
-                // schedule a save
-                m_authSaveFuture = std::async(&Ray_GameScreen_MainMenu::asyncDoWelcomeBackSave, this);
-            }
-
-            bbool isAlreadyLinked = RAY_GAMEMANAGER->getAuthAlreadyLinked();
-
-            LOG("[Auth] bootCounter:%d alreadyLinked: %d", bootCounter, isAlreadyLinked);
-
-            bool shouldShowWelcomeBack = isAlreadyLinked && (bootCounter == 2);
-            if (shouldShowWelcomeBack)
-            {
-                LOG("[Auth] Display Welcome Back message...");
-                TRC_ADAPTER->addMessage(TRCManagerAdapter::UOR_WelcomeBackMessage);
-            }
-            else
-            {
-                LOG("[Auth] Start game online mode");
-            }
-
-            setState(State_ShowingMainMenu_SaveLoad_Root);
-        }
-        else
-        {
-            LOG("[Auth] session creation errors. err code: %d", result.getCode());
-
-            if (result.getType() == OnlineError::UbiServer &&
-                result.getSubType() == OnlineError::Authentication &&
-                result.getCode() == 0x143)   /* AUTHENTICATION_PLAYER_HAS_NO_UPLAY_ACCOUNT */
-            {
-                // welcome message
-                LOG("[Auth] Display Welcome message...");
-
-                // On boot 1, we set the flag to check on 2nd boot.
-                i32 bootCounter = RAY_GAMEMANAGER->getAuthBootCount();
-                if (bootCounter == 1)
-                {
-                    RAY_GAMEMANAGER->setAuthAlreadyLinked(bfalse);
-                }
-
-                // button handling is in onCloseTRCMessage because of extra UI code
-                // to distinguish onCloseCallback for each button
-                TRC_ADAPTER->addMessage(TRCManagerAdapter::UOR_WelcomeMessage);
-            }
-            else if (result.getType() == OnlineError::UbiServer &&
-                result.getSubType() == OnlineError::Authentication &&
-                result.getCode() == 0x160)  /* AUTHENTICATION_USER_ACCOUNT_LOCKED */
-            {
-                LOG("[Auth] User account LOCKED!");
-                OnlineError ret = ONLINE_ADAPTER->getSessionService()->launchConnect("auth");
-                LOG("[Auth] Connect closed. ret: %d", ret.getCode());
-                
-                TRC_ADAPTER->addMessage(TRCManagerAdapter::UOR_LockedAccount, 0, 0,
-                    [](const StringID& answer, TRCMessage_Base* pMessage, void* pParams) ->
-                    void {
-                        Ray_GameScreen_MainMenu* pThis = (Ray_GameScreen_MainMenu*)pParams;
-                        pThis->setState(State_ShowingTitleScreen);
-                    }
-                    , this);
-            }
-            else
-            {
-                LOG("[Auth] unknown error %d", result.getCode());
-
-                // some other error. Block access.
-                TRC_ADAPTER->addMessage(TRCManagerAdapter::UOR_CreateSessionError, 0, 0,
-                    [](const StringID& answer, TRCMessage_Base* pMessage, void* pParams) ->
-                    void {
-                        Ray_GameScreen_MainMenu* pThis = (Ray_GameScreen_MainMenu*)pParams;
-                        pThis->setState(State_ShowingTitleScreen);
-                    }
-                , this);
-            }
+            ONLINE_ADAPTER->getSessionService()->createSessionAsync();
         }
 #endif
     }
@@ -1551,6 +1490,118 @@ namespace ITF
         }
         return bfalse;
     }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    void Ray_GameScreen_MainMenu::onEvent(Event* _event)
+    {
+        if (EventOnlineSessionCreated* eventSessionCreated = _event->DynamicCast<EventOnlineSessionCreated>(ITF_GET_STRINGID_CRC(EventOnlineSessionCreated, 3563070614)))
+        {
+            onCreateSessionSuccess();
+        }
+        else if (EventOnlineSessionError* eventSessionError = _event->DynamicCast<EventOnlineSessionError>(ITF_GET_STRINGID_CRC(EventOnlineSessionError, 112577091)))
+        {
+            onCreateSessionError(eventSessionError->getError());
+        }
+    }
+
+    void Ray_GameScreen_MainMenu::onCreateSessionSuccess()
+    {
+        LOG("[Auth] onCreateSessionSuccess");
+
+        // first, kill the Please Wait screen.
+        if (TRC_ADAPTER->existsMessage(TRCManagerAdapter::UOR_PleaseWait))
+            TRC_ADAPTER->killCurrentMessage();
+
+        // fetch news
+        m_newsUpdateFuture = std::async(&Ray_GameScreen_MainMenu::fetchNews, this);
+
+        // Boot flags
+        i32 bootCounter = RAY_GAMEMANAGER->getAuthBootCount();
+
+        // if we get here on 1st boot, account was pre-linked; save it.
+        if (bootCounter == 1)
+        {
+            RAY_GAMEMANAGER->setAuthAlreadyLinked(btrue);
+
+            // schedule a save
+            m_authSaveFuture = std::async(&Ray_GameScreen_MainMenu::asyncDoWelcomeBackSave, this);
+        }
+
+        bbool isAlreadyLinked = RAY_GAMEMANAGER->getAuthAlreadyLinked();
+
+        LOG("[Auth] bootCounter:%d alreadyLinked: %d", bootCounter, isAlreadyLinked);
+
+        bool shouldShowWelcomeBack = isAlreadyLinked && (bootCounter == 2);
+        if (shouldShowWelcomeBack)
+        {
+            LOG("[Auth] Display Welcome Back message...");
+            TRC_ADAPTER->addMessage(TRCManagerAdapter::UOR_WelcomeBackMessage);
+        }
+        else
+        {
+            LOG("[Auth] Start game online mode");
+        }
+
+        setState(State_ShowingMainMenu_SaveLoad_Root);
+    }
+
+    void Ray_GameScreen_MainMenu::onCreateSessionError(OnlineError _err)
+    {
+        LOG("[Auth] session creation errors. err code: %d", _err.getCode());
+
+        // first, kill the Please Wait screen.
+        if (TRC_ADAPTER->existsMessage(TRCManagerAdapter::UOR_PleaseWait))
+            TRC_ADAPTER->killCurrentMessage();
+
+        if (_err.getType() == OnlineError::UbiServer &&
+            _err.getSubType() == OnlineError::Authentication &&
+            _err.getCode() == 0x143)   /* AUTHENTICATION_PLAYER_HAS_NO_UPLAY_ACCOUNT */
+        {
+            // welcome message
+            LOG("[Auth] Display Welcome message...");
+
+            // On boot 1, we set the flag to check on 2nd boot.
+            i32 bootCounter = RAY_GAMEMANAGER->getAuthBootCount();
+            if (bootCounter == 1)
+            {
+                RAY_GAMEMANAGER->setAuthAlreadyLinked(bfalse);
+            }
+
+            // button handling is in onCloseTRCMessage because of extra UI code
+            // to distinguish onCloseCallback for each button
+            TRC_ADAPTER->addMessage(TRCManagerAdapter::UOR_WelcomeMessage);
+        }
+        else if (_err.getType() == OnlineError::UbiServer &&
+            _err.getSubType() == OnlineError::Authentication &&
+            _err.getCode() == 0x160)  /* AUTHENTICATION_USER_ACCOUNT_LOCKED */
+        {
+            LOG("[Auth] User account LOCKED!");
+            OnlineError ret = ONLINE_ADAPTER->getSessionService()->launchConnect("auth");
+            LOG("[Auth] Connect closed. ret: %d", ret.getCode());
+
+            TRC_ADAPTER->addMessage(TRCManagerAdapter::UOR_LockedAccount, 0, 0,
+                [](const StringID& answer, TRCMessage_Base* pMessage, void* pParams) ->
+                void {
+                    Ray_GameScreen_MainMenu* pThis = (Ray_GameScreen_MainMenu*)pParams;
+                    pThis->setState(State_ShowingTitleScreen);
+                }
+            , this);
+        }
+        else
+        {
+            LOG("[Auth] unknown error %d", _err.getCode());
+
+            // some other error. Block access.
+            TRC_ADAPTER->addMessage(TRCManagerAdapter::UOR_CreateSessionError, 0, 0,
+                [](const StringID& answer, TRCMessage_Base* pMessage, void* pParams) ->
+                void {
+                    Ray_GameScreen_MainMenu* pThis = (Ray_GameScreen_MainMenu*)pParams;
+                    pThis->setState(State_ShowingTitleScreen);
+                }
+            , this);
+        }
+    }
+
     ///////////////////////////////////////////////////////////////////////////////////////////
     void Ray_GameScreen_MainMenu::update_ShowingMainMenu_SaveLoad_DeleteSave()
     {

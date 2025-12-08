@@ -11,6 +11,7 @@
 #include "core/AdaptersInterfaces/SystemAdapter.h"
 #include "engine/singleton/Singletons.h"
 #include "engine/events/EventManager.h"
+#include "engine/events/Events.h"
 #include "engine/networkservices/NetworkServices.h"
 #include "engine/networkservices/UPlayService.h"
 
@@ -150,6 +151,9 @@ void SessionService_Ubiservices::update()
     case EInternalStatus_Creating:
         updateCreating();
         break;
+    case EInternalStatus_Profile:
+        updateProfile();
+        break;
     case EInternalStatus_Deleting:
         updateDeleting();
         break;
@@ -158,6 +162,9 @@ void SessionService_Ubiservices::update()
         break;
     case EInternalStatus_Error:
         updateError();
+        break;
+    case EInternalStatus_Offline:
+        // no-op
         break;
     default:
         break;
@@ -181,6 +188,16 @@ void SessionService_Ubiservices::checkUbiservicesNotifications()
         }
         else if (notif.m_type == PlayerNotificationUbiServicesType::NotificationThrottled)
         {
+            // Set a default wait time before retry. Time in seconds       
+            int waitTime = 30;
+
+            // Check if time to wait before retry has been provided
+            if (!notif.m_content.isEmpty())
+            {
+                waitTime = US_NS::String::convertToInt(notif.m_content);
+            }
+            LOG("[SessionService] Throttled. Retry connection in: %d", waitTime);
+            m_nextSessionRetryTime = SYSTEM_ADAPTER->getTime() + waitTime;
         }
         else if (notif.m_type == PlayerNotificationUbiServicesType::NotificationConnectionFailed)
         {
@@ -267,6 +284,7 @@ void SessionService_Ubiservices::updateCreating()
     }
     else if (m_createSessionResult.hasSucceeded())
     {
+        m_sessionError = OnlineError(OnlineError::Success);
         onCreateSessionSuccess();
     }
     else if (m_createSessionResult.hasFailed())
@@ -275,9 +293,8 @@ void SessionService_Ubiservices::updateCreating()
         u32 code = resultCreateError.m_baseError.m_code;
 
        LOG("[SessionService] error creating: %d / %s", code, resultCreateError.m_baseError.m_description.getUtf8());
-        // TODO handle Switch m_specificNative 1st Party
 
-        OnlineError err(OnlineError::ErrorType::UbiServer, code);
+        OnlineError err(OnlineError::UbiServer, OnlineError::Authentication, code);
         onCreateSessionFailure(err);
     }
 }
@@ -301,7 +318,7 @@ void SessionService_Ubiservices::updateDeleting()
 
         // TODO handle Switch m_specificNative 1st Party
         
-        OnlineError err(OnlineError::ErrorType::UbiServer, code);
+        OnlineError err(OnlineError::UbiServer, OnlineError::Authentication, code);
         onDeleteSessionFailure(err);
     }
 }
@@ -446,11 +463,28 @@ ubiservices::ProfileId SessionService_Ubiservices::convertProfileIdToUbiservices
 //-------------- Session Creation --------------
 void SessionService_Ubiservices::startCreatingSession()
 {
-    ITF_ASSERT_MSG(NETWORKSERVICES->getNetworkStatus() == NetworkServices::ENetworkStatus_Ready, "SessionService_Ubiservices::startCreatingSession() - NetworkAdapter is not ready.");
-    ITF_ASSERT_MSG(ACCOUNT_ADAPTER->getTokenStatus() == AccountAdapter::ETokenStatus_Ready, "SessionService_Ubiservices::startCreatingSession() - AccountAdapter is not ready.");
-
     m_sessionError = OnlineError();
-    m_sessionStatus = EInternalStatus_Creating;
+
+    m_sessionStatus = EInternalStatus_Preparing;
+    m_session = ONLINE_ADAPTER_UBISERVICES->getSession();
+    if (!m_initialized || !m_session)
+    {
+        setError(OnlineError(OnlineError::ErrorType::UbiServer, OnlineError::ErrorSubtype::NotInitialized,
+            OnlineError::ErrorSubtype::Authentication));
+        return;
+    }
+
+#if defined(ITF_NX) || defined(ITF_OUNCE)
+    if (!SYSTEM_ADAPTER_NINTENDO->havePermissions(false))
+    {
+        setError(OnlineError(OnlineError::ErrorType::FirstParty, OnlineError::ErrorSubtype::Authentication,
+            0));
+        return;
+    }
+#endif
+
+    ITF_ASSERT_MSG(NETWORKSERVICES->getNetworkStatus() == NetworkServices::ENetworkStatus_Ready, "SessionService_Ubiservices::startCreatingSession() - NetworkAdapter is not ready.");
+    //ITF_ASSERT_MSG(ACCOUNT_ADAPTER->getTokenStatus() == AccountAdapter::ETokenStatus_Ready, "SessionService_Ubiservices::startCreatingSession() - AccountAdapter is not ready.");
 
     // skip the network request if possible
     US_NS::AuthenticationModule& moduleAuth = US_NS::AuthenticationModule::module(*m_session);
@@ -469,8 +503,11 @@ void SessionService_Ubiservices::startCreatingSession()
         return;
     }
 
-    US_NS::Vector<US_NS::String> parametersGroupApplication;
-    US_NS::Vector<US_NS::String> parametersGroupSpace;
+    m_sessionStatus = EInternalStatus_Creating;
+    PlayerCredentials playerCredentials = getUbiServicesCredentials();
+
+    US_NS::Vector<US_NS::String> parametersGroupApplication = {};
+    US_NS::Vector<US_NS::String> parametersGroupSpace = {};
 
     ITF_VECTOR<String8> parameterGroupNamesTitle = ONLINE_ADAPTER->getParameterGroupNames();
     for (auto itGroupsToFetch = parameterGroupNamesTitle.begin(); itGroupsToFetch != parameterGroupNamesTitle.end(); ++itGroupsToFetch)
@@ -478,13 +515,30 @@ void SessionService_Ubiservices::startCreatingSession()
         parametersGroupSpace.push_back(ubiservices::String(itGroupsToFetch->cStr()));
     }
 
-    m_createSessionResult = m_session->open(getUbiServicesCredentials(), parametersGroupApplication, parametersGroupSpace);
+    m_createSessionResult= m_session->open(playerCredentials, parametersGroupApplication, parametersGroupSpace);
 }
 
 void SessionService_Ubiservices::onCreateSessionSuccess()
 {
     ITF_ASSERT(m_sessionStatus == EInternalStatus_Creating);
-    refreshSessionInfo();
+    m_sessionStatus = EInternalStatus_Profile;
+    m_sessionError = OnlineError(OnlineError::Success);
+
+    startGetProfile();
+}
+
+void SessionService_Ubiservices::startGetProfile()
+{
+    ITF_ASSERT(m_sessionStatus == EInternalStatus_Profile);
+
+    ProfileModule& moduleProfile = ProfileModule::module(*m_session);
+    AuthenticationModule& moduleAuth = AuthenticationModule::module(*m_session);
+    US_NS::Vector<ProfileId> profileQuery;
+
+    ProfileId pId = moduleAuth.getSessionInfo().getProfileId();
+    profileQuery.push_back(pId);
+
+    m_getProfileResult = moduleProfile.requestProfiles(profileQuery);
 }
 
 void SessionService_Ubiservices::onCreateSessionFailure(const OnlineError& _error)
@@ -504,6 +558,51 @@ void SessionService_Ubiservices::onCreateSessionFailure(const OnlineError& _erro
     // Which is not compliant with Nintendo requirements.
     if (_error.getType() == OnlineError::FirstParty) m_retryInstantlyAfterError = false;
 #endif
+
+    EventOnlineSessionError event(_error);
+    EVENTMANAGER->broadcastEvent(&event);
+}
+
+void SessionService_Ubiservices::updateProfile()
+{
+    ITF_ASSERT(m_sessionStatus == EInternalStatus_Profile);
+    if (m_getProfileResult.isProcessing())
+    {
+        return;
+    }
+    else if (m_getProfileResult.hasSucceeded())
+    {
+        onGetProfileSuccess();
+    }
+    else if (m_getProfileResult.hasFailed())
+    {
+        int32 code = m_getProfileResult.getAsyncResultError().m_baseError.m_code;
+        OnlineError err(OnlineError::UbiServer, OnlineError::Profile, code);
+        onGetProfileFailure(err);
+    }
+}
+
+void SessionService_Ubiservices::onGetProfileSuccess()
+{
+    ITF_ASSERT(m_sessionStatus == EInternalStatus_Profile);
+    m_sessionStatus = EInternalStatus_Ready;
+
+    m_cachedProfiles = m_getProfileResult.getResult();
+
+    refreshSessionInfo();
+
+    EventOnlineSessionCreated event;
+    EVENTMANAGER->broadcastEvent(&event);
+}
+
+void SessionService_Ubiservices::onGetProfileFailure(const OnlineError & _error)
+{
+    ITF_ASSERT(m_sessionStatus == EInternalStatus_Profile);
+
+    // here we have a session but could not obtain profile info for name
+    // we consider this a failure, since it's not possible to display the Welcome Back
+    deleteSession();
+    setError(_error);
 }
 
 //-------------- Fetch Ubiservices Populations and Parameters --------------
@@ -602,11 +701,16 @@ void SessionService_Ubiservices::onFetchPopulationsFailure(const OnlineError& _e
 //-------------- Session Deletion --------------
 void SessionService_Ubiservices::deleteSession()
 {
-    ITF_ASSERT(m_sessionStatus == EInternalStatus_Ready ||
-        m_sessionStatus == EInternalStatus_Creating);
-
     m_sessionStatus = EInternalStatus_Deleting;
-    m_closeSessionResult = m_session->close();
+
+    if (m_createSessionResult.isProcessing())
+    {
+        m_createSessionResult.cancel();
+    }
+    else if (m_session)
+    {
+        m_closeSessionResult = m_session->close();
+    }
 }
 
 void SessionService_Ubiservices::onDeleteSessionSuccess()
@@ -897,19 +1001,23 @@ void SessionService_Ubiservices::refreshSessionInfo()
             // Fetch Uplay name
             ProfileId pId = sessionInfo.getProfileId();
             US_NS::String sId = pId;
+
             auto it = m_cachedProfiles.find(pId);
             if (it != m_cachedProfiles.end())
             {
                 String8 name = it->second.m_nameOnPlatform.getUtf8();
                 LOG("Found cached profile info for pid %s; name: %s", sId.getUtf8(), name.cStr());
-                ACCOUNT_ADAPTER->setActiveAccountNameOnUplay(name);
+                onFetchUplayNameSuccess(name);
             }
             else
+            {
                 LOG("No cached profiles for pid %s (was it cleared it by accident?)", sId.getUtf8());
+                onFetchUplayNameFailure(OnlineError(OnlineError::UbiServer, OnlineError::ErrorSubtype::Profile));
+            }
         }
         else
         {
-            ACCOUNT_ADAPTER->setActiveAccountNameOnUplay(String8::emptyString);
+            onFetchUplayNameFailure(OnlineError(OnlineError::UbiServer, OnlineError::ErrorSubtype::Profile));
         }
     }
 }
@@ -987,6 +1095,12 @@ OnlineError SessionService_Ubiservices::launchConnect(const String8& _deepLink,
 #endif
 
     return OnlineError(OnlineError::ErrorType::Network, OnlineError::ErrorSubtype::NotInitialized);
+}
+
+void SessionService_Ubiservices::createSessionAsync()
+{
+    // call internal version 
+    startCreatingSession();
 }
 
 OnlineError SessionService_Ubiservices::createSession()

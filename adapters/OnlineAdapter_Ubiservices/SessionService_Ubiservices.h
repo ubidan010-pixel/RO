@@ -16,6 +16,8 @@
 #include "engine/events/IEventListener.h"
 #include "core/UUID.h"
 
+#include <future>
+
 namespace ubiservices
 {
     class PlayerCredentials;
@@ -43,6 +45,7 @@ namespace ITF
 
         virtual OnlineError launchConnect(const String8& _deepLink = "", std::list<std::pair<String8, String8> > _params = {}) override;
         virtual OnlineError createSession() override;
+        virtual void createSessionAsync() override;
         virtual bool hasUserAccountLinked() override;
 
         bool isClubFeatureSwitchEnabled() const override;
@@ -82,6 +85,9 @@ namespace ITF
         void onCreateSessionSuccess();
         void onCreateSessionFailure(const OnlineError& _error);
 
+        void onGetProfileSuccess();
+        void onGetProfileFailure(const OnlineError& _error);
+
         void refreshSessionInfo();
 
         void onFetchPopulationsSuccess(const ubiservices::Vector<ubiservices::PopulationInfo>& _populationInfo);
@@ -104,7 +110,10 @@ namespace ITF
         US_NS::AsyncResult<US_NS::Empty> m_createSessionResult;
         US_NS::AsyncResult<US_NS::Empty> m_closeSessionResult;
 
-        US_NS::Map<US_NS::ProfileId, US_NS::ProfileInfo> m_cachedProfiles;
+        typedef US_NS::Map<US_NS::ProfileId, US_NS::ProfileInfo> ProfileCache;
+
+        US_NS::AsyncResult<ProfileCache> m_getProfileResult;
+        ProfileCache m_cachedProfiles;
 
         void checkUbiservicesNotifications();
 
@@ -120,13 +129,14 @@ namespace ITF
 
         enum EInternalStatus
         {
-            EInternalStatus_Idle,
-            EInternalStatus_Preparing,
-            EInternalStatus_Creating,
-            EInternalStatus_Deleting,
-            EInternalStatus_Ready,
-            EInternalStatus_Error,
-            EInternalStatus_Offline,
+            EInternalStatus_Idle,           // waiting for some app logic to create a session
+            EInternalStatus_Preparing,      // checking permissions, before actual open
+            EInternalStatus_Creating,       // just the bare session opening
+            EInternalStatus_Profile,        // fetch Uplay profile info for name, etc.
+            EInternalStatus_Deleting,       // closing the session
+            EInternalStatus_Ready,          // session is running; we can use any API
+            EInternalStatus_Error,          // temporary failure, will try to recover if ms_enableAutomaticRetry 
+            EInternalStatus_Offline,        // set by user input / will ignore ms_enableAutomaticRetry
             EInternalStatus_Count
         };
 
@@ -135,10 +145,13 @@ namespace ITF
         void updateDeleting();
         void updateReady();
         void updateError();
+        void updateProfile();
+
 
         void setError(const OnlineError &error);
 
         void startCreatingSession();
+        void startGetProfile();
         void deleteSession();
         
         static const bool ms_enableAutomaticRetry;
@@ -154,6 +167,8 @@ namespace ITF
         bool m_retryInstantlyAfterError;
 
         bool m_ubiservicesSessionUpdated;
+
+        friend class OnlineAdapter_Ubiservices;
     };
 
 
