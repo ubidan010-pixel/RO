@@ -250,7 +250,24 @@ void Ray_PlayerControllerComponent::StateHitReceive::setupHit( bbool _restart )
 
 			StringConverter c(str);
 
-			ONLINETRACKING_ADAPTER->sendTag("PLAYER_HIT",c.getChar());
+            // old api.
+            //ONLINETRACKING_ADAPTER->sendTag("PLAYER_HIT",c.getChar());
+
+            auto trk = ONLINETRACKING_ADAPTER;
+            if (trk)
+            {
+                trk->setAttributeString("checkPoint", checkPointStr.c_str());
+                trk->setAttributeString("levelName", StringToUTF8(levelName).get());
+                trk->setAttributeInt("numPlayers", num_players);
+                trk->setAttributeString("offscreen", last_offscreen.cStr());
+                trk->setAttributeString("paf", last_paf.cStr());
+                trk->setAttributeInt("playerId", m_parent->m_playerIndex + 1);
+                trk->setAttributeFloat("positionX", m_parent->m_actor->getPos().getX());
+                trk->setAttributeFloat("positionY", m_parent->m_actor->getPos().getY());
+                trk->setAttributeFloat("positionZ", m_parent->m_actor->getPos().getZ());
+
+                trk->sendSignal("PlayerDeath");
+            }
 
 			RAY_GAMEMANAGER->getOnlineTrackingManager()->onHitExit(); // reset paf/offscreen//
 		}

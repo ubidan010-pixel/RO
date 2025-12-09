@@ -213,7 +213,23 @@ void Ray_OnlineTrackingManager::OnlineTrackingTrackDeath(ITF::u32 playerIndex)
 
 				StringConverter c(str);
 
-				ONLINETRACKING_ADAPTER->sendTag("PLAYER_HIT",c.getChar());
+				//ONLINETRACKING_ADAPTER->sendTag("PLAYER_HIT",c.getChar());
+
+                auto trk = ONLINETRACKING_ADAPTER;
+                if (trk)
+                {
+                    trk->setAttributeString("checkPoint", checkPointStr.c_str());
+                    trk->setAttributeString("levelName", StringToUTF8(levelCopy).get());
+                    trk->setAttributeInt("numPlayers", num_players);
+                    trk->setAttributeString("offscreen", last_offscreen.cStr());
+                    trk->setAttributeString("paf", last_paf.cStr());
+                    trk->setAttributeInt("playerId", playerIndex + 1);
+                    trk->setAttributeFloat("positionX", playerActor->getPos().getX());
+                    trk->setAttributeFloat("positionY", playerActor->getPos().getY());
+                    trk->setAttributeFloat("positionZ", playerActor->getPos().getZ());
+
+                    trk->sendSignal("PlayerDeath");
+                }
 
 				onHitExit();
 
@@ -951,7 +967,19 @@ void Ray_OnlineTrackingManager::onGameRestart(bbool _ReStartedByPlayers)
 
     char* tag = str.getCharCopy();
         
-    ONLINETRACKING_ADAPTER->sendTag("LEVEL_RESTART", tag);
+    //ONLINETRACKING_ADAPTER->sendTag("LEVEL_RESTART", tag);
+
+    auto trk = ONLINETRACKING_ADAPTER;
+    if (trk)
+    {
+        trk->setAttributeString("checkPoint", checkPointStr.c_str());
+        trk->setAttributeString("levelName", StringToUTF8(levelName).get());
+        trk->setAttributeInt("numPlayers", GAMEMANAGER->getNumActivePlayers());
+        trk->setAttributeString("reason", _ReStartedByPlayers ? "RESTART" : "GAMEOVER");
+        trk->setAttributeFloat("time", m_timeElapsedSinceLastCheckPoint);
+
+        trk->sendSignal("LevelRestart");
+    }
 
     SF_DEL_ARRAY(tag);
 

@@ -101,7 +101,7 @@ namespace ITF
     {
         auto srv = ONLINE_ADAPTER->getTrackingService();
         if (srv)
-            srv->setAttributeString(attr, attr);
+            srv->setAttributeString(attr, val);
     }
 
     int OnlineTrackingAdapter::sendSignal(const char* signal)
