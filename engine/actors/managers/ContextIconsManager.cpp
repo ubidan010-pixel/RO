@@ -60,7 +60,7 @@ const ContextIconsManager::ButtonIconMapping ContextIconsManager::s_iconMapping_
     { "SWITCH_JOYCON_DPAD_DOWN", "SWITCH_JOYCON_DPAD_RIGHT", "SWITCH_JOYCON_DPAD_LEFT", "SWITCH_JOYCON_DPAD_UP" };
 
 const ContextIconsManager::ButtonIconMapping ContextIconsManager::s_iconMapping_Switch_Pro = 
-    { "SWITCH_BUTTON_A", "SWITCH_BUTTON_B", "SWITCH_BUTTON_Y", "SWITCH_BUTTON_X" };
+    { "SWITCH_BUTTON_B", "SWITCH_BUTTON_A", "SWITCH_BUTTON_Y", "SWITCH_BUTTON_X" };
 
 const ContextIconsManager::ButtonIconMapping ContextIconsManager::s_iconMapping_Wii_Sideway = 
     { "WII_BUTTON_2", "WII_BUTTON_1", "WII_BUTTON_MINUS", nullptr };
@@ -417,30 +417,15 @@ String8 ContextIconsManager::formatIconTag(const char* _iconName)
 //------------------------------------------------------------------------------
 String8 ContextIconsManager::getIconNameForPhysicalButton(u32 _physicalButton, InputAdapter::PadType _padType, bbool _isInverted) const
 {
-    bbool platformHasSwappedLayout = (_padType == InputAdapter::Pad_NX_Joycon ||
-                                       _padType == InputAdapter::Pad_NX_Joycon_Dual ||
-                                       _padType == InputAdapter::Pad_NX_Pro ||
-                                       _padType == InputAdapter::Pad_Other); 
-    
-    u32 displayButton = _physicalButton;
-    
-    if (platformHasSwappedLayout != _isInverted)
-    {
-        if (_physicalButton == ZPad_Base::BUTTON_FACE_SOUTH)
-            displayButton = ZPad_Base::BUTTON_FACE_EAST;
-        else if (_physicalButton == ZPad_Base::BUTTON_FACE_EAST)
-            displayButton = ZPad_Base::BUTTON_FACE_SOUTH;
-    }
-    
     const ButtonIconMapping& mapping = getButtonMappingForPadType(_padType);
     const char* iconName = nullptr;
-    if (displayButton == ZPad_Base::BUTTON_FACE_SOUTH)
+    if (_physicalButton == ZPad_Base::BUTTON_FACE_SOUTH)
         iconName = mapping.south;
-    else if (displayButton == ZPad_Base::BUTTON_FACE_EAST)
+    else if (_physicalButton == ZPad_Base::BUTTON_FACE_EAST)
         iconName = mapping.east;
-    else if (displayButton == ZPad_Base::BUTTON_FACE_WEST)
+    else if (_physicalButton == ZPad_Base::BUTTON_FACE_WEST)
         iconName = mapping.west;
-    else if (displayButton == ZPad_Base::BUTTON_FACE_NORTH)
+    else if (_physicalButton == ZPad_Base::BUTTON_FACE_NORTH)
         iconName = mapping.north;
     
     return formatIconTag(iconName);
