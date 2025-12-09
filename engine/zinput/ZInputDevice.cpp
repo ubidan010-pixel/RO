@@ -333,7 +333,8 @@ namespace ITF
         {
             if (IsButtonActive(buttons[mapping.buttonIndex]))
             {
-                return mapping.controlIndex;
+                u32 control = ApplyButtonSwapIfNeeded(mapping.controlIndex);
+                return control;
             }
         }
         for (const auto& mapping : kAxisMappings)
