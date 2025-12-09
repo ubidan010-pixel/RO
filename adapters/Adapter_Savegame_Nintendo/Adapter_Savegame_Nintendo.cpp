@@ -21,11 +21,11 @@ namespace ITF
 
     namespace
     {
-        constexpr u32 kMaxWriteOpsPerWindow = 128;                 // TRC0011: max ops per 60s
-        constexpr u32 kMaxWriteBytesPerWindow = 64 * 1024 * 1024;  // TRC0011: max bytes per 60s
+        constexpr u32 kMaxWriteOpsPerWindow = 128;                
+        constexpr u32 kMaxWriteBytesPerWindow = 64 * 1024 * 1024; 
         constexpr f64 kWriteWindowSeconds = 60.0;
-        constexpr u32 kWriteOpsPerSave = 4;                        // SetFileSize + Write header + Write payload + Commit
-        constexpr u32 kWriteHeaderBytes = sizeof(u32);             // size field written before payload
+        constexpr u32 kWriteOpsPerSave = 4;                        
+        constexpr u32 kWriteHeaderBytes = sizeof(u32);             
     }
 
     static constexpr u32 MAX_SAVE_DATA_MEMORY_SIZE = 1 * 1024 * 1024;

@@ -167,8 +167,8 @@ namespace ITF
             String8 fileToLoad;
         };
 
-        std::deque<WriteSample> m_writeWindow;      // sliding window of writes (last 60s)
-        std::deque<PendingSaveOp> m_pendingSaves;   // saves deferred for TRC0011 budget
+        std::deque<WriteSample> m_writeWindow;     
+        std::deque<PendingSaveOp> m_pendingSaves;   
 
         bool tryConsumeWriteBudget(u32 payloadSize);
         void pruneWriteWindow(f64 nowSeconds);
