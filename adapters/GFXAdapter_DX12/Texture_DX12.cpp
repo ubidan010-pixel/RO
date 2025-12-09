@@ -244,11 +244,18 @@ namespace ITF::DX12
         heapProps.CreationNodeMask = 1;
         heapProps.VisibleNodeMask = 1;
 
+        D3D12_RESOURCE_STATES initialState = D3D12_RESOURCE_STATE_COMMON;
+        if (_heapType == D3D12_HEAP_TYPE_UPLOAD)
+        {
+            // XboxSeries will crash if D3D12_HEAP_TYPE_UPLOAD lacks the correct state bits.
+            initialState |= D3D12_RESOURCE_STATE_GENERIC_READ;
+        }
+
         HRESULT hr = _device->CreateCommittedResource(
             &heapProps,
             D3D12_HEAP_FLAG_NONE,
             &texDesc,
-            D3D12_RESOURCE_STATE_COMMON,
+            initialState,
             nullptr,
             DX12_IID_COMPTR_ARGS(texture.m_resource)
         );

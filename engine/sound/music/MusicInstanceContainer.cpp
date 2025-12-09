@@ -505,12 +505,14 @@ void MusicInstanceContainer::destroyMusicInstance( u32 _handle )
 
             m_musicInstanceArray.erase( it );
 
+            //remove handle from paused instances list
+            removeHandleFromPausedInstanceList(_handle);
+
             return;
         }
         ++it;
     }
-    //remove handle from paused instances list
-    removeHandleFromPausedInstanceList(_handle);
+
 
     ITF_ASSERT_MSG( 0, "Invalid handle passed to MusicInstanceContainer::destroyMusicInstance" );
 }

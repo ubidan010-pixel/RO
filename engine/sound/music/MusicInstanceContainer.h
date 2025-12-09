@@ -98,11 +98,18 @@ namespace ITF
 
     ITF_INLINE void MusicInstanceContainer::removeHandleFromPausedInstanceList(const u32 _handle)
     {
-        const u32 index = m_pausedInstanceList.find(_handle);
-        if( index != U32_INVALID )
+
+        for (u32 index = 0; index < m_pausedInstanceList.size(); ++index)
         {
-            m_pausedInstanceList.eraseNoOrder(index);
+            const u32 instanceIndex = m_pausedInstanceList[index];
+            if(instanceIndex<m_musicInstanceArray.size() && _handle == m_musicInstanceArray[instanceIndex].m_handle)
+            {
+                m_pausedInstanceList.eraseNoOrder(index);
+                return;
+            }
+                
         }
+
     }
 
 
