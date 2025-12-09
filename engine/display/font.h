@@ -43,15 +43,44 @@ namespace ITF
             , m_isMenuLogo(bfalse)
             , m_isGpeExtra(bfalse)
             , m_controllerType(CONTROLLER_DEFAULT)
+            , m_iconScale(1.0f)
+            , m_isClusterIcon(bfalse)
         {}
 
         Vec2d m_pos;
-        bbool m_isButton; // if false, GPE icon
+        bbool m_isButton;
         i32 m_index;
         bbool m_isSkipIcon;
         bbool m_isMenuLogo;
         bbool m_isGpeExtra;
         EControllerType m_controllerType;
+        f32 m_iconScale;
+        bbool m_isClusterIcon;
+    };
+
+    struct MoveIconCluster
+    {
+        struct IconInfo
+        {
+            String8 name;
+            i32 index;
+            f32 offsetX;  
+            f32 offsetY; 
+        };
+
+        IconInfo icons[4];  
+        bbool isValid;
+        EControllerType controllerType;
+
+        MoveIconCluster() : isValid(bfalse), controllerType(CONTROLLER_DEFAULT)
+        {
+            for (i32 i = 0; i < 4; ++i)
+            {
+                icons[i].index = -1;
+                icons[i].offsetX = 0.f;
+                icons[i].offsetY = 0.f;
+            }
+        }
     };
 
     struct SCharDescr

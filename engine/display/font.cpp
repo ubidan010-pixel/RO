@@ -928,40 +928,88 @@ void Font::writeBox(u32 color,f32 x, f32 y, f32 z, bbool _isRender2D, const Vec3
                     const String actionContent = word.substr(indexActionBegin + actionTagBeginSize, indexIconEnd - indexActionBegin - actionTagBeginSize);
                     String8 actionContent8(actionContent.cStr());
 
-                    String8 iconName8 = UI_TEXTMANAGER->GetIconFromActionTag(actionContent8);
+                    MoveIconCluster moveCluster;
+                    bbool isMoveCluster = UI_TEXTMANAGER->IsMoveClusterAction(actionContent8) && 
+                                          UI_TEXTMANAGER->GetMoveIconCluster(0, moveCluster);
 
-                    if (!iconName8.isEmpty())
+                    if (isMoveCluster && moveCluster.isValid)
                     {
-                        newicon = TAGicon();
-                        newicon.m_isSkipIcon = bfalse;
-                        newicon.m_isMenuLogo = bfalse;
-                        bbool isGpeExtra = bfalse;
+                        f32 moveIconScale = UI_TEXTMANAGER->getMoveIconScale();
+                        f32 clusterIconSize = iconSize * moveIconScale;
 
-                        if (UI_TEXTMANAGER->getIconInfo(iconName8, newicon.m_isButton, newicon.m_index, isGpeExtra))
+                        f32 spaceW = getTextWidth(" ", 1);
+                        f32 clusterWidth = clusterIconSize * 3.0f;
+                        i32 nb = ((i32)(clusterWidth/spaceW) - 1) + ((i32)(iconXOffset/spaceW));
+                        nb = Max(0, nb);
+                        nb = Clamp(nb, 0, MAX_SPACES_BY_ICON);
+
+                        word = "";
+                        for (i32 i = 0; i < nb; i++)
+                            word += " ";
+
+                        f32 globalspacesize = (nb * spaceW) + spaceW * 2;
+                        wordWidth = globalspacesize - spaceW;
+
+                        f32 centerX = curPos + (globalspacesize - clusterWidth) * 0.5f + clusterIconSize;
+
+                        for (i32 i = 0; i < 4; ++i)
                         {
-                            newicon.m_isGpeExtra = isGpeExtra;
-                            newicon.m_controllerType = UI_TEXTMANAGER->getControllerTypeFromIcon(iconName8);
+                            if (moveCluster.icons[i].index >= 0)
+                            {
+                                TAGicon clusterIcon;
+                                clusterIcon.m_isButton = btrue;
+                                clusterIcon.m_index = moveCluster.icons[i].index;
+                                clusterIcon.m_controllerType = moveCluster.controllerType;
+                                clusterIcon.m_isSkipIcon = bfalse;
+                                clusterIcon.m_isMenuLogo = bfalse;
+                                clusterIcon.m_isGpeExtra = bfalse;
+                                clusterIcon.m_iconScale = moveIconScale;
+                                clusterIcon.m_isClusterIcon = btrue;
 
-                            // compute space char from size of icon
-                            f32 spaceW = getTextWidth(" ", 1);
-                            i32 nb = ((i32)(iconSize/spaceW) - 1) + ((i32)(iconXOffset/spaceW));
-                            nb = Max(0, nb);
+                                f32 offsetX = moveCluster.icons[i].offsetX * clusterIconSize;
+                                f32 offsetY = moveCluster.icons[i].offsetY * clusterIconSize;
+                                clusterIcon.m_pos = Vec2d(centerX + offsetX - spaceW, offsetY);
 
-                            // Check why this is happening (and remove the clamp when solved)
-                            ITF_WARNING_CATEGORY(Engine,NULL,nb <= MAX_SPACES_BY_ICON,"Trying to insert %d spaces to display an icon, please check this",nb);
-                            nb = Clamp(nb,0,MAX_SPACES_BY_ICON);
+                                tagicon.push_back(clusterIcon);
+                            }
+                        }
+                        wordCount++;
+                    }
+                    else
+                    {
+                        String8 iconName8 = UI_TEXTMANAGER->GetIconFromActionTag(actionContent8);
 
-                            word ="";
-                            for (i32 i=0; i< nb; i++)
-                                word += " ";
+                        if (!iconName8.isEmpty())
+                        {
+                            newicon = TAGicon();
+                            newicon.m_isSkipIcon = bfalse;
+                            newicon.m_isMenuLogo = bfalse;
+                            bbool isGpeExtra = bfalse;
 
-                            f32 globalspacesize = (nb*spaceW) + spaceW*2;
-                            wordWidth = globalspacesize - spaceW;
+                            if (UI_TEXTMANAGER->getIconInfo(iconName8, newicon.m_isButton, newicon.m_index, isGpeExtra))
+                            {
+                                newicon.m_isGpeExtra = isGpeExtra;
+                                newicon.m_controllerType = UI_TEXTMANAGER->getControllerTypeFromIcon(iconName8);
 
-                            f32 shiftx = (globalspacesize - iconSize)*0.5f;
-                            newicon.m_pos = Vec2d(curPos + shiftx - spaceW , 0.f);
-                            addIcon = btrue;
-                            wordCount++;
+                                f32 spaceW = getTextWidth(" ", 1);
+                                i32 nb = ((i32)(iconSize/spaceW) - 1) + ((i32)(iconXOffset/spaceW));
+                                nb = Max(0, nb);
+
+                                ITF_WARNING_CATEGORY(Engine,NULL,nb <= MAX_SPACES_BY_ICON,"Trying to insert %d spaces to display an icon, please check this",nb);
+                                nb = Clamp(nb,0,MAX_SPACES_BY_ICON);
+
+                                word ="";
+                                for (i32 i=0; i< nb; i++)
+                                    word += " ";
+
+                                f32 globalspacesize = (nb*spaceW) + spaceW*2;
+                                wordWidth = globalspacesize - spaceW;
+
+                                f32 shiftx = (globalspacesize - iconSize)*0.5f;
+                                newicon.m_pos = Vec2d(curPos + shiftx - spaceW , 0.f);
+                                addIcon = btrue;
+                                wordCount++;
+                            }
                         }
                     }
 
@@ -1254,12 +1302,14 @@ void Font::writeBox(u32 color,f32 x, f32 y, f32 z, bbool _isRender2D, const Vec3
             Texture* gpeExtraTexture = UI_TEXTMANAGER->getGpeTexture(btrue);
             Texture* skipIconsTexture = UI_TEXTMANAGER->getSkipIconsTexture();
             Texture* menuLogosTexture = UI_TEXTMANAGER->getMenuLogosTexture();
+            f32 moveIconYOffset = UI_TEXTMANAGER->getMoveIconYOffset();
             UVdata uvData;
 
             for (u32 i = 0; i< tagicon.size(); i++)
             {
                 f32 xp = cx + tagicon[i].m_pos.m_x;
-                f32 yp = cy - iconSize + iconYOffset;
+                f32 yOffsetToUse = tagicon[i].m_isClusterIcon ? moveIconYOffset : iconYOffset;
+                f32 yp = cy - iconSize + yOffsetToUse - tagicon[i].m_pos.m_y;
 
                 Texture* texture;
                 if (tagicon[i].m_isSkipIcon)
@@ -1278,8 +1328,9 @@ void Font::writeBox(u32 color,f32 x, f32 y, f32 z, bbool _isRender2D, const Vec3
                 if (texture && texture->getUVAtlas())
                     uvData = texture->getUVAtlas()->getUVDatabyIndex(tagicon[i].m_index);
 
-                f32 iconWidth = iconSize;
-                f32 iconHeight = iconSize;
+                f32 perIconScale = tagicon[i].m_iconScale;
+                f32 iconWidth = iconSize * perIconScale;
+                f32 iconHeight = iconSize * perIconScale;
                 f32 xOffset = 0.f;
                 f32 yOffset = 0.f;
 

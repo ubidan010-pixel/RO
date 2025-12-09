@@ -46,6 +46,7 @@ namespace ITF
             STICK_R_DOWN,
             STICK_R_LEFT,
             STICK_R_RIGHT,
+            DPAD,
             PLATFORM_SPECIFIC_START,
             BASE_CONTROL_COUNT = PLATFORM_SPECIFIC_START,
             CONTROL_MAX = BASE_CONTROL_COUNT

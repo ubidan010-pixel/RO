@@ -636,6 +636,19 @@ namespace ITF
         return iconXOffset;
     }
 
+    f32 UITextManager::getMoveIconScale() const
+    {
+        ITF_ASSERT(m_template);
+        f32 moveIconScale = m_template ? m_template->getMoveIconScale() : 0.7f;
+        return moveIconScale;
+    }
+
+    f32 UITextManager::getMoveIconYOffset() const
+    {
+        ITF_ASSERT(m_template);
+        return m_template ? m_template->getMoveIconYOffset() : 0.0f;
+    }
+
     ///////////////////////////////////////////////////////////////////////////////////////////
     f32 UITextManager::getHighestSize (const ITF_VECTOR<TextInfo>& _textInfo)
     {
@@ -950,6 +963,8 @@ namespace ITF
         SERIALIZE_MEMBER("iconSize", m_iconSize);
         SERIALIZE_MEMBER("iconYOffset", m_iconYOffset);
         SERIALIZE_MEMBER("iconXOffset", m_iconXOffset);
+        SERIALIZE_MEMBER("moveIconScale", m_moveIconScale);
+        SERIALIZE_MEMBER("moveIconYOffset", m_moveIconYOffset);
         SERIALIZE_CONTAINER("buttonNamesWII", m_buttonNamesWII);
         SERIALIZE_CONTAINER("buttonNamesPS3", m_buttonNamesPS3);
         SERIALIZE_CONTAINER("buttonNamesPS5", m_buttonNamesPS5);
@@ -1005,6 +1020,7 @@ namespace ITF
                 case ZPad_Base::TRIGGER_RIGHT:     return isPS5 ? "PS5_BUTTON_R2" : "PS3_BUTTON_R2";
                 case ZPad_Base::BUTTON_SELECT:     return isPS5 ? "PS5_TOUCHPAD" : "PS3_BUTTON_SELECT";
                 case ZPad_Base::BUTTON_START:      return isPS5 ? "PS5_BUTTON_OPTIONS" : "PS3_BUTTON_START";
+                case ZPad_Base::DPAD:              return isPS5 ? "PS5_DPAD" : "PS3_DPAD";
                 }
             }
             break;
@@ -1043,6 +1059,7 @@ namespace ITF
                 case ZPad_Base::TRIGGER_RIGHT:     return isSeries ? "XBOX_BUTTON_RT" : "X360_BUTTON_RT";
                 case ZPad_Base::BUTTON_SELECT:     return isSeries ? "XBOX_BUTTON_BACK" : "X360_BUTTON_BACK";
                 case ZPad_Base::BUTTON_START:      return isSeries ? "XBOX_BUTTON_START" : "X360_BUTTON_START";
+                case ZPad_Base::DPAD:              return isSeries ? "XBOX_DPAD" : "X360_DPAD";
                 }
             }
             break;
@@ -1079,6 +1096,7 @@ namespace ITF
                 case ZPad_Base::TRIGGER_RIGHT:     return "SWITCH_BUTTON_ZR";
                 case ZPad_Base::BUTTON_SELECT:     return "SWITCH_BUTTON_MINUS";
                 case ZPad_Base::BUTTON_START:      return "SWITCH_BUTTON_PLUS";
+                case ZPad_Base::DPAD:              return "SWITCH_DUAL_DPAD";
                 }
             }
             break;
@@ -1139,7 +1157,24 @@ namespace ITF
         }
 #endif
 
-        u32 physicalControl = GAMEMANAGER->getInputManager()->GetPhysicalFromAction(_playerIndex, (ZInputManager::EGameAction)_action);
+        u32 physicalControl = U32_INVALID;
+        if (_action == ZInputManager::Action_Move)
+        {
+            u32 upControl = GAMEMANAGER->getInputManager()->GetPhysicalFromAction(_playerIndex, ZInputManager::Action_Up);
+            if (upControl >= ZPad_Base::STICK_L_UP && upControl <= ZPad_Base::STICK_L_RIGHT)
+                physicalControl = ZPad_Base::STICK_LX;
+            else if (upControl >= ZPad_Base::STICK_R_UP && upControl <= ZPad_Base::STICK_R_RIGHT)
+                physicalControl = ZPad_Base::STICK_RX;
+            else if (upControl >= ZPad_Base::DPAD_UP && upControl <= ZPad_Base::DPAD_RIGHT)
+                physicalControl = ZPad_Base::DPAD;
+            else
+                physicalControl = ZPad_Base::STICK_LX;
+        }
+        else
+        {
+            physicalControl = GAMEMANAGER->getInputManager()->GetPhysicalFromAction(_playerIndex, (ZInputManager::EGameAction)_action);
+        }
+
         if (physicalControl == U32_INVALID)
             return String8::emptyString;
 
@@ -1195,10 +1230,87 @@ namespace ITF
         else if (actionStr == "Action_Jump") action = ZInputManager::Action_Jump;
         else if (actionStr == "Action_Hit") action = ZInputManager::Action_Hit;
         else if (actionStr == "Action_Back") action = ZInputManager::Action_Back;
+        else if (actionStr == "Action_Move") action = ZInputManager::Action_Move;
 
         if (action == ZInputManager::Action_Count) return String8::emptyString;
 
         return GetIconForAction(playerIndex, action);
+    }
+
+    bbool UITextManager::IsMoveClusterAction(const String8& _tagContent)
+    {
+        return _tagContent.startsWith("Action_Move");
+    }
+
+    bbool UITextManager::GetMoveIconCluster(u32 _playerIndex, MoveIconCluster& _outCluster)
+    {
+        _outCluster = MoveIconCluster();
+
+        if (!GAMEMANAGER || !GAMEMANAGER->getInputManager())
+            return bfalse;
+        if (!INPUT_ADAPTER)
+            return bfalse;
+
+#if defined(ITF_WINDOWS)
+        bool useKeyboardIcons = false;
+        PCControlMode pcMode = INPUT_ADAPTER->GetPCControlMode();
+        switch (pcMode)
+        {
+        case PCControlMode_Keyboard:
+            useKeyboardIcons = true;
+            break;
+        case PCControlMode_Controller:
+            useKeyboardIcons = false;
+            break;
+        case PCControlMode_Hybrid:
+        default:
+            useKeyboardIcons = (INPUT_ADAPTER->getLastUsedInputDevice(_playerIndex) == InputDevice_Keyboard);
+            break;
+        }
+
+        if (!useKeyboardIcons || !INPUT_ADAPTER->IsKeyboardMouseEnabled())
+            return bfalse;
+
+        const ZInputManager::EGameAction actions[4] = {
+            ZInputManager::Action_Up,
+            ZInputManager::Action_Down,
+            ZInputManager::Action_Left,
+            ZInputManager::Action_Right
+        };
+        const f32 offsetsX[4] = { 0.0f,  0.0f, -1.0f, 1.0f };
+        const f32 offsetsY[4] = { 1.0f, 0.0f,  0.0f, 0.0f };
+
+        _outCluster.controllerType = CONTROLLER_KEYBOARD;
+
+        for (i32 i = 0; i < 4; ++i)
+        {
+            i32 keyCode = GAMEMANAGER->getInputManager()->GetKeyboardKeyFromAction(_playerIndex, actions[i]);
+            if (keyCode < 0)
+            {
+                keyCode = GetDefaultKeyForAction(actions[i]);
+            }
+
+            if (keyCode >= 0)
+            {
+                String8 iconName = GetIconNameForKeyboardKey(keyCode);
+                _outCluster.icons[i].name = iconName;
+                _outCluster.icons[i].offsetX = offsetsX[i];
+                _outCluster.icons[i].offsetY = offsetsY[i];
+
+                bbool isButton = bfalse;
+                bbool isGpeExtra = bfalse;
+                if (getIconInfo(iconName, isButton, _outCluster.icons[i].index, isGpeExtra))
+                {
+                    _outCluster.isValid = btrue;
+                }
+            }
+        }
+
+        return _outCluster.isValid;
+#else
+        ITF_UNUSED(_playerIndex)
+        return bfalse;
+#endif
     }
 
 }

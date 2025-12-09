@@ -116,6 +116,8 @@ namespace ITF
         f32             getIconSize() const;
         f32             getIconYOffset() const;
         f32             getIconXOffset() const;
+        f32             getMoveIconScale() const;
+        f32             getMoveIconYOffset() const;
 
         bbool           getIconInfo(const String8& _tag, bbool& _isButton, i32& _index, bbool& _isGpeExtra) const;
         bbool           getSkipIconInfo(const String8& _tag, i32& _index) const;
@@ -129,6 +131,8 @@ namespace ITF
         Texture*        getMenuLogosTexture();
         String8         GetIconForAction(u32 _playerIndex, u32 _action);
         String8         GetIconFromActionTag(const String8& _tagContent);
+        bbool           GetMoveIconCluster(u32 _playerIndex, MoveIconCluster& _outCluster);
+        static bbool    IsMoveClusterAction(const String8& _tagContent);
 
         ITF_INLINE f32  getMenuLogoScale() const { return 0.28f; }
 
@@ -200,6 +204,8 @@ namespace ITF
             , m_iconSize(32.0f)
             , m_iconYOffset(0.0f)
             , m_iconXOffset(0.f)
+            , m_moveIconScale(0.7f)
+            , m_moveIconYOffset(0.0f)
             , m_gpePath()
             , m_gpeNames()
             , m_gpeExtraPath()
@@ -210,6 +216,8 @@ namespace ITF
             , m_iconSize(32.0f)
             , m_iconYOffset(0.0f)
             , m_iconXOffset(0.f)
+            , m_moveIconScale(0.7f)
+            , m_moveIconYOffset(0.0f)
             , m_gpePath()
             , m_gpeNames()
             , m_gpeExtraPath()
@@ -219,6 +227,8 @@ namespace ITF
         ITF_INLINE f32 getIconSize() const { return m_iconSize; }
         ITF_INLINE f32 getIconYOffset() const { return m_iconYOffset; }
         ITF_INLINE f32 getIconXOffset() const { return m_iconXOffset; }
+        ITF_INLINE f32 getMoveIconScale() const { return m_moveIconScale; }
+        ITF_INLINE f32 getMoveIconYOffset() const { return m_moveIconYOffset; }
         ITF_INLINE const ITF_VECTOR<String8>& getButtonNamesForSlot(ControllerIconSlot slot) const
         {
             switch(slot)
@@ -245,6 +255,8 @@ namespace ITF
         f32 m_iconSize;
         f32 m_iconYOffset;
         f32 m_iconXOffset;
+        f32 m_moveIconScale;
+        f32 m_moveIconYOffset;
         Path m_buttonPath;
         ITF_VECTOR<String8> m_buttonNamesWII;
         ITF_VECTOR<String8> m_buttonNamesPS3;

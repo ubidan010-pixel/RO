@@ -41,6 +41,7 @@ namespace  ITF
             Action_Jump,
             Action_Hit,
             Action_Back,
+            Action_Move,
             Action_Count
         };
 

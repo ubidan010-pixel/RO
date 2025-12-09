@@ -312,6 +312,7 @@ namespace ITF
         case Action_Jump:  return swapSouthEast ? ZPad_Base::BUTTON_FACE_EAST : ZPad_Base::BUTTON_FACE_SOUTH;
         case Action_Hit:   return ZPad_Base::BUTTON_FACE_WEST;
         case Action_Back:  return swapSouthEast ? ZPad_Base::BUTTON_FACE_SOUTH : ZPad_Base::BUTTON_FACE_EAST;
+        case Action_Move:  return ZPad_Base::STICK_LX;
         default: return U32_INVALID;
         }
     }
