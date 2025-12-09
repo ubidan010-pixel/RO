@@ -179,7 +179,12 @@ REGISTER_ITF_PARENT(GFXAdapter_DX12, GFXAdapter)
 REGISTER_ITF_PARENT(FileManager_ITF, FileManager)
 REGISTER_ITF_PARENT(SystemAdapter_XBoxSeries, SystemAdapter)
 REGISTER_ITF_PARENT(Adapter_Savegame_XBoxSeries, Adapter_Savegame)
+#ifdef ITF_SUPPORT_NETWORKSERVICES
 REGISTER_ITF_PARENT(NetworkServices_xboxseries, NetworkServices)
+#endif
+#ifdef ITF_SUPPORT_ONLINETRACKING
+REGISTER_ITF_PARENT(OnlineTrackingAdapter_xboxseries, OnlineTrackingAdapter)
+#endif
 #ifdef ITF_SUPPORT_RAKI
 REGISTER_ITF_PARENT(SoundAdapter_Dummy, SoundAdapter)
 #endif
