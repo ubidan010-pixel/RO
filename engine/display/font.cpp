@@ -353,11 +353,21 @@ void Font::manageFontCache()
 
 void Font::internalWrite(unsigned int colorOriginal,f32 x, f32 y, f32 z, bbool _isRender2D, const String& text, i32 count, u32 _mode, f32 spacing, const SafeArray<CharInfo> *_charInfoTab, i32 startTabColor)
 {
-    if ( count <= 0 )
+
+    if ( count <= 0 || text.isEmpty() )
     {
         return;
     }
-
+    bbool isAllEmpty = true;
+    for (u32 i = 0; i < text.getLen(); i++) {
+        if (text.cStr()[i] != ' ') {
+            isAllEmpty = false;
+            break;
+        }
+    }
+    if (isAllEmpty ) {
+        return;
+    }
     ITF_ASSERT(pages.size() < FONT_PAGE_MAX);
 
     FontCache* pCacheUsed = NULL;
