@@ -485,16 +485,8 @@ namespace ITF
         ZInputManager* inputManager = RAY_GAMEMANAGER->getInputManager();
         if (!inputManager)
             return bfalse;
-
-        // Check Gamepad
-        u32 physicalControl = inputManager->GetPhysicalFromAction(_player, (ZInputManager::EGameAction)_action);
-        if (physicalControl < JOY_MAX_BUT)
-        {
-            PressStatus buttons[JOY_MAX_BUT];
-            getGamePadButtons(EnvironmentLua, _player, buttons, JOY_MAX_BUT);
-            if (buttons[physicalControl] == Pressed || buttons[physicalControl] == JustPressed)
-                return btrue;
-        }
+        if (inputManager->IsActionPressed(_player, (ZInputManager::EGameAction)_action))
+            return btrue;
 
         // Check Keyboard
         i32 key = inputManager->GetKeyboardKeyFromAction(_player, (ZInputManager::EGameAction)_action);

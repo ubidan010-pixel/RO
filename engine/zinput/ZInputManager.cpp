@@ -525,6 +525,24 @@ namespace ITF
         return logicalControl;
     }
 
+    bbool ZInputManager::IsActionPressed(u32 _playerIndex, EGameAction _action) const
+    {
+        u32 logicalControl = const_cast<ZInputManager*>(this)->GetStandardControlFromAction(_action);
+        if (logicalControl == U32_INVALID) return bfalse;
+
+        for (u32 i = 0; i < m_devices.size(); ++i)
+        {
+            if (m_devices[i] && m_devices[i]->GetId() == _playerIndex
+                && m_devices[i]->GetInputSourceType() == InputSource_Gamepad)
+            {
+                u32 physicalControl = m_devices[i]->GetRemap(logicalControl);
+                if (m_devices[i]->IsControlPressed(physicalControl))
+                    return btrue;
+            }
+        }
+        return bfalse;
+    }
+
     i32 ZInputManager::GetKeyboardKeyFromAction(u32 _playerIndex, EGameAction _action)
     {
 #if defined(ITF_WINDOWS)

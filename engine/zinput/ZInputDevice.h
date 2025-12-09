@@ -69,6 +69,7 @@ typedef ITF_MAP<StringID,int>     ControlTranslateMap;
         void                ApplyRemapping(SDeviceInfo& deviceInfo);
         virtual u32         GetRemap(u32 logicalControl) const;
         virtual u32         GetFirstActiveControl() const;
+        bbool               IsControlPressed(u32 control) const;
 
     protected:
         

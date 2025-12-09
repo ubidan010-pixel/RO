@@ -65,6 +65,7 @@ namespace  ITF
         u32                 GetStandardControlFromAction(EGameAction _action);
         u32                 GetPhysicalFromAction(u32 _playerIndex, EGameAction _action);
         i32                 GetKeyboardKeyFromAction(u32 _playerIndex, EGameAction _action);
+        bbool               IsActionPressed(u32 _playerIndex, EGameAction _action) const;
         i32                 GetFirstKeyboardKey(u32 _playerIndex) const;
         void                ResetRemapping(u32 _playerIndex);
         void                ResetRemapping(u32 _playerIndex, EInputSourceType _source);

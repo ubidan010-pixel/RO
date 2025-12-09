@@ -357,4 +357,27 @@ namespace ITF
         return U32_INVALID;
     }
 
+    bbool IInputDevice::IsControlPressed(u32 control) const
+    {
+        if (!IsDeviceValid())
+            return bfalse;
+
+        if (control >= m_deviceInfo.m_inputInfo.size())
+            return bfalse;
+
+        const SInputInfo& info = m_deviceInfo.m_inputInfo[control];
+        if (info.m_type == SInputInfo::INPUTTYPE_BUTTON)
+        {
+            return info.m_buttonInfo.m_status == SInputInfo::BUTTONSTATUS_PRESS ||
+                   info.m_buttonInfo.m_status == SInputInfo::BUTTONSTATUS_HOLD;
+        }
+        else if (info.m_type == SInputInfo::INPUTTYPE_AXIS)
+        {
+            return info.m_axisInfo.m_status == SInputInfo::BUTTONSTATUS_PRESS ||
+                   info.m_axisInfo.m_status == SInputInfo::BUTTONSTATUS_HOLD ||
+                   f32_Abs(info.m_axisInfo.m_axis) > 0.5f;
+        }
+        return bfalse;
+    }
+
 } //namespace ITF
