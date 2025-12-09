@@ -1071,47 +1071,64 @@ void SequencePlayerComponent::Draw()
 
 void SequencePlayerComponent::updateSkipInput( f32 _deltaTime )
 {
-    if (m_inputListenerRegistered && !GAMEMANAGER->isInPause())
+    if (!m_inputListenerRegistered || GAMEMANAGER->isInPause())
+        return;
+
+    u32 mainPlayerIndex = GAMEMANAGER->getMainIndexPlayer();
+    InputAdapter::PressStatus buttons[JOY_MAX_BUT];
+    INPUT_ADAPTER->getGamePadButtons(InputAdapter::EnvironmentAll, mainPlayerIndex, buttons, JOY_MAX_BUT);
+    if (m_skipSequenceEvent != U32_INVALID && m_skipSequenceEvent < m_eventsList.size())
     {
-        u32 mainPlayerIndex = GAMEMANAGER->getMainIndexPlayer();
-        InputAdapter::PressStatus buttons[JOY_MAX_BUT];
-        INPUT_ADAPTER->getGamePadButtons(InputAdapter::EnvironmentAll, mainPlayerIndex, buttons, JOY_MAX_BUT);
-
-        bbool isSkipPressed = INPUT_ADAPTER->IsActionPressed(mainPlayerIndex, ZInputManager::Action_Back);
-
-        if (isSkipPressed)
+        SequenceEvent *evt = getEventAtIndex(m_skipSequenceEvent);
+        if (evt && evt->getTemplate()->getType() == SequenceEvent_Template::event_PlaySkip)
         {
-            if (!m_isSkipButtonHeld)
+            const PlaySkip_evtTemplate* skipTemplate = evt->getTemplate()->DynamicCast<PlaySkip_evtTemplate>(ITF_GET_STRINGID_CRC(PlaySkip_evtTemplate,173814531));
+            if (skipTemplate && skipTemplate->getSkipContextIcon() == ContextIcon_Continue)
             {
-                m_isSkipButtonHeld = btrue;
-                m_skipHoldTimer = 0.f;
-            }
-            else
-            {
-                m_skipHoldTimer += _deltaTime;
-                f32 progress = Clamp(getSkipHoldProgress() * 100.f, 0.f, 100.f);
-                CONTEXTICONSMANAGER->setSkipProgressPercent(progress);
-                if (m_skipHoldTimer >= m_skipRequiredDuration)
+                if (INPUT_ADAPTER->IsActionPressed(mainPlayerIndex, ZInputManager::Action_Jump))
                 {
                     processSkipSequence();
                     resetSkipSequence();
                 }
+                return;
             }
+        }
+    }
+
+    bbool isSkipPressed = INPUT_ADAPTER->IsActionPressed(mainPlayerIndex, ZInputManager::Action_Back);
+
+    if (isSkipPressed)
+    {
+        if (!m_isSkipButtonHeld)
+        {
+            m_isSkipButtonHeld = btrue;
+            m_skipHoldTimer = 0.f;
         }
         else
         {
-            if (m_skipHoldTimer > 0.f)
+            m_skipHoldTimer += _deltaTime;
+            f32 progress = Clamp(getSkipHoldProgress() * 100.f, 0.f, 100.f);
+            CONTEXTICONSMANAGER->setSkipProgressPercent(progress);
+            if (m_skipHoldTimer >= m_skipRequiredDuration)
             {
-                m_skipHoldTimer -= _deltaTime * 3.f;
-                m_skipHoldTimer = std::max(m_skipHoldTimer, 0.f);
-                f32 progress = Clamp(getSkipHoldProgress() * 100.f, 0.f, 100.f);
-                CONTEXTICONSMANAGER->setSkipProgressPercent(progress);
+                processSkipSequence();
+                resetSkipSequence();
             }
+        }
+    }
+    else
+    {
+        if (m_skipHoldTimer > 0.f)
+        {
+            m_skipHoldTimer -= _deltaTime * 3.f;
+            m_skipHoldTimer = std::max(m_skipHoldTimer, 0.f);
+            f32 progress = Clamp(getSkipHoldProgress() * 100.f, 0.f, 100.f);
+            CONTEXTICONSMANAGER->setSkipProgressPercent(progress);
+        }
 
-            if (m_isSkipButtonHeld)
-            {
-                m_isSkipButtonHeld = bfalse;
-            }
+        if (m_isSkipButtonHeld)
+        {
+            m_isSkipButtonHeld = bfalse;
         }
     }
 }
