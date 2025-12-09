@@ -98,6 +98,12 @@ Ray_WM_LeadAbility::Ray_WM_LeadAbility()
         m_followers.push_back(bfalse);
         m_followersFrameOffset.push_back(0);
     }
+
+    for (u32 i=0; i<4; ++i)
+    {
+        m_inputDelayTimers.push_back(0.0f);
+        m_playerActiveState.push_back(bfalse);
+    }
     for (u32 i=0; i<s_moveRecordsCount; ++i)
     {
         m_moveRecords.push_back(Ray_WM_MoveRecord());
@@ -200,6 +206,25 @@ void Ray_WM_LeadAbility::onBecomeInactive()
 void Ray_WM_LeadAbility::update(f32 _dt)
 {
     Super::update(_dt);
+    u32 maxPlayers = m_inputDelayTimers.size();
+    for (u32 i = 0; i < maxPlayers; ++i)
+    {
+        if (m_inputDelayTimers[i] > 0.0f)
+        {
+            m_inputDelayTimers[i] -= _dt;
+            if (m_inputDelayTimers[i] < 0.0f) m_inputDelayTimers[i] = 0.0f;
+        }
+
+        if (GAMEMANAGER->getPlayer(i))
+        {
+            bbool isActive = GAMEMANAGER->getPlayer(i)->getActiveAndPersistent();
+            if (isActive && !m_playerActiveState[i])
+            {
+                m_inputDelayTimers[i] = 0.5f;
+            }
+            m_playerActiveState[i] = isActive;
+        }
+    }
     
     if (m_controller->getState() == Ray_WM_ControllerState_NA )
     {
@@ -1184,6 +1209,26 @@ void Ray_WM_LeadAbility::Receive( u32 deviceID /* player */, f32 axis, const Str
     if (mainIndex == U32_INVALID || GAMEMANAGER->isInPause())
     {
         return; 
+    }
+
+    if (deviceID < m_inputDelayTimers.size() && m_inputDelayTimers[deviceID] > 0.0f)
+    {
+        return;
+    }
+
+    if (GAMEMANAGER->getPlayer(deviceID))
+    {
+        bbool isActive = GAMEMANAGER->getPlayer(deviceID)->getActiveAndPersistent();
+        if (!isActive)
+        {
+            return;
+        }
+        
+        // If active in GM but not in our local state, they just joined.
+        if (!m_playerActiveState[deviceID])
+        {
+            return;
+        }
     }
 
     if(action==ITF_GET_STRINGID_CRC(WM_ENTER,2267322818))

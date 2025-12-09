@@ -98,6 +98,9 @@ private:
     ActorRef getCurrentNodeRef() const;
 
     void applyInput();
+
+    ITF_VECTOR<f32> m_inputDelayTimers;
+    ITF_VECTOR<bbool> m_playerActiveState;
     bbool findStandNodeRef();
     void updateMove(f32 _dt);
     f32 computeAdjustFactor() const;
