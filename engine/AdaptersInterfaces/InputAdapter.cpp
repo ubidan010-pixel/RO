@@ -425,20 +425,34 @@ namespace ITF
             return getDebugInputPadType(_player);
         }
 
+        const PadType platformDefaultPad = getDebugInputPadType(_player);
+#if defined(ITF_WINDOWS)
+        const bbool allowKeyboardFallback = btrue;
+#else
+        const bbool allowKeyboardFallback = bfalse;
+#endif
+
         InputDeviceType deviceType = m_lastUsedInputDevice[_player];
-        if (deviceType == InputDevice_Keyboard)
+#if defined(ITF_WINDOWS)
+        if (deviceType == InputDevice_Keyboard && IsKeyboardMouseEnabled())
         {
             return Pad_Keyboard;
         }
+#else
+        if (deviceType == InputDevice_Keyboard)
+        {
+            return platformDefaultPad;
+        }
+#endif
         if (deviceType == InputDevice_Gamepad)
         {
-            return getDebugInputPadType(_player);
+            return platformDefaultPad;
         }
         if (isPadConnected(_player))
         {
-            return getDebugInputPadType(_player);
+            return platformDefaultPad;
         }
-        return Pad_Keyboard;
+        return allowKeyboardFallback ? Pad_Keyboard : platformDefaultPad;
     }
 
     bbool InputAdapter::IsPressStartButton(u32 _player) const
