@@ -88,6 +88,15 @@ namespace ITF
     {
         ITF_INLINE bbool ShouldUseRawInput(const StringID& actionName)
         {
+            if (actionName == ITF_GET_STRINGID_CRC(WM_ENTER, 2267322818) ||
+                actionName == ITF_GET_STRINGID_CRC(WM_BACK, 4244387740) ||
+                actionName == ITF_GET_STRINGID_CRC(WM_HOME, 1806382459) ||
+                actionName == ITF_GET_STRINGID_CRC(MENU_VALID, 1084313942) ||
+                actionName == ITF_GET_STRINGID_CRC(MENU_BACK, 2477582220))
+            {
+                return btrue;
+            }
+
             const char* name = actionName.getDebugString();
             if (!name) return bfalse;
             if (name[0] == 'W' && name[1] == 'M' && name[2] == '_')
