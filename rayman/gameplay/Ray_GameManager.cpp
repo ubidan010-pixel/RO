@@ -4316,6 +4316,40 @@ namespace ITF
 
     void Ray_GameManager::changePlayerActivation(u32 _playerIndex, bbool _startLevel)
     {
+        if (m_players.size() > 0)
+        {
+            bbool isJoining = btrue;
+            if (_playerIndex < m_players.size())
+            {
+                if (m_players[_playerIndex]->getActive())
+                {
+                    isJoining = bfalse;
+                }
+            }
+
+            if (isJoining)
+            {
+                u32 targetIndex = U32_INVALID;
+                for (u32 i = 0; i < m_players.size(); i++)
+                {
+                    if (!m_players[i]->getActive())
+                    {
+                        targetIndex = i;
+                        break;
+                    }
+                }
+
+                if (targetIndex != U32_INVALID && targetIndex != _playerIndex)
+                {
+                    if (INPUT_ADAPTER)
+                    {
+                        INPUT_ADAPTER->swapControllers(_playerIndex, targetIndex);
+                    }
+                    _playerIndex = targetIndex;
+                }
+            }
+        }
+
         if (m_maxPlayers && _playerIndex >= m_maxPlayers)
         {
             return;

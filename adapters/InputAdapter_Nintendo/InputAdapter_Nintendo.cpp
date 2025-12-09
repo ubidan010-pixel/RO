@@ -1,4 +1,5 @@
 #include "precompiled_inputadapter_Nintendo.h"
+#include "core/error/ErrorHandler.h"
 
 #include "core/Macros.h"
 #include "core/math/Mathf32.h"
@@ -338,6 +339,7 @@ InputPad_Nintendo* InputAdapter_Nintendo::getPad(u32 _padIndex) const
 
 void InputAdapter_Nintendo::swapControllers(u32 index1, u32 index2)
 {
+    LOG("[InputAdapter_Nintendo] swapControllers(%u, %u)", index1, index2);
     u32 internal1 = index1;
     u32 internal2 = index2;
 

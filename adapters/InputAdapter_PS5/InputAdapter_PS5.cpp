@@ -1,4 +1,5 @@
 #include "precompiled_inputadapter_PS5.h"
+#include "core/error/ErrorHandler.h"
 
 #include "adapters/InputAdapter_PS5/InputAdapter_PS5.h"
 
@@ -373,6 +374,7 @@ namespace ITF
 
     void InputAdapter_PS5::swapControllers(u32 index1, u32 index2)
     {
+        LOG("[InputAdapter_PS5] swapControllers(%u, %u)", index1, index2);
         if (index1 < SCE_USER_SERVICE_MAX_LOGIN_USERS && index2 < SCE_USER_SERVICE_MAX_LOGIN_USERS)
         {
             m_joyPadPort[index1].swap(m_joyPadPort[index2]);

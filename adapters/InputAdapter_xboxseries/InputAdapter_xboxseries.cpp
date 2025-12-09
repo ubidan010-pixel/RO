@@ -1,4 +1,5 @@
 #include "precompiled_inputadapter_xboxseries.h"
+#include "core/error/ErrorHandler.h"
 
 #include "adapters/InputAdapter_xboxseries/InputAdapter_xboxseries.h"
 #include "core/utility.h"
@@ -87,6 +88,7 @@ namespace ITF
 
     void InputAdapter_XBoxSeries::swapControllers(u32 index1, u32 index2)
     {
+        LOG("[InputAdapter_XBoxSeries] swapControllers(%u, %u)", index1, index2);
         m_padsHandler.swapPads(index1, index2);
     }
 } // namespace ITF
