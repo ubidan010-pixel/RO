@@ -184,4 +184,12 @@ namespace ITF
         return _pad < m_pads.size();
     }
 
+    void InputPadsHandler_GameInput::swapPads(u32 index1, u32 index2)
+    {
+        if (index1 < m_pads.size() && index2 < m_pads.size())
+        {
+            std::swap(m_pads[index1], m_pads[index2]);
+        }
+    }
+
 } // namespace ITF

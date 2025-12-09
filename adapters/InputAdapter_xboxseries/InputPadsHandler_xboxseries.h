@@ -30,6 +30,8 @@ namespace ITF
         void getGamePadPos(u32 _pad, f32 * _pos, u32 _nbAxes) const;
         void getGamePadButtons(u32 _pad, InputAdapter::PressStatus* _buttons, u32 _nbButtons) const;
 
+        void swapPads(u32 index1, u32 index2);
+
         void startRumble(u32 _numPad, f64 _time, f32 _leftMotorSpeed, f32 _rightMotorSpeed);
         void stopRumble(u32 _numPad);
 

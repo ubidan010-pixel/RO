@@ -30,6 +30,7 @@ namespace ITF
         virtual void getGamePadButtons(u32 _environment, u32 _pad, PressStatus* _buttons, u32 _numButtons) const override;
         virtual void startRumble(u32 _numPad, f64 _time, f32 _leftMotorSpeed, f32 _rightMotorSpeed) override;
         virtual void stopRumble(u32 _numPad) override;
+        void swapControllers(u32 index1, u32 index2) override;
 
         SceUserServiceUserId getUserServiceIdFromPadIndex(u32 _pad) const;
 
@@ -81,6 +82,16 @@ namespace ITF
             SceUserServiceUserId m_userId;
             bbool hasNotifiedConnection() {return m_isNotifiedConnection;}
             void setNotifiedConnection(bbool _notify) {m_isNotifiedConnection = _notify;}
+
+            void swap(JoyPadPort& other)
+            {
+                std::swap(m_userId, other.m_userId);
+                std::swap(m_dsPort, other.m_dsPort);
+                std::swap(m_dsConnected, other.m_dsConnected);
+                std::swap(m_id, other.m_id);
+                std::swap(m_joyConnected, other.m_joyConnected);
+                std::swap(m_isNotifiedConnection, other.m_isNotifiedConnection);
+            }
 
         private:
             bbool createJoyPad();

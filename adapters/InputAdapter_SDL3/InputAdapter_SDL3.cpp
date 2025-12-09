@@ -1311,4 +1311,12 @@ namespace ITF
         }
         return "Disconnected";
     }
+
+    void InputAdapter_SDL3::swapControllers(u32 index1, u32 index2)
+    {
+        if (index1 < JOY_MAX_COUNT && index2 < JOY_MAX_COUNT)
+        {
+            std::swap(m_slotGamepad[index1], m_slotGamepad[index2]);
+        }
+    }
 }

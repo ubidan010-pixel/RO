@@ -100,6 +100,7 @@ namespace ITF
         PressStatus getKeyboardStatus(i32 key) const override;
         u32 getKeyboardPressTime(i32 key) const override;
         i32 GetFirstPressedRawKey() const override;
+        void swapControllers(u32 index1, u32 index2) override;
 
     protected:
         void OnPCControlModeChanged(PCControlMode previous, PCControlMode current) override;

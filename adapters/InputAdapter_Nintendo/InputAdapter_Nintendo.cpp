@@ -336,5 +336,22 @@ InputPad_Nintendo* InputAdapter_Nintendo::getPad(u32 _padIndex) const
     return nullptr;
 }
 
+void InputAdapter_Nintendo::swapControllers(u32 index1, u32 index2)
+{
+    u32 internal1 = index1;
+    u32 internal2 = index2;
+
+    InputPad_Nintendo* handledPad = m_pads[0];
+    if (handledPad == nullptr || !handledPad->isConnected())
+    {
+        internal1++;
+        internal2++;
+    }
+
+    if (internal1 < m_pads.size() && internal2 < m_pads.size())
+    {
+        std::swap(m_pads[internal1], m_pads[internal2]);
+    }
+}
 
 }  // namespace ITF

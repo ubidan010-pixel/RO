@@ -25,6 +25,7 @@ namespace ITF
         virtual void getGamePadButtons(u32 _environment, u32 _padIdx, PressStatus* _buttons, u32 _nbButtons) const override;
         virtual void startRumble(u32 _padIdx, f64 _duration, f32 _leftMotorSpeed, f32 _rightMotorSpeed) override;
         virtual void stopRumble(u32 _padIdx) override;
+        void swapControllers(u32 index1, u32 index2) override;
 
         void updateAllInputState();
 

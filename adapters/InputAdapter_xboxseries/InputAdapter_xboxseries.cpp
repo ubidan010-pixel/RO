@@ -84,4 +84,9 @@ namespace ITF
         ITF_ASSERT(_padIdx < m_padsHandler.getGamePadCount());
         m_padsHandler.stopRumble(_padIdx);
     }
+
+    void InputAdapter_XBoxSeries::swapControllers(u32 index1, u32 index2)
+    {
+        m_padsHandler.swapPads(index1, index2);
+    }
 } // namespace ITF

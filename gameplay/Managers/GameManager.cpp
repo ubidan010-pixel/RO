@@ -3852,6 +3852,15 @@ namespace ITF
 
     void GameManager::setMainIndexPlayer( u32 _index )
     {
+        if (_index != U32_INVALID && _index != 0)
+        {
+            if (INPUT_ADAPTER)
+            {
+                INPUT_ADAPTER->swapControllers(_index, 0);
+            }
+            _index = 0;
+        }
+
         m_mainIndexPlayer = _index;
 
         if ( _index != U32_INVALID )

@@ -371,4 +371,12 @@ namespace ITF
         return 0;
     }
 
+    void InputAdapter_PS5::swapControllers(u32 index1, u32 index2)
+    {
+        if (index1 < SCE_USER_SERVICE_MAX_LOGIN_USERS && index2 < SCE_USER_SERVICE_MAX_LOGIN_USERS)
+        {
+            m_joyPadPort[index1].swap(m_joyPadPort[index2]);
+        }
+    }
+
 } // namespace ITF

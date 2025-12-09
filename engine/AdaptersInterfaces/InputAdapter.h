@@ -391,6 +391,9 @@ namespace ITF
         @param        _numButtons    Specifies how many buttons should be returned.
         */
         virtual void getGamePadButtons(u32 _environment, u32 _pad, PressStatus* _buttons, u32 _numButtons) const;
+
+        virtual void swapControllers(u32 index1, u32 index2) { ITF_UNUSED(index1); ITF_UNUSED(index2); }
+
         /**
         Queries button classes (bit mask). The button classes are
         returned in an array, where the first element represents the first button of the GamePad.
