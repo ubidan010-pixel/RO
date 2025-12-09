@@ -9,6 +9,8 @@
 #include "core/AdaptersInterfaces/SystemAdapter.h"
 #endif //_ITF_SYSTEMADAPTER_
 
+#define TARGET_SCREEN_RATIO (16.0f / 9.0f)
+
 namespace ITF
 {
 

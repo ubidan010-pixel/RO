@@ -229,14 +229,12 @@ namespace ITF
             break;
 
         case WM_SIZE:
-            if( SIZE_MINIMIZED == wParam )
+            if( SIZE_MINIMIZED == wParam)
             {
                 break;
             }
-            else
-            {
+            else {
                 i32 width, height;
-
                 ITF_MemoryBarrier();
                 if (ITF::SYSTEM_ADAPTER->isAllowResize() && ITF::SYSTEM_ADAPTER->getWindowSize(width, height))
                 {
@@ -244,15 +242,15 @@ namespace ITF
                     {
                         break;
                     }
-
                     ITF::GFX_ADAPTER->setResolution(width, height);
                 }
             }
             break;
+
         case WM_SIZING:
             {
                 RECT* r = (RECT*)lParam;
-                const f32 targetRatio = 16.0f / 9.0f;
+                const f32 targetRatio = TARGET_SCREEN_RATIO;
 
                 i32 width = r->right - r->left;
                 i32 height = r->bottom - r->top;
@@ -319,6 +317,7 @@ namespace ITF
                 }
                 break; // tell Windows we handled it
             }
+
         case WM_SETFOCUS:
             input->setFocus();
 
