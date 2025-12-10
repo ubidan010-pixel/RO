@@ -101,7 +101,11 @@ namespace ITF
         case SDLK_F24: return KEY_F24;
         default:
             if (keycode >= 32 && keycode < 256)
+            {
+                if (keycode >= 'a' && keycode <= 'z')
+                    return keycode - ('a' - 'A');
                 return static_cast<i32>(keycode);
+            }
             return KEY_SPECIAL;
         }
     }
