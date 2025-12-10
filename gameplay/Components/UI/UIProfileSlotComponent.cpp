@@ -29,7 +29,6 @@ namespace ITF
             SERIALIZE_MEMBER("actionRunPath", m_actionRunPath);
             SERIALIZE_MEMBER("actionJumpPath", m_actionJumpPath);
             SERIALIZE_MEMBER("actionHitPath", m_actionHitPath);
-            SERIALIZE_MEMBER("actionBackPath", m_actionBackPath);
             SERIALIZE_MEMBER("connectControllerTextPath", m_connectControllerTextPath);
         END_CONDITION_BLOCK()
     END_SERIALIZATION()
@@ -66,7 +65,6 @@ namespace ITF
         m_actionRunPath.clear();
         m_actionJumpPath.clear();
         m_actionHitPath.clear();
-        m_actionBackPath.clear();
         m_connectControllerTextPath.clear();
         m_isControllerConnected = bfalse;
         m_controllerType = InputAdapter::Pad_Invalid;
@@ -260,8 +258,6 @@ namespace ITF
         setActorVisibility(m_actionRunPath, visible);
         setActorVisibility(m_actionJumpPath, visible);
         setActorVisibility(m_actionHitPath, visible);
-        setActorVisibility(m_actionBackPath, visible);
-
         setActorVisibility(m_connectControllerTextPath, !visible);
     }
 

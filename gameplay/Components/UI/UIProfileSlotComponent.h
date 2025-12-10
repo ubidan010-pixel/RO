@@ -50,7 +50,6 @@ namespace ITF
         const String8& getActionRunPath() const { return m_actionRunPath; }
         const String8& getActionJumpPath() const { return m_actionJumpPath; }
         const String8& getActionHitPath() const { return m_actionHitPath; }
-        const String8& getActionBackPath() const { return m_actionBackPath; }
         const String8& getConnectControllerTextPath() const { return m_connectControllerTextPath; }
         bbool                    isControllerConnected() const;
         InputAdapter::PadType    getControllerType() const;
@@ -84,7 +83,6 @@ namespace ITF
         String8                 m_actionRunPath;
         String8                 m_actionJumpPath;
         String8                 m_actionHitPath;
-        String8                 m_actionBackPath;
         String8                 m_connectControllerTextPath;
         bbool                   m_isControllerConnected;
         InputAdapter::PadType   m_controllerType;

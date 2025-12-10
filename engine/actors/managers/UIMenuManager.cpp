@@ -1145,6 +1145,7 @@ void UIMenuManager::applySelectionChange(UIMenu* menu, UIComponent* oldSel, UICo
     ///////////////////////////////////////////////////////////////////////////////////////////
     void UIMenuManager::showMenuPage (MenuPriority _priority, const StringID &_menuID, bbool _isVisible, MenuItemActionListener* _listener, bbool _previousMenu)
     {
+        LOG("UIMENUMANAGER: open menu: %s", _menuID.getDebugString());
         UIMenu* pMenu = getMenu(_menuID);
         ITF_ASSERT((int)_priority>=0 && _priority<MenuPriority_Count);
 
