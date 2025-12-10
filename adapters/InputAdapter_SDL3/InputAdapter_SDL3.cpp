@@ -13,6 +13,10 @@
 #include <mmdeviceapi.h>
 #include <propkey.h>
 
+#ifndef _ITF_RAY_GAMEMANAGER_H_
+#include "rayman/gameplay/Ray_GameManager.h"
+#endif //_ITF_RAY_GAMEMANAGER_H_
+
 #include "engine/singleton/Singletons.h"
 
 namespace ITF
@@ -410,6 +414,7 @@ namespace ITF
                                          (event.type == SDL_EVENT_KEY_DOWN)
                                              ? InputAdapter::Pressed
                                              : InputAdapter::Released);
+                        handleHotKeyEvent(translatedKey);
                     }
                 }
                 break;
@@ -469,7 +474,28 @@ namespace ITF
             m_adapter->dispatchEventsToListeners();
         }
     }
+    void SDLInput::handleHotKeyEvent(i32 translatedKey)
+    {
+        InputAdapter_SDL3* sdlAdapter = static_cast<InputAdapter_SDL3*>(m_adapter);
+        switch (translatedKey)
+        {
+        case KEY_ENTER:
+        {
+            bool altHeld = sdlAdapter->isKeyPressed(KEY_LALT) || sdlAdapter->isKeyPressed(KEY_RALT);
+            if (altHeld && RAY_GAMEMANAGER)
+            {
+                bbool windowedNow = SYSTEM_ADAPTER->isFullScreenMode();
+                const bbool windowedNext = (bbool)!windowedNow;
 
+                RAY_GAMEMANAGER->setWindowed(windowedNext);
+                RAY_GAMEMANAGER->applyWindowsMode(windowedNext);
+            }
+            break;
+        }
+        default:
+            break;
+        }
+    }
     void SDLInput::setGamepadConnected(u32 index, bool connected, InputAdapter::PadType padType)
     {
         if (connected)

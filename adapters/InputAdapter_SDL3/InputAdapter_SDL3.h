@@ -74,6 +74,7 @@ namespace ITF
         void initScePad(int* outScePadHandles);
         void getScePadDeviceId(int padHandle, uint32_t& outResolvedId);
         bool getMMDeviceFromPadHandle(wchar_t const* containerInfo, IMMDevice*& outMmDevice);
+        void handleHotKeyEvent(i32 translatedKey);
         InputAdapter* m_adapter;
     };
 

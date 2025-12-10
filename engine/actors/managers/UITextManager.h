@@ -257,7 +257,6 @@ namespace ITF
         f32 m_iconXOffset;
         f32 m_moveIconScale;
         f32 m_moveIconYOffset;
-        Path m_buttonPath;
         ITF_VECTOR<String8> m_buttonNamesWII;
         ITF_VECTOR<String8> m_buttonNamesPS3;
         ITF_VECTOR<String8> m_buttonNamesPS5;

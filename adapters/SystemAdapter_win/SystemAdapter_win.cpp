@@ -233,7 +233,8 @@ namespace ITF
             {
                 break;
             }
-            else {
+            else if (!adapter->isFullScreenMode())
+            {
                 i32 width, height;
                 ITF_MemoryBarrier();
                 if (ITF::SYSTEM_ADAPTER->isAllowResize() && ITF::SYSTEM_ADAPTER->getWindowSize(width, height))
@@ -369,7 +370,9 @@ namespace ITF
         {
             RECT wnd_size = {0,0,_width, _height};
             DWORD style = _fullscreen?WS_POPUP:WS_OVERLAPPEDWINDOW;
+#ifdef ITF_FINAL
             style &= ~WS_MAXIMIZEBOX; //disable maximize button
+#endif
             AdjustWindowRect(&wnd_size, WS_OVERLAPPEDWINDOW, FALSE);
 
             window = CreateWindow(wndClass.lpszClassName, (const wchar_t *)_name.cStr(),
@@ -1031,7 +1034,9 @@ namespace ITF
         {
             style &= ~WS_POPUP;
             style |= WS_OVERLAPPEDWINDOW;
+#ifdef ITF_FINAL
             style &= ~WS_MAXIMIZEBOX; // disalbe Maximize button
+#endif
             mustChangeWindowMode = btrue;
             windowMode = SW_SHOWNORMAL;
             if (m_windowRectWhenGoingToFakeFullscreen_Valid)
