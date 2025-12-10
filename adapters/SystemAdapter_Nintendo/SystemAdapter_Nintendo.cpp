@@ -212,32 +212,40 @@ namespace ITF
 
     void SystemAdapter_Nintendo::updateDisplayResolution()
     {
-        nn::oe::PerformanceMode mode = nn::oe::GetPerformanceMode();
+        nn::oe::PerformanceMode performanceMode = nn::oe::GetPerformanceMode();
+        nn::oe::OperationMode operationMode = nn::oe::GetOperationMode();
+        bool isDockedMode = (operationMode == nn::oe::OperationMode_Console);
+        bool hasBoostPerformance = (performanceMode == nn::oe::PerformanceMode_Boost);
 
-        if (mode == nn::oe::PerformanceMode_Normal)
-        {
 #ifdef ITF_NX
-            m_resolutionWidth = 1280;
-            m_resolutionHeight = 720;
-#else
+
+        if (isDockedMode && hasBoostPerformance)
+        {
             m_resolutionWidth = 1920;
             m_resolutionHeight = 1080;
-#endif
-        }
-        else if (mode == nn::oe::PerformanceMode_Boost)
-        {
-#ifdef ITF_NX
-            m_resolutionWidth = 1920;
-            m_resolutionHeight = 1080;
-#else
-            m_resolutionWidth = 3840;
-            m_resolutionHeight = 2160;
-#endif
         }
         else
         {
-            SYS_LOG("[SYSTEM] Unknown Performance Mode: %d", static_cast<int>(mode));
+            m_resolutionWidth = 1280;
+            m_resolutionHeight = 720;
         }
+#else
+        if (isDockedMode && hasBoostPerformance)
+        {
+            m_resolutionWidth = 3840;
+            m_resolutionHeight = 2160;
+        }
+        else
+        {
+            m_resolutionWidth = 1920;
+            m_resolutionHeight = 1080;
+        }
+#endif
+        SYS_LOG("[SYSTEM] Display Resolution Update: %dx%d (OperationMode: %s, PerformanceMode: %s)",
+            m_resolutionWidth, m_resolutionHeight,
+            (isDockedMode ? "Docked" : "Handheld"),
+            (hasBoostPerformance ? "Boost" : "Normal"));
+
         if (GFX_ADAPTER->getScreenWidth() != m_resolutionWidth || GFX_ADAPTER->getScreenHeight() != m_resolutionHeight)
         {
             static_cast<GFXAdapter_NVN*>(GFX_ADAPTER)->requestRenderTargetsRebuild(m_resolutionWidth, m_resolutionHeight);
