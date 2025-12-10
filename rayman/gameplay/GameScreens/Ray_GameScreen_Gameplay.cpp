@@ -201,7 +201,7 @@ namespace ITF
         RAY_GAMEMANAGER->setPlayersCurrentScale(1.f);
         RAY_GAMEMANAGER->spawnPlayerActors(GetClassCRCStatic());
         RAY_GAMEMANAGER->resetPlayerGlobalPowers();
-        RAY_GAMEMANAGER->restoreHealthModifierForAllPlayers();
+        RAY_GAMEMANAGER->applyHealthModifierForAllPlayers();
 
         // Skip
         RAY_GAMEMANAGER->resetSkipData();
@@ -402,8 +402,6 @@ namespace ITF
 
         RAY_GAMEMANAGER->enableBaseScene(bfalse);
         RAY_GAMEMANAGER->enableMedalWorld(bfalse);
-        RAY_GAMEMANAGER->clearHealthModifierForAllPlayers();
-
         RAY_GAMEMANAGER->unspawnMedal();
         Ray_LumMusicManagerAIComponent::destroyAllExisting();
         if (Actor * skipLevel = RAY_GAMEMANAGER->getSkipLevelActor().getActor())

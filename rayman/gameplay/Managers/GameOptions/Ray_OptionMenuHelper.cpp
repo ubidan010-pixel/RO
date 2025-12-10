@@ -734,6 +734,10 @@ namespace ITF
         else if (optionId == OPTION_START_WITH_HEART)
         {
             RAY_GAMEMANAGER->setStartWithHeartIndex(newIndex);
+            if (RAY_GAMEMANAGER->areAllActivePlayersInGameMode(RAY_GAMEMODE_WORLDMAP))
+            {
+                RAY_GAMEMANAGER->applyHealthModifierForAllPlayers();
+            }
         }
         else if (optionId == OPTION_RUN_BUTTON)
         {
