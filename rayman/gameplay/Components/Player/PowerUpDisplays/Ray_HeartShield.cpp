@@ -169,12 +169,8 @@ void Ray_HeartShield::update(f32 _dt)
 
     if (m_waitingForImmunityToSpawnRed && hpAtMax && currentTier == HeartTier_Red)
     {
-        Ray_PlayerControllerComponent* controller = m_actor->GetComponent<Ray_PlayerControllerComponent>();
-        if (controller && !controller->isImmune())
-        {
-            createHeartActor();
-            m_waitingForImmunityToSpawnRed = bfalse;
-        }
+        createHeartActor();
+        m_waitingForImmunityToSpawnRed = bfalse;
     }
     else if (m_waitingForImmunityToSpawnRed && currentTier != HeartTier_Red)
     {
@@ -233,7 +229,7 @@ void Ray_HeartShield::createHeartActor()
         return;
     }
 
-    
+
     EPlayerHeartTier currentTier = getCurrentHeartTier();
     m_currentHeartTier = currentTier;
 
