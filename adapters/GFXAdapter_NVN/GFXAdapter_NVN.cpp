@@ -1032,16 +1032,30 @@ namespace ITF
 
     void GFXAdapter_NVN::lockTexture(Texture* _tex, LOCKED_TEXTURE* _lockTex, u32 _flag)
     {
-        ITF_NOT_IMPLEMENTED();
-        // might need a gpu sync here
+        NVNTexture* nvnTex = static_cast<NVNTexture*>(_tex->m_adapterimplementationData);
+        ITF_ASSERT(nvnTex);
+
+        void* ptr = nullptr;
+        u32 pitch = 0;
+        if (!nvnTex->mapForUpload(ptr, pitch))
+        {
+            _lockTex->mp_Bits = nullptr;
+            _lockTex->m_pitch = 0;
+            return;
+        }
+
+        _lockTex->mp_Bits = ptr;
+        _lockTex->m_pitch = pitch;
     }
 
     //----------------------------------------------------------------------------//
 
     void GFXAdapter_NVN::unlockTexture(Texture* _tex)
     {
-        ITF_NOT_IMPLEMENTED();
-        // might need a gpu sync here
+        NVNTexture* nvnTex = static_cast<NVNTexture*>(_tex->m_adapterimplementationData);
+        ITF_ASSERT(nvnTex);
+
+        nvnTex->unmapAfterUpload();
     }
 
     //----------------------------------------------------------------------------//
@@ -1174,18 +1188,16 @@ namespace ITF
 
     void GFXAdapter_NVN::createTexture(Texture* _texture, u32 _sizeX, u32 _sizeY, u32 _mipLevel, Texture::PixFormat _pixformat, u32 _pool, bbool _dynamic)
     {
-        ITF_ASSERT(false); // TODO => used for bink, analyze what's
-        // Nothing done to handle pool and dynamic for now.
         ITF_ASSERT(_pool == 1);
-        ITF_ASSERT(_dynamic == false);
 
         nvn::Format nvnFormat = itfToNvnTexFormat(_pixformat);
         nvn::TextureBuilder builder = NVNTexture::createTextureBuilder(_sizeX, _sizeY, _mipLevel, nvnFormat);
-        if (_dynamic)
-        {
-            ITF_ASSERT(_mipLevel == 1); // Linear textures do not support multiple mipmap levels. 
-            builder.SetFlags(builder.GetFlags() | nvn::TextureFlags::LINEAR); // dynamic textures are linear so that we can simple write into it.
-        }
+
+        //if (_dynamic)
+        //{
+        //    ITF_ASSERT(_mipLevel == 1); // Linear textures do not support multiple mipmap levels. 
+        //    builder.SetFlags(builder.GetFlags() | nvn::TextureFlags::LINEAR); // dynamic textures are linear so that we can simple write into it.
+        //}
 
         String8 debugName;
         debugName.setTextFormat("createdTexture_%s", _texture->getPath().isEmpty() ? "NoName" : _texture->getPath().getBasename());

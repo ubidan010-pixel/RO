@@ -19,6 +19,7 @@
 #include "ImGuiMainItemMenu.h"
 #include "ImGuiMenuPath.h"
 #include "engine/imgui/ImGuiApplicationTool.h"
+#include "engine/imgui/ImGuiVideoDebugTool.h"
 #include "engine/imgui/editor/ImGuiActorEditorTool.h"
 #include <imgui_internal.h>
 
@@ -79,6 +80,7 @@ namespace ITF
     {
         m_tools.clear();
         m_tools.push_back(std::make_unique<ImGuiApplicationTool>());
+        m_tools.push_back(std::make_unique<ImGuiVideoDebugTool>());
 #if !defined(ITF_FINAL) && defined(ITF_SUPPORT_EDITOR)
         m_tools.push_back(std::make_unique<ImGuiActorEditorTool>());
 #endif

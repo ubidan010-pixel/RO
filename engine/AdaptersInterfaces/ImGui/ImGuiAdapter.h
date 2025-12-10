@@ -1,3 +1,5 @@
+#pragma once
+
 #ifndef _ITF_IMGUIADAPTER_H_
 #define _ITF_IMGUIADAPTER_H_
 
@@ -9,6 +11,7 @@
 
 #include <algorithm>
 #include <sstream>
+#include "IDebugImGui.h"
 
 namespace ITF
 {
@@ -45,6 +48,50 @@ namespace ITF
 
         void forceFocusMenuBarIfNeeded();
 
+        template<typename T>
+        void registerEntity(IDebugImGui* entity)
+        {
+            if (!entity)
+                return;
+
+            const ImGuiToolTypeId targetId = T::GetStaticTypeId();
+
+            for (auto& tool : m_tools)
+            {
+                if (!tool)
+                    continue;
+
+                if (tool->getTypeId() == targetId)
+                {
+                    T* typed = static_cast<T*>(tool.get());
+                    typed->registerEntity(entity);
+                    return;
+                }
+            }
+        }
+
+        template<typename T>
+        void unRegisterEntity(IDebugImGui* entity)
+        {
+            if (!entity)
+                return;
+
+            const ImGuiToolTypeId targetId = T::GetStaticTypeId();
+
+            for (auto& tool : m_tools)
+            {
+                if (!tool)
+                    continue;
+
+                if (tool->getTypeId() == targetId)
+                {
+                    T* typed = static_cast<T*>(tool.get());
+                    typed->unRegisterEntity(entity);
+                    return;
+                }
+            }
+        }
+
     protected:
         virtual bbool initialize_internal() { return bfalse; }
         virtual void shutdown_internal() {}
@@ -60,11 +107,9 @@ namespace ITF
         bbool m_initialized = false;
         bbool m_visible = true;
 
-#ifdef ITF_SUPPORT_IMGUI
         std::vector<ImGuiMenuPath> m_rootMenu;
         std::vector<std::unique_ptr<ImGuiEngineDebugTool>> m_tools;
         std::vector<ImGuiMainItemMenu> m_mainItemMenus;
-#endif
 
         void onAwake();
         void buildMenuPath();

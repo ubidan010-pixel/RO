@@ -94,9 +94,9 @@ namespace ITF
             pformat = nvn::Format::R8;
             break;
         default:
+            ITF_ASSERT_CRASH(false, "Unknown texture ITF texture format %d", toUnderlying(_pixformat));
             break;
         }
-        ITF_ASSERT_CRASH(false, "Unknown texture ITF texture format %d", toUnderlying(_pixformat));
         return pformat;
     }
 
@@ -116,6 +116,8 @@ namespace ITF
             return nvn::DrawPrimitive::TRIANGLE_STRIP;
         case GFX_TRIANGLE_FAN:
             return nvn::DrawPrimitive::TRIANGLE_FAN;
+        case GFX_QUADS:
+            return nvn::DrawPrimitive::QUADS;
         default:
             break;
         }

@@ -1,12 +1,12 @@
-#ifndef _ITF_VIDEOHANDLE_DX12_H_
-#define _ITF_VIDEOHANDLE_DX12_H_
+#ifndef _ITF_VIDEOHANDLE_NVN_H_
+#define _ITF_VIDEOHANDLE_NVN_H_
 
-#ifdef ITF_XBOX_SERIES
+#ifdef ITF_NINTENDO
 
 #include "engine/video/videoHandle.h"
 #include "engine/video/webmDecoder.h"
 #include "engine/resources/ResourceManager.h"
-#include <AdaptersInterfaces/GFXAdapter_VertexBufferManager.h>
+#include <thread>
 
 namespace ITF
 {
@@ -28,10 +28,35 @@ namespace ITF
         bbool getCurrentTime(f32& _timeInSeconds);
 
     private:
+        struct CpuYuvFrame
+        {
+            std::vector<u8> yPlane;
+            std::vector<u8> uPlane;
+            std::vector<u8> vPlane;
+
+            u32 width = 0;
+            u32 height = 0;
+            u32 yStride = 0;
+            u32 uvStride = 0;
+            f64 pts = 0.0;
+        };
+
+        std::thread m_decodeThread;
+        std::atomic<bool> m_decodeThreadRunning{ false };
+        std::mutex m_queueMutex;
+        std::condition_variable m_queueCv;
+        std::deque<int> m_frameQueue;
+        size_t m_maxQueuedFrames = 3;
+        std::vector<CpuYuvFrame> m_framePool;
+        int m_nextPoolIndex = 0;
+
+        void decodeThreadFunc();
+        bbool pushDecodedFrame(const vpx_image_t* img, f64 pts);
         bbool warmupFirstFrame();
         void destroyTexturesAndVB();
         bbool createTexturesAndVB(u32 _width, u32 _height);
-        bbool uploadFrameToTextures(const vpx_image_t& _img, u32 _texIndex);
+        bbool uploadFrameToTextures(const CpuYuvFrame& _img, u32 _texIndex);
+
         u32 m_textureWidth = 0;
         u32 m_textureHeight = 0;
 
@@ -51,6 +76,6 @@ namespace ITF
 
 } // namespace ITF
 
-#endif
+#endif // ITF_NINTENDO
 
-#endif //_ITF_VIDEOHANDLE_DX12_H_
+#endif //_ITF_VIDEOHANDLE_NVN_H_

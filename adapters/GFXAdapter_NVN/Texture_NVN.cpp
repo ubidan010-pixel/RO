@@ -62,6 +62,26 @@ namespace ITF
         m_resName = _debugName;
         m_nvnTexture->SetDebugLabel(m_resName.cStr());
     #endif
+
+        m_uploadWidth = _builder.GetWidth();
+        m_uploadHeight = _builder.GetHeight();
+
+        nvn::Format fmt = _builder.GetFormat();
+        switch (fmt)
+        {
+        case nvn::Format::R8:
+            m_bytesPerPixel = 1;
+            break;
+        case nvn::Format::RGBA8:
+        case nvn::Format::RGBA8_SRGB:
+        case nvn::Format::BGRA8:
+        case nvn::Format::BGRA8_SRGB:
+            m_bytesPerPixel = 4;
+            break;
+        default:
+            m_bytesPerPixel = 1;
+            break;
+        }
     }
 
     NVNTexture* NVNTexture::createFromMemoryXTX(NVNTexturePool& texPool, const u8 * _srcRawData, u64 _rawDataSize, const char* _debugName)
@@ -96,6 +116,64 @@ namespace ITF
         ITF_Memcpy(destData, textureData, nvTextureHeader.dataSize); // just copying is ok as the memory is CPU_UNCACHED or GPU coherent
 
         return nvnTex;
+    }
+
+    bool NVNTexture::mapForUpload(void*& outPtr, u32& outRowPitch)
+    {
+        if (!m_uploadInit)
+        {
+            const u32 rawRow = m_uploadWidth * m_bytesPerPixel;
+            m_uploadRowPitch = (rawRow + 63u) & ~63u;
+
+            const size_t uploadSize = size_t(m_uploadRowPitch) * size_t(m_uploadHeight);
+
+            m_uploadCpuPtr = Memory::alignedMallocCategory(uploadSize, 64, MemoryId::mId_Textures);
+
+            ITF_ASSERT(m_uploadCpuPtr != nullptr);
+            if (!m_uploadCpuPtr)
+                return false;
+
+            m_uploadInit = true;
+        }
+
+        outPtr = m_uploadCpuPtr;
+        outRowPitch = m_uploadRowPitch;
+        return true;
+    }
+
+    void NVNTexture::unmapAfterUpload()
+    {
+        if (!m_uploadInit || !m_uploadCpuPtr)
+            return;
+
+        nvn::Texture* tex = m_nvnTexture.get();
+        ITF_ASSERT(tex);
+
+        if (!m_texViewInit)
+        {
+            m_texView.SetDefaults()
+                .SetLevels(0, 1)
+                .SetLayers(0, 1)
+                .SetTarget(tex->GetTarget())
+                .SetFormat(tex->GetFormat());
+
+            //m_texView.SetSwizzle(nvn::TextureSwizzle::R, nvn::TextureSwizzle::G, nvn::TextureSwizzle::B, nvn::TextureSwizzle::A);
+
+            m_texViewInit = true;
+        }
+
+        nvn::CopyRegion region{};
+        region.xoffset = 0;
+        region.yoffset = 0;
+        region.zoffset = 0;
+        region.width = (int)m_uploadWidth;
+        region.height = (int)m_uploadHeight;
+        region.depth = 1;
+
+        const ptrdiff_t rowStride = (ptrdiff_t)m_uploadRowPitch;
+        const ptrdiff_t imageStride = rowStride * (ptrdiff_t)m_uploadHeight;
+
+        tex->WriteTexelsStrided(&m_texView, &region, m_uploadCpuPtr, rowStride, imageStride);
     }
 }
 

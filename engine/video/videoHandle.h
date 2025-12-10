@@ -4,10 +4,11 @@
 #include "core/types.h"
 
 #include "core/itfstring.h"
+#include "engine/AdaptersInterfaces/ImGui/IDebugImgui.h"
 
 namespace  ITF
 {
-    class  videoHandleBase
+    class  videoHandleBase: IDebugImGui
     {
     public:
 
@@ -38,6 +39,33 @@ namespace  ITF
 
         f32     m_fps = 1.0f;
         f32     m_totalTimeInSeconds = 0.0f;
+
+        f64     m_playbackTimeSeconds = 0.0;
+        bbool   m_useExternalClock = bfalse;
+        f64     m_externalClockMs = 0.0;
+
+        void    resetPlaybackClock();
+        void    setExternalClockMs(f64 ms);
+        void    clearExternalClock();
+        void    tickPlaybackClock();
+        f64     getPlaybackTimeSeconds() const { return m_playbackTimeSeconds; }
+
+#ifdef ITF_SUPPORT_IMGUI
+    public:
+        virtual void registerToImGui() override;
+        virtual void unRegisterToImGui() override;
+        virtual void displayImGui() override;
+
+    protected:
+        f32 m_lastDecodeTimeMs = 0.0f;
+        f32 m_avgDecodeTimeMs = 0.0f;
+        f32 m_maxDecodeTimeMs = 0.0f;
+        u32 m_decodeFrameCount = 0;
+        String m_lastOpenedFile;
+        f64 m_openedAtSeconds = 0.0;
+        void onVideoOpened(const String& _fullFilename);
+        void onVideoClosed();
+#endif // ITF_SUPPORT_IMGUI
     };
 }
 
@@ -57,6 +85,8 @@ namespace  ITF
     #endif
 #elif defined(ITF_XBOX_SERIES) //||  defined(ITF_WINDOWS)
     #include "engine/video/videoHandle_dx12.h"
+#elif defined(ITF_NINTENDO)
+    #include "engine/video/videoHandle_nvn.h"
 #else
 //not supported
 

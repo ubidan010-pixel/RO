@@ -4,7 +4,7 @@
 #include "VRAMHandleLinks.h"
 #include "PoolContainer.h"
 
-#include "NVN/Helpers.h"
+#include "../NVN/Helpers.h"
 
 namespace ITF::NVN
 {

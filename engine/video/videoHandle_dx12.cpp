@@ -1,8 +1,8 @@
 #include "precompiled_engine.h"
 
 #ifdef ITF_XBOX_SERIES
-#include "engine/video/videoHandle_dx12.h"
 
+#include "engine/video/videoHandle_dx12.h"
 #include "adapters/GFXAdapter_DX12/GFXAdapter_DX12.h"
 #include "adapters/SoundAdapter_XAudio/SoundAdapter_XAudio.h"
 #include "engine/resources/ResourceManager.h"
@@ -11,10 +11,16 @@ namespace ITF
 {
     videoHandle::videoHandle()
     {
+#ifdef ITF_SUPPORT_IMGUI
+        registerToImGui();
+#endif
     }
 
     videoHandle::~videoHandle()
     {
+#ifdef ITF_SUPPORT_IMGUI
+        unRegisterToImGui();
+#endif
         close();
     }
 
@@ -50,6 +56,12 @@ namespace ITF
         m_bufferPts[1] = 0.0;
         m_currentTimeInSeconds = 0.0f;
         m_totalTimeInSeconds = 0.0f;
+
+        resetPlaybackClock();
+
+#ifdef ITF_SUPPORT_IMGUI
+        onVideoClosed();
+#endif
     }
 
     void videoHandle::stop()
@@ -104,6 +116,8 @@ namespace ITF
         m_totalTimeInSeconds = (f32)m_decoder.getDurationSeconds();
         m_currentTexIndex = 0;
 
+        resetPlaybackClock();
+
         if (!warmupFirstFrame())
         {
             close();
@@ -114,54 +128,115 @@ namespace ITF
         m_stopped = bfalse;
         m_isPaused = bfalse;
 
+#ifdef ITF_SUPPORT_IMGUI
+        onVideoOpened(fullName);
+#endif
+
         return btrue;
     }
 
     void videoHandle::render()
     {
-        if (!m_opened || m_stopped || m_isPaused)
+        if (!m_opened || m_stopped)
             return;
 
-        const vpx_image_t* img = nullptr;
-        f64 pts = 0.0;
+        if (!m_pVertexBuffer)
+            return;
 
-        if (!m_decoder.decodeNextFrame(img, pts) || !img)
+        tickPlaybackClock();
+        const f64 targetTime = getPlaybackTimeSeconds();
+        const f64 eps = 0.0001;
+
+        f64 currentPts = (f64)m_bufferPts[m_currentTexIndex];
+
+        bool haveNewFrame = false;
+
+#ifdef ITF_SUPPORT_IMGUI
+        using Clock = std::chrono::high_resolution_clock;
+        const auto t0 = Clock::now();
+#endif
+
+        if (!m_isPaused)
         {
-            if (isLoop())
+            f64 simulatedPts = currentPts;
+
+            while (simulatedPts + eps < targetTime)
             {
-                if (!m_decoder.reset() || !warmupFirstFrame())
+                const vpx_image_t* img = nullptr;
+                f64 pts = 0.0;
+
+                if (!m_decoder.decodeNextFrame(img, pts) || !img)
                 {
-                    stop();
-                    return;
+                    if (isLoop())
+                    {
+                        if (!m_decoder.reset() || !warmupFirstFrame())
+                        {
+                            stop();
+                            return;
+                        }
+
+                        simulatedPts = (f64)m_bufferPts[m_currentTexIndex];
+                        currentPts = simulatedPts;
+                        continue;
+                    }
+                    else
+                    {
+                        stop();
+                        return;
+                    }
                 }
 
-                return;
+                const u32 uploadIndex = m_currentTexIndex ^ 1;
+                if (!uploadFrameToTextures(*img, uploadIndex))
+                    break;
+
+                m_bufferPts[uploadIndex] = pts;
+                simulatedPts = pts;
+                haveNewFrame = true;
+            }
+
+            if (haveNewFrame)
+            {
+                const u32 backIndex = m_currentTexIndex ^ 1;
+                m_currentTimeInSeconds = (f32)m_bufferPts[backIndex];
             }
             else
             {
-                stop();
-                return;
+                m_currentTimeInSeconds = (f32)m_bufferPts[m_currentTexIndex];
             }
         }
-
-        const u32 uploadIndex = m_currentTexIndex ^ 1;
-
-        if (!uploadFrameToTextures(*img, uploadIndex))
+        else
         {
-            return;
+            m_currentTimeInSeconds = (f32)m_bufferPts[m_currentTexIndex];
         }
-        m_bufferPts[uploadIndex] = pts;
 
         Texture* texArr[3];
         texArr[0] = static_cast<Texture*>(m_texY[m_currentTexIndex].getResource());
         texArr[1] = static_cast<Texture*>(m_texU[m_currentTexIndex].getResource());
         texArr[2] = static_cast<Texture*>(m_texV[m_currentTexIndex].getResource());
 
+        if (!texArr[0] || !texArr[1] || !texArr[2])
+            return;
+
         GFX_ADAPTER->drawMovie(nullptr, getAlpha(), m_pVertexBuffer, texArr, 3);
 
-        m_currentTimeInSeconds = (f32)m_bufferPts[m_currentTexIndex];
+#ifdef ITF_SUPPORT_IMGUI
+        {
+            const auto t1 = Clock::now();
+            const auto ms = std::chrono::duration<float, std::milli>(t1 - t0).count();
+            m_lastDecodeTimeMs = ms;
+            ++m_decodeFrameCount;
+            m_avgDecodeTimeMs += (ms - m_avgDecodeTimeMs) / (f32)m_decodeFrameCount;
+            if (ms > m_maxDecodeTimeMs)
+                m_maxDecodeTimeMs = ms;
+        }
+#endif
 
-        m_currentTexIndex ^= 1;
+        if (haveNewFrame)
+        {
+            m_currentTexIndex ^= 1;
+            m_currentTimeInSeconds = (f32)m_bufferPts[m_currentTexIndex];
+        }
     }
 
     bbool videoHandle::getCurrentTime(f32& _timeInSeconds)
@@ -195,6 +270,7 @@ namespace ITF
             m_texV[i] = ResourceID();
         }
     }
+
     bbool videoHandle::createTexturesAndVB(u32 videoW, u32 videoH)
     {
         GFXAdapter_DX12* gfx = static_cast<GFXAdapter_DX12*>(GFX_ADAPTER);
