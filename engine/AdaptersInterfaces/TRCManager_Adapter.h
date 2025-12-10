@@ -31,6 +31,10 @@
 #include "engine/AdaptersInterfaces/SoundAdapter.h"
 #endif //_ITF_SOUND_ADAPTER_
 
+#ifndef _ITF_GAMEPLAYTYPES_H_
+#include "gameplay/GameplayTypes.h"
+#endif //_ITF_GAMEPLAYTYPES_H_
+
 
 namespace ITF
 {
@@ -295,6 +299,8 @@ namespace ITF
 		void _hideAndKillCurrentMessage();
         void _hideCurrentMessage();
         virtual bbool _buildAndAddMessage(ErrorContext errorContext){ITF_ASSERT(0);return false;}
+
+        String buildText(u32 lineID, EContextIconType iconType = ContextIconType_Invalid, u32 padIndex = U32_INVALID);
 
         u32 _u32_customParam;
         String _string_customParam, _string_customParam2;

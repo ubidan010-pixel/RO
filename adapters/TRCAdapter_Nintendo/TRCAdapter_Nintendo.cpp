@@ -11,32 +11,6 @@
 
 namespace ITF
 {
-    static String buildText(u32 lineID, EContextIconType iconType = ContextIconType_Invalid)
-    {        
-        static String workingStr;
-        LocalisationId id;
-
-        id.value = lineID;
-        String buff = LOCALISATIONMANAGER->getText(id);
-        workingStr  = buff ;
-
-        if (iconType != ContextIconType_Invalid)
-        {
-
-            if (SYSTEM_ADAPTER->isBackAndSelectButtonsInverted())
-            {
-                if (iconType == ContextIconType_Select)
-                    iconType = ContextIconType_Back;
-                else if (iconType == ContextIconType_Back)
-                    iconType = ContextIconType_Select;
-            }
-
-            workingStr = workingStr + " " + CONTEXTICONSMANAGER->getIconStr(InputAdapter::Pad_PS3, iconType);
-        }
-
-        return workingStr;
-    }
-
     bbool TRCManagerAdapter_Nintendo::_buildAndAddMessage(ErrorContext errorContext)
     {
         if (buildGenericMessage(errorContext))

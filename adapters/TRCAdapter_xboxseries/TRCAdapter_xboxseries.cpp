@@ -12,23 +12,6 @@
 
 namespace ITF
 {
-    static String buildText(u32 lineID, EContextIconType iconType = ContextIconType_Invalid)
-    {
-        static String workingStr;
-        LocalisationId id;
-
-        id.value = lineID;
-        String buff = LOCALISATIONMANAGER->getText(id);
-        workingStr = buff;
-
-        if (iconType != ContextIconType_Invalid)
-        {
-            workingStr = workingStr + " " + CONTEXTICONSMANAGER->getIconStr(InputAdapter::Pad_PS3, iconType);
-        }
-
-        return workingStr;
-    }
-
     bbool TRCManagerAdapter_XBoxSeries::_buildAndAddMessage(ErrorContext errorContext)
     {
         if (buildGenericMessage(errorContext))

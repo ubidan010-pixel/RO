@@ -47,6 +47,18 @@
 #include "gameplay/components/UI/UIMenu.h"
 #endif //_ITF_UIMENU_H_
 
+#ifndef _ITF_INPUTADAPTER_H_
+#include "engine/AdaptersInterfaces/InputAdapter.h"
+#endif //_ITF_INPUTADAPTER_H_
+
+#ifndef _ITF_CONTEXTICONSMANAGER_H_
+#include "engine/actors/managers/ContextIconsManager.h"
+#endif //_ITF_CONTEXTICONSMANAGER_H_
+
+#ifndef _ITF_SYSTEMADAPTER_
+#include "core/AdaptersInterfaces/SystemAdapter.h"
+#endif //_ITF_SYSTEMADAPTER_
+
 
 namespace ITF
 {
@@ -925,6 +937,25 @@ namespace ITF
             return btrue;
         }
         return false;
+    }
+
+    String TRCManagerAdapter::buildText(u32 lineID, EContextIconType iconType, u32 padIndex)
+    {
+        static String workingStr;
+        LocalisationId id;
+
+        id.value = lineID;
+        String buff = LOCALISATIONMANAGER->getText(id);
+        workingStr = buff;
+
+        if (iconType != ContextIconType_Invalid)
+        {
+            u32 actualPadIndex = (padIndex == U32_INVALID) ? GAMEMANAGER->getMainIndexPlayer() : padIndex;
+            InputAdapter::PadType padType = SINGLETONS.getInputAdapter()->getPadType(actualPadIndex);
+            workingStr = workingStr + " " + CONTEXTICONSMANAGER->getIconStr(padType, iconType);
+        }
+
+        return workingStr;
     }
 
 #ifndef ITF_FINAL
