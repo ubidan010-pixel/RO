@@ -7,6 +7,10 @@
 #ifndef ITF_SYSTEMADAPTER_WIN_H_
 #include "adapters/SystemAdapter_win/SystemAdapter_win.h"
 #endif
+
+#ifdef ITF_SUPPORT_EDITOR
+#include <shellapi.h>
+#endif
 #include <pad.h>
 #include <pad_types.h>
 #include <pad_windows_static.h>
@@ -356,6 +360,13 @@ namespace ITF
                 else
                 {
                     SDL_SetWindowResizable(m_hiddenWindow, true);
+#ifdef ITF_SUPPORT_EDITOR
+                    SDL_SetEventEnabled(SDL_EVENT_DROP_FILE, true);
+                    SDL_SetEventEnabled(SDL_EVENT_DROP_TEXT, true);
+                    SDL_SetEventEnabled(SDL_EVENT_DROP_BEGIN, true);
+                    SDL_SetEventEnabled(SDL_EVENT_DROP_COMPLETE, true);
+                    DragAcceptFiles(sysAdapter->m_hwnd, TRUE);
+#endif // ITF_SUPPORT_EDITOR
                 }
             }
         }
@@ -459,6 +470,17 @@ namespace ITF
                     m_adapter->unsetFocus();
                 }
                 break;
+#ifdef ITF_SUPPORT_EDITOR
+            case SDL_EVENT_DROP_FILE:
+                if (event.drop.data)
+                {
+                    String fileDropped(event.drop.data);
+                    WinApp::onFileDrop(fileDropped);
+                }
+                break;
+            case SDL_EVENT_DROP_COMPLETE:
+                break;
+#endif // ITF_SUPPORT_EDITOR
             default:
                 break;
             }
