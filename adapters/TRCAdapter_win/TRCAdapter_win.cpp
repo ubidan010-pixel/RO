@@ -61,21 +61,21 @@ namespace ITF
             //         new TRCMessage_Callback_WaitforPadState(TRCMessage_Callback_WaitforPadState::connected, 0));
             //     pTRCMessage->SetForceOverPauseMenu();
             //     break;
-            // case Pad_DisconnectingDuringMenu:
-            // case Pad_DisconnectingDuringGameplay:
-            //     ITF_ASSERT(_u32_customParam != U32_INVALID);
-            //     message = "Communications with the Pad have been interrupted.";
-            //     pTRCMessage = new TRCMessage_OneButtonWithCB(
-            //         new TRCMessage_Callback_WaitforPadState(TRCMessage_Callback_WaitforPadState::connected, _u32_customParam));
-            //
-            //     pTRCMessage->SetForceOverPauseMenu();
-            //     pTRCMessage->changeDisplayPriority(TRCMessage_Base::High);
-            //     if(errorContext==Pad_DisconnectingDuringGameplay && _u32_customParam != GAMEMANAGER->getMainIndexPlayer())
-            //     {
-            //         ((TRCMessage_OneButtonWithCB*)pTRCMessage)->setButton(buildText(4164, ContextIconType_Select), input_actionID_Back);
-            //     }
-            //     pTRCMessage->setActivePlayer(_u32_customParam);
-            //     break;
+            case Pad_DisconnectingDuringMenu:
+            case Pad_DisconnectingDuringGameplay:
+                ITF_ASSERT(_u32_customParam != U32_INVALID);
+                message = "Communications with the Pad have been interrupted.";
+                pTRCMessage = new TRCMessage_OneButtonWithCB(
+                    new TRCMessage_Callback_WaitforPadState(TRCMessage_Callback_WaitforPadState::connected, _u32_customParam));
+
+                pTRCMessage->SetForceOverPauseMenu();
+                pTRCMessage->changeDisplayPriority(TRCMessage_Base::High);
+                if(errorContext==Pad_DisconnectingDuringGameplay && _u32_customParam != GAMEMANAGER->getMainIndexPlayer())
+                {
+                    ((TRCMessage_OneButtonWithCB*)pTRCMessage)->setButton(buildText(4164, ContextIconType_Select), input_actionID_Back);
+                }
+                pTRCMessage->setActivePlayer(_u32_customParam);
+                break;
         case Pad_LowBattery:
         {
             message = "The battery charge is running low.";//temp
@@ -222,7 +222,7 @@ namespace ITF
             textTitle.replace("[console gamertag]", playerName);
             textSubtitle.replace("[console gamertag]", playerName);
             textMain.replace("[console gamertag]", playerName);
-            textOutro.replace("[console gamertag]", playerName); 
+            textOutro.replace("[console gamertag]", playerName);
 
             textTitle.replace("[gametag]", textGameTitle);
             textSubtitle.replace("[gametag]", textGameTitle);
