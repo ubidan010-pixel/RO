@@ -1234,7 +1234,7 @@ namespace ITF
     public:
         typedef GameManager Super;
         Ray_GameManager();
-        ~Ray_GameManager() {}
+        ~Ray_GameManager();
         virtual void destroyInternal();
 
         static void                 create()    { s_instance = newAlloc(mId_Singleton, Ray_GameManager()); }
@@ -1810,10 +1810,16 @@ namespace ITF
 
 		ITF_INLINE								bbool getIsPlayingFrescoVideo() const { return m_isPlayingFrescoVideo; }
 		ITF_INLINE								void setIsPlayingFrescoVideo(bbool _val) { m_isPlayingFrescoVideo = _val; }
+        void                                    startActivity(const StringID& _activity);
+        void                                    stopActivity(const StringID& _activity);
+        void                                    resumeActivity();
+        void                                    terminateActivity();
+        ITF_VECTOR<StringID>                    m_currentAcitivity;
     private:
         // Save/Load callbacks
         static void     onSaveOptionsComplete(Ray_GameOptionPersistence::Result result);
         static void     onLoadOptionsComplete(Ray_GameOptionPersistence::Result result);
+
         Path m_loadingScreenPath;
 
         enum EPauseFlag

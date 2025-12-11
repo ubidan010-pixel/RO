@@ -55,7 +55,7 @@ namespace ITF
 
     //************************************
     // @name	ITF::sortLowestVolume
-    // @public
+    // @public 
     // @param	const InstanceRef & _left
     // @param	const InstanceRef & _right
     // @return	ITF::i32
@@ -90,7 +90,7 @@ namespace ITF
 
     //************************************
     // @name	ITF::sortOldest
-    // @public
+    // @public 
     // @param	const InstanceRef & _left
     // @param	const InstanceRef & _right
     // @return	ITF::i32
@@ -103,7 +103,7 @@ namespace ITF
 
     //************************************
     // @name	ITF::InstanceLimiter::stopLowestVolume
-    // @private
+    // @private 
     // @return	void
     //************************************
     void InstanceLimiter::stopLowestVolume()
@@ -125,7 +125,7 @@ namespace ITF
 
     //************************************
     // @name	ITF::InstanceLimiter::stopOldest
-    // @private
+    // @private 
     // @return	void
     //************************************
     void InstanceLimiter::stopOldest()
@@ -146,7 +146,7 @@ namespace ITF
 
     //************************************
     // @name	ITF::InstanceLimiter::init
-    // @public
+    // @public 
     // @param	const LimiterDef & _def
     // @return	void
     //************************************
@@ -161,8 +161,8 @@ namespace ITF
 
     //************************************
     // @name	ITF::SoundManager::SoundManager
-    // @public
-    // @return
+    // @public 
+    // @return	
     //************************************
     SoundManager::SoundManager()
     {
@@ -203,7 +203,7 @@ namespace ITF
     }
     //************************************
     // @name	ITF::SoundManager::acquireInstance
-    // @public
+    // @public 
     // @param	SoundStreamerDataSource * _dataSource
     // @param	Sound * _sound
     // @param	SoundDescriptor * _desc
@@ -292,7 +292,7 @@ namespace ITF
             return NULL;
         }
 
-
+        
 
         SourceInfo params;
         //initialize voice parameters
@@ -308,7 +308,7 @@ namespace ITF
 
         instance->setIsStreamed(params.m_isMusic);
 
-        //create source from params
+        //create source from params                
         if ( !((Resource *)(_sound))->isPhysicallyLoaded() )
         {
             // sound will be played later then
@@ -386,7 +386,7 @@ namespace ITF
 
     //************************************
     // @name	ITF::SoundManager::releaseInstance
-    // @public
+    // @public 
     // @param	SoundInstance * _instance
     // @return	void
     //************************************
@@ -406,7 +406,7 @@ namespace ITF
 
     //************************************
     // @name	ITF::SoundManager::play
-    // @public
+    // @public 
     // @param	SoundInstance * _instance
     // @return	void
     //************************************
@@ -420,7 +420,7 @@ namespace ITF
 
     //************************************
     // @name	ITF::SoundManager::update
-    // @public
+    // @public 
     // @param	f32 _dt
     // @return	void
     //************************************
@@ -429,7 +429,7 @@ namespace ITF
 
 #if defined(ITF_SUPPORT_RAKI)
          if (SOUND_MANAGER() && SOUND_ADAPTER ) // sound manager must be upated after the frame's camera is set, otherwise, 3d to 2d computations will be corrupted
-        {
+        { 
             SOUND_MANAGER()->update(_dt);
             if (SOUND_ADAPTER->isRunning())
                 SOUND_ADAPTER->update(_dt);
@@ -471,7 +471,7 @@ namespace ITF
 
     //************************************
     // @name	ITF::SoundManager::stop
-    // @public
+    // @public 
     // @param	SoundInstance * _instance
     // @return	void
     //************************************
@@ -592,7 +592,7 @@ namespace ITF
 
         if (_relative)
         {
-            //for each bus,
+            //for each bus, 
             for (ITF_VECTOR<BusDef>::iterator it = m_relativeBusMixTarget.m_busDefs.begin(); it != m_relativeBusMixTarget.m_busDefs.end(); ++it)
             {
                 //find bus in mix
@@ -648,7 +648,7 @@ namespace ITF
             if (m_busMixStack[index].m_duration > 0.0f)
                 m_busMixStack[index].m_ref.invalidate();
 
-            //copy busmix
+            //copy busmix 
             m_busMixStack[_busMix->m_priority] = *_busMix;
 
             //if it is the top priority mix
@@ -684,13 +684,13 @@ namespace ITF
                     Volume vol(it->m_volume.dB() + it2->m_volume.dB(), btrue);
                     AUDIO_ADAPTER->setBusVolume(it->m_name, vol, _duration);
 #ifndef ITF_FINAL
-                    // if (static_cast<u32>(it2->m_reverbPreset) != U32_INVALID)
-                    // {
-                    //     // ReverbPreset reverb = it2->m_reverbPreset;
-                    //     // auto name = it->m_name;
-                    //     // LOG(" TO DO : reverb %s should be applied with preset  %d and volume % f", name.getDebugString(), (u32) reverb, vol.dB());
-                    //   //  SOUND_ADAPTER->setBusReverbPreset(it->m_name, it2->m_reverbPreset);
-                    // }
+                    if (static_cast<u32>(it2->m_reverbPreset) != U32_INVALID)
+                    {
+                        ReverbPreset reverb = it2->m_reverbPreset;
+                        auto name = it->m_name;
+                        LOG(" TO DO : reverb %s should be applied with preset  %d and volume % f", name.getDebugString(), (u32) reverb, vol.dB());
+                      //  SOUND_ADAPTER->setBusReverbPreset(it->m_name, it2->m_reverbPreset);
+                    }
 #endif
 
 #endif
@@ -844,7 +844,7 @@ namespace ITF
         for (i32 i = _prio - 1; i >= 0; i-- )
         {
             for (u32 j = 0; j < m_busMixStack[i].m_busDefs.size(); ++j)
-            {
+            {               
                 BusDef & busDef = m_busMixStack[i].m_busDefs[j];
 
                 if (busDef.m_name == _bus)

@@ -37,6 +37,7 @@ namespace ITF
         void           setPlayerIndex(u32 index) { m_playerIndex = index; }
         const String8& getResetButtonPath() const { return m_resetButtonPath; }
         const String8& getControlsPath() const { return m_controlsPath; }
+        const String8& getPresetPath() const { return m_presetPath; }
         const String8& getPlayerTitlePath() const { return m_playerTitlePath; }
         const String8& getPlayerTitlePathConnected() const { return m_playerTitlePathConnected; }
         const String8& getPlayerTitlePathDisconnected() const { return m_playerTitlePathDisconnected; }
@@ -50,6 +51,7 @@ namespace ITF
         const String8& getActionRunPath() const { return m_actionRunPath; }
         const String8& getActionJumpPath() const { return m_actionJumpPath; }
         const String8& getActionHitPath() const { return m_actionHitPath; }
+        const String8& getActionBackPath() const { return m_actionBackPath; }
         const String8& getConnectControllerTextPath() const { return m_connectControllerTextPath; }
         bbool                    isControllerConnected() const;
         InputAdapter::PadType    getControllerType() const;
@@ -70,6 +72,7 @@ namespace ITF
         u32                     m_playerIndex;
         String8                 m_resetButtonPath;
         String8                 m_controlsPath;
+        String8                 m_presetPath;
         String8                 m_playerTitlePath;
         String8                 m_playerTitlePathConnected;
         String8                 m_playerTitlePathDisconnected;
@@ -83,6 +86,7 @@ namespace ITF
         String8                 m_actionRunPath;
         String8                 m_actionJumpPath;
         String8                 m_actionHitPath;
+        String8                 m_actionBackPath;
         String8                 m_connectControllerTextPath;
         bbool                   m_isControllerConnected;
         InputAdapter::PadType   m_controllerType;

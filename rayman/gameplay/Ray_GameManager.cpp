@@ -1911,6 +1911,7 @@ namespace ITF
             return U32_INVALID;
     }
 
+
     void Ray_GameManager::updateWMStates()
     {
         const ITF_MAP<StringID, ITF_VECTOR<StringID>> unlockedByList = m_configTemplate->getUnlockedByList();
@@ -12432,5 +12433,45 @@ namespace ITF
                 cb();
             }
         }
+    }
+
+    void Ray_GameManager::startActivity(const StringID& _activity)
+    {
+        if (!REWARD_ADAPTER) return;
+        ITF_VECTOR<StringID>::iterator it = std::find(m_currentAcitivity.begin(), m_currentAcitivity.end(), _activity);
+        if (it == m_currentAcitivity.end() && getWMSpotState(_activity) !=SPOT_STATE_COMPLETED)
+        {
+            REWARD_ADAPTER->startActivity(_activity);
+            m_currentAcitivity.push_back(_activity);
+        }
+    }
+
+    void Ray_GameManager::stopActivity(const StringID& _activity)
+    {
+        if (!REWARD_ADAPTER) return;
+        ITF_VECTOR<StringID>::iterator it = std::find(m_currentAcitivity.begin(), m_currentAcitivity.end(), _activity);
+        if (it != m_currentAcitivity.end())
+        {
+            REWARD_ADAPTER->startActivity(_activity);
+            m_currentAcitivity.erase(it);
+            REWARD_ADAPTER->stopActivity(_activity);
+        }
+    }
+
+    void Ray_GameManager::resumeActivity()
+    {
+        if (!REWARD_ADAPTER) return;
+        REWARD_ADAPTER->resumeActivity("");
+        m_currentAcitivity.clear();
+    }
+    void Ray_GameManager::terminateActivity()
+    {
+        if (!REWARD_ADAPTER) return;
+        REWARD_ADAPTER->terminateActivity();
+    }
+
+    Ray_GameManager::~Ray_GameManager()
+    {
+        terminateActivity();
     }
 } //namespace ITF
