@@ -33,7 +33,7 @@ namespace ITF
         SERIALIZE_CONTAINER_OBJECT("busData",m_busData);
         SERIALIZE_CONTAINER_OBJECT("inputs",m_inputList);
     END_SERIALIZATION()
-    
+
     BEGIN_SERIALIZATION_SUBCLASS(SoundBusControllerComponent,Bus)
         SERIALIZE_MEMBER("busName",m_busName);
         SERIALIZE_OBJECT("busFilterFrequency",m_busFilterFrequency);
@@ -139,7 +139,7 @@ namespace ITF
                 if (applyFilter)
                     SOUND_ADAPTER->setBusFilter(bus.m_busName,type, filterFrequency, filterQ);
 #else
-                LOG("TO DO Should get bus filter on bus  [%s] ", bus.m_busName.getDebugString());
+                //LOG("TO DO Should get bus filter on bus  [%s] ", bus.m_busName.getDebugString());
 
 #endif
 
