@@ -2,7 +2,7 @@
 #include "Ray_GameOptionManager.h"
 #include "Ray_GameOptionSerializer.h"
 
-#define GAMEOPTION_LOG(format, ...) LOG("[GameOption] - " format, ##__VA_ARGS__)
+#define GAMEOPTION_LOG(format, ...) {} //LOG("[GameOption] - " format, ##__VA_ARGS__)
 
 namespace ITF
 {

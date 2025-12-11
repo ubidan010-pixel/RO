@@ -3806,9 +3806,6 @@ namespace ITF
         u32 inputFileCount = m_configTemplate->getInputConfigFilePath().size();
         for (u32 i = 0; i < inputFileCount; i++)
         {
-#ifndef ITF_FINAL
-                LOG("Input file loaded: \"%s\"", m_configTemplate->getInputConfigFilePath()[i].getString8().cStr());
-#endif
                 m_inputManager->load_configFile(m_configTemplate->getInputConfigFilePath()[i]);
             }
         }

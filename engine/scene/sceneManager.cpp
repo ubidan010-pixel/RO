@@ -44,7 +44,7 @@
 #include "core/file/filepath.h"
 #endif //_ITF_FILEPATH_H_
 
-#ifndef SERIALIZEROBJECTBINARY_H 
+#ifndef SERIALIZEROBJECTBINARY_H
 #include "core/serializer/ZSerializerObjectBinary.h"
 #endif //SERIALIZEROBJECTBINARY_H
 
@@ -228,7 +228,7 @@ namespace ITF
         pNewScene->setUniqueName(uniqueName);
         pNewScene->setPath(szPathName);
         pNewScene->setWorldID(_worldRef);
-        
+
         if (insertInList)
         {
             registerExistingScene(pNewScene);
@@ -238,7 +238,7 @@ namespace ITF
     }
 
 
-    Scene*  SceneManager::getLoadedSceneAt(u32 _index)  
+    Scene*  SceneManager::getLoadedSceneAt(u32 _index)
     {
         return static_cast<Scene*>(GETOBJECT(m_loadedScene[_index]));
     }
@@ -266,7 +266,7 @@ namespace ITF
     void SceneManager::registerExistingScene(Scene* _pScene)
     {
         ITF_ASSERT(_pScene);
-        
+
         if(m_loadedScene.find(_pScene->getRef()) == -1)
         m_loadedScene.push_back(_pScene->getRef());
     }
@@ -312,16 +312,16 @@ namespace ITF
             else
             {
                 if (m_sceneSplitOnLoad.isProcessingDone())  //it's finish
-                {   
+                {
                    finishOnLoad();
                 }
                 else if (m_sceneSplitOnLoad.isProcessing()) //execute the processing,call onLoad on pickable when its possible
-                {   
+                {
                     processOnLoad();
                 }
             }
         }
-        
+
         //Preload pending and thread not running ==> Run a new one
         if (m_vPreloadedScene.size() && !isLoadingInProgress())
         {
@@ -368,7 +368,7 @@ namespace ITF
     Scene*  SceneManager::loadSceneForCooking(const String& _Path)
     {
         Scene* pScene = createScene(_Path,bfalse);
-        
+
         pScene->addSerializationFlag(Scene::flag_isCooking);
         ITF_ASSERT(pScene);
         LoadInfo info;
@@ -516,10 +516,10 @@ namespace ITF
 
             if(it != currentAsyncLoadingHistory.end())
             {
-                ArchiveMemory archiveMem;   
+                ArchiveMemory archiveMem;
                 CSerializerObjectBinary serializeBin(&archiveMem);
                 it->second->Serialize(&serializeBin, ESerialize_Data_Save);
-                
+
                 serializeBin.rewindForReading();
                 pScene->Serialize(&serializeBin,ESerialize_Data_Load);
                 pScene->setPath(_loadInfo.m_mapPath);
@@ -552,7 +552,7 @@ namespace ITF
 
         if (_bCallOnLoaded && !isInMinimalLoadingMode())
             pScene->onSceneLoaded();
-        
+
         if (_bstartFrame)
             pScene->flushPending(btrue);
 
@@ -582,8 +582,8 @@ namespace ITF
     ArchiveMemory* SceneManager::saveBinaryScene(Scene* _pScene)
     {
         if (_pScene)
-        {            
-            ArchiveMemory* _ArchiveMem = new ArchiveMemory();     
+        {
+            ArchiveMemory* _ArchiveMem = new ArchiveMemory();
             CSerializerObjectBinary serializeBin(_ArchiveMem);
             _pScene->Serialize(&serializeBin,ESerialize_Data_Save);
 
@@ -709,7 +709,7 @@ namespace ITF
             */
             if (pScene->getForceLoadResources())
             {
-                LOG("SCENE FORCED TO BE LOAD %s", pScene->getPath().getString8().cStr());
+                // LOG("SCENE FORCED TO BE LOAD %s", pScene->getPath().getString8().cStr());
                 pScene->forceLoadResourcesAndDisableUnload();
             }
 

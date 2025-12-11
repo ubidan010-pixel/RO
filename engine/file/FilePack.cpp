@@ -46,7 +46,7 @@ namespace ITF
 
 
     bbool Filepack::readFromCompressed(u8* _pBufferDst,u32 _bytesToRead,u32 _lenghtCompressed)
-    { 
+    {
         BUNDLEMANAGER->lockAccess();
         ITF_ASSERT(m_CurrentPosition + _bytesToRead <= _lenghtCompressed);
 
@@ -69,10 +69,10 @@ namespace ITF
 
     bbool Filepack::read(void* _buffer,u32 _bytesToRead,u32* _readBytes)
     {
-        if (Synchronize::getCurrentThreadId() == ThreadSettings::m_settings[eThreadId_mainThread].m_threadID)
-        {
-            LOG("Bundle read on main thread of %s", StringToUTF8(m_szFilename).get());
-        }
+        // if (Synchronize::getCurrentThreadId() == ThreadSettings::m_settings[eThreadId_mainThread].m_threadID)
+        // {
+        //     LOG("Bundle read on main thread of %s", StringToUTF8(m_szFilename).get());
+        // }
 
 
         BUNDLEMANAGER->lockAccess();
@@ -108,7 +108,7 @@ namespace ITF
         m_pBuffer = _pBuffer;
     }
 
-    u64 Filepack::seek(i64 _seekPos,u16 _from) 
+    u64 Filepack::seek(i64 _seekPos,u16 _from)
     {
         switch (_from)
         {

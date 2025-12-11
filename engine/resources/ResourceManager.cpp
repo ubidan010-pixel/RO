@@ -2419,13 +2419,13 @@ void ResourceManager::deleteResource(Resource *_res)
 
 void ResourceManager::pause()
 {
-    LOG("ResourceManager::pause()");
+    // LOG("ResourceManager::pause()");
     InterlockedIncrement( &m_paused );
 }
 
 void ResourceManager::unpause()
 {
-    LOG("ResourceManager::unpause()");
+    // LOG("ResourceManager::unpause()");
     ITF_ASSERT_CRASH( m_paused > 0, "Pause counter is going to be negative" );
     InterlockedDecrement( &m_paused );
 }

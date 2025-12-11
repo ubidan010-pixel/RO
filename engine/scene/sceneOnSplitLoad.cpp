@@ -91,14 +91,14 @@ void SceneSplitOnLoad::process()
             }
         }
     }
-    
+
     if (processDone)
     {
         m_isProcessingActor  = bfalse;
         m_isProcessingFrieze = bfalse;
 
         m_ProcessStatus   = ProcessStatusFinish;
-        LOG("OnSceneCollect process done");
+        // LOG("OnSceneCollect process done");
     }
 
     //f32 timeToProcess = (f32)(SYSTEM_ADAPTER->getTime()-timeStart);
@@ -129,7 +129,7 @@ void SceneSplitOnLoad::startProcessing()
 
     m_ProcessStatus = ProcessStatusProcessing;
 
-    //manage on by frame to 
+    //manage on by frame to
     m_currentActorIndex     = 0;
     m_currentFriezeIndex    = 0;
 
@@ -170,7 +170,7 @@ void SceneSplitOnLoad::onCollect(ITF_VECTOR<Scene*> &_asyncLoadedSceneDone)
     }*/
 
     startProcessing();
-    LOG("OnSceneCollect : Actor:%d Frieze:%d",m_vActor.size(),m_vFrieze.size());
+    // LOG("OnSceneCollect : Actor:%d Frieze:%d",m_vActor.size(),m_vFrieze.size());
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------

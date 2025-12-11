@@ -246,8 +246,8 @@ void ErrorHandler::Log(const char* _szFormat, ...)
         SetConsoleTextAttribute(hConsole, 0x0f);
         MSG_AddString(buffer);
         MSG_Display();
-#endif
         std::cout << buffer << std::endl;
+#endif
     }
     va_end(args);
 
