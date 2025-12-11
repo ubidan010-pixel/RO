@@ -11578,15 +11578,26 @@ void Ray_PlayerControllerComponent::receiveDamage( i32 _points )
     u32 fxHandle = m_fxController->playFeedback(m_receivedHitInstigator, feedbackAction, m_actor->getRef());
     m_fxController->setFXPosFromHandle(fxHandle, m_receivedHitFXPos);
 
-    if ( isImmune() || CHEATMANAGER->isPlayerInvincible() )
+    Ray_Player* player = static_cast<Ray_Player*>(GAMEMANAGER->getPlayer(m_playerIndex));
+
+    if ( CHEATMANAGER->isPlayerInvincible() )
     {
+        return;
+    }
+
+    if (isImmune())
+    {
+        if (player && player->getHeartTier() == HeartTier_Diamond && player->getHitPoints() > 0 )
+        {
+            player->onTakeDamage();
+        }
         return;
     }
 
     if (_points != 0)
     {
         // http://mtp-mk-server/trac/ticket/1392
-        static_cast<Ray_Player*>(GAMEMANAGER->getPlayer(m_playerIndex))->addHitPoints(-1);
+        player->addHitPoints(-1);
 
         m_inmunityCounter = getTemplate()->getInmunityTime();
         m_inmunityCounterReceiveHit = getTemplate()->getInmunityTimeReceiveHit();

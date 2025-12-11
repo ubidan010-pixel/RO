@@ -28,7 +28,7 @@ namespace ITF
 
     static const u32 RESOLUTION_CHOICES = 4;
     static const u32 LANGUAGE_CHOICES = 15;
-    static const u32 DIAMOND_HEART_MAX_CONSECUTIVE_HITS = 5;
+    static const u32 DIAMOND_HEART_MAX_CONSECUTIVE_HITS = 10;
     static const f32 DIAMOND_HEART_CONSECUTIVE_HIT_WINDOW = 20.0f;
 
     static const u32 LINEID_HEART_NONE = 4060;
