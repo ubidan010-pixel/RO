@@ -1,6 +1,13 @@
 #ifndef ITF_ONLINE_ADAPTER_UBISERVICES_H
 #define ITF_ONLINE_ADAPTER_UBISERVICES_H
 
+#ifndef _ITF_EVENTMANAGER_H_
+#include "engine/events/EventManager.h"
+#endif //_ITF_EVENTMANAGER_H_
+#ifndef _ITF_EVENTS_H_
+#include "engine/events/Events.h"
+#endif //_ITF_EVENTS_H_
+
 #ifdef ITF_SUPPORT_UBISERVICES
 
 #include <ubiservices/ubiservices.h>
@@ -15,7 +22,7 @@
 
 namespace ITF
 {
-    class OnlineAdapter_Ubiservices : public OnlineAdapter
+    class OnlineAdapter_Ubiservices : public OnlineAdapter, public IEventListener
     {
     public:
         OnlineAdapter_Ubiservices();
@@ -24,6 +31,7 @@ namespace ITF
         virtual void initialize();
         virtual void update();
         virtual void terminate();
+        virtual void onEvent(Event* _event);
         virtual void setOfflineMode(bbool _isOffline);
 
         US_NS::SharedPtr<US_NS::Session> getSession();
@@ -41,6 +49,7 @@ namespace ITF
         String8 generateBuildId();
         const char* getApplicationId();
         const char* getSku();
+        void updateLanguage(ITF_LANGUAGE _lang);
 
         // EAL area
         eal_log_dll_interface m_ealLogInterface;

@@ -25,7 +25,7 @@ class NewsService
     public:
         virtual ~NewsService() {}
         virtual void update() = 0;
-        virtual OnlineError downloadNews() = 0;
+        virtual OnlineError downloadNews(ITF_LANGUAGE _lang = ITF_LANGUAGE_ENGLISH) = 0;
         virtual NewsData cachedNews() = 0;
 };
 

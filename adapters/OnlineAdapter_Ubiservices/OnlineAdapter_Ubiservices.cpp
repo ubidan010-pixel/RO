@@ -125,6 +125,8 @@ namespace ITF
 #if defined(ITF_SUPPORT_ONLINETRACKING)
         m_trackingService->init();
 #endif
+
+        EVENTMANAGER_REGISTER_EVENT_LISTENER(ITF_GET_STRINGID_CRC(EventLanguageChanged, 1029567175), this);
     }
 
     void OnlineAdapter_Ubiservices::update()
@@ -154,6 +156,30 @@ namespace ITF
         }
 
         uninitFirstParty();
+
+        EVENTMANAGER->unregisterEvent(ITF_GET_STRINGID_CRC(EventLanguageChanged, 1029567175), this);
+    }
+
+    void OnlineAdapter_Ubiservices::updateLanguage(ITF_LANGUAGE _lang)
+    {
+        String8 lang = "en";
+        String8 locale = "US";
+        bool bOk = convertITFtoUSLanguage(_lang, lang, locale);
+
+        LOG("[OnlineAdapter] localize language %s / %s. itfknown: %d", lang.cStr(), locale.cStr(), bOk);
+        US_NS::LocalizationHelper::setLocaleCode(US_NS::String::formatText("%s-%s", lang.cStr(), locale.cStr()));
+    }
+
+    void OnlineAdapter_Ubiservices::onEvent(Event* _event)
+    {
+        if (!m_initialized)
+            return;
+
+        if (EventLanguageChanged* eventLangChange = _event->DynamicCast<EventLanguageChanged>(ITF_GET_STRINGID_CRC(EventLanguageChanged, 1029567175)))
+        {
+            ITF_LANGUAGE newLang = eventLangChange->getNewLanguage();
+            updateLanguage(newLang);
+        }
     }
 
     bool OnlineAdapter_Ubiservices::convertITFtoUSLanguage(ITF_LANGUAGE _itfLang, String8& _lang, String8& _locale)
@@ -295,14 +321,9 @@ namespace ITF
 
         configureUbiservices(buildId.cStr());
 
-        // Set the locale so Uplay actions are localized nicely
-        String8 lang = "en";
-        String8 locale = "US";
-        ITF::ITF_LANGUAGE itfLang = LOCALISATIONMANAGER->getCurrentLanguage();
-        bool bOk = convertITFtoUSLanguage(itfLang, lang, locale);
-
-        LOG("[OnlineAdapter] localize language %s / %s. itfknown: %d", lang.cStr(), locale.cStr(), bOk);
-        US_NS::LocalizationHelper::setLocaleCode(US_NS::String::formatText("%s-%s", lang.cStr(), locale.cStr()));
+        // onEvent updates it if player changes it from UI Options
+        ITF_LANGUAGE initialLang = LOCALISATIONMANAGER->getCurrentLanguage();
+        updateLanguage(initialLang);
 
         m_sessionService->initialize();
 

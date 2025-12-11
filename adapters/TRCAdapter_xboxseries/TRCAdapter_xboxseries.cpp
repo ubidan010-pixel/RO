@@ -93,7 +93,7 @@ namespace ITF
         case UOR_FirstPartyOffline:
         {
             pTRCMessage = new TRCMessage_OneButton(errorContext);
-            message = "Offline Mode";//buildText(4017); TODO: add in Oasis message for Offline mode
+            message = buildText(7026);
             ((TRCMessage_OneButton*)pTRCMessage)->setButton(buildText(4061, ContextIconType_Invalid), input_actionID_Valid);
             break;
         }
@@ -179,7 +179,7 @@ namespace ITF
         case UOR_LockedAccount:
         {
             pTRCMessage = new TRCMessage_OneButton(errorContext);
-            message = "Account is Locked!";//buildText(4017); TODO: add in Oasis message for Offline mode
+            message = buildText(7023);
             ((TRCMessage_OneButton*)pTRCMessage)->setButton(buildText(4142, ContextIconType_Invalid), input_actionID_Back);
             break;
         }
@@ -187,7 +187,7 @@ namespace ITF
         case UOR_CreateSessionError:
         {
             pTRCMessage = new TRCMessage_OneButton(errorContext);
-            message = "An error occurred while attempting to login with Ubisoft Connect account. Please turn off internet to play in offline mode.";//buildText(4017); TODO: add in Oasis message for Offline mode
+            message = buildText(7025);            
             ((TRCMessage_OneButton*)pTRCMessage)->setButton(buildText(4061, ContextIconType_Back), input_actionID_Valid);
             break;
         }
@@ -202,7 +202,7 @@ namespace ITF
         case UOR_PleaseWait:
         {
             pTRCMessage = new TRCMessage_NoButtonTimer(120.0, errorContext);
-            message = "Please wait while we are Connecting the Lums...";
+            message = buildText(7024);
             break;
         }
 

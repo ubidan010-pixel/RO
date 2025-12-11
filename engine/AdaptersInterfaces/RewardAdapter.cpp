@@ -29,7 +29,7 @@ namespace ITF
     }
 
     u32  RewardAdapter::getRewardPlateform(const RewardID& _id)const
-    {   
+    {
         RewardsMap::const_iterator ite = m_rewardMap.find(_id);
         if (ite == m_rewardMap.end())
             return U32_INVALID;
@@ -38,7 +38,7 @@ namespace ITF
 
     RewardManager::RewardManager() :  m_updated(false)
         , m_tagsCount(0), m_timersCount(0), m_enable(btrue), m_computed(bfalse)
-    { 
+    {
     }
 
     void RewardManager::computeRewardManager()
@@ -82,7 +82,7 @@ namespace ITF
     }
 
     void RewardManager::update()
-    {    
+    {
     }
 
 
@@ -90,13 +90,13 @@ namespace ITF
     {
         for(u32 p=0; p<PlayersMax; p++)
             for(u32 t = 0; t < m_timersCount; t++)
-                Action_TimerStop(t, p); 
+                Action_TimerStop(t, p);
     }
 
     void RewardManager::Action_TimerResume(Timer _timer, u32 _player, bbool _forceStartIfNeeded)
     {
         _player = getSafePlayerIndex(_player);
-        if(!m_currentSession.m_actions[_player].m_actif) 
+        if(!m_currentSession.m_actions[_player].m_actif)
             return;
 
         sTimer *pTimer = getTimer(_timer, _player);
@@ -113,7 +113,7 @@ namespace ITF
     void RewardManager::Action_TimerPause(Timer _timer, u32 _player, bbool _forceUpdateToTotalSession)
     {
         _player = getSafePlayerIndex(_player);
-        if(!m_currentSession.m_actions[_player].m_actif) 
+        if(!m_currentSession.m_actions[_player].m_actif)
             return;
 
         sTimer *pTimer = getTimer(_timer, _player);
@@ -140,7 +140,7 @@ namespace ITF
     void RewardManager::pauseAllTimers()
     {
         for(u32 p=0; p<PlayersMax; p++)
-            for(u32 t = 0; t < m_timersCount; t++) 
+            for(u32 t = 0; t < m_timersCount; t++)
                 Action_TimerPause(t, p);
     }
     void RewardManager::resumeAllTimers()
@@ -170,7 +170,7 @@ namespace ITF
     void RewardManager::Action_TimerStart(Timer _timer, u32 _player)
     {
         _player = getSafePlayerIndex(_player);
-        if(!m_currentSession.m_actions[_player].m_actif) 
+        if(!m_currentSession.m_actions[_player].m_actif)
             return;
 
         sTimer *pTimer = getTimer(_timer, _player);
@@ -186,7 +186,7 @@ namespace ITF
     void RewardManager::Action_TimerStop(Timer _timer, u32 _player)
     {
         _player = getSafePlayerIndex(_player);
-        if(!m_currentSession.m_actions[_player].m_actif) 
+        if(!m_currentSession.m_actions[_player].m_actif)
             return;
 
         ITF_ASSERT(_timer<m_tagsCount);
@@ -212,7 +212,7 @@ namespace ITF
     void RewardManager::Action_TimerReset(Timer _timer, u32 _player)
     {
         _player = getSafePlayerIndex(_player);
-      
+
         ITF_ASSERT(_timer<m_tagsCount);
 
         sTimer *pTimer = getTimer(_timer, _player);
@@ -238,7 +238,7 @@ namespace ITF
         _player = getSafePlayerIndex(_player);
         ITF_ASSERT(_tag<m_tagsCount);
 
-        if(m_currentSession.m_actions[_player].m_actif) 
+        if(m_currentSession.m_actions[_player].m_actif)
         {
             m_currentSession.m_actions[_player].m_tags[_tag].m_value    = _value;
             m_currentSession.m_actions[_player].m_tags[_tag].m_updated  = btrue;
@@ -253,7 +253,7 @@ namespace ITF
         _player = getSafePlayerIndex(_player);
         ITF_ASSERT(_tag<m_tagsCount);
 
-        if(m_currentSession.m_actions[_player].m_actif) 
+        if(m_currentSession.m_actions[_player].m_actif)
         {
             m_currentSession.m_actions[_player].m_tags[_tag].m_value      += _count;
             m_currentSession.m_actions[_player].m_tags[_tag].m_updated  = btrue;
@@ -282,7 +282,7 @@ namespace ITF
 
         // Reset data
         for (u32 p = 0; p < PlayersMax; p++)
-        {            
+        {
             m_currentSession.m_actions[p].m_tags.fillZero();
             m_currentSession.m_actions[p].m_timers.fillZero();
             m_currentSession.m_actions[p].m_actif = bfalse;
@@ -322,7 +322,7 @@ namespace ITF
             m_currentSession.m_Total += ((f32)SYSTEM_ADAPTER->getTime() - m_currentSession.m_Start);
             m_currentSession.m_isPaused = btrue;
             pauseAllTimers();
-        }        
+        }
     }
 
     void RewardManager::Session_Resume()
@@ -332,7 +332,7 @@ namespace ITF
             m_currentSession.m_Start = (f32)SYSTEM_ADAPTER->getTime();
             m_currentSession.m_isPaused = bfalse;
             resumeAllTimers();
-        }        
+        }
     }
 
     void RewardManager::Session_Stop()
@@ -340,17 +340,17 @@ namespace ITF
         if ( !m_currentSession.m_isRunning )
         {
             ITF_ASSERT_MSG(0, "Session cannot be paused, its already done");
-            return; 
+            return;
         }
 
         Session_Pause();
         stopAllTimers();
-        m_currentSession.m_LengthInSec = (u32)roundFloat((f32)m_currentSession.m_Total);        
+        m_currentSession.m_LengthInSec = (u32)roundFloat((f32)m_currentSession.m_Total);
         m_currentSession.m_isRunning = bfalse;
 
         // Save current session
         for (u32 p = 0; p < PlayersMax; p++)
-        {            
+        {
             m_previousSession.m_actions[p].m_tags = m_currentSession.m_actions[p].m_tags;
             m_previousSession.m_actions[p].m_timers = m_currentSession.m_actions[p].m_timers;
 
@@ -458,10 +458,10 @@ namespace ITF
 
     void RewardManager::Action_GlobalEvent( Tag _tag, StringID _id  )
     {
-        sEvent ev; 
+        sEvent ev;
         ev.m_param = _id;
         ev.m_tag = _tag;
-        m_currentSession.m_events.push_back(ev);        
+        m_currentSession.m_events.push_back(ev);
         IamUpdated();
     }
 
@@ -514,7 +514,7 @@ namespace ITF
         for(u32 i = 0; i < m_totalSessions.m_actions[_playerToBackup].m_timers.size(); i++)
         {
             _pSaveSession->m_timersTotal.push_back(m_totalSessions.m_actions[_playerToBackup].m_timers[i].m_total);
-        }        
+        }
         return btrue;
     }
 
@@ -525,10 +525,10 @@ namespace ITF
         //ITF_ASSERT(_pSaveSession->m_timersTotal.size() ==  m_totalSessions.m_actions[_playerToSet].m_timers.size());
         //ITF_ASSERT(_pSaveSession->m_tags.size() ==  m_totalSessions.m_actions[_playerToSet].m_tags.size());
 
-        if(!_pSaveSession 
+        if(!_pSaveSession
             ||
             _pSaveSession->m_tags.size() !=  m_totalSessions.m_actions[_playerToSet].m_tags.size()
-            || 
+            ||
             _pSaveSession->m_timersTotal.size() !=  m_totalSessions.m_actions[_playerToSet].m_timers.size())
         {
             return bfalse;
@@ -540,7 +540,7 @@ namespace ITF
         {
             m_totalSessions.m_actions[_playerToSet].m_tags[i].m_updated = bfalse;
             m_totalSessions.m_actions[_playerToSet].m_tags[i].m_value = _pSaveSession->m_tags[i];
-        }        
+        }
 
         for(u32 i = 0; i < m_totalSessions.m_actions[_playerToSet].m_timers.size(); i++)
         {
@@ -552,7 +552,7 @@ namespace ITF
 
     void RewardManager::postUpdate()
     {
-        m_updated = bfalse; 
+        m_updated = bfalse;
         clearEvents();
 
         for(u32 player = 0; player < PlayersMax; player++)
@@ -560,7 +560,7 @@ namespace ITF
             for(u32 i = 0; i < m_totalSessions.m_actions[player].m_tags.size(); i++)
             {
                 m_totalSessions.m_actions[player].m_tags[i].m_updated = bfalse;
-            }   
+            }
 
             for(u32 i = 0; i < m_totalSessions.m_actions[player].m_timers.size(); i++)
             {
@@ -569,7 +569,7 @@ namespace ITF
         }
     }
 
-    BEGIN_SERIALIZATION(RewardManager::SaveSession)        
+    BEGIN_SERIALIZATION(RewardManager::SaveSession)
         SERIALIZE_CONTAINER("tags", m_tags);
     SERIALIZE_CONTAINER("timers", m_timersTotal);
     END_SERIALIZATION()

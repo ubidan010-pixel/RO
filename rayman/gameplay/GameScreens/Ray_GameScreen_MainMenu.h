@@ -171,7 +171,7 @@ namespace ITF
         void onWelcomeBackMessagePressConnect();
         void asyncDoWelcomeBackSave();
 
-        void fetchNews();
+        void fetchNews(ITF_LANGUAGE _lang);
         void onShowNews(i32 _newsId);
 
         void enter_Exited();

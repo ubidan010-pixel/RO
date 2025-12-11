@@ -1,5 +1,7 @@
 #include "precompiled_gameplay_rayman.h"
 
+#include "adapters/RewardAdapter_PS5/RewardAdapter_PS5.h"
+
 #ifndef _ITF_RAY_CHEATMANAGER_H_
 #include "rayman/gameplay/Managers/Ray_CheatManager.h"
 #endif //_ITF_RAY_CHEATMANAGER_H_
@@ -39,6 +41,16 @@ namespace ITF
         {
             m_allPlayersTogether = (szArg.atoi32() != 0) ? btrue : bfalse;
         }
+        activity.push_back(s_JU_A);
+        activity.push_back(s_JU_B);
+        activity.push_back(s_MU_A);
+        activity.push_back(s_MU_B);
+        activity.push_back(s_FO_A);
+        activity.push_back(s_FO_B);
+        activity.push_back(s_OC_A);
+        activity.push_back(s_OC_B);
+        activity.push_back(s_MO_A);
+        activity.push_back(s_MO_B);
     }
 
     void Ray_CheatManager::update(f32 _dt)
@@ -51,7 +63,27 @@ namespace ITF
         f32 axes[JOY_MAX_AXES];
         INPUT_ADAPTER->getGamePadButtons(InputAdapter::EnvironmentEngine, 0, buttons, JOY_MAX_BUT);
         INPUT_ADAPTER->getGamePadPos(InputAdapter::EnvironmentEngine, 0, axes, JOY_MAX_AXES);
+#ifdef ITF_PS5
+        if (axes[m_joyTrigger_Right] > 0.f
+           && buttons[m_joyButton_DPadR] == InputAdapter::JustPressed)
+        {
+            activityCheatIndex++;
+            RAY_GAMEMANAGER->startActivity(activity[activityCheatIndex]);
+        }
+        else if (axes[m_joyTrigger_Right] > 0.f
+           && buttons[m_joyButton_DPadL] == InputAdapter::JustPressed)
+        {
 
+            RAY_GAMEMANAGER->stopActivity(activity[activityCheatIndex]);
+        }
+        else if (axes[m_joyTrigger_Right] > 0.f
+          && buttons[m_joyButton_DPadD] == InputAdapter::JustPressed)
+        {
+
+            RAY_GAMEMANAGER->resumeActivity();
+
+        }
+#endif
         if (axes[m_joyTrigger_Right] > 0.f &&
             axes[m_joyTrigger_Left] > 0.f &&
             buttons[m_joyButton_Y] == InputAdapter::JustPressed)
@@ -147,7 +179,7 @@ namespace ITF
             ITF_ASSERT(0);
             break;
         }
-#endif 
+#endif
     }
 
     void Ray_CheatManager::forceAllPlayersTogether( bbool _val )
@@ -163,7 +195,7 @@ namespace ITF
     {
 #ifdef ITF_SUPPORT_CHEAT
         if(action==ITF_GET_STRINGID_CRC(CHEAT_JUSTBEDEAD, 651860516))
-        {        
+        {
             Player* player = GAMEMANAGER->getPlayer(deviceID);
             if(player)
                 player->toggleDeadMode();
@@ -171,7 +203,7 @@ namespace ITF
         else if(action==ITF_GET_STRINGID_CRC(CHEAT_INVINCIBLE, 1288607354))
         {
             Ray_Player* player = static_cast<Ray_Player*>(RAY_GAMEMANAGER->getPlayer(deviceID));
-            if(player) 
+            if(player)
                 player->setInvincible(!player->getInvincible());
         }
         else if(action==ITF_GET_STRINGID_CRC(CHEAT_ALLTOGETHER, 2538788027))

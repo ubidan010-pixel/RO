@@ -124,11 +124,11 @@ namespace ITF
         {
             RAY_GAMEMANAGER->setWMCurrentLevel(path, m_tag);
         }
-
+        RAY_GAMEMANAGER->resumeActivity();
         // Play worldmap music
         if ( _changeMusic )
         {
-            const StringID worldMap = ITF_GET_STRINGID_CRC(WorldMap,1734041925);
+        const StringID worldMap = ITF_GET_STRINGID_CRC(WorldMap,1734041925);
             const StringID& music = RAY_GAMEMANAGER->getMapConfigMusic(worldMap);
             if ( music.isValid() )
             {

@@ -85,7 +85,7 @@ namespace ITF
     {
         STD_PAIR<Tags, StringID> newTrigger;
 
-        newTrigger.first    = _tag; 
+        newTrigger.first    = _tag;
         newTrigger.second   = _id;
 
         m_tagsTriggersList.insert(newTrigger);
@@ -96,7 +96,7 @@ namespace ITF
     {
         STD_PAIR<Timers, StringID> newTrigger;
 
-        newTrigger.first    = _timer; 
+        newTrigger.first    = _timer;
         newTrigger.second   = _id;
 
         m_timersTriggersList.insert(newTrigger);
@@ -117,7 +117,7 @@ namespace ITF
             addTriggerForTags(Action_GetSkull, s_RewardTrigger_SkullCoin);
             addTriggerForTags(Action_KillEnnemy, s_RewardTrigger_EnnemyKill);
             addTriggerForTags(Action_GetCrushedEnemy, s_RewardTrigger_CrushedEnemy);
-            addTriggerForTags(Action_GetCrushedEnemySameAttack, s_RewardTrigger_CrushedEnemySameAttack);            
+            addTriggerForTags(Action_GetCrushedEnemySameAttack, s_RewardTrigger_CrushedEnemySameAttack);
             addTriggerForTags(Action_GetSprintDistance, s_SprintDistance);
             addTriggerForTags(Action_GetSwimDistance, s_SwimDistance);
             addTriggerForTags(Action_FinishLevelNoHit, s_FinishLevelNoHit);
@@ -136,7 +136,7 @@ namespace ITF
             addTriggerForTags(Action_VacuumKnack, s_VacuumKnack);
             addTriggerForTags(Action_ShooterKillBoss, s_ShooterKillBoss);
             addTriggerForTags(Action_KillBigMama, s_KillBigMama);
-            addTriggerForTags(Action_GetSkullTooth, s_SkullTooth);            
+            addTriggerForTags(Action_GetSkullTooth, s_SkullTooth);
             addTriggerForTags(Action_ChainBubble, s_ChainBubble);
             addTriggerForTags(Action_TimeAttackWon, s_TimeAttackWon);
             addTriggerForTags(Action_MedalCompleted, s_MedalCompleted);
@@ -181,7 +181,7 @@ namespace ITF
         {
             ITF_ASSERT_MSG(0, "Couldn't load reward list: %s", rewardFile.getString8().cStr());
             return bfalse;
-        }  
+        }
         m_templateIsLoaded = btrue;
         return btrue;
     }
@@ -193,9 +193,9 @@ namespace ITF
         REWARD_MANAGER->Reset();
 
         REWARD_MANAGER->Session_New();
-        REWARD_MANAGER->Action_AddPlayer(0);        
-        REWARD_MANAGER->Session_Reset();    
-        REWARD_MANAGER->Session_Stop(); 
+        REWARD_MANAGER->Action_AddPlayer(0);
+        REWARD_MANAGER->Session_Reset();
+        REWARD_MANAGER->Session_Stop();
 
         REWARD_MANAGER->m_updated = false;
     }
@@ -218,9 +218,9 @@ namespace ITF
         f32 yOffset = 50.0f, xOffset = 50.0f;
         f32 x = 25.0f, y = 25.0f;
         f32 border = 5.0f;
-        GFX_ADAPTER->draw2dBox(Vec2d(x-border, y-border), 
-            GFX_ADAPTER->getScreenWidth()-x-border, 
-            GFX_ADAPTER->getScreenHeight()-y-border-150.0f, 
+        GFX_ADAPTER->draw2dBox(Vec2d(x-border, y-border),
+            GFX_ADAPTER->getScreenWidth()-x-border,
+            GFX_ADAPTER->getScreenHeight()-y-border-150.0f,
             0xDD555555, 0xDD555555,0xDD555555, 0xDD555555);
 
         for (; ite != m_container->getRewards().end(); ite++ )
@@ -230,9 +230,9 @@ namespace ITF
 
             bbool isLocked = REWARD_ADAPTER->isLocked(pDetail->ID);
 
-            GFX_ADAPTER->drawDBGText(pDetail->Name.getDebugString(), 
+            GFX_ADAPTER->drawDBGText(pDetail->Name.getDebugString(),
                 Color(1.f,1.f,1.f,1.f), xOffset + 15.0f, yOffset);
-            GFX_ADAPTER->drawDBGText(isLocked ? "LOCKED" : "UNLOCKED", 
+            GFX_ADAPTER->drawDBGText(isLocked ? "LOCKED" : "UNLOCKED",
                 Color(1.f,isLocked? 1.f:0.f,isLocked? 0.f:1.f,0.f), xOffset + 270.0f, yOffset);
 
             yOffset += 16.0f;
@@ -245,7 +245,6 @@ namespace ITF
         REWARD_ADAPTER->displayRewards();
 #endif //!ITF_SUPPORT_EDITOR
     }
-
     void Ray_RewardManager::update()
     {
         if(!REWARD_ADAPTER) return;
@@ -283,7 +282,7 @@ namespace ITF
                 yOffset += 16.0f;
             }
             if(yOffset<=16.0f) m_displayNotification = bfalse;
-        }   
+        }
 
         if(m_displayRewardsMenu)
         {
@@ -291,7 +290,7 @@ namespace ITF
         }
 #endif //ITF_SUPPORT_EDITOR
 
-        if(!REWARD_MANAGER->m_updated) 
+        if(!REWARD_MANAGER->m_updated)
             return;
 
         if(!REWARD_ADAPTER)
@@ -324,7 +323,16 @@ namespace ITF
                 Ray_RewardTrigger_Base* pTrigger = pDetail->Triggers[trigger];
                 hasToUnlockReward = (pTrigger->check_reward() && hasToUnlockReward);
             }
-
+            for(u32 trigger = 0; trigger < TriggerCount ; trigger++)
+            {
+                Ray_RewardTrigger_FinishLevel*  pTrigger =static_cast<Ray_RewardTrigger_FinishLevel*>(pDetail->Triggers[trigger]);
+                if (pTrigger && pTrigger->check_reward())
+                {
+                    const StringID worldId =pTrigger->m_WorldTag;
+                    RAY_GAMEMANAGER->stopActivity(worldId);
+                    break;
+                }
+            }
             if(hasToUnlockReward)
             {
                 // Don't break here, because reward manager can list several reward to unlock
@@ -342,7 +350,7 @@ namespace ITF
                         m_displayNotification = btrue;
                         RewardToDisplay toDisplay = { currentID, SYSTEM_ADAPTER->getTime() };
                         m_toDisplay.push_back(toDisplay);
-                    }                
+                    }
 #endif //ITF_SUPPORT_EDITOR
                     wantToSaveGame = btrue;
                 }
@@ -351,7 +359,7 @@ namespace ITF
 
         if(wantToSaveGame && RAY_GAMEMANAGER->getDebugSaves()) // DebugSave is temporary here ..
         {
-            // Try to save the game 
+            // Try to save the game
             // RAY_GAMEMANAGER->saveGameState(bfalse);
         }
 
@@ -372,8 +380,8 @@ namespace ITF
         TagsTriggersList::const_iterator ite = m_tagsTriggersList.begin();
         for ( ; ite != m_tagsTriggersList.end(); ++ite)
         {
-            if ( ite->second == _trigger ) 
-                return ite->first; 
+            if ( ite->second == _trigger )
+                return ite->first;
         }
 
         return Ray_RewardManager::Action_Unknown;
@@ -384,8 +392,8 @@ namespace ITF
         TimersTriggersList::const_iterator ite = m_timersTriggersList.begin();
         for ( ; ite != m_timersTriggersList.end(); ++ite)
         {
-            if ( ite->second == _trigger ) 
-                return ite->first; 
+            if ( ite->second == _trigger )
+                return ite->first;
         }
 
         return Ray_RewardManager::Timer_Unknown;
@@ -504,9 +512,9 @@ namespace ITF
         if(timer == Ray_RewardManager::Timer_Unknown)
             return bfalse;
 
-        RewardManager::GameSession* pGameSession = NULL; 
+        RewardManager::GameSession* pGameSession = NULL;
         if(m_useCurrentOnly) pGameSession = REWARD_MANAGER->Session_GetCurrent();
-        else 
+        else
             pGameSession = REWARD_MANAGER->Session_GetTotal();
 
         if(!REWARD_MANAGER->IsTimerUpdated(pGameSession, timer, GAMEMANAGER->getMainIndexPlayer()))
@@ -524,7 +532,7 @@ namespace ITF
 
     Ray_RewardDetail::~Ray_RewardDetail()
     {
-        ITF_VECTOR<Ray_RewardTrigger_Base*>::iterator it = Triggers.begin(); 
+        ITF_VECTOR<Ray_RewardTrigger_Base*>::iterator it = Triggers.begin();
         for (; it != Triggers.end(); ++it)
             if(*it) delete (*it);
         Triggers.clear();
@@ -564,7 +572,7 @@ namespace ITF
     SERIALIZE_MEMBER("reachTimeToGet", m_reachTimeToGet);
     END_SERIALIZATION()
 
-        BEGIN_SERIALIZATION(Ray_RewardDetail)           
+        BEGIN_SERIALIZATION(Ray_RewardDetail)
         SERIALIZE_MEMBER("id",ID);
     SERIALIZE_MEMBER("name",Name);
     SERIALIZE_CONTAINER_WITH_FACTORY("REWARD_TRIGGER", Triggers, RAY_REWARD_MANAGER->getTriggerFactory()/*REWARD_MANAGER->getTriggerFactory()*/);
@@ -573,7 +581,7 @@ namespace ITF
         IMPLEMENT_OBJECT_RTTI(Ray_RewardContainer_Template)
         BEGIN_SERIALIZATION(Ray_RewardContainer_Template)
         SERIALIZE_CONTAINER_OBJECT("rewards",m_rewards);
-    SERIALIZE_MEMBER("isSilent", m_isSilent);        
+    SERIALIZE_MEMBER("isSilent", m_isSilent);
     END_SERIALIZATION()
 
 } // namespace ITF

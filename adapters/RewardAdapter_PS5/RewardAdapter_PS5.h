@@ -1,3 +1,4 @@
+
 #ifdef ITF_PS5
 
 #ifndef _ITF_REWARDADAPTER_PS5_H__
@@ -11,10 +12,9 @@
 #include "core/container/SafeArray.h"
 #endif //_ITF_SAFEARRAY_H_
 
-
 #include <np.h>
 
-
+#define MAIN_ACTIVIYTY String("game_progress")
 namespace ITF
 {
     class TaskManager;
@@ -30,8 +30,15 @@ namespace ITF
             STATE_REGISTER_UDS,
             STATE_READY
         };
-
+        enum ActivityAction
+        {
+            Start = 0,
+            Resume,
+            End,
+            Terminate,
+        };
         RewardAdapter_PS5();
+        void addAcitiviy(StringID _id, String _name);
         void init_rewardList();
 
         virtual ~RewardAdapter_PS5()
@@ -86,17 +93,36 @@ namespace ITF
             RewardAdapter_PS5* adapter;
             u32 trophyId;
         };
+        struct ActivityData
+        {
+            SceNpUniversalDataSystemContext context;
+            SceNpUniversalDataSystemHandle handler;
+            RewardAdapter_PS5* adapter;
+            String activity;
+            ActivityAction action;
+
+        };
+         void    startActivity(const StringID& _stage) override;
+         void    stopActivity(const StringID& _stage) override;
+         void    resumeActivity(const StringID& _stage) override;
+         void    terminateActivity() override;
     private :
         void registerUDSContext();
         const size_t kUdsMemSize = 16 * 1024;
+        void activityAction(const String& _activityId, ActivityAction _action);
+        ITF_MAP<StringID, String> m_activitiesMapping;
+        const String& getWorldByStringID(const StringID& _stringID);
+        void getWorldsByState(const char**& _unlockedWorld, u32& _count, u32 _state);
 
-    private : // Task function
+
         static i32 task_unlockTrophyTask(void* _param);
-        static void task_unlockTrophyTaskCallback(void* _param, i32 res);
-        static i32 task_runRegisterAndUnlockedTrophy(void* _param);
-        static void task_runRegisterAndUnlockedTrophyCallback(void* _param, i32 res);
-        static i32 task_runRegisterUDSContext(void* _param);
-        static void task_runRegisterUDSContextCallback(void* _param, i32 res);
+        static void task_unlockTrophyTaskCallback(void* _param, i32 _res);
+        static i32 task_activityAction(void* _param);
+        static void task_activityActionCallback(void* _param, i32 res);
+        static i32 task_registerAndUnlockedTrophy(void* _param);
+        static void task_registerAndUnlockedTrophyCallback(void* _param, i32 res);
+        static i32 task_registerUDSContext(void* _param);
+        static void task_registerUDSContextCallback(void* _param, i32 res);
     };
 
 #define REWARD_ADAPTER_PS5             (static_cast< RewardAdapter_PS5* > (REWARD_ADAPTER))

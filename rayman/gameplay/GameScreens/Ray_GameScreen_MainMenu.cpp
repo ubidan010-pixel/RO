@@ -192,6 +192,7 @@ namespace ITF
 
         EVENTMANAGER->unregisterEvent(ITF_GET_STRINGID_CRC(EventOnlineSessionCreated, 3563070614), this);
         EVENTMANAGER->unregisterEvent(ITF_GET_STRINGID_CRC(EventOnlineSessionError, 112577091), this);
+        EVENTMANAGER->unregisterEvent(ITF_GET_STRINGID_CRC(EventLanguageChanged, 1029567175), this);
     }
     ///////////////////////////////////////////////////////////////////////////////////////////
     void Ray_GameScreen_MainMenu::onWorldLoaded()
@@ -315,6 +316,9 @@ namespace ITF
         // Ubiservices events
         EVENTMANAGER_REGISTER_EVENT_LISTENER(ITF_GET_STRINGID_CRC(EventOnlineSessionCreated, 3563070614), this);
         EVENTMANAGER_REGISTER_EVENT_LISTENER(ITF_GET_STRINGID_CRC(EventOnlineSessionError, 112577091), this);
+
+        // UI events
+        EVENTMANAGER_REGISTER_EVENT_LISTENER(ITF_GET_STRINGID_CRC(EventLanguageChanged, 1029567175), this);
     }
     ///////////////////////////////////////////////////////////////////////////////////////////
     void Ray_GameScreen_MainMenu::updatePlayerIndex()
@@ -1322,10 +1326,10 @@ namespace ITF
 #endif
     }
 
-    void Ray_GameScreen_MainMenu::fetchNews()
+    void Ray_GameScreen_MainMenu::fetchNews(ITF_LANGUAGE _lang)
     {
 #if ITF_SUPPORT_UBISERVICES
-        OnlineError err = ONLINE_ADAPTER->getNewsService()->downloadNews();
+        OnlineError err = ONLINE_ADAPTER->getNewsService()->downloadNews(_lang);
         if (err.getType() == OnlineError::Success)
         {
             const StringID buttonNews1 = ITF_GET_STRINGID_CRC(news1_button, 1178697612);
@@ -1502,6 +1506,11 @@ namespace ITF
         {
             onCreateSessionError(eventSessionError->getError());
         }
+        if (EventLanguageChanged* eventLangChange = _event->DynamicCast<EventLanguageChanged>(ITF_GET_STRINGID_CRC(EventLanguageChanged, 1029567175)))
+        {
+            ITF_LANGUAGE newLang = eventLangChange->getNewLanguage();
+            m_newsUpdateFuture = std::async(&Ray_GameScreen_MainMenu::fetchNews, this, newLang);
+        }
     }
 
     void Ray_GameScreen_MainMenu::onCreateSessionSuccess()
@@ -1512,8 +1521,9 @@ namespace ITF
         if (TRC_ADAPTER->existsMessage(TRCManagerAdapter::UOR_PleaseWait))
             TRC_ADAPTER->killCurrentMessage();
 
+        ITF_LANGUAGE lang = LOCALISATIONMANAGER->getCurrentLanguage();
         // fetch news
-        m_newsUpdateFuture = std::async(&Ray_GameScreen_MainMenu::fetchNews, this);
+        m_newsUpdateFuture = std::async(&Ray_GameScreen_MainMenu::fetchNews, this, lang);
 
         // Boot flags
         i32 bootCounter = RAY_GAMEMANAGER->getAuthBootCount();

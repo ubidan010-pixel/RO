@@ -18,12 +18,14 @@
 
 namespace ITF
 {
+    const f64 NewsService_Ubiservices::m_NewsFetchInterval = 60 * 60.0; // 1h
 
     NewsService_Ubiservices::NewsService_Ubiservices()
         : NewsService()
         , m_newsResult()
         , m_cachedNews()
         , m_newsLock()
+        , m_lastFetch(0.0)
     {
     }
 
@@ -33,7 +35,7 @@ namespace ITF
             m_newsResult.cancel();
     }
 
-    OnlineError NewsService_Ubiservices::downloadNews()
+    OnlineError NewsService_Ubiservices::downloadNews(ITF_LANGUAGE _lang)
     {
         if (ONLINE_ADAPTER->getSessionService()->getSessionStatus() != SessionService::ESessionStatus_Valid)
         {
@@ -47,20 +49,34 @@ namespace ITF
             return OnlineError(OnlineError::UbiServer, OnlineError::News, 0);
         }
 
-        // Set the locale so Uplay actions are localized nicely
+        // Find the locale to query
         String8 lang = "en";
         String8 locale = "US";
-        ITF::ITF_LANGUAGE itfLang = LOCALISATIONMANAGER->getCurrentLanguage();
-        bool bOk = ONLINE_ADAPTER_UBISERVICES->convertITFtoUSLanguage(itfLang, lang, locale);
+        bool bOk = ONLINE_ADAPTER_UBISERVICES->convertITFtoUSLanguage(_lang, lang, locale);
 
-        LOG("[Ubiservices] localize language %s / %s. itfknown: %d", lang.cStr(), locale.cStr(), bOk);
-        US_NS::LocalizationHelper::setLocaleCode(US_NS::String::formatText("%s-%s", lang.cStr(), locale.cStr()));
+        // Check if we already cached it
+        {
+            std::scoped_lock lock(m_newsLock);
+            bool found = m_cachedNews.find(_lang) != m_cachedNews.end();
+            bool shouldRefresh = SYSTEM_ADAPTER->getTime() > m_lastFetch + m_NewsFetchInterval;
+
+            if (found && !shouldRefresh)
+            {
+                LOG("[News] reusing cache for lang %s / %s. found: %d, shouldRefresh: %d",
+                    lang.cStr(), locale.cStr(), found, shouldRefresh);
+                return OnlineError(OnlineError::Success, OnlineError::News);
+            }
+
+            m_lastFetch = SYSTEM_ADAPTER->getTime();
+        }
+        
+        LOG("[News] downloading language %s / %s. itfknown: %d", lang.cStr(), locale.cStr(), bOk);
 
         auto session = ONLINE_ADAPTER_UBISERVICES->getSession();
         US_NS::NewsModule& modNews = US_NS::NewsModule::module(*session);
-
-        US_NS::SpaceId crossRetailSpace("ddd8818b-f7e0-497e-9901-0e76bbdba154");
         US_NS::String usLocale = US_NS::String::formatText("%s-%s", lang.cStr(), locale.cStr());
+        US_NS::SpaceId crossRetailSpace("ddd8818b-f7e0-497e-9901-0e76bbdba154");
+       
         m_newsResult = modNews.requestSpaceNews(crossRetailSpace, US_NS::CountryName::NotSpecified, usLocale);
         while (m_newsResult.isProcessing())
         {
@@ -83,10 +99,7 @@ namespace ITF
             const US_NS::Vector<US_NS::NewsInfo> &result = m_newsResult.getResult();
             LOG("[News] success. got %d news", result.size());
 
-            std::scoped_lock lock(m_newsLock);
-
-            m_cachedNews.clear();
-
+            NewsData data;
             for (auto& news : result)
             {
                 NewsInfo info;
@@ -98,7 +111,12 @@ namespace ITF
                 info.m_placement = news.m_placement.getUtf8();
                 info.m_priority = news.m_priority;
 
-                m_cachedNews.push_back(info);
+                data.push_back(info);
+            }
+
+            {
+                std::scoped_lock lock(m_newsLock);
+                m_cachedNews[_lang] = data;
             }
 
             return OnlineError(OnlineError::Success, OnlineError::News);
@@ -115,7 +133,11 @@ namespace ITF
 
     NewsData NewsService_Ubiservices::cachedNews()
     {
-        return m_cachedNews;
+        std::scoped_lock lock(m_newsLock);
+        ITF_LANGUAGE lang = LOCALISATIONMANAGER->getCurrentLanguage();
+        auto it = m_cachedNews.find(lang);
+
+        return it != m_cachedNews.end() ? it->second: NewsData();
     }
 
 } // namespace ITF

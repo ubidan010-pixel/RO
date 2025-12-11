@@ -122,9 +122,11 @@ namespace ITF
         if (!UPLAYSERVICE || !CONFIG->m_enableUplay)
             return;
 
-        if (m_uplayClientConnected != UPLAYSERVICE->isClientConnected())
+        if (m_uplayClientConnected != UPLAYSERVICE->isClientConnected() ||
+            m_uplayClientOnline != UPLAYSERVICE->isClientOnline())
         {
-            m_uplayClientConnected = ~m_uplayClientConnected;
+            m_uplayClientConnected = UPLAYSERVICE->isClientConnected();
+            m_uplayClientOnline = UPLAYSERVICE->isClientOnline();
             m_activeAccount.setSignedOnPlatformNetwork((m_uplayClientConnected && m_uplayClientOnline) ? true : false);
             setTokenStatus((m_uplayClientConnected && m_uplayClientOnline) ? AccountAdapter::ETokenStatus_Ready : AccountAdapter::ETokenStatus_Error);
         }

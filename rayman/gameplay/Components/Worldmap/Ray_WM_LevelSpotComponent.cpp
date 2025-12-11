@@ -183,7 +183,7 @@ namespace ITF
         ObjectPath path;
         SceneObjectPathUtils::getAbsolutePathFromObject(m_actor, path);
         RAY_GAMEMANAGER->setWMCurrentLevel(path, m_tag);
-
+        RAY_GAMEMANAGER->startActivity(RAY_GAMEMANAGER->getWMCurrentWorldTag());
         // Play worldmap music
         if ( _changeMusic )
         {

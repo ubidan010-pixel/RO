@@ -47,20 +47,68 @@ int sceNpUniversalDataSystemCodegenPostactivityStart(
 /* activityEnd */
 /***************/
 
+typedef struct SceNpUniversalDataSystemCodegenactivityEndOption SceNpUniversalDataSystemCodegenactivityEndOption;
+void sceNpUniversalDataSystemCodegenactivityEndOptionInit(
+    SceNpUniversalDataSystemCodegenactivityEndOption *_option
+    );
+void sceNpUniversalDataSystemCodegenactivityEndOptionSetoutcome(
+    SceNpUniversalDataSystemCodegenactivityEndOption *_option,
+    const char *outcome
+    );
+struct SceNpUniversalDataSystemCodegenactivityEndOption {
+    const char *outcome;
+    bool _useoutcome;
+};
 int sceNpUniversalDataSystemCodegenPostactivityEnd(
     SceNpUniversalDataSystemContext _context,
     SceNpUniversalDataSystemHandle _handle,
     const char *activityId
     );
 
+int sceNpUniversalDataSystemCodegenPostactivityEndWithOption(
+    SceNpUniversalDataSystemContext _context,
+    SceNpUniversalDataSystemHandle _handle,
+    const char *activityId,
+    const SceNpUniversalDataSystemCodegenactivityEndOption *_option
+    );
+
 /******************/
 /* activityResume */
 /******************/
 
+typedef struct SceNpUniversalDataSystemCodegenactivityResumeOption SceNpUniversalDataSystemCodegenactivityResumeOption;
+void sceNpUniversalDataSystemCodegenactivityResumeOptionInit(
+    SceNpUniversalDataSystemCodegenactivityResumeOption *_option
+    );
+void sceNpUniversalDataSystemCodegenactivityResumeOptionSetcompletedActivities(
+    SceNpUniversalDataSystemCodegenactivityResumeOption *_option,
+    const char **completedActivities,
+    size_t _sizecompletedActivities
+    );
+void sceNpUniversalDataSystemCodegenactivityResumeOptionSetinProgressActivities(
+    SceNpUniversalDataSystemCodegenactivityResumeOption *_option,
+    const char **inProgressActivities,
+    size_t _sizeinProgressActivities
+    );
+struct SceNpUniversalDataSystemCodegenactivityResumeOption {
+    const char **completedActivities;
+    size_t _sizecompletedActivities;
+    bool _usecompletedActivities;
+    const char **inProgressActivities;
+    size_t _sizeinProgressActivities;
+    bool _useinProgressActivities;
+};
 int sceNpUniversalDataSystemCodegenPostactivityResume(
     SceNpUniversalDataSystemContext _context,
     SceNpUniversalDataSystemHandle _handle,
     const char *activityId
+    );
+
+int sceNpUniversalDataSystemCodegenPostactivityResumeWithOption(
+    SceNpUniversalDataSystemContext _context,
+    SceNpUniversalDataSystemHandle _handle,
+    const char *activityId,
+    const SceNpUniversalDataSystemCodegenactivityResumeOption *_option
     );
 
 /*********************/

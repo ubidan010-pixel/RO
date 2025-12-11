@@ -93,10 +93,10 @@ namespace ITF
         static const u32 PlayersMax = 4;
 
         // All tags are here, even the timers (can be usefull)
-        typedef u32 Tag;        
+        typedef u32 Tag;
         typedef u32 Timer;
 
-        // Stats ....        
+        // Stats ....
         struct sTimer
         {
             sTimer() : m_start(0.0f), m_total(0.0f), m_running(bfalse), m_actif(bfalse),m_updated(bfalse) {}
@@ -113,7 +113,7 @@ namespace ITF
         struct sAction
         {
             sAction() : m_actif(bfalse), m_enterSession(0.0f), m_leaveSession(0.0f) {}
-            SafeArray <sTag>    m_tags;            
+            SafeArray <sTag>    m_tags;
             SafeArray <sTimer>  m_timers;
 
             bbool   m_actif;
@@ -156,8 +156,8 @@ namespace ITF
         void    Action_TimerPause(Timer _timer, u32 _player, bbool _forceUpdateToTotalSession = bfalse);
         void    Action_TimerResume(Timer _timer, u32 _player, bbool _forceStartIfNeeded = bfalse);
         void    Action_TimerReset(Timer _timer, u32 _player);
-        void    Action_New(Tag _tag, u32 _player, f32 _count = 1.f );      
-        void    Action_Set(Tag _tag, u32 _player, f32 _value);      
+        void    Action_New(Tag _tag, u32 _player, f32 _count = 1.f );
+        void    Action_Set(Tag _tag, u32 _player, f32 _value);
         void    Action_AddPlayer(u32 _player);
         void    Action_RemovePlayer(u32 _player);
         void    Action_GlobalEvent(Tag _tag, StringID _id = StringID::Invalid);
@@ -188,7 +188,7 @@ namespace ITF
         f32     GetTotalOf (Tag _tag, u32 _player, bbool _fromAllSessions = btrue) const
         {
             ITF_ASSERT(_player<PlayersMax);
-            if(_player<PlayersMax)            
+            if(_player<PlayersMax)
                 return _fromAllSessions ? m_totalSessions.m_actions[_player].m_tags[_tag].m_value :
                 m_currentSession.m_actions[_player].m_tags[_tag].m_value;
             else
@@ -214,15 +214,16 @@ namespace ITF
         void    setTimersCount(u32 timersCount) { m_timersCount = timersCount; }
         void    computeRewardManager();
 
-        // Save 
+        // Save
         bbool   backupSaveSession (SaveSession* _pSaveSession, u32 _playerToBackup);
         bbool   setSaveSessionFromSave (SaveSession* _pSaveSession, u32 _playerToSet);
 
         void    disable() { m_enable = bfalse; }
         void    enable() { m_enable = btrue; }
         bbool   isEnable() const { return m_enable; }
+
     private:
-        void    IamUpdated() { m_updated = btrue; }    
+        void    IamUpdated() { m_updated = btrue; }
 
         void    clearEvents();
 
@@ -273,7 +274,10 @@ namespace ITF
         // To handle all platform
         typedef ITF_MAP<RewardID, u32> RewardsMap;
         RewardsMap			m_rewardMap;
-
+        virtual void    startActivity(const StringID& _activity) {};
+        virtual void    stopActivity(const StringID& _activity){};
+        virtual void    resumeActivity(const StringID& _activity){};
+        virtual void    terminateActivity(){};
     protected:
         bbool               m_enable;
         u32                 m_mainPlayerIndex;

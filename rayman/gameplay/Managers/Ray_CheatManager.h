@@ -46,6 +46,8 @@ namespace ITF
         bbool               getActivateDebugFresco() const { return m_activateDebugFresco; }
 
         virtual void        onReceive( u32 deviceID /* player */, f32 axis, const StringID& action ) ;
+        u32                 activityCheatIndex = 0;
+        ITF_VECTOR<StringID> activity;
 
     private:
         virtual void        teleportToCheckpoint(GameManager::teleportTarget _target);

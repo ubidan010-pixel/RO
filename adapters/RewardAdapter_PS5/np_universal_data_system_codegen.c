@@ -127,6 +127,21 @@ _error:
 /* activityEnd */
 /***************/
 
+void sceNpUniversalDataSystemCodegenactivityEndOptionInit(
+    SceNpUniversalDataSystemCodegenactivityEndOption *_option
+    )
+{
+    _option->outcome = NULL;
+    _option->_useoutcome = false;
+}
+void sceNpUniversalDataSystemCodegenactivityEndOptionSetoutcome(
+    SceNpUniversalDataSystemCodegenactivityEndOption *_option,
+    const char *outcome
+    )
+{
+    _option->outcome = outcome;
+    _option->_useoutcome = true;
+}
 int sceNpUniversalDataSystemCodegenPostactivityEnd(
     SceNpUniversalDataSystemContext _context,
     SceNpUniversalDataSystemHandle _handle,
@@ -160,11 +175,82 @@ _error:
     }
     return _ret;
 }
+int sceNpUniversalDataSystemCodegenPostactivityEndWithOption(
+    SceNpUniversalDataSystemContext _context,
+    SceNpUniversalDataSystemHandle _handle,
+    const char *activityId,
+    const SceNpUniversalDataSystemCodegenactivityEndOption *_option
+    )
+{
+    int _ret = 0;
+    SceNpUniversalDataSystemEvent *_event = NULL;
+    SceNpUniversalDataSystemEventPropertyObject *_prop = NULL;
+    uint64_t _options_post_event = 0x0;
+    _options_post_event |= SCE_NP_UNIVERSAL_DATA_SYSTEM_POST_EVENT_OPTION_GENERATED_BY_CODEGEN; /* DO NOT modify. This is for internal use. */
+    _ret = sceNpUniversalDataSystemCreateEvent("activityEnd", NULL, &_event, &_prop);
+    if(_ret < 0) {
+        return _ret;
+    }
+    if(_option && _option->_useoutcome) {
+        _ret = sceNpUniversalDataSystemEventPropertyObjectSetString(_prop, "outcome", _option->outcome);
+        if(_ret < 0) {
+            goto _error;
+        }
+    }
+    _ret = sceNpUniversalDataSystemEventPropertyObjectSetString(_prop, "activityId", activityId);
+    if(_ret < 0) {
+        goto _error;
+    }
+
+    _ret = sceNpUniversalDataSystemPostEvent(_context, _handle, _event, _options_post_event);
+    if (_ret < 0) {
+        goto _error;
+    }
+    sceNpUniversalDataSystemDestroyEvent(_event);
+    return SCE_OK;
+
+_error:
+    if (_event) {
+        sceNpUniversalDataSystemDestroyEvent(_event);
+    }
+    return _ret;
+}
 
 /******************/
 /* activityResume */
 /******************/
 
+void sceNpUniversalDataSystemCodegenactivityResumeOptionInit(
+    SceNpUniversalDataSystemCodegenactivityResumeOption *_option
+    )
+{
+    _option->completedActivities = NULL;
+    _option->_sizecompletedActivities = 0;
+    _option->_usecompletedActivities = false;
+    _option->inProgressActivities = NULL;
+    _option->_sizeinProgressActivities = 0;
+    _option->_useinProgressActivities = false;
+}
+void sceNpUniversalDataSystemCodegenactivityResumeOptionSetcompletedActivities(
+    SceNpUniversalDataSystemCodegenactivityResumeOption *_option,
+    const char **completedActivities,
+    size_t _sizecompletedActivities
+    )
+{
+    _option->completedActivities = completedActivities;
+    _option->_sizecompletedActivities = _sizecompletedActivities;
+    _option->_usecompletedActivities = true;
+}
+void sceNpUniversalDataSystemCodegenactivityResumeOptionSetinProgressActivities(
+    SceNpUniversalDataSystemCodegenactivityResumeOption *_option,
+    const char **inProgressActivities,
+    size_t _sizeinProgressActivities
+    )
+{
+    _option->inProgressActivities = inProgressActivities;
+    _option->_sizeinProgressActivities = _sizeinProgressActivities;
+    _option->_useinProgressActivities = true;
+}
 int sceNpUniversalDataSystemCodegenPostactivityResume(
     SceNpUniversalDataSystemContext _context,
     SceNpUniversalDataSystemHandle _handle,
@@ -179,6 +265,70 @@ int sceNpUniversalDataSystemCodegenPostactivityResume(
     _ret = sceNpUniversalDataSystemCreateEvent("activityResume", NULL, &_event, &_prop);
     if(_ret < 0) {
         return _ret;
+    }
+    _ret = sceNpUniversalDataSystemEventPropertyObjectSetString(_prop, "activityId", activityId);
+    if(_ret < 0) {
+        goto _error;
+    }
+
+    _ret = sceNpUniversalDataSystemPostEvent(_context, _handle, _event, _options_post_event);
+    if (_ret < 0) {
+        goto _error;
+    }
+    sceNpUniversalDataSystemDestroyEvent(_event);
+    return SCE_OK;
+
+_error:
+    if (_event) {
+        sceNpUniversalDataSystemDestroyEvent(_event);
+    }
+    return _ret;
+}
+int sceNpUniversalDataSystemCodegenPostactivityResumeWithOption(
+    SceNpUniversalDataSystemContext _context,
+    SceNpUniversalDataSystemHandle _handle,
+    const char *activityId,
+    const SceNpUniversalDataSystemCodegenactivityResumeOption *_option
+    )
+{
+    int _ret = 0;
+    SceNpUniversalDataSystemEvent *_event = NULL;
+    SceNpUniversalDataSystemEventPropertyObject *_prop = NULL;
+    uint64_t _options_post_event = 0x0;
+    _options_post_event |= SCE_NP_UNIVERSAL_DATA_SYSTEM_POST_EVENT_OPTION_GENERATED_BY_CODEGEN; /* DO NOT modify. This is for internal use. */
+    _ret = sceNpUniversalDataSystemCreateEvent("activityResume", NULL, &_event, &_prop);
+    if(_ret < 0) {
+        return _ret;
+    }
+    if(_option && _option->_usecompletedActivities) {
+        {
+            SceNpUniversalDataSystemEventPropertyArray *_arraycompletedActivities = NULL;
+            _ret = sceNpUniversalDataSystemEventPropertyObjectSetArray(_prop, "completedActivities", NULL, &_arraycompletedActivities);
+            if(_ret < 0) {
+                goto _error;
+            }
+            for(int _index3 = 0; _index3 < _option->_sizecompletedActivities; ++_index3) {
+                _ret = sceNpUniversalDataSystemEventPropertyArraySetString(_arraycompletedActivities, _option->completedActivities[_index3]);
+                if(_ret < 0) {
+                    goto _error;
+                }
+            }
+        }
+    }
+    if(_option && _option->_useinProgressActivities) {
+        {
+            SceNpUniversalDataSystemEventPropertyArray *_arrayinProgressActivities = NULL;
+            _ret = sceNpUniversalDataSystemEventPropertyObjectSetArray(_prop, "inProgressActivities", NULL, &_arrayinProgressActivities);
+            if(_ret < 0) {
+                goto _error;
+            }
+            for(int _index3 = 0; _index3 < _option->_sizeinProgressActivities; ++_index3) {
+                _ret = sceNpUniversalDataSystemEventPropertyArraySetString(_arrayinProgressActivities, _option->inProgressActivities[_index3]);
+                if(_ret < 0) {
+                    goto _error;
+                }
+            }
+        }
     }
     _ret = sceNpUniversalDataSystemEventPropertyObjectSetString(_prop, "activityId", activityId);
     if(_ret < 0) {

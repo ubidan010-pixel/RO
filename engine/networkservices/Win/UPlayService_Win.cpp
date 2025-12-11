@@ -201,16 +201,16 @@ namespace ITF
     {
         UPC_bool isOffline = UPC_TRUE;
         if (!m_isInitialized || m_Context == NULL)
-            return btrue;
+            return bfalse;
 
         int ret = UPC_IsInOfflineMode(m_Context, &isOffline);
         if (ret != UPC_Result_Ok)
         {
             LOG("[UPlay] UPC_IsInOfflineMode failed: %d", ret);
-            return btrue;
+            return bfalse;
         }
 
-        return isOffline == UPC_TRUE;
+        return isOffline != UPC_TRUE;
     }
 
     String8 UPlayService_Win::getUserName()
