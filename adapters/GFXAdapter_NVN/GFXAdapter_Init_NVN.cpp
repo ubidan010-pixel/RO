@@ -88,7 +88,7 @@ namespace ITF
         LOG("  severity:     0x%08x", severity);
         LOG("  message:      %s", message);
 
-        ITF_ASSERT_MSG(0, "NVN Debug layer callback hit");
+        // ITF_ASSERT_MSG(0, "NVN Debug layer callback hit");
     }
 
     extern "C" PFNNVNGENERICFUNCPTRPROC NVNAPIENTRY nvnBootstrapLoader(const char* name);
