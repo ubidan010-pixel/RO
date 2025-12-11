@@ -199,6 +199,30 @@ namespace ITF
         return false;
     }
 
+    bool SDLGamepad::initializeFromInstanceId(SDL_JoystickID instanceId)
+    {
+        if (m_connected)
+        {
+            cleanup();
+        }
+
+        if (!SDL_IsGamepad(instanceId))
+        {
+            return false;
+        }
+
+        m_id = static_cast<u32>(instanceId);
+        m_gamepad = SDL_OpenGamepad(instanceId);
+        if (!m_gamepad)
+        {
+            return false;
+        }
+
+        m_joystickId = instanceId;
+        m_connected = true;
+        return true;
+    }
+
     void SDLGamepad::updateInputState()
     {
         if (!m_connected || !m_gamepad)
@@ -565,13 +589,26 @@ namespace ITF
     {
         for (u32 i = 0; i < JOY_MAX_COUNT; ++i)
         {
+            if (m_gamepads[i].isConnected() && m_gamepads[i].getJoystickId() == instanceId)
+            {
+                return;
+            }
+        }
+
+        for (u32 i = 0; i < JOY_MAX_COUNT; ++i)
+        {
             if (!m_gamepads[i].isConnected())
             {
-                if (m_gamepads[i].initialize(i))
+                if (m_gamepads[i].initializeFromInstanceId(instanceId))
                 {
                     InputAdapter::PadType padType = MapSDLGamepadTypeToPadType(m_gamepads[i].getGamepad());
                     setGamepadConnected(i, true, padType);
                     LOG("[SDL] - Gamepad connected at slot %u", i);
+                    break;
+                }
+                else
+                {
+                    LOG("[SDL] - Failed to open gamepad for instance %d", instanceId);
                     break;
                 }
             }
@@ -619,8 +656,6 @@ namespace ITF
                                                  gamepad.m_padType);
             }
         }
-        m_adapter->setPadConnected(padIndex, isConnected);
-        m_adapter->setPadType(padIndex, padType);
     }
 
     bbool SDLInput::checkExistDeviceId(u32 deviceId)

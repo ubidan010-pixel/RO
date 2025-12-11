@@ -26,6 +26,7 @@ namespace ITF
         ITF_INLINE const SDL_Gamepad* getGamepad() const { return m_gamepad; }
 
         bool initialize(u32 playerIndex);
+        bool initializeFromInstanceId(SDL_JoystickID instanceId);
         void updateInputState();
         void cleanup();
         float getAxis(u32 _axis) const;

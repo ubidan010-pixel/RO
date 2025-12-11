@@ -91,12 +91,12 @@ namespace ITF
         Vec2d           m_refPos;
         bbool           m_fromRetriggerOnCheckpoint;
     };
-    
+
     class EventTeleport : public Event
     {
         DECLARE_OBJECT_CHILD_RTTI(EventTeleport,Event,1075308886);
         DECLARE_SERIALIZE()
-    
+
     public:
 
         EventTeleport()
@@ -182,7 +182,7 @@ namespace ITF
 
         EventSequenceControl() : m_state(SequencePlayerComponent::State_Stopped) , m_forceLabel(bfalse) {}
         EventSequenceControl( SequencePlayerComponent::State _state ) : m_state(_state), m_forceLabel(bfalse) {}
-        
+
         ITF_INLINE SequencePlayerComponent::State getState() const { return m_state; }
         ITF_INLINE void setState(SequencePlayerComponent::State _val) { m_state = _val; }
 
@@ -274,7 +274,7 @@ namespace ITF
 
     public:
 
-        EventSequenceSpeedChange() : m_speed(1.f) 
+        EventSequenceSpeedChange() : m_speed(1.f)
         {}
 
         EventSequenceSpeedChange(f32 _speed) : m_speed(_speed)
@@ -452,7 +452,7 @@ namespace ITF
         {
             ForceType_UNDEFINED = -1,
             ForceType_DEFAULT = 0,
-            ForceType_FAN,            
+            ForceType_FAN,
             ENUM_FORCE_SIZE_32(0)
         };
 
@@ -570,7 +570,7 @@ namespace ITF
         DECLARE_OBJECT_CHILD_RTTI(EventSetBusFilter,Event,326081700);
         DECLARE_SERIALIZE()
     public:
-        EventSetBusFilter() 
+        EventSetBusFilter()
             : m_changeFrequency(bfalse)
         , m_frequency(1.0f)
         , m_changeType(bfalse)
@@ -1020,7 +1020,7 @@ namespace ITF
         ITF_INLINE bbool getPlay() const { return m_play; }
         ITF_INLINE void setPlay(bbool val) { m_play = val; }
     private:
-        bbool  m_play; 
+        bbool  m_play;
     };
 
     class EventActorActiveChanged : public Event
@@ -1068,7 +1068,7 @@ namespace ITF
 
     class EventControllerStateChanged : public Event
     {
-        DECLARE_OBJECT_CHILD_RTTI(EventControllerStateChanged, Event, 1847293651);
+        DECLARE_OBJECT_CHILD_RTTI(EventControllerStateChanged, Event, 3543189344);
 
     public:
         EventControllerStateChanged()

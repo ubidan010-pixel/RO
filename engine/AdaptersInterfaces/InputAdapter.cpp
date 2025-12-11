@@ -370,6 +370,8 @@ namespace ITF
 #ifdef USE_PAD_HAPTICS
         HAPTICS_MANAGER->onControllerConnected(_padIndex,_deviceID,_deviceOutputID,_padType);
 #endif
+       setPadConnected(_padIndex, true);
+       setPadType(_padIndex, _padType);
         if (EVENTMANAGER)
         {
             PadType padType = (_padIndex < JOY_MAX_COUNT) ? getPadType(_padIndex) : Pad_Invalid;
@@ -383,6 +385,8 @@ namespace ITF
 #ifdef USE_PAD_HAPTICS
         HAPTICS_MANAGER->onControllerDisconnected(_padIndex);
 #endif
+       setPadConnected(_padIndex, false);
+       setPadType(_padIndex, Pad_Invalid);
         if (EVENTMANAGER)
         {
             PadType padType = (_padIndex < JOY_MAX_COUNT) ? getPadType(_padIndex) : Pad_Invalid;

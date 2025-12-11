@@ -184,7 +184,7 @@ namespace ITF
     void UIProfileSlotComponent::onEvent(Event* _event)
     {
         if (EventControllerStateChanged* controllerEvent =
-            _event->DynamicCast<EventControllerStateChanged>(ITF_GET_STRINGID_CRC(EventControllerStateChanged, 1847293651)))
+            _event->DynamicCast<EventControllerStateChanged>(ITF_GET_STRINGID_CRC(EventControllerStateChanged, 3543189344)))
         {
             onControllerStateChanged(
                 controllerEvent->getPadIndex(),
