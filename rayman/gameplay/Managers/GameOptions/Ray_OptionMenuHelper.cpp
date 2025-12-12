@@ -147,6 +147,8 @@ namespace ITF
           , m_snapshotSFXVolume(0.0f)
           , m_snapshotIntensity(0.0f)
           , m_showLanguageWarning(bfalse)
+          , m_acceptActionPressed(bfalse)
+          , m_cancelActionPressed(bfalse)
           , m_lastPadType(InputAdapter::Pad_Invalid)
     {
         m_menuBaseName = OPTION_MENU_NAME;
@@ -384,6 +386,8 @@ namespace ITF
         m_timer = 0.0f;
         m_firstPressed = btrue;
         m_hasSnapshot = bfalse;
+        m_acceptActionPressed = bfalse;
+        m_cancelActionPressed = bfalse;
         if (s_activeHelper == this)
             s_activeHelper = nullptr;
     }
@@ -440,9 +444,12 @@ namespace ITF
     {
         if (!GAMEMANAGER)
             return;
-        if (!INPUT_ADAPTER)
+
+        InputAdapter* inputAdapter = SINGLETONS.getInputAdapter();
+        if (!inputAdapter)
             return;
-        const InputAdapter::PadType padType = INPUT_ADAPTER->getLastUsedPadType(GAMEMANAGER->getMainIndexPlayer());
+
+        const InputAdapter::PadType padType = inputAdapter->getLastUsedPadType(GAMEMANAGER->getMainIndexPlayer());
         if (!force && padType == m_lastPadType)
             return;
         m_lastPadType = padType;
@@ -459,19 +466,36 @@ namespace ITF
         if (!inputAdapter)
             return;
 
-        InputAdapter::PressStatus buttons[JOY_MAX_BUT] = {};
         const u32 mainPlayerIndex = GAMEMANAGER->getMainIndexPlayer();
-        inputAdapter->getGamePadButtons(InputAdapter::EnvironmentLua, mainPlayerIndex, buttons, JOY_MAX_BUT);
+        const bbool acceptNow = inputAdapter->IsActionPressed(mainPlayerIndex, ZInputManager::Action_Hit);
+        const bbool cancelNow = inputAdapter->IsActionPressed(mainPlayerIndex, ZInputManager::Action_Back);
 
-        if (buttons[m_joyButton_X] == InputAdapter::JustPressed)
+        const auto triggerPadAction = [&](bbool (Ray_OptionMenuHelper::*handler)(const StringID&), const StringID& id)
         {
-            handleAccept(OPTIONMENU_ACCEPT_BUTTON);
+            if (m_showLanguageWarning)
+            {
+                TRC_ADAPTER->addMessage(TRCManagerAdapter::Language_Warn);
+                m_showLanguageWarning = false;
+            }
+            if (isEditing())
+            {
+                exitEditMode();
+            }
+            (this->*handler)(id);
+        };
+
+        if (acceptNow && !m_acceptActionPressed)
+        {
+            triggerPadAction(&Ray_OptionMenuHelper::handleAccept, OPTIONMENU_ACCEPT_BUTTON);
         }
 
-        if (buttons[m_joyButton_B] == InputAdapter::JustPressed)
+        if (cancelNow && !m_cancelActionPressed)
         {
-            handleCancel(OPTIONMENU_CANCEL_BUTTON);
+            triggerPadAction(&Ray_OptionMenuHelper::handleCancel, OPTIONMENU_CANCEL_BUTTON);
         }
+
+        m_acceptActionPressed = acceptNow;
+        m_cancelActionPressed = cancelNow;
     }
 
     void Ray_OptionMenuHelper::enterEditMode(UIComponent* component, const StringID& optionId)

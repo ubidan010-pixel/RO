@@ -146,6 +146,8 @@ namespace ITF
         f32 m_snapshotSFXVolume;
         f32 m_snapshotIntensity;
         bbool m_showLanguageWarning;
+        bbool m_acceptActionPressed;
+        bbool m_cancelActionPressed;
         mutable InputAdapter::PadType m_lastPadType;
 
         static Ray_OptionMenuHelper* s_activeHelper;
