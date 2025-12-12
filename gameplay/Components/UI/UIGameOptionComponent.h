@@ -44,12 +44,16 @@ namespace ITF
         void                    applyLabelColor(bbool isSelected);
         virtual void            handleSelectionChanged(bbool isSelected);
         Actor*                  m_labelActor;
+        Actor*                  m_backgroundActor;
 
     private:
         virtual void                    clear();
         void                    resolveLabelActor();
+        void                    resolveBackgroundActor();
+        void                    updateBackgroundSelection(bbool isSelected);
 
         String8                 m_labelPath;
+        String8                 m_backgroundPath;
         bbool                   m_labelColorsApplied;
         bbool                   m_selectionInitialized;
         bbool                   m_wasSelected;

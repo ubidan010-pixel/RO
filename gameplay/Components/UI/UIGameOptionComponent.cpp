@@ -27,6 +27,7 @@ namespace ITF
     BEGIN_SERIALIZATION_CHILD(UIGameOptionComponent)
         BEGIN_CONDITION_BLOCK(ESerializeGroup_DataEditable)
             SERIALIZE_MEMBER("labelPath", m_labelPath);
+            SERIALIZE_MEMBER("backgroundPath", m_backgroundPath);
         END_CONDITION_BLOCK()
     END_SERIALIZATION()
 
@@ -34,6 +35,7 @@ namespace ITF
     UIGameOptionComponent::UIGameOptionComponent()
     : Super()
     , m_labelActor(NULL)
+    , m_backgroundActor(NULL)
     , m_labelColorsApplied(bfalse)
     , m_selectionInitialized(bfalse)
     , m_wasSelected(bfalse)
@@ -50,6 +52,7 @@ namespace ITF
     void UIGameOptionComponent::clear()
     {
         m_labelActor = NULL;
+        m_backgroundActor = NULL;
         m_labelColorsApplied = bfalse;
         m_selectionInitialized = bfalse;
         m_wasSelected = bfalse;
@@ -242,4 +245,3 @@ namespace ITF
     {
     }
 }
-
