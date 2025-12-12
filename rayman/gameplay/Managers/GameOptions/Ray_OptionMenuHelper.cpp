@@ -440,17 +440,12 @@ namespace ITF
     {
         if (!GAMEMANAGER)
             return;
-
-        InputAdapter* inputAdapter = SINGLETONS.getInputAdapter();
-        if (!inputAdapter)
+        if (!INPUT_ADAPTER)
             return;
-
-        const InputAdapter::PadType padType = inputAdapter->getPadType(GAMEMANAGER->getMainIndexPlayer());
+        const InputAdapter::PadType padType = INPUT_ADAPTER->getLastUsedPadType(GAMEMANAGER->getMainIndexPlayer());
         if (!force && padType == m_lastPadType)
             return;
-
         m_lastPadType = padType;
-
         updateActionButtonText("accept_button", s_acceptButtonLineId, ContextIconType_Delete, padType);
         updateActionButtonText("cancel_button", s_cancelButtonLineId, ContextIconType_Back, padType);
     }
@@ -1306,7 +1301,7 @@ namespace ITF
 
     void Ray_OptionMenuHelper::updateTimer()
     {
-        updateActionButtonsText();
+        updateActionButtonsText(true);
         updatePadActionButtons();
         if (isEditing())
         {
