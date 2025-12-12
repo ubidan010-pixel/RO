@@ -3868,6 +3868,7 @@ namespace ITF
         unspawnMedal();
         postGameScreenChange<Ray_GameScreen_MainMenu>(bfalse);
         ChangeLanguageInGame();
+        terminateActivity();
     }
 
     void Ray_GameManager::ChangeLanguageInGame()
