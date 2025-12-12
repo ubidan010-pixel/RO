@@ -1,5 +1,7 @@
 #include "precompiled_gameplay_rayman.h"
 
+#include "engine/localisation/LocalisationManager.h"
+
 #ifndef _ITF_RAY_OPTIONMENUHELPER_H_
 #include "rayman/gameplay/Managers/GameOptions/Ray_OptionMenuHelper.h"
 #endif
@@ -50,6 +52,22 @@
 #include "rayman/gameplay/Managers/GameOptions/Ray_GameOptionManager.h"
 #endif
 
+#ifndef _ITF_CONTEXTICONSMANAGER_H_
+#include "engine/actors/managers/ContextIconsManager.h"
+#endif
+
+#ifndef _ITF_SINGLETONS_H_
+#include "engine/singleton/singletons.h"
+#endif
+
+#ifndef _ITF_INPUTADAPTER_H_
+#include "engine/AdaptersInterfaces/InputAdapter.h"
+#endif
+
+#ifndef _ITF_GAMEMANAGER_H_
+#include "gameplay/Managers/GameManager.h"
+#endif
+
 #include <algorithm>
 #include <cmath>
 #include <cstring>
@@ -90,6 +108,8 @@ namespace ITF
         };
 
         static const size_t s_optionNavigationEntryCount = sizeof(s_optionNavigationEntries) / sizeof(s_optionNavigationEntries[0]);
+        static const u32 s_acceptButtonLineId = 5378u;
+        static const u32 s_cancelButtonLineId = 6326u;
     }
 
     Ray_OptionMenuHelper* Ray_OptionMenuHelper::s_activeHelper = nullptr;
@@ -127,6 +147,7 @@ namespace ITF
           , m_snapshotSFXVolume(0.0f)
           , m_snapshotIntensity(0.0f)
           , m_showLanguageWarning(bfalse)
+          , m_lastPadType(InputAdapter::Pad_Invalid)
     {
         m_menuBaseName = OPTION_MENU_NAME;
     }
@@ -392,6 +413,70 @@ namespace ITF
 
         loadOptionsFromSaveFile();
         captureSnapshot();
+        updateActionButtonsText();
+    }
+
+    void Ray_OptionMenuHelper::updateActionButtonText(const char* friendlyName, u32 lineId,
+                                                      EContextIconType iconType, InputAdapter::PadType padType) const
+    {
+        if (!friendlyName || lineId == 0u || !m_menu || !LOCALISATIONMANAGER || !CONTEXTICONSMANAGER || !GAMEMANAGER)
+            return;
+
+        UIComponent* component = findComponentByFriendlyName(friendlyName);
+        if (!component)
+            return;
+
+        LocalisationId locId;
+        locId = lineId;
+
+        String buttonText = LOCALISATIONMANAGER->getText(locId);
+        String iconString = CONTEXTICONSMANAGER->getIconStr(padType, iconType);
+        buttonText = iconString + " " + buttonText;
+
+        component->forceContent(buttonText);
+    }
+
+    void Ray_OptionMenuHelper::updateActionButtonsText(bbool force) const
+    {
+        if (!GAMEMANAGER)
+            return;
+
+        InputAdapter* inputAdapter = SINGLETONS.getInputAdapter();
+        if (!inputAdapter)
+            return;
+
+        const InputAdapter::PadType padType = inputAdapter->getPadType(GAMEMANAGER->getMainIndexPlayer());
+        if (!force && padType == m_lastPadType)
+            return;
+
+        m_lastPadType = padType;
+
+        updateActionButtonText("accept_button", s_acceptButtonLineId, ContextIconType_Delete, padType);
+        updateActionButtonText("cancel_button", s_cancelButtonLineId, ContextIconType_Back, padType);
+    }
+
+    void Ray_OptionMenuHelper::updatePadActionButtons()
+    {
+        if (!GAMEMANAGER)
+            return;
+
+        InputAdapter* inputAdapter = SINGLETONS.getInputAdapter();
+        if (!inputAdapter)
+            return;
+
+        InputAdapter::PressStatus buttons[JOY_MAX_BUT] = {};
+        const u32 mainPlayerIndex = GAMEMANAGER->getMainIndexPlayer();
+        inputAdapter->getGamePadButtons(InputAdapter::EnvironmentLua, mainPlayerIndex, buttons, JOY_MAX_BUT);
+
+        if (buttons[m_joyButton_X] == InputAdapter::JustPressed)
+        {
+            handleAccept(OPTIONMENU_ACCEPT_BUTTON);
+        }
+
+        if (buttons[m_joyButton_B] == InputAdapter::JustPressed)
+        {
+            handleCancel(OPTIONMENU_CANCEL_BUTTON);
+        }
     }
 
     void Ray_OptionMenuHelper::enterEditMode(UIComponent* component, const StringID& optionId)
@@ -1177,6 +1262,7 @@ namespace ITF
         UpdateMusicVolumeSlider();
         UpdateSFXVolumeSlider();
         UpdateIntensitySlider();
+        updateActionButtonsText(btrue);
     }
 
     void Ray_OptionMenuHelper::captureSnapshot()
@@ -1220,6 +1306,8 @@ namespace ITF
 
     void Ray_OptionMenuHelper::updateTimer()
     {
+        updateActionButtonsText();
+        updatePadActionButtons();
         if (isEditing())
         {
             m_timer += LOGICDT;

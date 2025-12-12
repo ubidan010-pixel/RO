@@ -12,6 +12,14 @@
 #include "rayman/gameplay/Managers/GameOptions/Ray_GameOptionNames.h"
 #endif
 
+#ifndef _ITF_INPUTADAPTER_H_
+#include "engine/AdaptersInterfaces/InputAdapter.h"
+#endif
+
+#ifndef _ITF_GAMEPLAYTYPES_H_
+#include "gameplay/GameplayTypes.h"
+#endif
+
 #ifndef _ITF_RAY_GAMEMANAGER_H_
 #include "rayman/gameplay/Ray_GameManager.h"
 #endif
@@ -87,6 +95,10 @@ namespace ITF
         void captureSnapshot();
         void restoreSnapshot();
         void refreshAllOptionVisuals();
+        void updateActionButtonText(const char* friendlyName, u32 lineId, EContextIconType iconType,
+                                    InputAdapter::PadType padType) const;
+        void updateActionButtonsText(bbool force = bfalse) const;
+        void updatePadActionButtons();
         void UpdateResolutionText();
         void UpdateLanguageText();
         void UpdateStartWithHeartText();
@@ -134,6 +146,7 @@ namespace ITF
         f32 m_snapshotSFXVolume;
         f32 m_snapshotIntensity;
         bbool m_showLanguageWarning;
+        mutable InputAdapter::PadType m_lastPadType;
 
         static Ray_OptionMenuHelper* s_activeHelper;
 
