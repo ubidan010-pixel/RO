@@ -16,6 +16,14 @@
 #include "gameplay/components/UI/UIComponent.h"
 #endif //_ITF_UICOMPONENT_H_
 
+#ifndef _ITF_UIMENUMANAGER_H_
+#include "engine/actors/managers/UIMenuManager.h"
+#endif //_ITF_UIMENUMANAGER_H_
+
+#ifndef _ITF_UIMENU_H_
+#include "gameplay/components/UI/UIMenu.h"
+#endif //_ITF_UIMENU_H_
+
 #ifndef _ITF_ACTORCOMPONENT_H_
 #include "engine/actors/actorcomponent.h"
 #endif //_ITF_ACTORCOMPONENT_H_
@@ -30,6 +38,27 @@ namespace ITF
             SERIALIZE_MEMBER("backgroundPath", m_backgroundPath);
         END_CONDITION_BLOCK()
     END_SERIALIZATION()
+
+    namespace
+    {
+        struct BackgroundPulseState
+        {
+            BackgroundPulseState()
+            : m_originalScale(Vec2d::One)
+            , m_originalScaleInitialized(bfalse)
+            , m_timer(0.0f)
+            , m_isPulsing(bfalse)
+            {
+            }
+
+            Vec2d   m_originalScale;
+            bbool   m_originalScaleInitialized;
+            f32     m_timer;
+            bbool   m_isPulsing;
+        };
+
+        ITF_MAP<ObjectRef, BackgroundPulseState> s_backgroundPulseStates;
+    }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     UIGameOptionComponent::UIGameOptionComponent()
@@ -153,6 +182,54 @@ namespace ITF
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
+    bbool UIGameOptionComponent::shouldKeepBackgroundPulseOnDeselection() const
+    {
+        if (!m_backgroundActor || m_backgroundPath.isEmpty())
+        {
+            return bfalse;
+        }
+
+        if (!UI_MENUMANAGER)
+        {
+            return bfalse;
+        }
+
+        UIMenu* menu = UI_MENUMANAGER->getMenu(getMenuID());
+        if (!menu)
+        {
+            return bfalse;
+        }
+
+        const ObjectRefList uiComponentsList = menu->getUIComponentsList();
+        for (u32 i = 0; i < uiComponentsList.size(); ++i)
+        {
+            UIComponent* uiComponent = UIMenuManager::getUIComponent(uiComponentsList[i]);
+            if (!uiComponent || uiComponent == this || !uiComponent->getIsSelected())
+            {
+                continue;
+            }
+
+            if (!uiComponent->IsClassCRC(UIGameOptionComponent::GetClassCRCStatic()))
+            {
+                continue;
+            }
+
+            UIGameOptionComponent* selectedOption = static_cast<UIGameOptionComponent*>(uiComponent);
+            if (!selectedOption->m_backgroundActor && !selectedOption->m_backgroundPath.isEmpty())
+            {
+                selectedOption->resolveBackgroundActor();
+            }
+
+            if (selectedOption->m_backgroundActor == m_backgroundActor)
+            {
+                return btrue;
+            }
+        }
+
+        return bfalse;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
     void UIGameOptionComponent::resolveLabelActor()
     {
         m_labelActor = resolveActorFromPath(m_labelPath);
@@ -166,7 +243,17 @@ namespace ITF
 
         if (m_backgroundActor)
         {
-            m_backgroundOriginalScale = m_backgroundActor->getScale();
+            const ObjectRef backgroundRef = m_backgroundActor->getRef();
+            BackgroundPulseState& pulseState = s_backgroundPulseStates[backgroundRef];
+
+            if (!pulseState.m_originalScaleInitialized)
+            {
+                pulseState.m_originalScale = m_backgroundActor->getScale();
+                pulseState.m_originalScaleInitialized = btrue;
+            }
+
+            m_backgroundOriginalScale = pulseState.m_originalScale;
+            m_backgroundTimer = pulseState.m_timer;
             m_backgroundScaleInitialized = btrue;
         }
     }
@@ -208,10 +295,25 @@ namespace ITF
             const UIGameOptionComponent_Template* optionTemplate = getTemplate();
             if (optionTemplate)
             {
+                const ObjectRef backgroundRef = m_backgroundActor->getRef();
+                BackgroundPulseState& pulseState = s_backgroundPulseStates[backgroundRef];
+
+                if (!pulseState.m_originalScaleInitialized)
+                {
+                    pulseState.m_originalScale = m_backgroundOriginalScale;
+                    pulseState.m_originalScaleInitialized = btrue;
+                }
+
                 const f32 curScale = 1.0f + optionTemplate->getIdleSelectedScale() *
-                    f32_Sin(MTH_2PI * optionTemplate->getIdleSelectedPulseFrequency() * m_backgroundTimer);
-                m_backgroundActor->setScale(m_backgroundOriginalScale * curScale);
-                m_backgroundTimer += _deltaTime;
+                    f32_Sin(MTH_2PI * optionTemplate->getIdleSelectedPulseFrequency() * pulseState.m_timer);
+
+                m_backgroundActor->setScale(pulseState.m_originalScale * curScale);
+
+                pulseState.m_timer += _deltaTime;
+                pulseState.m_isPulsing = btrue;
+
+                m_backgroundOriginalScale = pulseState.m_originalScale;
+                m_backgroundTimer = pulseState.m_timer;
             }
         }
     }
@@ -240,15 +342,35 @@ namespace ITF
             return;
         }
 
-        if (!m_backgroundScaleInitialized)
+        const ObjectRef backgroundRef = m_backgroundActor->getRef();
+        BackgroundPulseState& pulseState = s_backgroundPulseStates[backgroundRef];
+
+        if (!pulseState.m_originalScaleInitialized)
         {
-            m_backgroundOriginalScale = m_backgroundActor->getScale();
-            m_backgroundScaleInitialized = btrue;
+            pulseState.m_originalScale = m_backgroundActor->getScale();
+            pulseState.m_originalScaleInitialized = btrue;
         }
+
+        m_backgroundOriginalScale = pulseState.m_originalScale;
+        m_backgroundTimer = pulseState.m_timer;
+        m_backgroundScaleInitialized = btrue;
 
         if (isSelected)
         {
-            m_backgroundTimer = 0.0f;
+            if (!pulseState.m_isPulsing)
+            {
+                pulseState.m_timer = 0.0f;
+            }
+            m_backgroundTimer = pulseState.m_timer;
+        }
+        else if (shouldKeepBackgroundPulseOnDeselection())
+        {
+            return;
+        }
+        else
+        {
+            pulseState.m_isPulsing = bfalse;
+            m_backgroundTimer = pulseState.m_timer;
         }
 
         m_backgroundActor->setScale(m_backgroundOriginalScale);

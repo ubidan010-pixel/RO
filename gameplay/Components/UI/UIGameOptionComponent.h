@@ -52,6 +52,7 @@ namespace ITF
     private:
         virtual void                    clear();
         Actor*                  resolveActorFromPath(const String8& path) const;
+        bbool                   shouldKeepBackgroundPulseOnDeselection() const;
         void                    resolveLabelActor();
         void                    resolveBackgroundActor();
         void                    updateBackgroundSelection(bbool isSelected);
