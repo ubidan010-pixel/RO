@@ -45,9 +45,13 @@ namespace ITF
         virtual void            handleSelectionChanged(bbool isSelected);
         Actor*                  m_labelActor;
         Actor*                  m_backgroundActor;
+        Vec2d                   m_backgroundOriginalScale;
+        f32                     m_backgroundTimer;
+        bbool                   m_backgroundScaleInitialized;
 
     private:
         virtual void                    clear();
+        Actor*                  resolveActorFromPath(const String8& path) const;
         void                    resolveLabelActor();
         void                    resolveBackgroundActor();
         void                    updateBackgroundSelection(bbool isSelected);
@@ -69,7 +73,12 @@ namespace ITF
         UIGameOptionComponent_Template();
         ~UIGameOptionComponent_Template();
 
+        ITF_INLINE f32 getIdleSelectedScale() const { return m_idleSelectedScale; }
+        ITF_INLINE f32 getIdleSelectedPulseFrequency() const { return m_idleSelectedPulseFrequency; }
+
     private:
+        f32 m_idleSelectedScale;
+        f32 m_idleSelectedPulseFrequency;
 
     };
 

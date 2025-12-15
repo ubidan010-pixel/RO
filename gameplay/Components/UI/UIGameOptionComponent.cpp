@@ -36,6 +36,9 @@ namespace ITF
     : Super()
     , m_labelActor(NULL)
     , m_backgroundActor(NULL)
+    , m_backgroundOriginalScale(Vec2d::One)
+    , m_backgroundTimer(0.0f)
+    , m_backgroundScaleInitialized(bfalse)
     , m_labelColorsApplied(bfalse)
     , m_selectionInitialized(bfalse)
     , m_wasSelected(bfalse)
@@ -53,6 +56,9 @@ namespace ITF
     {
         m_labelActor = NULL;
         m_backgroundActor = NULL;
+        m_backgroundOriginalScale = Vec2d::One;
+        m_backgroundTimer = 0.0f;
+        m_backgroundScaleInitialized = bfalse;
         m_labelColorsApplied = bfalse;
         m_selectionInitialized = bfalse;
         m_wasSelected = bfalse;
@@ -112,37 +118,56 @@ namespace ITF
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
-    void UIGameOptionComponent::resolveLabelActor()
+    Actor* UIGameOptionComponent::resolveActorFromPath(const String8& path) const
     {
-        m_labelActor = NULL;
-
-        if (m_labelPath.isEmpty())
+        if (path.isEmpty())
         {
-            return;
+            return NULL;
         }
 
-        ObjectPath labelPath;
-        ITF_STDSTRING pathStr = m_labelPath.cStr();
-        labelPath.fromString(pathStr);
+        ObjectPath objectPath;
+        ITF_STDSTRING pathStr = path.cStr();
+        objectPath.fromString(pathStr);
 
-        if (!labelPath.isValid())
+        if (!objectPath.isValid())
         {
-            return;
+            return NULL;
         }
 
         Pickable* pickable = NULL;
-        if (labelPath.getIsAbsolute())
+        if (objectPath.getIsAbsolute())
         {
-            pickable = SceneObjectPathUtils::getObjectFromAbsolutePath(labelPath);
+            pickable = SceneObjectPathUtils::getObjectFromAbsolutePath(objectPath);
         }
         else
         {
-            pickable = SceneObjectPathUtils::getObjectFromRelativePath(m_actor, labelPath);
+            pickable = SceneObjectPathUtils::getObjectFromRelativePath(m_actor, objectPath);
         }
 
-        if (pickable)
+        if (!pickable)
         {
-            m_labelActor = pickable->DynamicCast<Actor>(ITF_GET_STRINGID_CRC(Actor, 2546623115));
+            return NULL;
+        }
+
+        return pickable->DynamicCast<Actor>(ITF_GET_STRINGID_CRC(Actor, 2546623115));
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    void UIGameOptionComponent::resolveLabelActor()
+    {
+        m_labelActor = resolveActorFromPath(m_labelPath);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    void UIGameOptionComponent::resolveBackgroundActor()
+    {
+        m_backgroundActor = resolveActorFromPath(m_backgroundPath);
+        m_backgroundScaleInitialized = bfalse;
+
+        if (m_backgroundActor)
+        {
+            m_backgroundOriginalScale = m_backgroundActor->getScale();
+            m_backgroundScaleInitialized = btrue;
         }
     }
 
@@ -151,6 +176,7 @@ namespace ITF
     {
         Super::onActorLoaded(_hotReload);
         resolveLabelActor();
+        resolveBackgroundActor();
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -176,11 +202,56 @@ namespace ITF
             m_wasSelected = isSelected;
             m_selectionInitialized = btrue;
         }
+
+        if (isSelected && m_backgroundActor && m_backgroundScaleInitialized && m_backgroundActor->getUserFriendly() == m_backgroundPath)
+        {
+            const UIGameOptionComponent_Template* optionTemplate = getTemplate();
+            if (optionTemplate)
+            {
+                const f32 curScale = 1.0f + optionTemplate->getIdleSelectedScale() *
+                    f32_Sin(MTH_2PI * optionTemplate->getIdleSelectedPulseFrequency() * m_backgroundTimer);
+                m_backgroundActor->setScale(m_backgroundOriginalScale * curScale);
+                m_backgroundTimer += _deltaTime;
+            }
+        }
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
-    void UIGameOptionComponent::handleSelectionChanged(bbool /*isSelected*/)
+    void UIGameOptionComponent::handleSelectionChanged(bbool isSelected)
     {
+        updateBackgroundSelection(isSelected);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    void UIGameOptionComponent::updateBackgroundSelection(bbool isSelected)
+    {
+        if (!m_backgroundActor && !m_backgroundPath.isEmpty())
+        {
+            resolveBackgroundActor();
+        }
+
+        if (!m_backgroundActor || m_backgroundPath.isEmpty())
+        {
+            return;
+        }
+
+        if (m_backgroundActor->getUserFriendly() != m_backgroundPath)
+        {
+            return;
+        }
+
+        if (!m_backgroundScaleInitialized)
+        {
+            m_backgroundOriginalScale = m_backgroundActor->getScale();
+            m_backgroundScaleInitialized = btrue;
+        }
+
+        if (isSelected)
+        {
+            m_backgroundTimer = 0.0f;
+        }
+
+        m_backgroundActor->setScale(m_backgroundOriginalScale);
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -234,10 +305,14 @@ namespace ITF
     ///////////////////////////////////////////////////////////////////////////////////////////
     IMPLEMENT_OBJECT_RTTI(UIGameOptionComponent_Template)
     BEGIN_SERIALIZATION_CHILD(UIGameOptionComponent_Template)
+        SERIALIZE_MEMBER("idleSelectedScale", m_idleSelectedScale);
+        SERIALIZE_MEMBER("idleSelectedPulseFrequency", m_idleSelectedPulseFrequency);
     END_SERIALIZATION()
 
     UIGameOptionComponent_Template::UIGameOptionComponent_Template()
     : Super()
+    , m_idleSelectedScale(0.02f)
+    , m_idleSelectedPulseFrequency(0.5f)
     {
     }
 
