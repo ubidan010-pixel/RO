@@ -34,7 +34,7 @@ namespace ITF
         virtual void        onAction            (const StringID & action);
 
         ITF_INLINE Actor*       getValueActor() const { return m_valueActor; }
-        void                    setEditingMode(bbool editing);
+        void                    setEditingMode(bbool editing) override;
 
     protected:
         ITF_INLINE const class UIListOptionComponent_Template* getTemplate() const;
@@ -86,4 +86,3 @@ namespace ITF
 
 }
 #endif // _ITF_UILISTOPTIONCOMPONENT_H_
-

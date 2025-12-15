@@ -198,14 +198,14 @@ bbool BundleFile::openBundle(const String& _szFilename,SharableBundleHeader* _Sh
     m_engineSignature = m_SharableHeader->getEngineSignature();
     _dataVersion      = m_SharableHeader->getDataSignature();
 
-#ifndef ITF_FINAL
-    u32 globalEngineSignature = EngineSignature::getEngineSignature();
-
-    if ( globalEngineSignature != 0 && globalEngineSignature != m_engineSignature )
-    {
-        ITF_FATAL_ERROR( "the bundle loaded %s doesnt match the signature", StringToUTF8(m_szFilename).get() );
-    }
-#endif //ITF_FINAL
+//#ifndef ITF_FINAL
+//    u32 globalEngineSignature = EngineSignature::getEngineSignature();
+//
+//    if ( globalEngineSignature != 0 && globalEngineSignature != m_engineSignature )
+//    {
+//        ITF_FATAL_ERROR( "the bundle loaded %s doesnt match the signature", StringToUTF8(m_szFilename).get() );
+//    }
+//#endif //ITF_FINAL
 
     m_fileSize  = m_FileRead->getLength();
     if ( useCache )

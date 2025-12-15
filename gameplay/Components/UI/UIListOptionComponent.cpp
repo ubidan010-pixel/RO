@@ -193,17 +193,23 @@ namespace ITF
         if (!valueComponent || !valueComponent->m_hasColorOverride)
             return;
 
-        if (isSelected)
-        {
-            valueComponent->m_overrideTextColor = valueComponent->m_overrideTextColorHighlighted;
-        }
-        else
+        if (!isSelected)
         {
             const UIComponent_Template* optionTemplate = static_cast<const UIComponent_Template*>(m_template);
             if (optionTemplate)
             {
                 valueComponent->m_overrideTextColor = optionTemplate->getTextColor();
             }
+            return;
+        }
+
+        if (m_isEditing)
+        {
+            valueComponent->m_overrideTextColor = valueComponent->m_overrideTextColorInactive;
+        }
+        else
+        {
+            valueComponent->m_overrideTextColor = valueComponent->m_overrideTextColorHighlighted;
         }
     }
 
@@ -392,7 +398,10 @@ namespace ITF
         applyValueColor(isSelected);
 
         if (!isSelected && m_isEditing)
-            m_isEditing = bfalse;
+        {
+            setEditingMode(bfalse);
+            return;
+        }
 
         if (m_isEditing && isSelected)
             showArrows();
@@ -404,9 +413,20 @@ namespace ITF
     void UIListOptionComponent::setEditingMode(bbool editing)
     {
         if (m_isEditing == editing)
+        {
+            Super::setEditingMode(editing);
+            applyValueColor(getIsSelected());
+            if (m_isEditing && getIsSelected())
+                showArrows();
+            else
+                hideAllArrows();
             return;
+        }
 
         m_isEditing = editing;
+
+        Super::setEditingMode(editing);
+        applyValueColor(getIsSelected());
 
         if (m_isEditing && getIsSelected())
             showArrows();
@@ -428,4 +448,3 @@ namespace ITF
     {
     }
 }
-

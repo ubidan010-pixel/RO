@@ -71,6 +71,7 @@ namespace ITF
     , m_labelColorsApplied(bfalse)
     , m_selectionInitialized(bfalse)
     , m_wasSelected(bfalse)
+    , m_isInEditingMode(bfalse)
     {
     }
 
@@ -91,6 +92,7 @@ namespace ITF
         m_labelColorsApplied = bfalse;
         m_selectionInitialized = bfalse;
         m_wasSelected = bfalse;
+        m_isInEditingMode = bfalse;
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -132,18 +134,33 @@ namespace ITF
         if (!labelComponent || !labelComponent->m_hasColorOverride)
             return;
 
-        if (isSelected)
-        {
-            labelComponent->m_overrideTextColor = labelComponent->m_overrideTextColorHighlighted;
-        }
-        else
+        if (!isSelected)
         {
             const UIComponent_Template* optionTemplate = static_cast<const UIComponent_Template*>(m_template);
             if (optionTemplate)
             {
                 labelComponent->m_overrideTextColor = optionTemplate->getTextColor();
             }
+            return;
         }
+
+        if (m_isInEditingMode)
+        {
+            labelComponent->m_overrideTextColor = labelComponent->m_overrideTextColorInactive;
+        }
+        else
+        {
+            labelComponent->m_overrideTextColor = labelComponent->m_overrideTextColorHighlighted;
+        }
+    }
+
+    void UIGameOptionComponent::setEditingMode(bbool editing)
+    {
+        if (m_isInEditingMode == editing)
+            return;
+
+        m_isInEditingMode = editing;
+        applyLabelColor(getIsSelected());
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////

@@ -38,6 +38,8 @@ namespace ITF
 
         ITF_INLINE Actor*       getLabelActor() const { return m_labelActor; }
 
+        virtual void            setEditingMode(bbool editing);
+
     protected:
         ITF_INLINE const class UIGameOptionComponent_Template* getTemplate() const;
         void                    applyLabelColors();
@@ -62,6 +64,7 @@ namespace ITF
         bbool                   m_labelColorsApplied;
         bbool                   m_selectionInitialized;
         bbool                   m_wasSelected;
+        bbool                   m_isInEditingMode;
     };
 
     class UIGameOptionComponent_Template : public UIComponent_Template

@@ -32,6 +32,10 @@
 #include "gameplay/components/UI/UIMenu.h"
 #endif
 
+#ifndef _ITF_UIGAMEOPTIONCOMPONENT_H_
+#include "gameplay/components/UI/UIGameOptionComponent.h"
+#endif
+
 #ifndef _ITF_UILISTOPTIONCOMPONENT_H_
 #include "gameplay/components/UI/UIListOptionComponent.h"
 #endif
@@ -542,9 +546,9 @@ namespace ITF
             }
         }
 
-        if (UIListOptionComponent* listOption = component->DynamicCast<UIListOptionComponent>(ITF_GET_STRINGID_CRC(UIListOptionComponent, 3621365669)))
+        if (UIGameOptionComponent* optionComponent = component->DynamicCast<UIGameOptionComponent>(ITF_GET_STRINGID_CRC(UIGameOptionComponent, 3059104641)))
         {
-            listOption->setEditingMode(btrue);
+            optionComponent->setEditingMode(btrue);
         }
     }
 
@@ -555,10 +559,10 @@ namespace ITF
 
         if (m_currentEditingComponent)
         {
-            UIListOptionComponent* listOption = m_currentEditingComponent->DynamicCast<UIListOptionComponent>(ITF_GET_STRINGID_CRC(UIListOptionComponent, 3621365669));
-            if (listOption)
+            UIGameOptionComponent* optionComponent = m_currentEditingComponent->DynamicCast<UIGameOptionComponent>(ITF_GET_STRINGID_CRC(UIGameOptionComponent, 3059104641));
+            if (optionComponent)
             {
-                listOption->setEditingMode(bfalse);
+                optionComponent->setEditingMode(bfalse);
             }
         }
 
