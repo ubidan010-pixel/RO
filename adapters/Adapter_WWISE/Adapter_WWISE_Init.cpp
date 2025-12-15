@@ -143,7 +143,7 @@ namespace	ITF
             m_usePackage = false;// for wwise bank mode
 
 			// load common packages SFX + localized
-	   if(m_usePackage) loadDefaultPackages();
+	        if(m_usePackage) loadDefaultPackages();
 
             // init some singletons
             Wwise::AkGameObjectFactory::s_createSingleton();
@@ -239,13 +239,13 @@ namespace	ITF
 		}
 
         SetupListeners();
-        AK::SoundEngine::RegisterGlobalCallback(&Adapter_WWISE::WwiseAudioThreadCallbackFunc,
-            AkGlobalCallbackLocation_BeginRender,
-            this);
+//         AK::SoundEngine::RegisterGlobalCallback(&Adapter_WWISE::WwiseAudioThreadCallbackFunc,
+//             AkGlobalCallbackLocation_BeginRender,
+//             this);
 
 
         // override Wwise log
-        AK_Monitor_SetLocalOutput(AK::Monitor::ErrorLevel_Error, ITF::Wwise::Hooks::logHook);
+         AK_Monitor_SetLocalOutput(AK::Monitor::ErrorLevel_Error, ITF::Wwise::Hooks::logHook);
 
 
 		return btrue;
@@ -342,21 +342,23 @@ namespace	ITF
 
         //create gameobject for listeners
 
-        AK_SoundEngine_RegisterGameObj(static_cast<AkGameObjectID>(ListenerID::eDefaultListener), "Listener_Default");
-        AK_SoundEngine_RegisterGameObj(static_cast<AkGameObjectID>(ListenerID::eCenterSpeakerListener), "Listener_Center_Speaker");
+//         AK_SoundEngine_RegisterGameObj(static_cast<AkGameObjectID>(ListenerID::eDefaultListener), "Listener_Default");
+//         AK_SoundEngine_RegisterGameObj(static_cast<AkGameObjectID>(ListenerID::eCenterSpeakerListener), "Listener_Center_Speaker");
 
 
         AkGameObjectID listenerIds[static_cast<u32>(ListenerID::eListenerCount)];
         for (AkGameObjectID i = 0; i < static_cast<u64>(ListenerID::eListenerCount); ++i)
         {
+            AK_SoundEngine_RegisterGameObj(i);
             listenerIds[i] = i;
         }
         // Make sure all listeners are created in Wwise (to prevent issues when calling e.g. SetListenerSpatialization).
-        AK::SoundEngine::SetDefaultListeners(listenerIds, static_cast<u32>(ListenerID::eListenerCount));
+        AK::SoundEngine::SetDefaultListeners(listenerIds, static_cast<u64>(ListenerID::eListenerCount));
 
         // Then register the default listener again, so that eDefaultListener is the only default listener.
         AkGameObjectID defaultListenerIds[] = { static_cast<AkGameObjectID>(ListenerID::eDefaultListener) };
-        AK::SoundEngine::SetDefaultListeners(defaultListenerIds, sizeof(defaultListenerIds));
+        AK::SoundEngine::SetDefaultListeners(defaultListenerIds, 1);
+
         AkVector orientFront, orientTop;
         orientFront.Zero();
         orientTop.Zero();
@@ -367,8 +369,12 @@ namespace	ITF
 
         InitPos.Set(Pos, orientFront, orientTop);;
 
-        AK_SoundEngine_SetPosition(static_cast<AkGameObjectID>(ITF::ListenerID::eDefaultListener), InitPos);
-        AK_SoundEngine_SetPosition(static_cast<AkGameObjectID>(ITF::ListenerID::eCenterSpeakerListener), InitPos);
+         AK_SoundEngine_SetPosition(static_cast<AkGameObjectID>(ITF::ListenerID::eDefaultListener), InitPos);
+         AK_SoundEngine_SetPosition(static_cast<AkGameObjectID>(ITF::ListenerID::eCenterSpeakerListener), InitPos);
+
+         if(m_isSpacialAudioActivated)
+            AK::SpatialAudio::RegisterListener(static_cast<AkGameObjectID>(ListenerID::eDefaultListener));
+
 
 
        // SetListenerPosition(ubiVector4::GetZero(), ListenerID::eCenterSpeakerListener);
@@ -528,17 +534,18 @@ namespace	ITF
 
         AK_Comm_Init(commSettings);
 #endif // AK_OPTIMIZED
-
-        AkSpatialAudioInitSettings settings;
-
-        res = AK::SpatialAudio::Init(settings);
-        if (res != AK_Success)
+        if (m_isSpacialAudioActivated)
         {
-            return false;
-        }
-        AK::SoundEngine::RegisterResourceMonitorCallback(ResourceMonitorDataCallback);
+            AkSpatialAudioInitSettings settings;
 
-        AK::Monitor::SetLocalOutput(AK::Monitor::ErrorLevel_All, LocalErrorCallback);
+            res = AK::SpatialAudio::Init(settings);
+            if (res != AK_Success)
+            {
+                m_isSpacialAudioActivated = false;
+                return false;
+            }
+        }
+
 
 		return true;
 	}

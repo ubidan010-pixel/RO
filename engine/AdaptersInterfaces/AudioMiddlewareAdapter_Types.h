@@ -109,7 +109,7 @@ namespace	ITF
 
     enum class ListenerID : u64
     {
-        eDefaultListener = 2, //start at 2 as global gao is 1
+        eDefaultListener = 0, 
         eCenterSpeakerListener,
         eListenerCount
     };

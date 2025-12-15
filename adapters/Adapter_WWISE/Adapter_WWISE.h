@@ -323,6 +323,7 @@ namespace	ITF
             SafeArray<const char*>							m_failedBank;
 			ITF_VECTOR<u32>								m_failedBankId;
 #endif
+            bool                                     m_isSpacialAudioActivated = false;
 
 	//
 	// -------------------------------------------------------------------------------------------------------------------

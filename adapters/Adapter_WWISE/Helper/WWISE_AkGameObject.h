@@ -4,6 +4,7 @@
 #include "AK/SoundEngine/Common/AkTypes.h"
 #include "core/math/vec3d.h"
 #include "engine/AdaptersInterfaces/AudioMiddlewareAdapter_Enums.h"
+#include "engine/AdaptersInterfaces/AudioMiddlewareAdapter_Types.h"
 
 #ifndef _ITF_BASEOBJECT_H_
 #include "core/baseObject.h"
@@ -49,7 +50,7 @@ namespace	ITF
 			    friend class	AkGameObjectFactory;
 
 	    public:
-                static const AkGameObjectID GLOBAL_GAME_OBJECT_ID = (AkGameObjectID) 1;
+                static const AkGameObjectID GLOBAL_GAME_OBJECT_ID = (AkGameObjectID)(ListenerID::eListenerCount);
                 static const char			*GLOBAL_GAME_OBJECT_NAME ;
 
                 static AkGameObjectID   s_getAkGameObjectID(const ObjectRef &_objectRef);
