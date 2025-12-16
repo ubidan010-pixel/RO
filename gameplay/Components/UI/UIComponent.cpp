@@ -95,6 +95,7 @@ namespace ITF
     , m_runtimeDepthRank(0)
     , m_isPressed(bfalse)
     , m_forceSelected(bfalse)
+    , m_gameOptionEditScale(1.0f)
     , m_animSizeRef(Vec2d::Zero)
     , m_hasColorOverride(bfalse)
     , m_overrideTextColor(Color::white())

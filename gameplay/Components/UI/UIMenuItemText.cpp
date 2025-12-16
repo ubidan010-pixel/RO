@@ -67,7 +67,8 @@ namespace ITF
 
             f32 initSize = getTemplate()->getInitialFontHeight();
             f32 finalScale = 1.f;
-            if (getIsSelected())
+            const bbool isSelected = getIsSelected();
+            if (isSelected)
             {
                 f32 select = getTemplate()->getFontHeightSelected();
                 if (select < 0)
@@ -84,7 +85,9 @@ namespace ITF
                 m_lineId
                 );
 
-            if (getIsSelected())
+            finalScale *= getGameOptionEditScale();
+
+            if (isSelected)
             {
                 f32 curScale = 1.0f + getTemplate()->getIdleSelectedScale() * f32_Sin(MTH_2PI * getTemplate()->getIdleSelectedPulseFrequency() * m_timer);
                 m_actor->setScale(Vec2d::One * curScale * finalScale);

@@ -42,6 +42,7 @@ namespace ITF
 
     protected:
         ITF_INLINE const class UIGameOptionComponent_Template* getTemplate() const;
+        void                    setGameOptionEditScale(UIComponent* component, bbool editing) const;
         void                    applyLabelColors();
         void                    applyLabelColor(bbool isSelected);
         virtual void            handleSelectionChanged(bbool isSelected);

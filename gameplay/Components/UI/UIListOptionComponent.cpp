@@ -186,11 +186,16 @@ namespace ITF
     ///////////////////////////////////////////////////////////////////////////////////////////
     void UIListOptionComponent::applyValueColor(bbool isSelected)
     {
-        if (!m_valueActor || !m_valueColorsApplied)
+        if (!m_valueActor)
             return;
 
         UIComponent* valueComponent = m_valueActor->GetComponent<UIComponent>();
-        if (!valueComponent || !valueComponent->m_hasColorOverride)
+        if (!valueComponent)
+            return;
+
+        setGameOptionEditScale(valueComponent, isSelected && m_isEditing);
+
+        if (!m_valueColorsApplied || !valueComponent->m_hasColorOverride)
             return;
 
         if (!isSelected)
@@ -205,7 +210,7 @@ namespace ITF
 
         if (m_isEditing)
         {
-            valueComponent->m_overrideTextColor = valueComponent->m_overrideTextColorInactive;
+            // valueComponent->m_overrideTextColor = valueComponent->m_overrideTextColorInactive;
         }
         else
         {

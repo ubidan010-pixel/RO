@@ -41,6 +41,8 @@ namespace ITF
 
     namespace
     {
+        static const f32 s_gameOptionEditScale = 1.1f;
+
         struct BackgroundPulseState
         {
             BackgroundPulseState()
@@ -127,11 +129,16 @@ namespace ITF
     ///////////////////////////////////////////////////////////////////////////////////////////
     void UIGameOptionComponent::applyLabelColor(bbool isSelected)
     {
-        if (!m_labelActor || !m_labelColorsApplied)
+        if (!m_labelActor)
             return;
 
         UIComponent* labelComponent = m_labelActor->GetComponent<UIComponent>();
-        if (!labelComponent || !labelComponent->m_hasColorOverride)
+        if (!labelComponent)
+            return;
+
+        setGameOptionEditScale(labelComponent, isSelected && m_isInEditingMode);
+
+        if (!m_labelColorsApplied || !labelComponent->m_hasColorOverride)
             return;
 
         if (!isSelected)
@@ -143,15 +150,18 @@ namespace ITF
             }
             return;
         }
+        labelComponent->m_overrideTextColor = labelComponent->m_overrideTextColorHighlighted;
+        // labelComponent->m_overrideTextColor = m_isInEditingMode
+        //     ? labelComponent->m_overrideTextColorInactive
+        //     : labelComponent->m_overrideTextColorHighlighted;
+    }
 
-        if (m_isInEditingMode)
-        {
-            labelComponent->m_overrideTextColor = labelComponent->m_overrideTextColorInactive;
-        }
-        else
-        {
-            labelComponent->m_overrideTextColor = labelComponent->m_overrideTextColorHighlighted;
-        }
+    void UIGameOptionComponent::setGameOptionEditScale(UIComponent* component, bbool editing) const
+    {
+        if (!component)
+            return;
+
+        component->m_gameOptionEditScale = editing ? s_gameOptionEditScale : 1.0f;
     }
 
     void UIGameOptionComponent::setEditingMode(bbool editing)

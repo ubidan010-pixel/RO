@@ -114,6 +114,7 @@ namespace ITF
         Color                   m_overrideTextColorHighlighted;
         Color                   m_overrideTextColorInactive;
     protected:
+        ITF_INLINE f32          getGameOptionEditScale() const { return m_gameOptionEditScale; }
 
         void                    updateRelativeAABB();
         void                    updateScreenOccupation();
@@ -174,6 +175,8 @@ namespace ITF
         bbool                   m_isPressed;
         i32                     m_runtimeDepthRank;
 
+    private:
+        f32                     m_gameOptionEditScale;
     };
 
     class UIComponent_Template : public TemplateActorComponent
