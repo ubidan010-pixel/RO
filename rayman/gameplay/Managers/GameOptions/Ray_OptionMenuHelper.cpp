@@ -68,6 +68,14 @@
 #include "engine/AdaptersInterfaces/InputAdapter.h"
 #endif
 
+#ifndef _ITF_EVENTMANAGER_H_
+#include "engine/events/EventManager.h"
+#endif
+
+#ifndef _ITF_EVENTS_H_
+#include "engine/events/Events.h"
+#endif
+
 #ifndef _ITF_GAMEMANAGER_H_
 #include "gameplay/Managers/GameManager.h"
 #endif
@@ -153,13 +161,18 @@ namespace ITF
           , m_showLanguageWarning(bfalse)
           , m_acceptActionPressed(bfalse)
           , m_cancelActionPressed(bfalse)
+          , m_eventListenerRegistered(bfalse)
           , m_lastPadType(InputAdapter::Pad_Invalid)
     {
         m_menuBaseName = OPTION_MENU_NAME;
     }
 
     Ray_OptionMenuHelper::~Ray_OptionMenuHelper()
-    = default;
+    {
+        unregisterEventListeners();
+        if (s_activeHelper == this)
+            s_activeHelper = nullptr;
+    }
 
     void Ray_OptionMenuHelper::activateForOptionMenu(MenuItemActionListener* mainListener)
     {
@@ -175,9 +188,113 @@ namespace ITF
         m_menu = UI_MENUMANAGER->getMenu(OPTION_MENU_NAME);
         if (!m_menu)
             return;
+
+        registerEventListeners();
         RAY_GAMEMANAGER->registerResolutionOption();
         onActivate();
         initializeMenuState();
+        updateVibrationOptionAvailability();
+    }
+
+    void Ray_OptionMenuHelper::registerEventListeners()
+    {
+        if (m_eventListenerRegistered)
+            return;
+
+        if (EVENTMANAGER)
+        {
+            EVENTMANAGER->registerEvent(ITF_GET_STRINGID_CRC(EventControllerStateChanged, 3543189344), this);
+            m_eventListenerRegistered = btrue;
+        }
+    }
+
+    void Ray_OptionMenuHelper::unregisterEventListeners()
+    {
+        if (!m_eventListenerRegistered)
+            return;
+
+        if (EVENTMANAGER)
+        {
+            EVENTMANAGER->unregisterEvent(ITF_GET_STRINGID_CRC(EventControllerStateChanged, 3543189344), this);
+        }
+
+        m_eventListenerRegistered = bfalse;
+    }
+
+    void Ray_OptionMenuHelper::updateVibrationOptionAvailability()
+    {
+        if (!m_isActive || !m_menu || !INPUT_ADAPTER)
+            return;
+
+        const bbool hasConnectedGamepad = INPUT_ADAPTER->getGamePadCount() > 0;
+        setOptionComponentDeactivated(OPTION_VIBRATIONS, !hasConnectedGamepad);
+    }
+
+    void Ray_OptionMenuHelper::onEvent(Event* _event)
+    {
+        if (!_event)
+            return;
+
+        if (_event->DynamicCast<EventControllerStateChanged>(ITF_GET_STRINGID_CRC(EventControllerStateChanged, 3543189344)))
+        {
+            updateVibrationOptionAvailability();
+        }
+    }
+
+    void Ray_OptionMenuHelper::setOptionComponentDeactivated(const StringID& optionId, bbool deactivated)
+    {
+        if (!m_menu || !optionId.isValid())
+            return;
+
+        UIComponent* component = findOptionComponent(optionId);
+        if (!component)
+            return;
+
+        if (deactivated && isEditing() && (component == m_currentEditingComponent || optionId == m_currentEditingOption))
+        {
+            exitEditMode();
+        }
+
+        const bbool shouldBeActive = !deactivated;
+        component->setActive(shouldBeActive);
+        if (deactivated || (isEditing() && component != m_currentEditingComponent))
+            component->setCanBeSelected(bfalse);
+        else
+            component->setCanBeSelected(btrue);
+
+        if (UIGameOptionComponent* optionComponent = component->DynamicCast<UIGameOptionComponent>(ITF_GET_STRINGID_CRC(UIGameOptionComponent, 3059104641)))
+        {
+            Actor* labelActor = optionComponent->getLabelActor();
+            if (labelActor)
+            {
+                if (UIComponent* labelComponent = labelActor->GetComponent<UIComponent>())
+                {
+                    labelComponent->setActive(shouldBeActive);
+                }
+            }
+
+            if (UIListOptionComponent* listOption = component->DynamicCast<UIListOptionComponent>(ITF_GET_STRINGID_CRC(UIListOptionComponent, 3621365669)))
+            {
+                Actor* valueActor = listOption->getValueActor();
+                if (valueActor)
+                {
+                    if (UIComponent* valueComponent = valueActor->GetComponent<UIComponent>())
+                    {
+                        valueComponent->setActive(shouldBeActive);
+                    }
+                }
+
+                if (deactivated)
+                {
+                    listOption->setEditingMode(bfalse);
+                }
+            }
+        }
+
+        if (deactivated)
+        {
+            ensureValidSelection();
+        }
     }
 
     void Ray_OptionMenuHelper::onActivate()
@@ -382,6 +499,7 @@ namespace ITF
 
     void Ray_OptionMenuHelper::onClose()
     {
+        unregisterEventListeners();
         exitEditMode();
         m_menuState = MenuState_Navigate;
         m_currentEditingOption = StringID::Invalid;
@@ -570,7 +688,7 @@ namespace ITF
         {
             if (!entry.first)
                 continue;
-            entry.first->setCanBeSelected(entry.second);
+            entry.first->setCanBeSelected(entry.second && entry.first->getActive());
         }
         m_previousSelectionStates.clear();
 
@@ -623,6 +741,55 @@ namespace ITF
 
     void Ray_OptionMenuHelper::ensureValidSelection() const
     {
+        if (!m_menu || !UI_MENUMANAGER)
+            return;
+
+        UIComponent* selected = m_menu->getUIComponentSelected();
+        const auto isSelectableComponent = [](UIComponent* component) -> bbool
+        {
+            if (!component || !component->getActive() || !component->getCanBeSelected())
+                return bfalse;
+
+            Actor* actor = component->GetActor();
+            return actor && actor->isEnabled();
+        };
+
+        if (isSelectableComponent(selected))
+            return;
+
+        UIComponent* candidate = nullptr;
+
+        const ObjectRefList& componentsList = m_menu->getUIComponentsList();
+        for (u32 i = 0; i < componentsList.size(); ++i)
+        {
+            UIComponent* comp = UIMenuManager::getUIComponent(componentsList[i]);
+            if (!isSelectableComponent(comp))
+                continue;
+
+            if (comp->getIsDefaultSelected())
+            {
+                candidate = comp;
+                break;
+            }
+        }
+
+        if (!candidate)
+        {
+            for (u32 i = 0; i < componentsList.size(); ++i)
+            {
+                UIComponent* comp = UIMenuManager::getUIComponent(componentsList[i]);
+                if (isSelectableComponent(comp))
+                {
+                    candidate = comp;
+                    break;
+                }
+            }
+        }
+
+        if (candidate)
+        {
+            UI_MENUMANAGER->applySelectionChange(m_menu, selected, candidate);
+        }
     }
 
     StringID Ray_OptionMenuHelper::getOptionIdForComponent(UIComponent* component) const
@@ -1121,11 +1288,25 @@ namespace ITF
         if (!navigationStart)
             navigationStart = current;
 
-        UIComponent* target = getNavigationTarget(navigationStart, direction);
-        if (!target || target == navigationStart || !target->getActive() || !target->getCanBeSelected())
-            return ObjectRef::InvalidRef;
+        UIComponent* target = nullptr;
+        UIComponent* navigationCursor = navigationStart;
+        for (size_t attempt = 0; attempt < s_optionNavigationEntryCount; ++attempt)
+        {
+            UIComponent* candidate = getNavigationTarget(navigationCursor, direction);
+            if (!candidate || candidate == navigationStart)
+                break;
 
-        return target->getUIref();
+            Actor* candidateActor = candidate->GetActor();
+            if (candidate->getActive() && candidate->getCanBeSelected() && candidateActor && candidateActor->isEnabled())
+            {
+                target = candidate;
+                break;
+            }
+
+            navigationCursor = candidate;
+        }
+
+        return target ? target->getUIref() : ObjectRef::InvalidRef;
     }
 
     void Ray_OptionMenuHelper::UpdateResolutionText()

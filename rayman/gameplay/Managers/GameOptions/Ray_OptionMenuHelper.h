@@ -16,6 +16,10 @@
 #include "engine/AdaptersInterfaces/InputAdapter.h"
 #endif
 
+#ifndef _ITF_EVENTLISTENER_H_
+#include "engine/events/IEventListener.h"
+#endif
+
 #ifndef _ITF_GAMEPLAYTYPES_H_
 #include "gameplay/GameplayTypes.h"
 #endif
@@ -41,7 +45,7 @@ namespace ITF
         static const f32 FLOAT_EPSILON = 1e-4f;
     }
 
-    class Ray_OptionMenuHelper : public Ray_BaseMenuHelper
+    class Ray_OptionMenuHelper : public Ray_BaseMenuHelper, public IEventListener
     {
     public:
         enum EMenuState
@@ -53,8 +57,10 @@ namespace ITF
         Ray_OptionMenuHelper();
         virtual ~Ray_OptionMenuHelper();
         void activateForOptionMenu(MenuItemActionListener* mainListener);
+        void setOptionComponentDeactivated(const StringID& optionId, bbool deactivated);
         void onMenuItemAction(UIComponent* _UIComponent) override;
         void UpdateMenuOnSelectionChange(UIComponent* uiComponent, bbool isSelected) override;
+        void onEvent(Event* _event) override;
         void updateTimer();
         ObjectRef getNavigationOverrideTarget(UIComponent* current, f32 joyX, f32 joyY) override;
 
@@ -124,6 +130,10 @@ namespace ITF
         };
         UIComponent* getNavigationTarget(UIComponent* current, ENavigationDirection direction) const;
 
+        void registerEventListeners();
+        void unregisterEventListeners();
+        void updateVibrationOptionAvailability();
+
         EMenuState m_menuState;
         StringID   m_currentEditingOption;
         UIComponent* m_currentEditingComponent;
@@ -148,6 +158,7 @@ namespace ITF
         bbool m_showLanguageWarning;
         bbool m_acceptActionPressed;
         bbool m_cancelActionPressed;
+        bbool m_eventListenerRegistered;
         mutable InputAdapter::PadType m_lastPadType;
 
         static Ray_OptionMenuHelper* s_activeHelper;
