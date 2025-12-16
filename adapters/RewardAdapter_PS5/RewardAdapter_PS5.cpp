@@ -102,6 +102,8 @@ namespace ITF
         addReward(s_REWARD_RAY_BLUE_BARON, 34);
         addReward(s_REWARD_RAY_SURVIVEDPIRANHAPOND, 35);
         addReward(s_REWARD_RAY_BACK_AT_YOU, 36);
+        addReward(s_REWARD_RAY_CLEAR_SIGHTED, 37);
+        addReward(s_REWARD_RAY_EAGLE_EYED, 38);
     }
 
     void RewardAdapter_PS5::update()

@@ -49,13 +49,11 @@ namespace ITF
         Actor*                  m_labelActor;
         Actor*                  m_backgroundActor;
         Vec2d                   m_backgroundOriginalScale;
-        f32                     m_backgroundTimer;
         bbool                   m_backgroundScaleInitialized;
 
     private:
         virtual void                    clear();
         Actor*                  resolveActorFromPath(const String8& path) const;
-        bbool                   shouldKeepBackgroundPulseOnDeselection() const;
         void                    resolveLabelActor();
         void                    resolveBackgroundActor();
         void                    updateBackgroundSelection(bbool isSelected);
@@ -66,6 +64,7 @@ namespace ITF
         bbool                   m_selectionInitialized;
         bbool                   m_wasSelected;
         bbool                   m_isInEditingMode;
+        bbool                   m_backgroundHighlighted;
     };
 
     class UIGameOptionComponent_Template : public UIComponent_Template
