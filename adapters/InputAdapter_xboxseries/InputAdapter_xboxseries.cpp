@@ -29,12 +29,13 @@ namespace ITF
         {
             bbool wasConnected = isPadConnected(padIdx);
             bbool isConnected = m_padsHandler.isPadConnected(padIdx);
+            PadType padType = isConnected ? m_padsHandler.getPadType(padIdx) : Pad_Invalid;
             
             if (wasConnected != isConnected)
             {
                 if (isConnected)
                 {
-                    OnControllerConnected(padIdx);
+                    OnControllerConnected(padIdx, U32_INVALID, 0, padType);
                 }
                 else
                 {
@@ -43,6 +44,7 @@ namespace ITF
             }
             
             setPadConnected(padIdx, isConnected);
+            setPadType(padIdx, padType);
         }
     }
 
