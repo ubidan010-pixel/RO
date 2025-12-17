@@ -1131,14 +1131,14 @@ namespace ITF
         switch (pcMode)
         {
         case PCControlMode_Keyboard:
-            useKeyboardIcons = true;
+            useKeyboardIcons = (_playerIndex == 0);
             break;
         case PCControlMode_Controller:
             useKeyboardIcons = false;
             break;
         case PCControlMode_Hybrid:
         default:
-            useKeyboardIcons = (INPUT_ADAPTER->getLastUsedInputDevice(_playerIndex) == InputDevice_Keyboard);
+            useKeyboardIcons = (_playerIndex == 0) && (INPUT_ADAPTER->getLastUsedInputDevice(_playerIndex) == InputDevice_Keyboard);
             break;
         }
 
@@ -1257,14 +1257,14 @@ namespace ITF
         switch (pcMode)
         {
         case PCControlMode_Keyboard:
-            useKeyboardIcons = true;
+            useKeyboardIcons = (_playerIndex == 0);
             break;
         case PCControlMode_Controller:
             useKeyboardIcons = false;
             break;
         case PCControlMode_Hybrid:
         default:
-            useKeyboardIcons = (INPUT_ADAPTER->getLastUsedInputDevice(_playerIndex) == InputDevice_Keyboard);
+            useKeyboardIcons = (_playerIndex == 0) && (INPUT_ADAPTER->getLastUsedInputDevice(_playerIndex) == InputDevice_Keyboard);
             break;
         }
 
