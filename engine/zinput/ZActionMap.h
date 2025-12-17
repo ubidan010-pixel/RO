@@ -28,7 +28,6 @@ namespace ITF
             {
             ITF_MemSet(m_timer, 0, sizeof(m_timer));
             ITF_MemSet(m_match, 0, sizeof(m_match));
-            ITF_MemSet(m_axisRangeActive, 0, sizeof(m_axisRangeActive));
         }
         StringID                    m_control;
         u32                         m_translatedControl;        // Optimization param
@@ -37,7 +36,6 @@ namespace ITF
         SInputInfo::EInputQuery     m_translatedQuery;          // Optimization param
 
         bbool                       m_match[ACTIONMAP_MAX_PLAYER];        // return
-        bbool                       m_axisRangeActive[ACTIONMAP_MAX_PLAYER]; 
         Vec2d                       m_axisRange;
         f32                         m_threshold;
         f32                         m_delay;
