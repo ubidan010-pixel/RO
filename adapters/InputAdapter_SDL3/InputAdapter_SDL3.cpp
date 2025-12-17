@@ -32,6 +32,13 @@ namespace ITF
     static constexpr f32 INPUT_DEADZONE = 0.2f;
     static f64 s_lastLeftMouseClick = 0.;
 
+#if defined(ITF_WINDOWS)
+    ITF_INLINE u32 GetFirstAssignableGamepadSlot(PCControlMode mode)
+    {
+        return (mode == PCControlMode_Keyboard) ? 1u : 0u;
+    }
+#endif
+
     ITF_INLINE i32 TranslateSDLKey(SDL_Keycode keycode)
     {
         switch (keycode)
@@ -1207,7 +1214,9 @@ namespace ITF
     {
         m_sdlInput.updateInputState();
 
-        bbool share = IsKeyboardControllerSharingEnabled();
+        const PCControlMode controlMode = GetPCControlMode();
+        const u32 firstGamepadSlot = GetFirstAssignableGamepadSlot(controlMode);
+        const bbool keyboardEnabled = IsKeyboardMouseEnabled();
         bbool connectedGamepad[JOY_MAX_COUNT];
         for (u32 i = 0; i < JOY_MAX_COUNT; ++i)
         {
@@ -1240,34 +1249,87 @@ namespace ITF
             if (alreadyMapped)
                 continue;
 
-            if (share)
+            for (u32 s = firstGamepadSlot; s < JOY_MAX_COUNT; ++s)
             {
-                if (m_slotGamepad[0] == -1)
+                if (m_slotGamepad[s] == -1)
                 {
-                    m_slotGamepad[0] = static_cast<i32>(i);
-                }
-                else
-                {
-                    for (u32 s = 1; s < JOY_MAX_COUNT; ++s)
-                    {
-                        if (m_slotGamepad[s] == -1)
-                        {
-                            m_slotGamepad[s] = static_cast<i32>(i);
-                            break;
-                        }
-                    }
+                    m_slotGamepad[s] = static_cast<i32>(i);
+                    break;
                 }
             }
-            else
+        }
+
+        if (firstGamepadSlot == 0 && m_slotGamepad[0] == -1)
+        {
+            // Ensure Player 1 always receives the first available controller in Controller/Hybrid modes.
+            i32 mapped[JOY_MAX_COUNT];
+            u32 mappedCount = 0;
+            for (u32 slot = 0; slot < JOY_MAX_COUNT; ++slot)
             {
-                for (u32 s = 1; s < JOY_MAX_COUNT; ++s)
+                const i32 idx = m_slotGamepad[slot];
+                if (idx < 0)
+                    continue;
+
+                bbool duplicate = bfalse;
+                for (u32 j = 0; j < mappedCount; ++j)
                 {
-                    if (m_slotGamepad[s] == -1)
+                    if (mapped[j] == idx)
                     {
-                        m_slotGamepad[s] = static_cast<i32>(i);
+                        duplicate = btrue;
                         break;
                     }
                 }
+                if (!duplicate && mappedCount < JOY_MAX_COUNT)
+                {
+                    mapped[mappedCount++] = idx;
+                }
+            }
+
+            for (u32 slot = 0; slot < JOY_MAX_COUNT; ++slot)
+            {
+                m_slotGamepad[slot] = -1;
+            }
+
+            for (u32 i = 0; i < mappedCount && i < JOY_MAX_COUNT; ++i)
+            {
+                m_slotGamepad[i] = mapped[i];
+            }
+        }
+        else if (firstGamepadSlot == 1 && m_slotGamepad[0] != -1)
+        {
+            // In Keyboard mode, slot 0 is reserved for the keyboard; shift mapped controllers to 1..
+            i32 mapped[JOY_MAX_COUNT];
+            u32 mappedCount = 0;
+            for (u32 slot = 0; slot < JOY_MAX_COUNT; ++slot)
+            {
+                const i32 idx = m_slotGamepad[slot];
+                if (idx < 0)
+                    continue;
+
+                bbool duplicate = bfalse;
+                for (u32 j = 0; j < mappedCount; ++j)
+                {
+                    if (mapped[j] == idx)
+                    {
+                        duplicate = btrue;
+                        break;
+                    }
+                }
+                if (!duplicate && mappedCount < JOY_MAX_COUNT)
+                {
+                    mapped[mappedCount++] = idx;
+                }
+            }
+
+            for (u32 slot = 0; slot < JOY_MAX_COUNT; ++slot)
+            {
+                m_slotGamepad[slot] = -1;
+            }
+
+            u32 targetSlot = 1;
+            for (u32 i = 0; i < mappedCount && targetSlot < JOY_MAX_COUNT; ++i, ++targetSlot)
+            {
+                m_slotGamepad[targetSlot] = mapped[i];
             }
         }
         for (u32 t = 0; t < JOY_MAX_COUNT; ++t)
@@ -1346,10 +1408,13 @@ namespace ITF
         if (m_slotGamepad[0] == -1)
         {
             m_connectedPlayers[0] = ePlaying;
-            if (share)
+            if (keyboardEnabled)
             {
                 setPadType(0, Pad_Keyboard);
-                setLastUsedInputDevice(0, InputDevice_Keyboard);
+            }
+            else
+            {
+                setPadType(0, Pad_Invalid);
             }
         }
         setPadConnected(0, btrue);
@@ -1357,27 +1422,56 @@ namespace ITF
 
     void InputAdapter_SDL3::OnPCControlModeChanged(PCControlMode previous, PCControlMode current)
     {
-        ITF_UNUSED(previous)
+        const u32 previousFirstSlot = GetFirstAssignableGamepadSlot(previous);
+        const u32 currentFirstSlot = GetFirstAssignableGamepadSlot(current);
 
-        if (current != PCControlMode_Keyboard)
-            return;
-
-        m_slotGamepad[0] = -1;
-
-        for (u32 axis = 0; axis < JOY_MAX_AXES; ++axis)
+        if (previousFirstSlot != currentFirstSlot)
         {
-            m_axes[0][axis] = 0.0f;
+            // Rebuild controller mapping to reflect the new slot layout.
+            // Keyboard mode reserves slot 0 for the keyboard, Controller/Hybrid modes use slot 0 for the first gamepad.
+            i32 mapped[JOY_MAX_COUNT];
+            u32 mappedCount = 0;
+            for (u32 slot = 0; slot < JOY_MAX_COUNT; ++slot)
+            {
+                const i32 idx = m_slotGamepad[slot];
+                if (idx < 0)
+                    continue;
+
+                bbool duplicate = bfalse;
+                for (u32 j = 0; j < mappedCount; ++j)
+                {
+                    if (mapped[j] == idx)
+                    {
+                        duplicate = btrue;
+                        break;
+                    }
+                }
+                if (!duplicate && mappedCount < JOY_MAX_COUNT)
+                {
+                    mapped[mappedCount++] = idx;
+                }
+            }
+
+            for (u32 slot = 0; slot < JOY_MAX_COUNT; ++slot)
+            {
+                m_slotGamepad[slot] = -1;
+            }
+
+            u32 targetSlot = currentFirstSlot;
+            for (u32 i = 0; i < mappedCount && targetSlot < JOY_MAX_COUNT; ++i, ++targetSlot)
+            {
+                m_slotGamepad[targetSlot] = mapped[i];
+            }
         }
 
-        for (u32 button = 0; button < JOY_MAX_BUT; ++button)
+        // Ensure slot 0 remains usable for keyboard-based Player 1 when keyboard is enabled.
+        if (IsKeyboardMouseEnabled() && m_slotGamepad[0] == -1)
         {
-            m_buttons[0][button] = Released;
+            setPadType(0, Pad_Keyboard);
+            m_connectedPlayers[0] = ePlaying;
+            setPadConnected(0, btrue);
+            setLastUsedInputDevice(0, InputDevice_Keyboard);
         }
-
-        setPadType(0, Pad_Keyboard);
-        m_connectedPlayers[0] = ePlaying;
-        setPadConnected(0, btrue);
-        setLastUsedInputDevice(0, InputDevice_Keyboard);
     }
 
     const char* InputAdapter_SDL3::GetControllerTypeName(u32 padIndex) const

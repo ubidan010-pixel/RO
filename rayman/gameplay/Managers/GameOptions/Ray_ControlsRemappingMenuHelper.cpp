@@ -160,6 +160,7 @@ namespace ITF
           , m_controllerTypeInputTimer(0.0f)
           , m_controllerTypeFirstPressTimer(0.0f)
           , m_controllerTypeFirstPressed(btrue)
+          , m_controllerTypeChangeCooldown(0.0f)
 #endif
     {
         m_menuBaseName = "controlremapping";
@@ -195,6 +196,7 @@ namespace ITF
         m_controllerTypeInputTimer = 0.0f;
         m_controllerTypeFirstPressTimer = 0.0f;
         m_controllerTypeFirstPressed = btrue;
+        m_controllerTypeChangeCooldown = 0.0f;
         m_previousSelectionStates.clear();
 #endif
         m_mainListener = mainListener;
@@ -623,6 +625,7 @@ namespace ITF
         m_controllerTypeInputTimer = 0.0f;
         m_controllerTypeFirstPressTimer = 0.0f;
         m_controllerTypeFirstPressed = btrue;
+        m_controllerTypeChangeCooldown = 0.0f;
         m_previousSelectionStates.clear();
 
         if (m_menu)
@@ -683,6 +686,7 @@ namespace ITF
         m_controllerTypeInputTimer = 0.0f;
         m_controllerTypeFirstPressTimer = 0.0f;
         m_controllerTypeFirstPressed = btrue;
+        m_controllerTypeChangeCooldown = 0.0f;
         LOG("[ControlsRemapping] Exited controller type edit mode\n");
     }
 
@@ -718,6 +722,7 @@ namespace ITF
 
         RAY_GAMEMANAGER->setPCControlMode(candidateIndex);
         updateControllerTypeDisplay(listComponent, candidateIndex);
+        m_controllerTypeChangeCooldown = ControlsRemappingConstants::REMAPPING_COOLDOWN;
         LOG("[ControlsRemapping] Controller type changed to: %s\n",
             RAY_GAMEMANAGER->getPCControlModeDisplayName(candidateIndex));
     }
@@ -787,6 +792,12 @@ namespace ITF
 
         m_controllerTypeFirstPressTimer += deltaTime;
         m_controllerTypeInputTimer += deltaTime;
+        if (m_controllerTypeChangeCooldown > 0.0f)
+        {
+            m_controllerTypeChangeCooldown -= deltaTime;
+            if (m_controllerTypeChangeCooldown < 0.0f)
+                m_controllerTypeChangeCooldown = 0.0f;
+        }
     }
 
     bbool Ray_ControlsRemappingMenuHelper::processEditingInput(UIComponent* component, const StringID& action)
@@ -798,9 +809,23 @@ namespace ITF
         if (!listComponent || listComponent != m_editingControllerTypeComponent)
             return bfalse;
 
+        if (UI_MENUMANAGER)
+        {
+            u32 inputPlayer = UI_MENUMANAGER->getCurrentInputPlayer();
+            if (inputPlayer != U32_INVALID && inputPlayer != 0)
+            {
+                return btrue;
+            }
+        }
+
         if (action == input_actionID_Back)
         {
             exitControllerTypeEditMode();
+            return btrue;
+        }
+
+        if (m_controllerTypeChangeCooldown > 0.0f)
+        {
             return btrue;
         }
 
@@ -822,26 +847,8 @@ namespace ITF
         }
         if (action == input_actionID_LeftHold || action == input_actionID_RightHold)
         {
-            i32 dir = (action == input_actionID_LeftHold) ? -1 : 1;
-
-            if (m_controllerTypeFirstPressed)
-            {
-                if (m_controllerTypeFirstPressTimer > ControlsRemappingConstants::CONTROLLER_TYPE_FIRST_PRESS_DELAY)
-                {
-                    m_controllerTypeFirstPressed = bfalse;
-                    m_controllerTypeFirstPressTimer = 0.0f;
-                    m_controllerTypeInputTimer = 0.0f;
-                    adjustControllerType(listComponent, dir);
-                }
-            }
-            else
-            {
-                if (m_controllerTypeInputTimer > ControlsRemappingConstants::CONTROLLER_TYPE_REPEAT_RATE)
-                {
-                    m_controllerTypeInputTimer = 0.0f;
-                    adjustControllerType(listComponent, dir);
-                }
-            }
+            // Controller type is a 3-state option; repeating while held is too easy to overshoot (wrap back to the same value).
+            // Consume hold actions to avoid rapid cycling, keep changes on discrete Left/Right presses only.
             return btrue;
         }
 

@@ -117,6 +117,19 @@ namespace ITF
     void UIProfileSlotComponent::Update(f32 _deltaTime)
     {
         Super::Update(_deltaTime);
+
+        if (!INPUT_ADAPTER || m_playerIndex >= JOY_MAX_COUNT)
+            return;
+
+        const bbool isConnectedNow = INPUT_ADAPTER->isPadConnected(m_playerIndex);
+        const InputAdapter::PadType padTypeNow = INPUT_ADAPTER->getPadType(m_playerIndex);
+
+        if (isConnectedNow != m_isControllerConnected || padTypeNow != m_controllerType)
+        {
+            m_isControllerConnected = isConnectedNow;
+            m_controllerType = padTypeNow;
+            updateAllVisibility();
+        }
     }
 
     void UIProfileSlotComponent::onActorClearComponents()

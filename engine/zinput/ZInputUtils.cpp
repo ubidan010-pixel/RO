@@ -84,17 +84,25 @@ namespace ITF
 
     void InputUtils::UpdateActionInput( ZInput& input, const struct SInputInfo& info, u32 deviceID )
     {
+        input.m_translatedQuery = TranslateQuery(input.m_query);
+
         // If the input is an axis, we do not want to set the flag as TRUE, 
         // when the value of joystick is too low
         if ( info.m_type == SInputInfo::INPUTTYPE_AXIS && input.m_axisRange != Vec2d::Zero )
         {
-            if ( info.m_axisInfo.m_axis <= input.m_axisRange.m_x
-                || info.m_axisInfo.m_axis >= input.m_axisRange.m_y) return; 
-        }        
+            const bbool inRange = ( info.m_axisInfo.m_axis > input.m_axisRange.m_x )
+                               && ( info.m_axisInfo.m_axis < input.m_axisRange.m_y );
 
-        //Need a fix
-        //if(input.m_translatedQuery == SInputInfo::QUERY_UNSET)
-            input.m_translatedQuery = TranslateQuery(input.m_query);
+            if ( input.m_translatedQuery == SInputInfo::QUERY_PRESS )
+            {
+                input.m_match[deviceID] = inRange && !input.m_axisRangeActive[deviceID] && info.m_dirty;
+                input.m_axisRangeActive[deviceID] = inRange;
+                return;
+            }
+
+            if ( !inRange )
+                return;
+        }        
 
         if ( input.m_translatedQuery == SInputInfo::QUERY_AXIS )
         {
@@ -158,4 +166,3 @@ namespace ITF
         }
     }
 };
-
