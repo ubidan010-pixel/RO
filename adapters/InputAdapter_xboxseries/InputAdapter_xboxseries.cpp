@@ -3,6 +3,7 @@
 
 #include "adapters/InputAdapter_xboxseries/InputAdapter_xboxseries.h"
 #include "core/utility.h"
+#include "engine/AdaptersInterfaces/AudioMiddlewareAdapter.h"
 
 namespace ITF
 {
@@ -35,7 +36,8 @@ namespace ITF
             {
                 if (isConnected)
                 {
-                    OnControllerConnected(padIdx, U32_INVALID, 0, padType);
+                    u32 deviceID = AUDIO_ADAPTER->getDeviceId(m_padsHandler.getDevice(padIdx));
+                    OnControllerConnected(padIdx,deviceID,0,Pad_X360);
                 }
                 else
                 {

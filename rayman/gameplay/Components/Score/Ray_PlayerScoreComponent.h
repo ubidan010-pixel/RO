@@ -26,6 +26,7 @@ namespace ITF
         void ShowSpeedUpContextIcon(bbool _show);
         virtual void        Update( f32 _dt );
         virtual void        onEvent(Event * _event);
+        void initLumSpeedFactor(u32 _playerNum);
         virtual void        Draw();
 
         void setPlayer(u32 _playerIndex);
@@ -49,6 +50,8 @@ namespace ITF
         u32 m_playerIndex;
         bbool m_speedUpButtonPressed;
         bbool m_showSpeedUpContextIcon;
+        f32 m_speedFactor;
+        u32 m_lastReleaseIndex;
 
         struct ParticleData
         {
@@ -68,7 +71,7 @@ namespace ITF
 		bbool					m_releasingFinish;
 
         f32 m_timer;
-        u32 m_arrivedIndex;
+        u32  m_arrivedIndex;
         u32 m_releasedIndex;
         u32 m_numLums;
 		u32 m_countPlayerActive;

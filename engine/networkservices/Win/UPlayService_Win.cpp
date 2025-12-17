@@ -23,6 +23,7 @@ namespace ITF
         , m_isOverlayActive(bfalse)
         , m_user(NULL)
         , m_userEmail(NULL)
+        , m_achievementList(NULL)
     {
     }
 
@@ -110,6 +111,13 @@ namespace ITF
             return UPC_InitResult_Failed + 400;
         }
 
+        result = UPC_AchievementListGet(m_Context, nullptr, 0, &m_achievementList, onAchievementsListGet, this);
+        if (result <= 0)
+        {
+            LOG("[UPlay] UPC_AchievementListGet failed: %d", result);
+            return UPC_InitResult_Failed + 500;
+        }
+
         LOG("[UPlay] initialized OK");
 
         m_isInitialized = btrue;
@@ -120,6 +128,7 @@ namespace ITF
     void UPlayService_Win::onUserGet(UPC_int32 aResult, void* aData)
     {
         // no op, but UPC_UserGet would fail without cb.
+        UPlayService_Win* pThis = (UPlayService_Win*)aData;
     }
 
     void UPlayService_Win::showOverlayCallback(UPC_Event* inEvent, void* inData)
@@ -238,6 +247,67 @@ namespace ITF
         }
 
         return String8(m_userEmail);
+    }
+
+    bbool UPlayService_Win::isAchievementLocked(u32 _id)
+    {
+        if (!m_isInitialized || m_Context == NULL)
+            return btrue;
+
+        if (_id >= m_achievementLocked.size())
+            return btrue;
+
+        return m_achievementLocked[_id];
+    }
+
+    bbool UPlayService_Win::unlockAchievement(u32 _id)
+    {
+        if (!m_isInitialized || m_Context == NULL)
+            return bfalse;
+
+        if (_id >= m_achievementLocked.size())
+            return btrue;
+
+        // already unlocked
+        if (m_achievementLocked[_id] == bfalse)
+            return btrue;
+
+        int ret = UPC_AchievementUnlock(m_Context, _id, NULL, NULL);
+        if (ret == UPC_Result_Ok)
+        {
+            m_achievementLocked[_id] = bfalse;
+            return btrue;
+        }
+        else
+        {
+            LOG("[UPlay] UPC_AchievementUnlock failed with %d", ret);
+        }
+
+        return bfalse;
+    }
+
+    void UPlayService_Win::onAchievementsListGet(UPC_int32 aResult, void* aData)
+    {
+        UPlayService_Win* pThis = (UPlayService_Win*)aData;
+        if (!pThis || aResult != UPC_Result_Ok)
+        {
+            LOG("[UPlay] UPC_AchievementListGet failed with %d", aResult);
+            return;
+        }
+
+        ITF_ASSERT(pThis->m_achievementList != nullptr);
+        ITF_ASSERT(pThis->m_achievementList->count != 0);
+
+        pThis->m_achievementLocked.resize(pThis->m_achievementList->count);
+        for (u32 i = 0; i < pThis->m_achievementList->count; i++)
+        {
+            auto pA = pThis->m_achievementList->list[i];
+            bbool locked = pA->completed == UPC_FALSE;
+            LOG("[UPlay] Reward %d %s locked? %d", pA->id, pA->nameUtf8, locked);
+        }
+
+        if (pThis->m_Context && pThis->m_achievementList)
+            UPC_AchievementListFree(pThis->m_Context, pThis->m_achievementList);
     }
 
 } // namespace ITF

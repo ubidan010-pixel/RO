@@ -1,7 +1,6 @@
 #include "precompiled_engine.h"
 #include "engine/video/webmDecoder.h"
 
-#include <core/memory/UniquePtr.h>
 #include <vpx/vp8dx.h>
 #include <vpx/vpx_decoder.h>
 

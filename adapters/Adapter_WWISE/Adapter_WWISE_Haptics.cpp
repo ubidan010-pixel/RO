@@ -137,7 +137,7 @@ namespace ITF
             return bfalse;
         }
     }
-#ifdef ITF_WINDOWS
+#if defined(ITF_WINDOWS)
     u32 Adapter_WWISE::getDeviceId(IMMDevice* _imDevice)
     {
         if (_imDevice == nullptr)
@@ -148,6 +148,11 @@ namespace ITF
         {
             return AK::GetDeviceID(_imDevice);
         }
+    }
+#elif defined(ITF_XBOX_SERIES)
+    u32 Adapter_WWISE::getDeviceId(IGameInputDevice* _device)
+    {
+        return AK::SoundEngine::GetGameInputDeviceID(_device);
     }
 #endif
 }

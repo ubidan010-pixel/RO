@@ -62,7 +62,9 @@ namespace ITF
           , m_countPlayerActive(0)
           , m_factorPlayer(0.0f)
           , m_speedUpButtonPressed(bfalse)
-        ,m_showSpeedUpContextIcon(bfalse)
+          , m_showSpeedUpContextIcon(bfalse)
+          , m_speedFactor(1.0f)
+          ,m_lastReleaseIndex(0)
     {
         // none
     }
@@ -112,14 +114,14 @@ namespace ITF
     {
         if (_show)
         {
-            CONTEXTICONSMANAGER->show(ContextIcon_SpeedUp,ContextIcon_Invalid);
+            CONTEXTICONSMANAGER->show(ContextIcon_SpeedUp, ContextIcon_Invalid);
         }
         else
         {
             CONTEXTICONSMANAGER->hide();
         }
-
     }
+
     void Ray_PlayerScoreComponent::Update(f32 _dt)
     {
         Super::Update(_dt);
@@ -140,7 +142,6 @@ namespace ITF
                     ShowSpeedUpContextIcon(btrue);
                     m_showSpeedUpContextIcon = btrue;
                 }
-                HandleSpeedUpQoL();
                 u32 arrivedThisFrame = updateParticles(_dt);
 
                 //add lums to guage
@@ -148,10 +149,7 @@ namespace ITF
                 addLum.setSender(m_actor->getRef());
                 addLum.setNumLums(arrivedThisFrame);
                 m_linkComponent->sendEventToChildren(&addLum);
-
-
-                m_timer += _dt;
-
+                m_timer += _dt *  m_speedFactor;
                 if (m_arrivedIndex == m_numLums)
                 {
                     if (m_showSpeedUpContextIcon)
@@ -177,6 +175,10 @@ namespace ITF
                     trigger.setSender(m_actor->getRef());
                     trigger.setActivated(btrue);
                     m_linkComponent->sendEventToChildren(&trigger);
+                }
+                else
+                {
+                    HandleSpeedUpQoL();
                 }
             }
         }
@@ -240,20 +242,9 @@ namespace ITF
     }
 
     // ****************************************************************************
-
-    void Ray_PlayerScoreComponent::processDisplayScore()
+    void Ray_PlayerScoreComponent::initLumSpeedFactor(u32 _playerNum)
     {
-        ITF_VECTOR<std::pair<u32, u32>> sortedPlayers;
-        for (u32 i = 0; i < RewardManager::PlayersMax; ++i)
-        {
-            if (RAY_GAMEMANAGER->getPlayer(i) && RAY_GAMEMANAGER->getPlayer(i)->getActiveAndPersistent())
-                sortedPlayers.push_back(std::pair<u32, u32>(i,RAY_GAMEMANAGER->getCurrentScore().getLums(i)));
-        }
-
-        // Compute factor for speed release
-        m_countPlayerActive = sortedPlayers.size();
-
-        switch (m_countPlayerActive)
+        switch (_playerNum)
         {
         case 0:
         case 1:
@@ -269,7 +260,20 @@ namespace ITF
             m_factorPlayer = getTemplate()->getFactorSpeedRelease_4P();
             break;
         }
+    }
 
+    void Ray_PlayerScoreComponent::processDisplayScore()
+    {
+        ITF_VECTOR<std::pair<u32, u32>> sortedPlayers;
+        for (u32 i = 0; i < RewardManager::PlayersMax; ++i)
+        {
+            if (RAY_GAMEMANAGER->getPlayer(i) && RAY_GAMEMANAGER->getPlayer(i)->getActiveAndPersistent())
+                sortedPlayers.push_back(std::pair<u32, u32>(i,RAY_GAMEMANAGER->getCurrentScore().getLums(i)));
+        }
+
+        // Compute factor for speed release
+        m_countPlayerActive = sortedPlayers.size();
+        initLumSpeedFactor(m_countPlayerActive);
         // Sort players by lums score
         std::sort(sortedPlayers.begin(), sortedPlayers.end(), AIUtils::sortPlayersByScore);
 
@@ -278,7 +282,6 @@ namespace ITF
             setPlayer(sortedPlayers[getTemplate()->getIndex()].first);
             m_numLums = sortedPlayers[getTemplate()->getIndex()].second;
         }
-
 
         // Start Anim
         if (isPlayerActive())
@@ -326,57 +329,32 @@ namespace ITF
                 if (buts[m_joyButton_A] == InputAdapter::Pressed && !m_speedUpButtonPressed)
                 {
                     m_speedUpButtonPressed = btrue;
-                    m_factorPlayer = getTemplate()->getFactorSpeedUpQoL();
-                    CONTEXTICONSMANAGER->highlightText(ContextIcon_SpeedUp,btrue);
+                    m_speedFactor =  getTemplate()->getFactorSpeedUpQoL();;
+                    CONTEXTICONSMANAGER->highlightText(ContextIcon_SpeedUp, btrue);
                 }
                 else if (buts[m_joyButton_A] == InputAdapter::Released && m_speedUpButtonPressed)
                 {
-                        CONTEXTICONSMANAGER->highlightText(ContextIcon_SpeedUp,bfalse);
-                        ITF_VECTOR<std::pair<u32, u32>> sortedPlayers;
-                        for (u32 j = 0; j < RewardManager::PlayersMax; ++j)
-                        {
-                            if (RAY_GAMEMANAGER->getPlayer(j) && RAY_GAMEMANAGER->getPlayer(j)->
-                                getActiveAndPersistent())
-                                sortedPlayers.push_back(
-                                    std::pair<u32, u32>(j,RAY_GAMEMANAGER->getCurrentScore().getLums(j)));
-                        }
-                        // Compute factor for speed release
-                        int countPlayerActive = sortedPlayers.size();
+                    CONTEXTICONSMANAGER->highlightText(ContextIcon_SpeedUp, bfalse);
 
-                        switch (countPlayerActive)
-                        {
-                        case 0:
-                        case 1:
-                            m_factorPlayer = getTemplate()->getFactorSpeedRelease_1P();
-                            break;
-                        case 2:
-                            m_factorPlayer = getTemplate()->getFactorSpeedRelease_2P();
-                            break;
-                        case 3:
-                            m_factorPlayer = getTemplate()->getFactorSpeedRelease_3P();
-                            break;
-                        case 4:
-                            m_factorPlayer = getTemplate()->getFactorSpeedRelease_4P();
-                            break;
-                        }
-                        m_speedUpButtonPressed = false;
+                    m_speedFactor = 1.0f;
+                    m_speedUpButtonPressed = false;
                 }
             }
         }
     }
+
     u32 Ray_PlayerScoreComponent::updateParticles(f32 _dt)
     {
         m_particleGenerator.startManualUpdate(m_actor->getPos());
 
         f32 factor = m_timer * (getTemplate()->getLumReleaseSpeed() * m_factorPlayer);
-
         u32 numLums = m_particles.size();
 
         f32 v = f32_Sin(m_timer * MTH_2PI * getTemplate()->getParticleGenerationFrequency());
         u32 offset = u32(getTemplate()->getParticleGenerationAmplitude() * f32_Abs(v));
-
-        m_releasedIndex = Min(u32(factor) + offset ,numLums);
-
+        m_releasedIndex = Min(u32(factor) + offset , numLums);
+        m_releasedIndex = Max(m_releasedIndex, m_lastReleaseIndex);
+        m_lastReleaseIndex = m_releasedIndex;
         BezierCurve& curve = m_bezierComponent->getBezierCurve();
 
         u32 arrivedThisFrame = 0;
@@ -387,10 +365,8 @@ namespace ITF
         for (u32 i = m_arrivedIndex; i < m_releasedIndex; ++i)
         {
             ParticleData& data = m_particles[i];
-
             f32 prevDist = data.m_curDist;
-
-            data.m_curDist += _dt * getTemplate()->getLumTrajectorySpeed();
+            data.m_curDist += _dt * getTemplate()->getLumTrajectorySpeed() * m_speedFactor;
             data.m_curDist = Min(data.m_curDist, curve.getTotalLength());
 
             m_particleGenerator.changeManualParticleSize(i, size);
@@ -454,6 +430,7 @@ namespace ITF
         }
         m_releasedIndex = 0;
         m_arrivedIndex = 0;
+        m_speedFactor = 1.0f;
     }
 
     //*****************************************************************************
@@ -505,7 +482,7 @@ namespace ITF
           , m_factorSpeedRelease_2P(1.0f)
           , m_factorSpeedRelease_3P(1.0f)
           , m_factorSpeedRelease_4P(1.0f)
-          ,m_factorSpeedUpQoL(1.0f)
+          , m_factorSpeedUpQoL(1.0f)
     {
         // none
     }

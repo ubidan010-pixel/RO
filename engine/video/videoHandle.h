@@ -83,10 +83,8 @@ namespace  ITF
     #else
         #error "Platform not supported"
     #endif
-#elif defined(ITF_XBOX_SERIES) //||  defined(ITF_WINDOWS)
-    #include "engine/video/videoHandle_dx12.h"
-#elif defined(ITF_NINTENDO)
-    #include "engine/video/videoHandle_nvn.h"
+#elif defined(ITF_XBOX_SERIES) || defined(ITF_NINTENDO) || defined(ITF_PS5)
+    #include "engine/video/videoHandle_sw.h"
 #else
 //not supported
 

@@ -31,6 +31,9 @@ namespace ITF
         virtual bbool isClientConnected() { return btrue; }
         virtual bbool isClientOnline() { return btrue; }
 
+        virtual bbool isAchievementLocked(u32 _id) { return btrue; }
+        virtual bbool unlockAchievement(u32 _id) { return btrue; }
+
         // Show Game Page home
         virtual i32 showOverlay() { return 0; }
 

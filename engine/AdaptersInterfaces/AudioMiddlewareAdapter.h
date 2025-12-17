@@ -10,7 +10,9 @@
 #endif
 #include "engine/AdaptersInterfaces/InputAdapter.h"
 #endif
-
+#if defined(USE_PAD_HAPTICS) && defined(ITF_XBOX_SERIES)
+#include <GameInput.h>
+#endif
 #include "engine/AdaptersInterfaces/AudioMiddlewareAdapter_Types.h"
 #include "core/serializer/ObjectFactory.h"
 #include "engine/events/IEventListener.h"
@@ -150,6 +152,8 @@ namespace	ITF
 	   virtual bbool unregisterControllerSpeaker(u32 _pad){return bfalse;};
 #if defined(ITF_WINDOWS)
 	    virtual u32 getDeviceId(IMMDevice* _imDevice) {return 0;};
+#elif defined(ITF_XBOX_SERIES)
+	    virtual u32 getDeviceId(IGameInputDevice*_device) {return 0;};
 #endif
 #endif
 

@@ -7,6 +7,7 @@
 #endif //_ITF_UPLAYSERVICE_
 
 #include "UplayPC/include/UPC.h"
+#include <mutex>
 
 namespace ITF
 {
@@ -30,6 +31,9 @@ namespace ITF
         virtual String8 getUserName() override;
         virtual String8 getUserEmail() override;
 
+        virtual bbool isAchievementLocked(u32 _id) override;
+        virtual bbool unlockAchievement(u32 _id) override;
+
     private:
         UPC_Context* m_Context;
         bbool m_isInitialized;
@@ -39,7 +43,11 @@ namespace ITF
         const char* m_userEmail;
         String8 m_language;
 
+        ITF_VECTOR<bbool> m_achievementLocked;
+        UPC_AchievementList* m_achievementList;
+
         static void onUserGet(UPC_int32 aResult, void* aData);
+        static void onAchievementsListGet(UPC_int32 aResult, void* aData);
         static void showOverlayCallback(UPC_Event* inEvent, void* inData);
     };
 

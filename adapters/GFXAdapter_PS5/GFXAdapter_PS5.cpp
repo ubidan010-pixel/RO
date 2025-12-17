@@ -1203,8 +1203,6 @@ namespace ITF
 
     void GFXAdapter_PS5::lockTexture(Texture* _tex, LOCKED_TEXTURE* _lockTex, u32 _flag)
     {
-        IMPLEMENTED_NOT_TESTED;
-        // might need a gpu sync here
         PS5Texture* ps5Tex = reinterpret_cast<PS5Texture*>(_tex->m_adapterimplementationData);
 
         _lockTex->mp_Bits = ps5Tex->getBaseAddress();
@@ -1215,8 +1213,7 @@ namespace ITF
 
     void GFXAdapter_PS5::unlockTexture(Texture* _tex)
     {
-        IMPLEMENTED_NOT_TESTED;
-        // might need a gpu sync here
+
     }
 
     //----------------------------------------------------------------------------//
@@ -2472,7 +2469,7 @@ namespace ITF
             setTextureAdressingMode(index, GFXTADDRESS_CLAMP, GFXTADDRESS_CLAMP);
         }
 
-        DrawVertexBuffer(GFX_QUADS, _pVertexBuffer, 0, 4); // just 1 quad
+        DrawVertexBuffer(GFX_TRIANGLE_STRIP, _pVertexBuffer, 0, 4); // just 1 quad
 
         m_worldViewProj.pop();
     }

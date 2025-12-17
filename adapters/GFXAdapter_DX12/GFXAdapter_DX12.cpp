@@ -2220,7 +2220,7 @@ namespace ITF
             setTextureAdressingMode(index, GFXTADDRESS_CLAMP, GFXTADDRESS_CLAMP);
         }
 
-        DrawVertexBuffer(GFX_QUADS, _pVertexBuffer, 0, 4); // just 1 quad
+        DrawVertexBuffer(GFX_TRIANGLE_STRIP, _pVertexBuffer, 0, 4); // just 1 quad
 
         m_worldViewProj.pop();
     }

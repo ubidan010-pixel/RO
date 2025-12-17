@@ -393,6 +393,8 @@ namespace	ITF
 	    bbool unregisterControllerSpeaker(u32 _pad) override;
 #ifdef ITF_WINDOWS
 	    u32 getDeviceId(IMMDevice* _imDevice) override;
+#elif defined(ITF_XBOX_SERIES)
+	    virtual u32 getDeviceId(IGameInputDevice* _device) override;
 #endif
     private :
         const char* CONTROLLER_SPEAKER = "Controller_Speaker";

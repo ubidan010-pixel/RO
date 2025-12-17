@@ -44,37 +44,37 @@ namespace ITF {
 
 #define CONTEXTICONSCONFIG_PATH GETPATH_ALIAS("contexticons")
 
-const ContextIconsManager::ButtonIconMapping ContextIconsManager::s_iconMapping_X360 = 
+const ContextIconsManager::ButtonIconMapping ContextIconsManager::s_iconMapping_X360 =
     { "X360_BUTTON_A", "X360_BUTTON_B", "X360_BUTTON_X", "X360_BUTTON_Y" };
 
-const ContextIconsManager::ButtonIconMapping ContextIconsManager::s_iconMapping_XboxSeries = 
+const ContextIconsManager::ButtonIconMapping ContextIconsManager::s_iconMapping_XboxSeries =
     { "XBOX_BUTTON_A", "XBOX_BUTTON_B", "XBOX_BUTTON_X", "XBOX_BUTTON_Y" };
 
-const ContextIconsManager::ButtonIconMapping ContextIconsManager::s_iconMapping_PS3 = 
+const ContextIconsManager::ButtonIconMapping ContextIconsManager::s_iconMapping_PS3 =
     { "PS3_BUTTON_CROSS", "PS3_BUTTON_CIRCLE", "PS3_BUTTON_SQUARE", "PS3_BUTTON_TRIANGLE" };
 
-const ContextIconsManager::ButtonIconMapping ContextIconsManager::s_iconMapping_PS5 = 
+const ContextIconsManager::ButtonIconMapping ContextIconsManager::s_iconMapping_PS5 =
     { "PS5_BUTTON_CROSS", "PS5_BUTTON_CIRCLE", "PS5_BUTTON_SQUARE", "PS5_BUTTON_TRIANGLE" };
 
-const ContextIconsManager::ButtonIconMapping ContextIconsManager::s_iconMapping_Switch_Joycon = 
+const ContextIconsManager::ButtonIconMapping ContextIconsManager::s_iconMapping_Switch_Joycon =
     { "SWITCH_JOYCON_DPAD_DOWN", "SWITCH_JOYCON_DPAD_RIGHT", "SWITCH_JOYCON_DPAD_LEFT", "SWITCH_JOYCON_DPAD_UP" };
 
-const ContextIconsManager::ButtonIconMapping ContextIconsManager::s_iconMapping_Switch_Pro = 
+const ContextIconsManager::ButtonIconMapping ContextIconsManager::s_iconMapping_Switch_Pro =
     { "SWITCH_BUTTON_B", "SWITCH_BUTTON_A", "SWITCH_BUTTON_Y", "SWITCH_BUTTON_X" };
 
-const ContextIconsManager::ButtonIconMapping ContextIconsManager::s_iconMapping_Wii_Sideway = 
+const ContextIconsManager::ButtonIconMapping ContextIconsManager::s_iconMapping_Wii_Sideway =
     { "WII_BUTTON_2", "WII_BUTTON_1", "WII_BUTTON_MINUS", nullptr };
 
-const ContextIconsManager::ButtonIconMapping ContextIconsManager::s_iconMapping_Wii_Nunchuk = 
+const ContextIconsManager::ButtonIconMapping ContextIconsManager::s_iconMapping_Wii_Nunchuk =
     { "WII_BUTTON_A", "WII_BUTTON_B", "WII_BUTTON_MINUS", nullptr };
 
-const ContextIconsManager::ButtonIconMapping ContextIconsManager::s_iconMapping_Wii_Classic = 
+const ContextIconsManager::ButtonIconMapping ContextIconsManager::s_iconMapping_Wii_Classic =
     { "WII_CLASSIC_BUTTON_B", "WII_CLASSIC_BUTTON_A", "WII_CLASSIC_BUTTON_Y", "WII_CLASSIC_BUTTON_X" };
 
-const ContextIconsManager::ButtonIconMapping ContextIconsManager::s_iconMapping_Keyboard = 
+const ContextIconsManager::ButtonIconMapping ContextIconsManager::s_iconMapping_Keyboard =
     { "KEYBOARD_SPACE", "KEYBOARD_BACKSPACE", "KEYBOARD_S", "KEYBOARD_W" };
 
-const ContextIconsManager::ButtonIconMapping ContextIconsManager::s_iconMapping_Fallback = 
+const ContextIconsManager::ButtonIconMapping ContextIconsManager::s_iconMapping_Fallback =
     { "BUTTON_SOUTH", "BUTTON_EAST", "BUTTON_WEST", "BUTTON_NORTH" };
 
 //------------------------------------------------------------------------------
@@ -203,7 +203,12 @@ void ContextIconsManager::hide()
     {
         return;
     }
-
+    for (auto iconData : m_iconData) {
+        if (iconData.second.textUI != nullptr)
+        {
+            iconData.second.textUI->setIsSelected(false);
+        }
+    }
     // reset info
     m_left = ContextIcon_Invalid;
     m_right = ContextIcon_Invalid;
@@ -355,19 +360,19 @@ u32 ContextIconsManager::getPhysicalButtonForAction(EPhysicalButtonAction _actio
 {
     // Default mapping: South = Confirm, East = Back
     // When inverted (NX/OUNCE/PS5_SIEJ): South = Back, East = Confirm
-    
+
     switch (_action)
     {
     case PhysicalButtonAction_Confirm:
         return _isInverted ? ZPad_Base::BUTTON_FACE_EAST : ZPad_Base::BUTTON_FACE_SOUTH;
-        
+
     case PhysicalButtonAction_Back:
         return _isInverted ? ZPad_Base::BUTTON_FACE_SOUTH : ZPad_Base::BUTTON_FACE_EAST;
-        
+
     case PhysicalButtonAction_Delete:
     case PhysicalButtonAction_HomeMap:
         return ZPad_Base::BUTTON_FACE_WEST;
-        
+
     default:
         return ZPad_Base::BUTTON_FACE_SOUTH;
     }
@@ -410,7 +415,7 @@ String8 ContextIconsManager::formatIconTag(const char* _iconName)
 {
     if (!_iconName || !_iconName[0])
         return String8("<N/A>");
-    
+
     return String8("[icon:") + _iconName + "]";
 }
 
@@ -427,7 +432,7 @@ String8 ContextIconsManager::getIconNameForPhysicalButton(u32 _physicalButton, I
         iconName = mapping.west;
     else if (_physicalButton == ZPad_Base::BUTTON_FACE_NORTH)
         iconName = mapping.north;
-    
+
     return formatIconTag(iconName);
 }
 
