@@ -981,7 +981,7 @@ namespace ITF
                 }
             case OptionMenu_ChangesApplyAfterRespawn:
                 {
-                    TRCMessage_OneButtonTimer* popUp = new TRCMessage_OneButtonTimer(2.5, 0.5, errorContext);
+                    TRCMessage_OneButtonTimer* popUp = new TRCMessage_OneButtonTimer(3, 0.5, errorContext);
                     popUp->setCreationTime(SYSTEM_ADAPTER->getTime());
                     popUp->setButton(buildText(4164, ContextIconType_Select), input_actionID_Valid);
                     pTRCMessage = popUp;
