@@ -1,7 +1,6 @@
 #ifndef _ITF_RAY_OPTIONMENUHELPER_H_
 #define _ITF_RAY_OPTIONMENUHELPER_H_
 
-#include <initializer_list>
 #include <vector>
 #include <utility>
 #ifndef _ITF_RAY_BASEMENUHELPER_H_
@@ -82,13 +81,6 @@ namespace ITF
         bbool isOptionEditable(UIComponent* component) const;
         StringID getOptionIdForComponent(UIComponent* component) const;
 
-        void hideAllArrows();
-        void showArrowsForOption(const StringID& optionId);
-        void hideArrowsForOption(const StringID& optionId);
-        StringID getOptionIdFromComponent(const StringID& componentId) const;
-
-        void setUIVisibilitySelectable(const StringID& id, bbool visible, bbool selectable) const;
-        void setVisibilityFor(std::initializer_list<StringID> ids, bbool visible, bbool selectable) const;
         void ensureValidSelection() const;
 
         void loadOptionsFromSaveFile();
@@ -160,6 +152,7 @@ namespace ITF
         bbool m_cancelActionPressed;
         bbool m_eventListenerRegistered;
         mutable InputAdapter::PadType m_lastPadType;
+        mutable i32 m_lastLanguage;
 
         static Ray_OptionMenuHelper* s_activeHelper;
 

@@ -87,9 +87,6 @@ namespace ITF
 #if defined(ITF_WINDOWS)
         bbool m_isEditingControllerType;
         UIListOptionComponent* m_editingControllerTypeComponent;
-        f32 m_controllerTypeInputTimer;
-        f32 m_controllerTypeFirstPressTimer;
-        bbool m_controllerTypeFirstPressed;
         f32 m_controllerTypeChangeCooldown;
         std::vector<std::pair<UIComponent*, bbool>> m_previousSelectionStates;
 #endif

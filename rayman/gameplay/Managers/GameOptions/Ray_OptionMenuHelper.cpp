@@ -164,6 +164,7 @@ namespace ITF
           , m_cancelActionPressed(bfalse)
           , m_eventListenerRegistered(bfalse)
           , m_lastPadType(InputAdapter::Pad_Invalid)
+          , m_lastLanguage(-1)
     {
         m_menuBaseName = OPTION_MENU_NAME;
     }
@@ -180,18 +181,23 @@ namespace ITF
         if (!UI_MENUMANAGER)
             return;
 
+        UIMenu* menu = UI_MENUMANAGER->getMenu(OPTION_MENU_NAME);
+        if (!menu)
+            return;
+
         hideContextIcons();
 
         m_isActive = btrue;
         s_activeHelper = this;
         m_mainListener = mainListener;
         UI_MENUMANAGER->setMenuListener(OPTION_MENU_NAME, this);
-        m_menu = UI_MENUMANAGER->getMenu(OPTION_MENU_NAME);
-        if (!m_menu)
-            return;
+        m_menu = menu;
 
         registerEventListeners();
-        RAY_GAMEMANAGER->registerResolutionOption();
+        if (RAY_GAMEMANAGER)
+        {
+            RAY_GAMEMANAGER->registerResolutionOption();
+        }
         onActivate();
         initializeMenuState();
         updateVibrationOptionAvailability();
@@ -472,7 +478,7 @@ namespace ITF
         if (RAY_GAMEMANAGER)
         {
             RAY_GAMEMANAGER->saveGameOptions();
-            RAY_GAMEMANAGER->applyGameSetting(RAY_GAMEMANAGER->getResolutionIndex() !=m_snapshotResolutionIndex);
+            RAY_GAMEMANAGER->applyGameSetting(RAY_GAMEMANAGER->getResolutionIndex() != m_snapshotResolutionIndex);
 
             if (m_hasSnapshot &&
                 RAY_GAMEMANAGER->getCurrentGameScreen() == Ray_GameScreen_Gameplay::GetClassCRCStatic() &&
@@ -491,15 +497,12 @@ namespace ITF
         if (id != OPTIONMENU_CANCEL_BUTTON)
             return bfalse;
 
-        if (RAY_GAMEMANAGER && m_hasSnapshot)
+        if (m_hasSnapshot)
         {
             restoreSnapshot();
-            refreshAllOptionVisuals();
         }
-        else
-        {
-            refreshAllOptionVisuals();
-        }
+
+        refreshAllOptionVisuals();
 
         closeAndReturn();
         return btrue;
@@ -518,6 +521,8 @@ namespace ITF
         m_hasSnapshot = bfalse;
         m_acceptActionPressed = bfalse;
         m_cancelActionPressed = bfalse;
+        m_lastPadType = InputAdapter::Pad_Invalid;
+        m_lastLanguage = -1;
         if (s_activeHelper == this)
             s_activeHelper = nullptr;
     }
@@ -580,9 +585,16 @@ namespace ITF
             return;
 
         const InputAdapter::PadType padType = inputAdapter->getLastUsedPadType(GAMEMANAGER->getMainIndexPlayer());
-        if (!force && padType == m_lastPadType)
+        i32 language = -1;
+        if (LOCALISATIONMANAGER)
+        {
+            language = static_cast<i32>(LOCALISATIONMANAGER->getCurrentLanguage());
+        }
+
+        if (!force && padType == m_lastPadType && language == m_lastLanguage)
             return;
         m_lastPadType = padType;
+        m_lastLanguage = language;
         updateActionButtonText("accept_button", s_acceptButtonLineId, ContextIconType_Delete, padType);
         updateActionButtonText("cancel_button", s_cancelButtonLineId, ContextIconType_Back, padType);
     }
@@ -719,32 +731,6 @@ namespace ITF
             return btrue;
 
         return bfalse;
-    }
-
-    void Ray_OptionMenuHelper::hideAllArrows()
-    {
-    }
-
-    void Ray_OptionMenuHelper::showArrowsForOption(const StringID& optionId)
-    {
-    }
-
-    void Ray_OptionMenuHelper::hideArrowsForOption(const StringID& optionId)
-    {
-    }
-
-    StringID Ray_OptionMenuHelper::getOptionIdFromComponent(const StringID& componentId) const
-    {
-        return StringID::Invalid;
-    }
-
-    void Ray_OptionMenuHelper::setUIVisibilitySelectable(const StringID& id, bbool visible, bbool selectable) const
-    {
-    }
-
-    void Ray_OptionMenuHelper::setVisibilityFor(std::initializer_list<StringID> ids, bbool visible,
-                                                bbool selectable) const
-    {
     }
 
     void Ray_OptionMenuHelper::ensureValidSelection() const
@@ -1518,7 +1504,7 @@ namespace ITF
 
     void Ray_OptionMenuHelper::updateTimer()
     {
-        updateActionButtonsText(true);
+        updateActionButtonsText();
         updatePadActionButtons();
         if (isEditing())
         {

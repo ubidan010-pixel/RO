@@ -46,11 +46,6 @@ namespace ITF
     {
         static const f32 REMAPPING_COOLDOWN = 0.25f;
         static const f32 POST_REMAP_COOLDOWN = 0.15f;
-
-#if defined(ITF_WINDOWS)
-        static const f32 CONTROLLER_TYPE_FIRST_PRESS_DELAY = 0.35f;
-        static const f32 CONTROLLER_TYPE_REPEAT_RATE = 0.12f;
-#endif
     }
 
     Ray_ControlsRemappingMenuHelper* Ray_ControlsRemappingMenuHelper::s_activeHelper = nullptr;
@@ -150,16 +145,13 @@ namespace ITF
           , m_isWaitingForRelease(bfalse)
           , m_remappingPlayerIndex(0)
           , m_remappingAction(ZInputManager::Action_Up)
-          , m_remappingComponent(NULL)
+          , m_remappingComponent(nullptr)
           , m_remappingCooldown(0.0f)
           , m_postRemapCooldown(0.0f)
           , m_remappingSource(InputSource_Gamepad)
 #if defined(ITF_WINDOWS)
           , m_isEditingControllerType(bfalse)
-          , m_editingControllerTypeComponent(NULL)
-          , m_controllerTypeInputTimer(0.0f)
-          , m_controllerTypeFirstPressTimer(0.0f)
-          , m_controllerTypeFirstPressed(btrue)
+          , m_editingControllerTypeComponent(nullptr)
           , m_controllerTypeChangeCooldown(0.0f)
 #endif
     {
@@ -184,27 +176,28 @@ namespace ITF
         if (!UI_MENUMANAGER)
             return;
 
+        UIMenu* menu = UI_MENUMANAGER->getMenu(m_menuBaseName);
+        if (!menu)
+            return;
+
         hideContextIcons();
 
         m_isActive = btrue;
         m_isRemappingMode = bfalse;
         m_isWaitingForRelease = bfalse;
+        m_remappingComponent = nullptr;
+        m_remappingCooldown = 0.0f;
         m_postRemapCooldown = 0.0f;
+        m_remappingSource = InputSource_Gamepad;
 #if defined(ITF_WINDOWS)
         m_isEditingControllerType = bfalse;
-        m_editingControllerTypeComponent = NULL;
-        m_controllerTypeInputTimer = 0.0f;
-        m_controllerTypeFirstPressTimer = 0.0f;
-        m_controllerTypeFirstPressed = btrue;
+        m_editingControllerTypeComponent = nullptr;
         m_controllerTypeChangeCooldown = 0.0f;
         m_previousSelectionStates.clear();
 #endif
         m_mainListener = mainListener;
         UI_MENUMANAGER->setMenuListener(m_menuBaseName, this);
-        m_menu = UI_MENUMANAGER->getMenu(m_menuBaseName);
-
-        if (!m_menu)
-            return;
+        m_menu = menu;
 
         s_activeHelper = this;
 
@@ -622,9 +615,6 @@ namespace ITF
 
         m_isEditingControllerType = btrue;
         m_editingControllerTypeComponent = component;
-        m_controllerTypeInputTimer = 0.0f;
-        m_controllerTypeFirstPressTimer = 0.0f;
-        m_controllerTypeFirstPressed = btrue;
         m_controllerTypeChangeCooldown = 0.0f;
         m_previousSelectionStates.clear();
 
@@ -676,16 +666,13 @@ namespace ITF
         {
             if (it->first)
             {
-                it->first->setCanBeSelected(it->second);
+                it->first->setCanBeSelected(it->second && it->first->getActive());
             }
         }
         m_previousSelectionStates.clear();
 
         m_isEditingControllerType = bfalse;
-        m_editingControllerTypeComponent = NULL;
-        m_controllerTypeInputTimer = 0.0f;
-        m_controllerTypeFirstPressTimer = 0.0f;
-        m_controllerTypeFirstPressed = btrue;
+        m_editingControllerTypeComponent = nullptr;
         m_controllerTypeChangeCooldown = 0.0f;
         LOG("[ControlsRemapping] Exited controller type edit mode\n");
     }
@@ -750,7 +737,7 @@ namespace ITF
     UIListOptionComponent* Ray_ControlsRemappingMenuHelper::findControllerTypeComponent() const
     {
         if (!m_menu)
-            return NULL;
+            return nullptr;
 
         const ObjectRefList& componentsList = m_menu->getUIComponentsList();
         for (u32 i = 0; i < componentsList.size(); ++i)
@@ -769,7 +756,7 @@ namespace ITF
                 return comp->DynamicCast<UIListOptionComponent>(ITF_GET_STRINGID_CRC(UIListOptionComponent, 3621365669));
             }
         }
-        return NULL;
+        return nullptr;
     }
 
     bbool Ray_ControlsRemappingMenuHelper::handleExternalEditingInput(UIComponent* component, const StringID& action)
@@ -790,8 +777,6 @@ namespace ITF
         if (!m_isEditingControllerType || !m_editingControllerTypeComponent)
             return;
 
-        m_controllerTypeFirstPressTimer += deltaTime;
-        m_controllerTypeInputTimer += deltaTime;
         if (m_controllerTypeChangeCooldown > 0.0f)
         {
             m_controllerTypeChangeCooldown -= deltaTime;
@@ -828,35 +813,13 @@ namespace ITF
             return btrue;
         }
 
-        if (action == input_actionID_Left)
+        if (action == input_actionID_Left || action == input_actionID_LeftHold)
         {
-            m_controllerTypeFirstPressed = btrue;
-            m_controllerTypeFirstPressTimer = 0.0f;
-            m_controllerTypeInputTimer = 0.0f;
             adjustControllerType(listComponent, -1);
             return btrue;
         }
-        if (action == input_actionID_Right)
+        if (action == input_actionID_Right || action == input_actionID_RightHold)
         {
-            m_controllerTypeFirstPressed = btrue;
-            m_controllerTypeFirstPressTimer = 0.0f;
-            m_controllerTypeInputTimer = 0.0f;
-            adjustControllerType(listComponent, 1);
-            return btrue;
-        }
-        if (action == input_actionID_LeftHold)
-        {
-            m_controllerTypeFirstPressed = btrue;
-            m_controllerTypeFirstPressTimer = 0.0f;
-            m_controllerTypeInputTimer = 0.0f;
-            adjustControllerType(listComponent, -1);
-            return btrue;
-        }
-        if (action == input_actionID_RightHold)
-        {
-            m_controllerTypeFirstPressed = btrue;
-            m_controllerTypeFirstPressTimer = 0.0f;
-            m_controllerTypeInputTimer = 0.0f;
             adjustControllerType(listComponent, 1);
             return btrue;
         }
