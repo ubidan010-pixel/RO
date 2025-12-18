@@ -1261,7 +1261,6 @@ namespace ITF
 
         if (firstGamepadSlot == 0 && m_slotGamepad[0] == -1)
         {
-            // Ensure Player 1 always receives the first available controller in Controller/Hybrid modes.
             i32 mapped[JOY_MAX_COUNT];
             u32 mappedCount = 0;
             for (u32 slot = 0; slot < JOY_MAX_COUNT; ++slot)
@@ -1297,7 +1296,6 @@ namespace ITF
         }
         else if (firstGamepadSlot == 1 && m_slotGamepad[0] != -1)
         {
-            // In Keyboard mode, slot 0 is reserved for the keyboard; shift mapped controllers to 1..
             i32 mapped[JOY_MAX_COUNT];
             u32 mappedCount = 0;
             for (u32 slot = 0; slot < JOY_MAX_COUNT; ++slot)
@@ -1427,8 +1425,6 @@ namespace ITF
 
         if (previousFirstSlot != currentFirstSlot)
         {
-            // Rebuild controller mapping to reflect the new slot layout.
-            // Keyboard mode reserves slot 0 for the keyboard, Controller/Hybrid modes use slot 0 for the first gamepad.
             i32 mapped[JOY_MAX_COUNT];
             u32 mappedCount = 0;
             for (u32 slot = 0; slot < JOY_MAX_COUNT; ++slot)
@@ -1464,7 +1460,6 @@ namespace ITF
             }
         }
 
-        // Ensure slot 0 remains usable for keyboard-based Player 1 when keyboard is enabled.
         if (IsKeyboardMouseEnabled() && m_slotGamepad[0] == -1)
         {
             setPadType(0, Pad_Keyboard);
