@@ -45,22 +45,22 @@ namespace ITF {
 #define CONTEXTICONSCONFIG_PATH GETPATH_ALIAS("contexticons")
 
 const ContextIconsManager::ButtonIconMapping ContextIconsManager::s_iconMapping_X360 =
-    { "X360_BUTTON_A", "X360_BUTTON_B", "X360_BUTTON_X", "X360_BUTTON_Y" };
+    { "X360_BUTTON_A", "X360_BUTTON_B", "X360_BUTTON_X", "X360_BUTTON_Y", "X360_BUTTON_RB", "X360_BUTTON_LB" };
 
 const ContextIconsManager::ButtonIconMapping ContextIconsManager::s_iconMapping_XboxSeries =
-    { "XBOX_BUTTON_A", "XBOX_BUTTON_B", "XBOX_BUTTON_X", "XBOX_BUTTON_Y" };
+    { "XBOX_BUTTON_A", "XBOX_BUTTON_B", "XBOX_BUTTON_X", "XBOX_BUTTON_Y", "X360_BUTTON_RB", "X360_BUTTON_LB" };
 
 const ContextIconsManager::ButtonIconMapping ContextIconsManager::s_iconMapping_PS3 =
-    { "PS3_BUTTON_CROSS", "PS3_BUTTON_CIRCLE", "PS3_BUTTON_SQUARE", "PS3_BUTTON_TRIANGLE" };
+    { "PS3_BUTTON_CROSS", "PS3_BUTTON_CIRCLE", "PS3_BUTTON_SQUARE", "PS3_BUTTON_TRIANGLE", "PS3_BUTTON_R1", "PS3_BUTTON_R2" };
 
 const ContextIconsManager::ButtonIconMapping ContextIconsManager::s_iconMapping_PS5 =
-    { "PS5_BUTTON_CROSS", "PS5_BUTTON_CIRCLE", "PS5_BUTTON_SQUARE", "PS5_BUTTON_TRIANGLE" };
+    { "PS5_BUTTON_CROSS", "PS5_BUTTON_CIRCLE", "PS5_BUTTON_SQUARE", "PS5_BUTTON_TRIANGLE", "PS5_BUTTON_R1", "PS5_BUTTON_R2" };
 
 const ContextIconsManager::ButtonIconMapping ContextIconsManager::s_iconMapping_Switch_Joycon =
-    { "SWITCH_JOYCON_DPAD_DOWN", "SWITCH_JOYCON_DPAD_RIGHT", "SWITCH_JOYCON_DPAD_LEFT", "SWITCH_JOYCON_DPAD_UP" };
+    { "SWITCH_JOYCON_DPAD_DOWN", "SWITCH_JOYCON_DPAD_RIGHT", "SWITCH_JOYCON_DPAD_LEFT", "SWITCH_JOYCON_DPAD_UP", "SWITCH_BUTTON_R", "SWITCH_BUTTON_L" };
 
 const ContextIconsManager::ButtonIconMapping ContextIconsManager::s_iconMapping_Switch_Pro =
-    { "SWITCH_BUTTON_B", "SWITCH_BUTTON_A", "SWITCH_BUTTON_Y", "SWITCH_BUTTON_X" };
+    { "SWITCH_BUTTON_B", "SWITCH_BUTTON_A", "SWITCH_BUTTON_Y", "SWITCH_BUTTON_X", "SWITCH_BUTTON_R", "SWITCH_BUTTON_L" };
 
 const ContextIconsManager::ButtonIconMapping ContextIconsManager::s_iconMapping_Wii_Sideway =
     { "WII_BUTTON_2", "WII_BUTTON_1", "WII_BUTTON_MINUS", nullptr };
@@ -72,10 +72,10 @@ const ContextIconsManager::ButtonIconMapping ContextIconsManager::s_iconMapping_
     { "WII_CLASSIC_BUTTON_B", "WII_CLASSIC_BUTTON_A", "WII_CLASSIC_BUTTON_Y", "WII_CLASSIC_BUTTON_X" };
 
 const ContextIconsManager::ButtonIconMapping ContextIconsManager::s_iconMapping_Keyboard =
-    { "KEYBOARD_SPACE", "KEYBOARD_BACKSPACE", "KEYBOARD_S", "KEYBOARD_W" };
+    { "KEYBOARD_SPACE", "KEYBOARD_BACKSPACE", "KEYBOARD_S", "KEYBOARD_W", "KEYBOARD_E", "KEYBOARD_ENTER" };
 
 const ContextIconsManager::ButtonIconMapping ContextIconsManager::s_iconMapping_Fallback =
-    { "BUTTON_SOUTH", "BUTTON_EAST", "BUTTON_WEST", "BUTTON_NORTH" };
+    { "BUTTON_SOUTH", "BUTTON_EAST", "BUTTON_WEST", "BUTTON_NORTH", "BUTTON_R_SHOULDER", "BUTTON_L_SHOULDER" };
 
 //------------------------------------------------------------------------------
 ContextIconsManager::ContextIconsManager()
@@ -318,6 +318,10 @@ const EPhysicalButtonAction ContextIconsManager::s_iconToActionMap[ContextIcon_C
     PhysicalButtonAction_Delete,
     // ContextIcon_SpeedUp
     PhysicalButtonAction_Confirm,
+    // ContextIcon_Upload
+    PhysicalButtonAction_Upload, // Upload (RT)
+    //ContextIcon_Download
+    PhysicalButtonAction_Download, // Download (LT)
 };
 
 //------------------------------------------------------------------------------
@@ -343,6 +347,10 @@ const EContextIconType ContextIconsManager::s_iconsTypes[ContextIcon_Count] =
     ContextIconType_Delete,
     // ContextIcon_SpeedUp
     ContextIconType_Select,
+    // ContextIcon_Upload
+    ContextIconType_Upload,
+    // ContextIcon_Download
+    ContextIconType_Download,
 };
 
 //------------------------------------------------------------------------------
@@ -372,7 +380,11 @@ u32 ContextIconsManager::getPhysicalButtonForAction(EPhysicalButtonAction _actio
     case PhysicalButtonAction_Delete:
     case PhysicalButtonAction_HomeMap:
         return ZPad_Base::BUTTON_FACE_WEST;
-
+    case PhysicalButtonAction_Upload:
+        return ZPad_Base::BUTTON_R_SHOULDER;
+    case PhysicalButtonAction_Download:
+        return ZPad_Base::BUTTON_L_SHOULDER;
+        
     default:
         return ZPad_Base::BUTTON_FACE_SOUTH;
     }
@@ -432,7 +444,11 @@ String8 ContextIconsManager::getIconNameForPhysicalButton(u32 _physicalButton, I
         iconName = mapping.west;
     else if (_physicalButton == ZPad_Base::BUTTON_FACE_NORTH)
         iconName = mapping.north;
-
+    else if (_physicalButton == ZPad_Base::BUTTON_R_SHOULDER)
+        iconName = mapping.r_shoulder;
+    else if (_physicalButton == ZPad_Base::BUTTON_L_SHOULDER)
+        iconName = mapping.l_shoulder;
+    
     return formatIconTag(iconName);
 }
 
