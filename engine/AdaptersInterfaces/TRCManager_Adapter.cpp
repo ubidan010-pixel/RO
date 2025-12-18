@@ -244,13 +244,47 @@ namespace ITF
 		{
 			kill();
             callOnCloseCallback();
-		}
-	}
-	// ----------------------------------------------------------
-	// TRCMessage_OneButton -------------------------------------
-	// ----------------------------------------------------------
-	bbool TRCMessage_OneButton::start()
-	{
+ 		}
+ 	}
+
+    // ----------------------------------------------------------
+    // TRCMessage_OneButtonTimer --------------------------------
+    // ----------------------------------------------------------
+    bbool TRCMessage_OneButtonTimer::start()
+    {
+        if (!_creationTime)
+        {
+            _creationTime = SYSTEM_ADAPTER->getTime();
+        }
+
+        if (_showDelay > 0.0 && (SYSTEM_ADAPTER->getTime() < (_creationTime + _showDelay)))
+        {
+            return bfalse;
+        }
+
+        if (TRCMessage_OneButton::start())
+        {
+            _openingTime = SYSTEM_ADAPTER->getTime();
+            return btrue;
+        }
+
+        return bfalse;
+    }
+
+    void TRCMessage_OneButtonTimer::update()
+    {
+        TRCMessage_OneButton::update();
+        if (_timer > 0.0 && (_openingTime + _timer < SYSTEM_ADAPTER->getTime()))
+        {
+            kill();
+            callOnCloseCallback();
+        }
+    }
+ 	// ----------------------------------------------------------
+ 	// TRCMessage_OneButton -------------------------------------
+ 	// ----------------------------------------------------------
+ 	bbool TRCMessage_OneButton::start()
+ 	{
 		if(TRCMessage_Base::start())
         {
             const static StringID s_TemplateButton("template_button");
@@ -923,6 +957,17 @@ namespace ITF
                     buttonId.value =4142;
                     message = LOCALISATIONMANAGER->getText(messageId);
                     ((TRCMessage_OneButton*)pTRCMessage)->setButton(LOCALISATIONMANAGER->getText(buttonId), input_actionID_Back);
+                    break;
+                }
+            case TRCManagerAdapter::OptionMenu_ChangesApplyAfterRespawn:
+                {
+                    TRCMessage_OneButtonTimer* popUp = new TRCMessage_OneButtonTimer(2.5, 0.5, errorContext);
+                    popUp->setCreationTime(SYSTEM_ADAPTER->getTime());
+                    popUp->setButton("OK", input_actionID_Valid);
+                    pTRCMessage = popUp;
+                    pTRCMessage->SetForceOverPauseMenu();
+                    pTRCMessage->changeDisplayPriority(TRCMessage_Base::Low);
+                    message = "Some changes will apply after next respawn";
                     break;
                 }
             default:

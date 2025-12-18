@@ -261,6 +261,9 @@ namespace ITF
             Language_enum   = 900,
             Language_Warn,
 
+            // Option menu
+            OptionMenu_ChangesApplyAfterRespawn,
+
 
             // Online
         };
@@ -695,6 +698,25 @@ namespace ITF
     protected:
         String _button;
         u32 _buttonKey;
+    };
+
+    class TRCMessage_OneButtonTimer : public TRCMessage_OneButton
+    {
+    public:
+        TRCMessage_OneButtonTimer(f64 timer, f64 showDelay = 0.0, TRCManagerAdapter::ErrorContext errorContext = TRCManagerAdapter::GenericContexte, i32 errorCode = TRCMESSAGE_ERROR_NO)
+            : TRCMessage_OneButton(errorContext, errorCode), _timer(timer), _openingTime(0.0), _showDelay(showDelay), _creationTime(0.0)
+        {
+        }
+        virtual ~TRCMessage_OneButtonTimer(){}
+
+        virtual void	update();
+        virtual bbool	start();
+
+        void setCreationTime(f64 creationTime) { _creationTime = creationTime; }
+
+    protected:
+        f64 _timer, _openingTime;
+        f64 _showDelay, _creationTime;
     };
 
     class TRCMessage_OneButtonWithCB: public TRCMessage_OneButton

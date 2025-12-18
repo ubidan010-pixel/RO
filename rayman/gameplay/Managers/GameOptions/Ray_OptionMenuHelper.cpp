@@ -86,6 +86,7 @@
 #ifndef _ITF_TRCManagerAdapter_H_
 #include "engine/AdaptersInterfaces/TRCManager_Adapter.h"
 #endif
+#include "GameScreens/Ray_GameScreen_Gameplay.h"
 #include "GameScreens/Ray_GameScreen_MainMenu.h"
 
 namespace ITF
@@ -472,6 +473,13 @@ namespace ITF
         {
             RAY_GAMEMANAGER->saveGameOptions();
             RAY_GAMEMANAGER->applyGameSetting(RAY_GAMEMANAGER->getResolutionIndex() !=m_snapshotResolutionIndex);
+
+            if (m_hasSnapshot &&
+                RAY_GAMEMANAGER->getCurrentGameScreen() == Ray_GameScreen_Gameplay::GetClassCRCStatic() &&
+                RAY_GAMEMANAGER->getStartWithHeartIndex() != m_snapshotStartWithHeartIndex)
+            {
+                TRC_ADAPTER->addMessage(TRCManagerAdapter::OptionMenu_ChangesApplyAfterRespawn);
+            }
         }
 
         closeAndReturn();
