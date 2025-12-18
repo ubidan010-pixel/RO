@@ -162,7 +162,7 @@ namespace ITF
                 if (trophyId != U32_INVALID)
                 {
                     // @TODO need to rework after alpha when all trophies are set up.
-                    unlockTrophy(trophyId - 1);
+                    unlockTrophy(trophyId);
                     return true;
                 }
             }

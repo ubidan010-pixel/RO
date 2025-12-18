@@ -27,6 +27,8 @@ namespace ITF
         ContextIconType_Back = 1,
         ContextIconType_Delete = 2,
         ContextIconType_RayHome = 3,
+        ContextIconType_Upload = 4,
+        ContextIconType_Download = 5,
         ContextIconType_Count,
     };
 
@@ -43,6 +45,8 @@ namespace ITF
         ContextIcon_RayHome,
         ContextIcon_Controls,
         ContextIcon_SpeedUp,
+        ContextIcon_Upload,
+        ContextIcon_Download,
         ContextIcon_Count,
     };
 

@@ -230,6 +230,8 @@ namespace ITF
             Sav_NewGameAskForOverwrite,
             Sav_SaveAskForOverwrite,
             Sav_AskForDelete,
+            Sav_AskForUpload,
+            Sav_AskForDownload,
             Sav_UserNotSignedIn,
             Sav_SaveAndExit,
             Sav_DeviceNoMoreAvailableForSave,

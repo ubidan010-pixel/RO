@@ -25,6 +25,8 @@ enum EPhysicalButtonAction
     PhysicalButtonAction_Back,         // Usually mapped to BUTTON_FACE_EAST
     PhysicalButtonAction_Delete,       // Usually mapped to BUTTON_FACE_WEST
     PhysicalButtonAction_HomeMap,      // Usually mapped to BUTTON_FACE_WEST
+    PhysicalButtonAction_Upload,
+    PhysicalButtonAction_Download,
     PhysicalButtonAction_Count,
     PhysicalButtonAction_Invalid = -1
 };
@@ -73,6 +75,8 @@ private:
         const char* east;
         const char* west;
         const char* north;
+        const char* r_shoulder;
+        const char* l_shoulder;
     };
     
     Map<EContextIcon,IconDataHolder> m_iconData;

@@ -292,12 +292,12 @@ namespace ITF
         {
         case State_Idle:
             {
-            updateRelativePosFromTarget(getTargetPos());
+            //updateRelativePosFromTarget(getTargetPos());
                 targetScale = updateMinActorScale();
             }
             break;
         case State_onPressed:
-            updateRelativePosFromTarget(0.5f);
+            //updateRelativePosFromTarget(0.5f);
             if (m_animLightComponent)
             {
                 if (m_animLightComponent->isSubAnimFinished())
@@ -311,7 +311,7 @@ namespace ITF
             }
             break;
         case State_onReleased:
-            updateRelativePosFromTarget(0.5f);
+            //updateRelativePosFromTarget(0.5f);
             if (m_animLightComponent)
             {
                 if (m_animLightComponent->isSubAnimFinished())
@@ -335,7 +335,7 @@ namespace ITF
             {
                 changeState(State_Idle);
             }
-            updateRelativePosFromTarget(getTargetPos());
+            //updateRelativePosFromTarget(getTargetPos());
             break;
         case State_onRollover:
             if (m_animLightComponent)
@@ -347,7 +347,7 @@ namespace ITF
             {
                 changeState(State_Idle_Selected);
             }
-            updateRelativePosFromTarget(0.5f);
+            //updateRelativePosFromTarget(0.5f);
             break;
         case State_Idle_Selected:
             if (!m_animLightComponent)
@@ -355,7 +355,7 @@ namespace ITF
                 m_curScale = 1.0f + getTemplate()->getIdleSelectedScale() * f32_Sin(MTH_2PI * getTemplate()->getIdleSelectedPulseFrequency() * m_timer);
                 textScale = Vec2d::One  * m_curScale;
             }
-            updateRelativePosFromTarget(0.5f);
+            //updateRelativePosFromTarget(0.5f);
             break;
         }
         m_curActorScale = m_curActorScale + (targetScale - m_curActorScale) * getTemplate()->getActorScaleSmoothFactor();

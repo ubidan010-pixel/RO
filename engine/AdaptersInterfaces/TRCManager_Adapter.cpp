@@ -948,7 +948,7 @@ namespace ITF
         TRCMessage_Base* pTRCMessage = NULL;;
         switch(errorContext)
         {
-            case TRCManagerAdapter::Language_Warn:
+            case Language_Warn:
                 {
                     pTRCMessage = new TRCMessage_OneButton(errorContext);
                     pTRCMessage->SetForceOverPauseMenu();
@@ -959,15 +959,35 @@ namespace ITF
                     ((TRCMessage_OneButton*)pTRCMessage)->setButton(LOCALISATIONMANAGER->getText(buttonId), input_actionID_Back);
                     break;
                 }
-            case TRCManagerAdapter::OptionMenu_ChangesApplyAfterRespawn:
+            case Sav_AskForUpload:
+                {
+                    pTRCMessage = new TRCMessage_TwoButton(errorContext);
+                    pTRCMessage->setAllowedPlayer(GAMEMANAGER->getMainIndexPlayer());
+
+                    ((TRCMessage_TwoButton*)pTRCMessage)->setRightButton(buildText(4142, ContextIconType_Invalid), input_actionID_Back);  //cancel
+                    ((TRCMessage_TwoButton*)pTRCMessage)->setLeftButton(buildText(4064, ContextIconType_Invalid), input_actionID_Valid); // continue
+                    message = "Are you sure, you want to upload this save to the cloud ? ";//buildText(4087);
+                    break;
+                }
+            case Sav_AskForDownload:
+                {
+                    pTRCMessage = new TRCMessage_TwoButton(errorContext);
+                    pTRCMessage->setAllowedPlayer(GAMEMANAGER->getMainIndexPlayer());
+
+                    ((TRCMessage_TwoButton*)pTRCMessage)->setRightButton(buildText(4142, ContextIconType_Invalid), input_actionID_Back);  //cancel
+                    ((TRCMessage_TwoButton*)pTRCMessage)->setLeftButton(buildText(4064, ContextIconType_Invalid), input_actionID_Valid); // continue
+                    message = "Are you sure you want to download this save from the cloud? It will override any existing save of this slot.";//buildText(4087);
+                    break;
+                }
+            case OptionMenu_ChangesApplyAfterRespawn:
                 {
                     TRCMessage_OneButtonTimer* popUp = new TRCMessage_OneButtonTimer(2.5, 0.5, errorContext);
                     popUp->setCreationTime(SYSTEM_ADAPTER->getTime());
-                    popUp->setButton("OK", input_actionID_Valid);
+                    popUp->setButton(buildText(4164, ContextIconType_Select), input_actionID_Valid);
                     pTRCMessage = popUp;
                     pTRCMessage->SetForceOverPauseMenu();
                     pTRCMessage->changeDisplayPriority(TRCMessage_Base::Low);
-                    message = "Some changes will apply after next respawn";
+                    message = buildText(7126);
                     break;
                 }
             default:

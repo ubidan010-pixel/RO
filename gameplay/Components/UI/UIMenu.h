@@ -22,6 +22,8 @@ namespace ITF
     #define input_actionID_DeleteSaveNoEffect ITF_GET_STRINGID_CRC(MENU_DELETE_SAVE_NO_EFFECT,1963018150)
     #define input_actionID_onPressed ITF_GET_STRINGID_CRC(MENU_ONPRESSED,185785632)
     #define input_actionID_onReleased ITF_GET_STRINGID_CRC(MENU_ONRELEASED,14213630)
+    #define input_actionID_UploadSave   ITF_GET_STRINGID_CRC(MENU_UPLOAD_SAVE, 3018307802)  
+    #define input_actionID_DownloadSave ITF_GET_STRINGID_CRC(MENU_DOWNLOAD_SAVE, 3372378238)
     ///////////////////////////////////////////////////////////////////////////////////////////
 
     class UIComponent;

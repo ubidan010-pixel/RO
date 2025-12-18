@@ -649,6 +649,10 @@ namespace ITF
 
             fillOneSlot(count, displayName);
             setCanShowLoadGame(!emptySave , count);
+            //TODO
+            setCloudSaveAvailable(bfalse, count);
+            if (count == m_currentSlotSelected)
+                updateCloudProgressText(count);
         }
     }
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -780,6 +784,29 @@ namespace ITF
             break;
         case State_ShowingMainMenu_Load_Error:
             pThis->setState(State_ShowingMainMenu_SaveLoad_Root);
+            break;
+        case State_ShowingMainMenu_SaveLoad_WaitingForUploadAnswer:
+            if (currentButtonID == buttonYes)
+            {
+                // TODO: Upload save to cloud
+                pThis->setState(State_ShowingMainMenu_SaveLoad_WaitingForAction);
+            }
+            else
+            {
+                pThis->setState(State_ShowingMainMenu_SaveLoad_WaitingForAction);
+            }
+            break;
+
+        case State_ShowingMainMenu_SaveLoad_WaitingForDownloadAnswer:
+            if (currentButtonID == buttonYes)
+            {
+                // TODO: Download save from cloud
+                pThis->setState(State_ShowingMainMenu_SaveLoad_WaitingForAction);
+            }
+            else
+            {
+                pThis->setState(State_ShowingMainMenu_SaveLoad_WaitingForAction);
+            }
             break;
         default: break;
         }
@@ -1145,8 +1172,8 @@ namespace ITF
     ///////////////////////////////////////////////////////////////////////////////////////////
     void Ray_GameScreen_MainMenu::updatePadStatus()
     {
-        if ( getPlayerIndex() == U32_INVALID)
-            return ;
+        if (getPlayerIndex() == U32_INVALID)
+            return;
 
         if (m_state > State_ShowingPressStart
             && m_state != State_ShowingMainMenu_NewGame_PlayingVideo
@@ -1154,33 +1181,54 @@ namespace ITF
             && UI_MENUMANAGER->isEnable(MAINMENU_FRIENDLY)
             && UI_MENUMANAGER->getCurrentMenuID() == MAINMENU_FRIENDLY)
         {
-            EContextIcon LeftIcon = ContextIcon_Invalid;
+            EContextIcon leftIcon = ContextIcon_Invalid;   
+            EContextIcon rightIcon = ContextIcon_Select;   
+            EContextIcon topLeftIcon = ContextIcon_Invalid;   
+            EContextIcon topRightIcon = ContextIcon_Invalid;  
+
             UIMenu* pUIMenu = UI_MENUMANAGER->getMenu(MAINMENU_FRIENDLY);
-            if(pUIMenu)
+            if (pUIMenu)
             {
                 UIComponent* pUIComponent = pUIMenu->getUIComponentSelected();
-                if(pUIComponent &&
-                    updateSelectedSlot (pUIComponent->getID()))
+                if (pUIComponent && updateSelectedSlot(pUIComponent->getID()))
                 {
-                    ITF_ASSERT(m_currentSlotSelected<m_showLoadMenuEntry.size());
-                    if (m_currentSlotSelected<m_showLoadMenuEntry.size())
+
+                    bool hasLocalSave = false;
+                    if (m_currentSlotSelected < m_showLoadMenuEntry.size())
+                        hasLocalSave = m_showLoadMenuEntry[m_currentSlotSelected];
+                    //Todo after cloudsave function
+                    bool hasCloudSave = false;
+                    if (hasLocalSave && hasCloudSave)
                     {
-                        if( (TRC_ADAPTER && TRC_ADAPTER->isDisplayingError()) || !SAVEGAME_ADAPTER->IsSaveProcessEnable() )
-                        {
-                            LeftIcon = ContextIcon_Invalid;
-                        }
-                        else
-                        {
-                            if(m_wasDisplayingError)
-                                m_wasDisplayingError = bfalse;
-                            else
-                                LeftIcon = m_showLoadMenuEntry[m_currentSlotSelected] ? ContextIcon_Delete : ContextIcon_Invalid;
-                        }
+                        leftIcon = ContextIcon_Delete;
+                        rightIcon = ContextIcon_Select;
+                        topLeftIcon = ContextIcon_Upload;
+                        topRightIcon = ContextIcon_Download;
+                    }
+                    else if (hasLocalSave && !hasCloudSave)
+                    {
+                        leftIcon = ContextIcon_Delete;
+                        rightIcon = ContextIcon_Select;
+                        topLeftIcon = ContextIcon_Upload;
+                        topRightIcon = ContextIcon_Invalid;
+                    }
+                    else if (!hasLocalSave && !hasCloudSave)
+                    {
+                        leftIcon = ContextIcon_Invalid;
+                        rightIcon = ContextIcon_Select;
+                        topLeftIcon = ContextIcon_Invalid;
+                        topRightIcon = ContextIcon_Invalid;
+                    }
+                    else if (!hasLocalSave && hasCloudSave)
+                    {
+                        leftIcon = ContextIcon_Invalid;
+                        rightIcon = ContextIcon_Select;
+                        topLeftIcon = ContextIcon_Invalid;
+                        topRightIcon = ContextIcon_Download;
                     }
                 }
             }
-
-            CONTEXTICONSMANAGER->show(LeftIcon, ContextIcon_Select);
+            CONTEXTICONSMANAGER->show(leftIcon, rightIcon, topLeftIcon, topRightIcon);
         }
         else
         {
@@ -1492,6 +1540,38 @@ namespace ITF
                 return btrue;
             }
         }
+        if (_action == input_actionID_UploadSave)
+        {
+            bool hasLocalSave = false;
+            if (m_currentSlotSelected < m_showLoadMenuEntry.size())
+                hasLocalSave = m_showLoadMenuEntry[m_currentSlotSelected];
+
+            if (m_state == State_ShowingMainMenu_SaveLoad_WaitingForAction
+                && hasLocalSave
+                && SAVEGAME_ADAPTER->IsSaveProcessEnable())
+            {
+                TRC_ADAPTER->addMessage(TRCManagerAdapter::Sav_AskForUpload);
+                // TODO: 
+                setState(State_ShowingMainMenu_SaveLoad_WaitingForUploadAnswer);
+                return btrue;
+            }
+        }
+        if (_action == input_actionID_DownloadSave)
+        {
+            bool hasCloudSave = false;
+            /*if (m_currentSlotSelected < m_showCloudSaveEntry.size())
+                hasCloudSave = m_showCloudSaveEntry[m_currentSlotSelected];*/
+
+            if (m_state == State_ShowingMainMenu_SaveLoad_WaitingForAction
+                && hasCloudSave
+                && SAVEGAME_ADAPTER->IsSaveProcessEnable())
+            {
+                TRC_ADAPTER->addMessage(TRCManagerAdapter::Sav_AskForDownload);
+                // TODO: 
+                setState(State_ShowingMainMenu_SaveLoad_WaitingForDownloadAnswer);
+                return btrue;
+            }
+        }
         return bfalse;
     }
 
@@ -1672,10 +1752,84 @@ namespace ITF
         if(newSlot != U32_INVALID)
         {
             m_currentSlotSelected = newSlot;
+            updateCloudProgressText(m_currentSlotSelected);
             return btrue;
         }
         return bfalse;
     }
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    void Ray_GameScreen_MainMenu::setCloudSaveAvailable(bbool _available, u32 _slot)
+    {
+        if (m_showCloudSaveEntry.size() <= _slot)
+            m_showCloudSaveEntry.resize(_slot + 1);
+
+        m_showCloudSaveEntry[_slot] = _available;
+    }
+    void Ray_GameScreen_MainMenu::updateCloudProgressText(u32 _slotIndex)
+    {
+        bbool hasLocalSave = bfalse;
+        if (_slotIndex < m_showLoadMenuEntry.size())
+            hasLocalSave = m_showLoadMenuEntry[_slotIndex];
+
+        bbool hasCloudSave = bfalse;
+        if (_slotIndex < m_showCloudSaveEntry.size())
+            hasCloudSave = m_showCloudSaveEntry[_slotIndex];
+
+        String cloudProgress;
+        String dateTimeData;
+        String localText;
+        if (hasLocalSave)
+        {
+            String8 baseName;
+            String  tmpDisplayName;
+            bbool   emptySave = bfalse;
+
+            RAY_GAMEMANAGER->getSaveBaseName(baseName, _slotIndex);
+            SAVEGAME_ADAPTER->getEnumeratedContent(getPlayerIndex(), _slotIndex, baseName, tmpDisplayName, emptySave);
+            if (!emptySave)
+                localText = tmpDisplayName;
+        }
+        // TODO
+        String cloudText;
+        String cloudTimeText;
+        if (hasCloudSave || (hasLocalSave && hasCloudSave))
+        {
+            cloudProgress = cloudText;
+            dateTimeData = cloudTimeText;
+        }
+        else if (hasLocalSave && !hasCloudSave)
+        {
+            cloudProgress = localText;
+            time_t now = time(nullptr);
+            tm* lt = localtime(&now);
+
+            char buffer[64];
+            strftime(buffer, sizeof(buffer), "%d/%m/%y", lt);
+
+            dateTimeData = buffer;
+        }
+        else if (!hasLocalSave && hasCloudSave)
+        {
+            cloudProgress = cloudText;
+            dateTimeData = cloudTimeText;
+        }
+        else
+        {
+            cloudProgress = "";
+            dateTimeData = "";
+        }
+        auto comp = UI_MENUMANAGER->getMenu(MAINMENU_FRIENDLY)->getUIComponentByFriendly("cloudProgress");
+        if (comp)
+        {
+            comp->forceContent(cloudProgress);
+        }
+        auto date = UI_MENUMANAGER->getMenu(MAINMENU_FRIENDLY)->getUIComponentByFriendly("dayTimeSave");
+        if (date)
+        {
+            date->forceContent(dateTimeData);
+        }
+    }
+
     ///////////////////////////////////////////////////////////////////////////////////////////
     void Ray_GameScreen_MainMenu::onEndOfPlayingVideo()
     {

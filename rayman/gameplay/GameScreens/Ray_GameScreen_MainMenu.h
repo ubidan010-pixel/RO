@@ -114,6 +114,8 @@ namespace ITF
             State_ShowingMainMenu_NewGame_WaitSaved,
             State_ShowingMainMenu_NewGame_WaitSavedNotificationCleared,
             State_SigninChange_WaitPendingStorageOperation,
+            State_ShowingMainMenu_SaveLoad_WaitingForUploadAnswer,
+            State_ShowingMainMenu_SaveLoad_WaitingForDownloadAnswer,
 
             State_Online_CreateSession,
             State_Online_UpdateSession,
@@ -189,6 +191,8 @@ namespace ITF
         //storage enumeration
         void startSavegameCheckOnAnyDevice();
         void setCanShowLoadGame(bbool _show, u32 _slot = 0);
+        void setCloudSaveAvailable(bbool _available, u32 _slot = 0);
+        void updateCloudProgressText(u32 _slotIndex);
 
         static void completedEnumOnEveryDeviceCallback();
         static void storageDeviceChangedCallback();
@@ -207,6 +211,7 @@ namespace ITF
 
         bbool m_storageDeviceChanged;
         SafeArray<bbool> m_showLoadMenuEntry;
+        SafeArray<bbool> m_showCloudSaveEntry;
         u32 m_currentSlotSelected;
         bbool m_firstEntryInPlayMenu;
         bbool m_wasDisplayingError;
