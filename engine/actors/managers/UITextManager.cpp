@@ -234,40 +234,36 @@ namespace ITF
     {
         switch (rawKey)
         {
-        case KEY_UP:    return String8("KEYBOARD_ARROW_UP");
-        case KEY_DOWN:  return String8("KEYBOARD_ARROW_DOWN");
-        case KEY_LEFT:  return String8("KEYBOARD_ARROW_LEFT");
-        case KEY_RIGHT: return String8("KEYBOARD_ARROW_RIGHT");
-        case KEY_SPACE: return String8("KEYBOARD_SPACE");
-        case KEY_ESC:   return String8("KEYBOARD_ESCAPE");
-        case KEY_ENTER: return String8("KEYBOARD_ENTER");
-        case KEY_TAB:   return String8("KEYBOARD_TAB");
+        case KEY_UP:        return "KEYBOARD_ARROW_UP";
+        case KEY_DOWN:      return "KEYBOARD_ARROW_DOWN";
+        case KEY_LEFT:      return "KEYBOARD_ARROW_LEFT";
+        case KEY_RIGHT:     return "KEYBOARD_ARROW_RIGHT";
+        case KEY_SPACE:     return "KEYBOARD_SPACE";
+        case KEY_ESC:       return "KEYBOARD_ESCAPE";
+        case KEY_ENTER:     return "KEYBOARD_ENTER";
+        case KEY_TAB:       return "KEYBOARD_TAB";
         case KEY_LSHIFT:
-        case KEY_RSHIFT: return String8("KEYBOARD_SHIFT");
+        case KEY_RSHIFT:    return "KEYBOARD_SHIFT";
         case KEY_LCTRL:
-        case KEY_RCTRL:  return String8("KEYBOARD_CTRL");
+        case KEY_RCTRL:     return "KEYBOARD_CTRL";
         case KEY_LALT:
-        case KEY_RALT:   return String8("KEYBOARD_ALT");
-        case KEY_BACKSPACE: return String8("KEYBOARD_BACKSPACE");
-        case KEY_DEL:    return String8("KEYBOARD_DELETE");
-        default:
-            break;
+        case KEY_RALT:      return "KEYBOARD_ALT";
+        case KEY_BACKSPACE: return "KEYBOARD_BACKSPACE";
+        case KEY_DEL:       return "KEYBOARD_DELETE";
+        default:            break;
         }
 
+        auto makeKey = [](char c) -> String8
+        {
+            char buf[16];
+            std::snprintf(buf, sizeof(buf), "KEYBOARD_%c", c);
+            return String8(buf);
+        };
         if (rawKey >= 'a' && rawKey <= 'z')
-        {
-            char keyName[16];
-            snprintf(keyName, sizeof(keyName), "KEYBOARD_%c", (char)(rawKey - 'a' + 'A'));
-            return String8(keyName);
-        }
-
-        if (rawKey >= '0' && rawKey <= '9')
-        {
-            char keyName[16];
-            snprintf(keyName, sizeof(keyName), "KEYBOARD_%c", (char)rawKey);
-            return String8(keyName);
-        }
-        return String8("KEYBOARD_UNKNOWN");
+            return makeKey(static_cast<char>(std::toupper(static_cast<unsigned char>(rawKey))));
+        if ((rawKey >= 'A' && rawKey <= 'Z') || (rawKey >= '0' && rawKey <= '9'))
+            return makeKey(static_cast<char>(rawKey));
+        return "KEYBOARD_UNKNOWN";
     }
 
     static i32 GetDefaultKeyForAction(u32 action)
@@ -1157,7 +1153,7 @@ namespace ITF
         }
 #endif
 
-        u32 physicalControl = U32_INVALID;
+        u32 physicalControl;
         if (_action == ZInputManager::Action_Move)
         {
             u32 upControl = GAMEMANAGER->getInputManager()->GetPhysicalFromAction(_playerIndex, ZInputManager::Action_Up);
@@ -1252,7 +1248,7 @@ namespace ITF
             return bfalse;
 
 #if defined(ITF_WINDOWS)
-        bool useKeyboardIcons = false;
+        bool useKeyboardIcons;
         PCControlMode pcMode = INPUT_ADAPTER->GetPCControlMode();
         switch (pcMode)
         {
