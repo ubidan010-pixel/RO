@@ -78,9 +78,9 @@ namespace ITF
                         ITF_ASSERT(!systemAdapter->m_suspendRequested);
                         systemAdapter->m_suspendRequested = btrue;
                     }
-                    ITF_VERIFY(::SetEvent(systemAdapter->m_plmSuspendProcessComplete));
+                    //ITF_VERIFY(::SetEvent(systemAdapter->m_plmResumeProcessFromSuspend));
                     // Wait until the app acknowledges that it has completed its suspend processing.
-                    ITF_VERIFY(WAIT_OBJECT_0 == ::WaitForSingleObject(systemAdapter->m_plmResumeProcessFromSuspend, INFINITE));
+                    ITF_VERIFY(WAIT_OBJECT_0 == ::WaitForSingleObject(systemAdapter->m_plmSuspendProcessComplete, INFINITE));
                 }
                 else
                 {

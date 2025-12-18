@@ -22,6 +22,7 @@ namespace ITF::DX12
         enum : ux { INVALID_DESCRIPTOR_INDEX = UX_INVALID };
         [[nodiscard]] DescriptorIndex acquire(ID3D12Resource * _renderTarget); // return the descriptor index (to give at setRenderTarget)
         void release(DescriptorIndex _descriptorIdx); // release it (for instance at the same time as the destruction of the render target)
+        void reset();
 
         class Handle
         {
@@ -30,6 +31,7 @@ namespace ITF::DX12
             explicit Handle(RenderTargetViewDescriptorPool* _pool, DescriptorIndex _idx)
                 : m_pool(_pool)
                 , m_idx(_idx)
+                , m_generation(_pool ? _pool->m_generation : 0)
             {
             }
 
@@ -52,6 +54,7 @@ namespace ITF::DX12
             
             RenderTargetViewDescriptorPool* m_pool = nullptr;
             DescriptorIndex m_idx = INVALID_DESCRIPTOR_INDEX;
+            u64 m_generation = 0;
         };
 
         [[nodiscard]] Handle acquireHandle(ID3D12Resource* _renderTarget); // return a handle that is movable and will release the index automatically
@@ -74,5 +77,6 @@ namespace ITF::DX12
         ux m_rtvDescriptorSize = 0;
         ux m_nbMaxRTV = 0;
         Vector<DescriptorIndex> m_freeIndices;
+        u64 m_generation = 1;
     };
 }

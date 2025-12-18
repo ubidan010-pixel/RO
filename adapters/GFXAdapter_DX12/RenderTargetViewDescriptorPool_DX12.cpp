@@ -80,6 +80,30 @@ namespace ITF::DX12
         }
     }
 
+    void RenderTargetViewDescriptorPool::reset()
+    {
+        ++m_generation;
+        m_descriptorHeap.Reset();
+        m_rtvHandle = {};
+        m_rtvDescriptorSize = 0;
+
+        D3D12_DESCRIPTOR_HEAP_DESC desc{};
+        desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+        desc.NumDescriptors = (UINT)m_nbMaxRTV;
+        desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+        desc.NodeMask = 0;
+
+        ITF_VERIFY_HR_CALL(m_device->CreateDescriptorHeap(&desc, DX12_IID_COMPTR_ARGS(m_descriptorHeap)));
+
+        m_rtvHandle = m_descriptorHeap->GetCPUDescriptorHandleForHeapStart();
+        m_rtvDescriptorSize = m_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+
+        m_freeIndices.clear();
+        m_freeIndices.reserve(m_nbMaxRTV);
+        for (ux i = 0; i < m_nbMaxRTV; ++i)
+            m_freeIndices.push_back((DescriptorIndex)i);
+    }
+
     void RenderTargetViewDescriptorPool::setRenderTarget(ID3D12GraphicsCommandList* _cmdList, RenderTargetViewDescriptorPool::DescriptorIndex _descriptorIdx) const
     {
         auto rtvHandle = getDescriptorHandle(_descriptorIdx);
@@ -104,6 +128,7 @@ namespace ITF::DX12
     {
         _other.m_pool = nullptr;
         _other.m_idx = RenderTargetViewDescriptorPool::INVALID_DESCRIPTOR_INDEX;
+        _other.m_generation = 0;
     }
 
     RenderTargetViewDescriptorPool::Handle & RenderTargetViewDescriptorPool::Handle::operator=(RenderTargetViewDescriptorPool::Handle&& _other) noexcept
@@ -115,9 +140,11 @@ namespace ITF::DX12
 
         m_pool = _other.m_pool;
         m_idx = _other.m_idx;
+        m_generation = _other.m_generation;
 
         _other.m_pool = nullptr;
         _other.m_idx = INVALID_DESCRIPTOR_INDEX;
+        _other.m_generation = 0;
 
         return *this;
     }
@@ -132,10 +159,14 @@ namespace ITF::DX12
         ITF_ASSERT((m_pool == nullptr) == (m_idx == INVALID_DESCRIPTOR_INDEX));
         if (m_pool != nullptr)
         {
-            m_pool->release(m_idx);
+            if (m_generation == m_pool->m_generation)
+            {
+                m_pool->release(m_idx);
+            }
         }
         m_pool = nullptr;
         m_idx = INVALID_DESCRIPTOR_INDEX;
+        m_generation = 0;
     }
 
     void RenderTargetViewDescriptorPool::Handle::set(ID3D12GraphicsCommandList* _cmdList) const

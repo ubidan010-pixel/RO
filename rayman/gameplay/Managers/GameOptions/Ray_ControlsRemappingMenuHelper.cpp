@@ -39,7 +39,7 @@
 #ifndef _ITF_RAY_GAMEOPTIONNAMES_H_
 #include "rayman/gameplay/Managers/GameOptions/Ray_GameOptionNames.h"
 #endif
-
+#include <algorithm>
 namespace ITF
 {
     namespace ControlsRemappingConstants
@@ -795,8 +795,7 @@ namespace ITF
         if (m_controllerTypeChangeCooldown > 0.0f)
         {
             m_controllerTypeChangeCooldown -= deltaTime;
-            if (m_controllerTypeChangeCooldown < 0.0f)
-                m_controllerTypeChangeCooldown = 0.0f;
+            m_controllerTypeChangeCooldown = std::max(m_controllerTypeChangeCooldown, 0.0f);
         }
     }
 
@@ -845,13 +844,22 @@ namespace ITF
             adjustControllerType(listComponent, 1);
             return btrue;
         }
-        if (action == input_actionID_LeftHold || action == input_actionID_RightHold)
+        if (action == input_actionID_LeftHold)
         {
-            // Controller type is a 3-state option; repeating while held is too easy to overshoot (wrap back to the same value).
-            // Consume hold actions to avoid rapid cycling, keep changes on discrete Left/Right presses only.
+            m_controllerTypeFirstPressed = btrue;
+            m_controllerTypeFirstPressTimer = 0.0f;
+            m_controllerTypeInputTimer = 0.0f;
+            adjustControllerType(listComponent, -1);
             return btrue;
         }
-
+        if (action == input_actionID_RightHold)
+        {
+            m_controllerTypeFirstPressed = btrue;
+            m_controllerTypeFirstPressTimer = 0.0f;
+            m_controllerTypeInputTimer = 0.0f;
+            adjustControllerType(listComponent, 1);
+            return btrue;
+        }
         return bfalse;
     }
 #endif

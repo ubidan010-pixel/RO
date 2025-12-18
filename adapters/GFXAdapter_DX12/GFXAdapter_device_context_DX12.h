@@ -61,6 +61,8 @@ namespace ITF::DX12
 
         [[nodiscard]] bool isFrameStarted() const { return m_frameStarted; }
 
+        void resetFramePipelineAfterSuspendResume();
+
     private:
         void create();
 

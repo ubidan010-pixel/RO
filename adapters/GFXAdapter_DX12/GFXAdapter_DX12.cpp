@@ -1428,10 +1428,19 @@ namespace ITF
 
     void GFXAdapter_DX12::onResumeApp()
     {
-        if (m_mainContext != nullptr)
-        {
-            m_mainContext->getQueue()->ResumeX();
-        }
+        if (!m_mainContext) return;
+
+        m_mainContext->getQueue()->ResumeX();
+
+#if !defined(ITF_WIN64)
+        ITF_VERIFY(createSwapChain());
+
+        m_mainContext->resetFramePipelineAfterSuspendResume();
+
+        m_currentRenderTarget = nullptr;
+        m_rtvDescriptorPool->reset();
+        createFrontAndBackBuffers();
+#endif
     }
 
     ///----------------------------------------------------------------------------//

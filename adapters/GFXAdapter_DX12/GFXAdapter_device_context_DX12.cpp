@@ -165,4 +165,16 @@ namespace ITF::DX12
         m_frameStarted = false;
     }
 
+    void GfxDeviceContext::resetFramePipelineAfterSuspendResume()
+    {
+        m_nbSubmittedFrame = 0;
+        m_frameStarted = false;
+
+        for (u32 i = 0; i < MAX_FRAME_IN_ADVANCE; ++i)
+            m_frameFenceSignaledValues[i] = 0;
+
+#if !defined(ITF_WIN64)
+        m_framePipelineToken = D3D12XBOX_FRAME_PIPELINE_TOKEN_NULL;
+#endif
+    }
 } // namespace ITF

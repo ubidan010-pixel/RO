@@ -20,6 +20,10 @@ namespace  ITF
         {
             PathString_t pathName;
             _movie.getString(pathName);
+            if (pathName == "fresco" || pathName == "fresco_rayman")
+            {
+                return; // disable these videos for now
+            }
             m_videoHandle = VIDEO_ADAPTER->open(pathName,_fromMemory);
             if ( m_videoHandle && m_videoHandle->isOpened() )
             {
