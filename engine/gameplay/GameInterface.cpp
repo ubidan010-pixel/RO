@@ -93,25 +93,27 @@ namespace ITF
         FactionManager::create();
         LinkManager::create();
         CinematicManager::create();
-        PadRumbleManager::create();
         TweenInstructionFactory_Template::create();
         TweenInstructionFactory::create();
         EventDelayHandler::create();
 #ifdef USE_PAD_HAPTICS
         PadHapticsManager::create();
+#else
+        PadRumbleManager::create();
 #endif
     }
 
     GameInterface::~GameInterface()
     {
         m_templateClientHandler.freeUsedTemplates();
-        PadRumbleManager::destroy();
         CinematicManager::destroy();
         FactionManager::destroy();
         LinkManager::destroy();
         EventDelayHandler::destroy();
 #ifdef USE_PAD_HAPTICS
         PadHapticsManager::destroy();
+#else
+        PadRumbleManager::destroy();
 #endif
         SF_DEL(m_gameScreenFactory);
         SF_DEL(m_persistentGameDataFactory);
@@ -127,7 +129,11 @@ namespace ITF
     {
         FACTION_MANAGER->init();
         LINKMANAGER->init();
+#ifdef USE_PAD_HAPTICS
+        HAPTICS_MANAGER->init();
+#else
         PADRUMBLEMANAGER->init();
+#endif
 
         registerSavegameErrorMenus();
     }

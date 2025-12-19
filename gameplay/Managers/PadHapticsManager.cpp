@@ -17,7 +17,7 @@ namespace ITF
     {
     }
 
-    void PadHapticsManager::initialize()
+    void PadHapticsManager::init()
     {
     }
 
@@ -48,10 +48,10 @@ namespace ITF
     void PadHapticsManager::enableHaptics(bbool enable)
     {
         m_enableHaptics = enable;
-        for (const auto& pair : m_devices)
+        for (auto& pair : m_devices)
         {
             const u32 pad = pair.first;
-            DeviceInfo info = pair.second;
+            DeviceInfo& info = pair.second;
             if (enable && !info.regHaptics)
             {
                 bbool isSuccess = registerHaptics(pad, info.deviceID, info.deviceOutputID, info.padType);
@@ -59,19 +59,22 @@ namespace ITF
             }
             else if (!enable && info.regHaptics)
             {
-                unregisterHaptics(pad);
+                bbool isSuccess = unregisterHaptics(pad);
+                info.regHaptics = !isSuccess;
             }
         }
+        int k = 0;
         // TODO, wait for new option, but for now it's alongs with haptics
         enableControllerSpeaker(m_enableHaptics);
     }
 
     void PadHapticsManager::enableControllerSpeaker(bbool enable)
     {
+        m_enableControllerSpeaker = enable;
         for (auto& pair : m_devices)
         {
             const u32 pad = pair.first;
-            DeviceInfo info = pair.second;
+            DeviceInfo& info = pair.second;
             if (enable && !info.regSpeaker)
             {
                 bbool isSuccess = registerControllerSpeaker(pad, info.deviceID, info.deviceOutputID, info.padType);
@@ -79,7 +82,8 @@ namespace ITF
             }
             else if (!enable && info.regSpeaker)
             {
-                unregisterControllerSpeaker(pad);
+                bbool isSuccess = unregisterControllerSpeaker(pad);
+                info.regSpeaker = !isSuccess;
             }
         }
     }

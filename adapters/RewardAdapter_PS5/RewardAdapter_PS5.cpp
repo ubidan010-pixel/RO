@@ -63,47 +63,50 @@ namespace ITF
         pair.second = _name;
         m_activitiesMapping.insert(pair);
     }
+
     void RewardAdapter_PS5::init_rewardList()
     {
-        addReward(s_REWARD_RAY_BETILLA_BACK, 1);
-        addReward(s_REWARD_RAY_BEAUTIFUL_BEATS, 2);
-        addReward(s_REWARD_RAY_FOODIE_FAIRY, 3);
-        addReward(s_REWARD_RAY_MERMAID, 4);
-        addReward(s_REWARD_RAY_NYMPHS_ROCK, 5);
-        addReward(s_REWARD_RAY_BIG_MAMA, 6);
-        addReward(s_REWARD_RAY_SCOUT, 7);
-        addReward(s_REWARD_RAY_Explorer, 8);
-        addReward(s_REWARD_RAY_DR_LIVIDSTONE, 9);
-        addReward(s_REWARD_RAY_SPEEDY, 10);
-        addReward(s_REWARD_RAY_TURBO, 11);
-        addReward(s_REWARD_RAY_NITRO, 12);
-        addReward(s_REWARD_RAY_ELEC_FRIEND, 13);
-        addReward(s_REWARD_RAY_ELEC_HERO, 14);
-        addReward(s_REWARD_RAY_ELEC_LEGEND, 15);
-        addReward(s_REWARD_RAY_MILK_MOUTH, 16);
-        addReward(s_REWARD_RAY_FULL_MOUTH, 17);
-        addReward(s_REWARD_RAY_THE_JAW, 18);
-        addReward(s_REWARD_RAY_POP_POP_BOOM, 19);
-        addReward(s_REWARD_RAY_BUBBLIZER, 20);
-        addReward(s_REWARD_RAY_IAM_BACK, 21);
-        addReward(s_REWARD_RAY_PAINLESS, 22);
-        addReward(s_REWARD_RAY_VACUUM_KNACK, 23);
-        addReward(s_REWARD_RAY_NOPANIC, 24);
-        addReward(s_REWARD_RAY_FINISH_WITH_COSTUME, 25);
-        addReward(s_REWARD_RAY_HOVER_HAPPY, 26);
-        addReward(s_REWARD_RAY_CRUSHER, 27);
-        // addReward(s_REWARD_RAY_PEACEFUL_DREAMS, 28); --> removed
-        addReward(s_REWARD_RAY_CRUSH_COMBO, 28);
-        addReward(s_REWARD_RAY_SPRINTER, 29);
-        addReward(s_REWARD_RAY_FISHER_KING, 30);
-        addReward(s_REWARD_RAY_KUNGFUCOMBO, 31);
-        addReward(s_REWARD_RAY_HYPERSPEED, 32);
-        addReward(s_REWARD_RAY_BOING, 33);
-        addReward(s_REWARD_RAY_BLUE_BARON, 34);
-        addReward(s_REWARD_RAY_SURVIVEDPIRANHAPOND, 35);
-        addReward(s_REWARD_RAY_BACK_AT_YOU, 36);
-        addReward(s_REWARD_RAY_CLEAR_SIGHTED, 37);
-        addReward(s_REWARD_RAY_EAGLE_EYED, 38);
+        u32 trophyId = 0;   // starts at 0 on PS5
+
+        addReward(s_REWARD_RAY_BETILLA_BACK, trophyId++);
+        addReward(s_REWARD_RAY_BEAUTIFUL_BEATS, trophyId++);
+        addReward(s_REWARD_RAY_FOODIE_FAIRY, trophyId++);
+        addReward(s_REWARD_RAY_MERMAID, trophyId++);
+        addReward(s_REWARD_RAY_NYMPHS_ROCK, trophyId++);
+        addReward(s_REWARD_RAY_SCOUT, trophyId++);
+        addReward(s_REWARD_RAY_Explorer, trophyId++);
+        addReward(s_REWARD_RAY_DR_LIVIDSTONE, trophyId++);
+        addReward(s_REWARD_RAY_SPEEDY, trophyId++);
+        addReward(s_REWARD_RAY_TURBO, trophyId++);
+        addReward(s_REWARD_RAY_NITRO, trophyId++);
+        addReward(s_REWARD_RAY_ELEC_FRIEND, trophyId++);
+        addReward(s_REWARD_RAY_ELEC_HERO, trophyId++);
+        addReward(s_REWARD_RAY_ELEC_LEGEND, trophyId++);
+        addReward(s_REWARD_RAY_MILK_MOUTH, trophyId++);
+        addReward(s_REWARD_RAY_FULL_MOUTH, trophyId++);
+        addReward(s_REWARD_RAY_THE_JAW, trophyId++);
+        addReward(s_REWARD_RAY_POP_POP_BOOM, trophyId++);
+        addReward(s_REWARD_RAY_BUBBLIZER, trophyId++);
+        addReward(s_REWARD_RAY_IAM_BACK, trophyId++);
+        addReward(s_REWARD_RAY_PAINLESS, trophyId++);
+        addReward(s_REWARD_RAY_VACUUM_KNACK, trophyId++);
+        addReward(s_REWARD_RAY_NOPANIC, trophyId++);
+        addReward(s_REWARD_RAY_FINISH_WITH_COSTUME, trophyId++);
+        addReward(s_REWARD_RAY_HOVER_HAPPY, trophyId++);
+        addReward(s_REWARD_RAY_CRUSHER, trophyId++);
+        addReward(s_REWARD_RAY_CRUSH_COMBO, trophyId++);
+        addReward(s_REWARD_RAY_SPRINTER, trophyId++);
+        addReward(s_REWARD_RAY_FISHER_KING, trophyId++);
+        addReward(s_REWARD_RAY_KUNGFUCOMBO, trophyId++);
+        addReward(s_REWARD_RAY_HYPERSPEED, trophyId++);
+        addReward(s_REWARD_RAY_BOING, trophyId++);
+        addReward(s_REWARD_RAY_BLUE_BARON, trophyId++);
+        addReward(s_REWARD_RAY_SURVIVEDPIRANHAPOND, trophyId++);
+        addReward(s_REWARD_RAY_BACK_AT_YOU, trophyId++);
+        addReward(s_REWARD_RAY_BIG_MAMA, trophyId++);           // Nothing Lasts Forever
+        addReward(s_REWARD_RAY_PEACEFUL_DREAMS, trophyId++);    // Sweet Dreams new design. Old one not in PS Vita CK >^.^<
+        addReward(s_REWARD_RAY_CLEAR_SIGHTED, trophyId++);
+        addReward(s_REWARD_RAY_EAGLE_EYED, trophyId++);
     }
 
     void RewardAdapter_PS5::update()
@@ -220,7 +223,7 @@ namespace ITF
 
     int RewardAdapter_PS5::initForBoot()
     {
-        init_rewardList();
+        //init_rewardList();    // init from Ray_RewardManager common code now.
         switchState(STATE_INITIALIZE);
         return true;
     }

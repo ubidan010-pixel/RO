@@ -303,6 +303,7 @@ namespace ITF
         {
             auto pA = pThis->m_achievementList->list[i];
             bbool locked = pA->completed == UPC_FALSE;
+            pThis->m_achievementLocked[i] = locked;
             LOG("[UPlay] Reward %d %s locked? %d", pA->id, pA->nameUtf8, locked);
         }
 

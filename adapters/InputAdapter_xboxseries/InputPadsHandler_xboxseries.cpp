@@ -3,6 +3,7 @@
 #include "adapters/InputAdapter_xboxseries/InputPadsHandler_xboxseries.h"
 #include "core/utility.h"
 #include <algorithm>
+#include <XUser.h>
 
 namespace ITF
 {
@@ -21,7 +22,7 @@ namespace ITF
 
         if (previousConnectedStatus > currentConnectedStatus)
         {
-            ScopeLockMutex locker(m_padsHandler->m_mutexOnRemoveList);  
+            ScopeLockMutex locker(m_padsHandler->m_mutexOnRemoveList);
             m_padsHandler->m_removeDevices.emplace_back(device);
         }
     }
@@ -124,7 +125,7 @@ namespace ITF
     {
         return MAX_PAD_COUNT;
     }
-    
+
     u32 InputPadsHandler_GameInput::getGamePadCount() const
     {
         return m_pads.size();
@@ -183,7 +184,29 @@ namespace ITF
     {
         return _pad < m_pads.size();
     }
+    String InputPadsHandler_GameInput::getDeviceName(u32 _pad) {
+        const auto pInfo = m_pads[_pad].getDevice()->GetDeviceInfo();
+        XUserHandle hUser;
+        HRESULT res = XUserFindForDevice(&(pInfo->deviceId), &hUser);
+        if (res == S_OK)
+        {
+            XUserLocalId idLocal;
+            XUserGetLocalId(hUser, &idLocal);
 
+            wchar_t szName[256];
+            size_t len;
+            XUserGetDefaultAudioEndpointUtf16(
+                idLocal,
+                XUserDefaultAudioEndpointKind::CommunicationRender,
+                sizeof(szName) / sizeof(*szName),
+                szName,
+                &len);
+            const String deviceName(szName);
+            return deviceName;
+        }
+        else
+            return String::emptyString;
+    }
     void InputPadsHandler_GameInput::swapPads(u32 index1, u32 index2)
     {
         if (index1 < m_pads.size() && index2 < m_pads.size())

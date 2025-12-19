@@ -2,6 +2,9 @@
 #include "core/error/ErrorHandler.h"
 
 #include "adapters/InputAdapter_xboxseries/InputAdapter_xboxseries.h"
+
+#include <XUser.h>
+
 #include "core/utility.h"
 #include "engine/AdaptersInterfaces/AudioMiddlewareAdapter.h"
 
@@ -31,25 +34,35 @@ namespace ITF
             bbool wasConnected = isPadConnected(padIdx);
             bbool isConnected = m_padsHandler.isPadConnected(padIdx);
             PadType padType = isConnected ? m_padsHandler.getPadType(padIdx) : Pad_Invalid;
-            
+
             if (wasConnected != isConnected)
             {
                 if (isConnected)
                 {
-                    u32 deviceID = AUDIO_ADAPTER->getDeviceId(m_padsHandler.getDevice(padIdx));
-                    OnControllerConnected(padIdx,deviceID,0,Pad_X360);
+                    u32 deviceID = getDeviceID(padIdx);
+                    u32 deviceOutputID = getDeviceOutputId(padIdx);
+                    OnControllerConnected(padIdx,deviceID,deviceOutputID,padType);
                 }
                 else
                 {
                     OnControllerDisconnected(padIdx);
                 }
             }
-            
+
             setPadConnected(padIdx, isConnected);
             setPadType(padIdx, padType);
         }
     }
 
+    i32 InputAdapter_XBoxSeries::getDeviceID(u32 _padIndex) {
+        return AUDIO_ADAPTER->getDeviceId(m_padsHandler.getDevice(_padIndex));
+    }
+
+    i32 InputAdapter_XBoxSeries::getDeviceOutputId(u32 _padIndex)
+    {
+       String device = m_padsHandler.getDeviceName(_padIndex);
+       return AUDIO_ADAPTER->getDeviceIdFromName(device);
+    }
     u32 InputAdapter_XBoxSeries::getGamePadCount()
     {
         return m_padsHandler.getGamePadCount();

@@ -222,6 +222,7 @@ namespace ITF
             Action_PowerUp_WalkOnWallsGlobal,
 
             Action_MedalCompleted,                      // Finish a medal
+            Action_RewardCompleted,                     // Finish a reward; Sweet Dreams counts these to N-1
                         
             Event_StartNewLevel,
             Event_EndOfLevel,

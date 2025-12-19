@@ -41,6 +41,7 @@ namespace ITF
         InputAdapter::PadType getPadType(u32 _numPad) const;
         bbool isPadConnected(u32 _numPad) const;
         IGameInputDevice* getDevice(u32 _index) { return m_pads[_index].getDevice();}
+        String InputPadsHandler_GameInput::getDeviceName(u32 _pad);
     private:
         void updateRemovePads();
         enum : u32 { INVALID_PAD_INDEX = U32_INVALID };

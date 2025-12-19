@@ -15,7 +15,7 @@ namespace ITF
         static void create() { s_instance = newAlloc(mId_Singleton, PadHapticsManager()); }
         static void destroy() { SF_DEL(s_instance); }
         static PadHapticsManager* get() { return s_instance; }
-        void initialize();
+        void init();
         void update(float dt);
         void onSoundBankLoaded();
         void onControllerConnected(u32 _padIndex,u32 _deviceID,u32 _deviceOutputID,InputAdapter::PadType _padType);

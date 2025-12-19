@@ -116,8 +116,10 @@ namespace ITF
         close();
 
         String fullName = _filename;
-#if defined(ITF_NINTENDO)
+#if defined(ITF_NX)
         fullName += "_nx.webm";
+#elif defined(ITF_OUNCE)
+        fullName += "_ounce.webm";
 #else
         fullName += ".webm";
 #endif

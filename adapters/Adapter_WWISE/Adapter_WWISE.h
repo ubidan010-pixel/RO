@@ -391,10 +391,12 @@ namespace	ITF
 	    bbool unregisterHaptics(u32 _pad) override;
 	    bbool registerControllerSpeaker(u32 _pad,u32 _deviceId,u32 _deviceOutputId,InputAdapter::PadType _padType) override;
 	    bbool unregisterControllerSpeaker(u32 _pad) override;
+        void setMotionVolume(Volume _volume) override;
 #ifdef ITF_WINDOWS
 	    u32 getDeviceId(IMMDevice* _imDevice) override;
 #elif defined(ITF_XBOX_SERIES)
 	    virtual u32 getDeviceId(IGameInputDevice* _device) override;
+	    u32 getDeviceIdFromName(String& _device) override;
 #endif
     private :
         const char* CONTROLLER_SPEAKER = "Controller_Speaker";

@@ -68,43 +68,8 @@ void RewardAdapter_xboxseries::initializeAchievements()
 
     m_initializedWithAchievementsManager = btrue;
 
-    addReward(s_REWARD_RAY_BETILLA_BACK, 1);
-    addReward(s_REWARD_RAY_BEAUTIFUL_BEATS, 2);
-    addReward(s_REWARD_RAY_FOODIE_FAIRY, 3);
-    addReward(s_REWARD_RAY_MERMAID, 4);
-    addReward(s_REWARD_RAY_NYMPHS_ROCK, 5);
-    addReward(s_REWARD_RAY_BIG_MAMA, 6);        
-    addReward(s_REWARD_RAY_SCOUT, 7);
-    addReward(s_REWARD_RAY_Explorer, 8);
-    addReward(s_REWARD_RAY_DR_LIVIDSTONE, 9);
-    addReward(s_REWARD_RAY_SPEEDY, 10);
-    addReward(s_REWARD_RAY_TURBO, 11);
-    addReward(s_REWARD_RAY_NITRO, 12);
-    addReward(s_REWARD_RAY_ELEC_FRIEND, 13);
-    addReward(s_REWARD_RAY_ELEC_HERO, 14);
-    addReward(s_REWARD_RAY_ELEC_LEGEND, 15);
-    addReward(s_REWARD_RAY_MILK_MOUTH, 16);
-    addReward(s_REWARD_RAY_FULL_MOUTH, 17);
-    addReward(s_REWARD_RAY_THE_JAW, 18);
-    addReward(s_REWARD_RAY_POP_POP_BOOM, 19);
-    addReward(s_REWARD_RAY_BUBBLIZER, 20);
-    addReward(s_REWARD_RAY_IAM_BACK, 21);
-    addReward(s_REWARD_RAY_PAINLESS, 22);
-    addReward(s_REWARD_RAY_VACUUM_KNACK, 23);
-    addReward(s_REWARD_RAY_NOPANIC, 24);
-    addReward(s_REWARD_RAY_FINISH_WITH_COSTUME, 25);
-    addReward(s_REWARD_RAY_HOVER_HAPPY, 26);
-    addReward(s_REWARD_RAY_CRUSHER, 27);
-    //addReward(s_REWARD_RAY_PEACEFUL_DREAMS, 28);
-    addReward(s_REWARD_RAY_CRUSH_COMBO, 28);
-    addReward(s_REWARD_RAY_SPRINTER, 29);
-    addReward(s_REWARD_RAY_FISHER_KING, 30);   
-    addReward(s_REWARD_RAY_KUNGFUCOMBO, 31);
-    addReward(s_REWARD_RAY_HYPERSPEED, 32);        
-    addReward(s_REWARD_RAY_BOING, 33);
-    addReward(s_REWARD_RAY_BLUE_BARON, 34);
-    addReward(s_REWARD_RAY_SURVIVEDPIRANHAPOND, 35);
-    addReward(s_REWARD_RAY_BACK_AT_YOU, 36);
+    // addReward is done from Ray_RewardManager now
+    // on all platforms, to be easy to edit from inside rewardlist.isg
 }
 
 void RewardAdapter_xboxseries::update()

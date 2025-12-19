@@ -150,10 +150,12 @@ namespace	ITF
 	   virtual bbool unregisterHaptics(u32 _pad){return bfalse;};
 	   virtual bbool registerControllerSpeaker(u32 _pad,u32 _deviceId,u32 _deviceOutputId,InputAdapter::PadType _padType){return bfalse;};
 	   virtual bbool unregisterControllerSpeaker(u32 _pad){return bfalse;};
+	   virtual void  setMotionVolume(Volume _volume) {};
 #if defined(ITF_WINDOWS)
 	    virtual u32 getDeviceId(IMMDevice* _imDevice) {return 0;};
 #elif defined(ITF_XBOX_SERIES)
 	    virtual u32 getDeviceId(IGameInputDevice*_device) {return 0;};
+	    virtual u32   getDeviceIdFromName(String& _device) {return 0;};
 #endif
 #endif
 

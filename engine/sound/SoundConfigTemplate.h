@@ -25,6 +25,7 @@ namespace ITF
         StringID m_MenuGlobalGUID;
         StringID m_MenuMusicGUID;
         StringID m_MenuSFXGUID;
+        StringID m_MenuMotionGUID;
     };
 
     class SoundConfig_Template : public TemplateObj

@@ -12,7 +12,7 @@ namespace ITF
     {
     private:
         enum : u32 { NbMaxPads = 4 }; // XUSER_MAX_COUNT is now 8 but we limit to 4 for the game
-        
+
     public:
         InputAdapter_XBoxSeries();
         InputAdapter_XBoxSeries(const InputAdapter_XBoxSeries &) = delete;
@@ -28,6 +28,8 @@ namespace ITF
         void swapControllers(u32 index1, u32 index2) override;
 
         void updateAllInputState();
+        i32 getDeviceID(u32 _padIndex);
+        i32 getDeviceOutputId(u32 _padIndex);
 
     private:
         ComPtr<IGameInput> m_gameInput{};

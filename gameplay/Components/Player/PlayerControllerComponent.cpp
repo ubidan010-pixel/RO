@@ -198,7 +198,7 @@ void PlayerControllerComponent::onActorLoaded(Pickable::HotReloadType _hotReload
     setCurrentPhantomShape(getTemplate()->getPhantomShape());
     createPhantom();
 
-    if ( m_animComponent != NULL ) 
+    if ( m_animComponent != NULL )
     {
         m_animComponent->setUpdateAnimInput(this);
     }
@@ -385,12 +385,16 @@ void PlayerControllerComponent::processCollision(EventCollide* _collide)
 
 void PlayerControllerComponent::processPadRumbleStart(EventPadRumbleStart* _padRumbleStart)
 {
+#ifndef USE_PAD_HAPTICS
     PADRUMBLEMANAGER->startRumble(_padRumbleStart->getName(), m_playerIndex);
+#endif
 }
 
 void PlayerControllerComponent::processPadRumbleStop(EventPadRumbleStop* _padRumbleStop)
 {
+#ifndef USE_PAD_HAPTICS
     PADRUMBLEMANAGER->stopRumble(m_playerIndex);
+#endif
 }
 
 void PlayerControllerComponent::registerDatas()
@@ -451,7 +455,7 @@ void PlayerControllerComponent::enablePhantom( bbool _val )
 void PlayerControllerComponent::onDepthChanged( f32 _oldZ, f32 _newZ )
 {
     Super::onDepthChanged( _oldZ, _newZ);
-    
+
     if (m_objectsRegistered)
     {
         AI_MANAGER->changeDepth(m_actor->getRef(),_oldZ, _newZ);
@@ -461,7 +465,7 @@ void PlayerControllerComponent::onDepthChanged( f32 _oldZ, f32 _newZ )
 void PlayerControllerComponent::setFaction( Faction _newFaction )
 {
     m_curentFaction = _newFaction;
-    
+
     if (m_objectsRegistered)
     {
         AIData * data = AI_MANAGER->getAIData(m_actor->getRef(),m_actor->getDepth());

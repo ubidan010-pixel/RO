@@ -384,7 +384,7 @@ namespace ITF
                  m_linkCurveComponent->setAlpha(_child, 0.0f );
                  return;
             }
-           
+
             childAI->setState(activated, dist, bfalse, getTemplate());
             if (!childAI->canMove(activated))
             {
@@ -738,7 +738,7 @@ namespace ITF
         if ( m_playerDetector->getActorsInside().size() > m_playersInsideCount )
         {
             changeState((m_state == State_Open) ? State_Open_Wiggling : State_Closed_Wiggling);
-
+#ifndef USE_PAD_HAPTICS
             // pad rumble
             if (getTemplate()->getPadRumbleWiggle().isValid())
             {
@@ -747,9 +747,10 @@ namespace ITF
                 {
                     PADRUMBLEMANAGER->startRumble(
                         getTemplate()->getPadRumbleWiggle(),
-                        player->getIndex()); 
+                        player->getIndex());
                 }
             }
+#endif
         }
 
         // remember actors inside count

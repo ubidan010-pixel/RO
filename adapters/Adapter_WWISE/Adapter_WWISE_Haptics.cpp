@@ -137,6 +137,25 @@ namespace ITF
             return bfalse;
         }
     }
+    void Adapter_WWISE::setMotionVolume( Volume _volume)
+    {
+        if (isRunning() == false)
+            return;
+
+        StringID guidRTPCVol = m_guidRtpc.m_MenuMotionGUID;
+        if (guidRTPCVol.isValid())
+        {
+            SoundRtpcID	rtpcVolumeID = AUDIO_ADAPTER->getIDFromGUID(guidRTPCVol);
+            if (rtpcVolumeID != ITF_INVALID_SOUND_RTPC_ID)
+                AUDIO_ADAPTER->setRtpc(rtpcVolumeID, _volume.ratio(), ITF_INVALID_OBJREF);
+            else
+                AUDIO_ERROR("Sound : rtpcMotionVolume on Motion Master is not defined.");
+
+        }
+        else
+            AUDIO_ERROR("Sound : rtpcMotionVolume on Motion Master is not defined.");
+
+    }
 #if defined(ITF_WINDOWS)
     u32 Adapter_WWISE::getDeviceId(IMMDevice* _imDevice)
     {
@@ -152,7 +171,19 @@ namespace ITF
 #elif defined(ITF_XBOX_SERIES)
     u32 Adapter_WWISE::getDeviceId(IGameInputDevice* _device)
     {
-        return AK::SoundEngine::GetGameInputDeviceID(_device);
+        if (_device) {
+            return AK::SoundEngine::GetGameInputDeviceID(_device);
+        }
+        else  {
+            return AK_INVALID_DEVICE_ID;
+        }
+
+    }
+    u32 Adapter_WWISE::getDeviceIdFromName(String& _device)
+    {
+        wchar_t buffer[512];
+        AudioSDK::safeStringCopy(buffer,_device.wcharCStr());
+        return  AK::GetDeviceIDFromName(buffer);
     }
 #endif
 }

@@ -186,7 +186,7 @@ void Ray_PlayerControllerComponent::StateHitRelease::onEnter()
     {
         m_parent->setFrictionMode(FRICTIONMODE_CRUSH,m_parent->getTemplate()->getCrushHitFriction());
     }
-    
+
     if ( m_parent->m_playerIndex == RAY_GAMEMANAGER->getMainIndexPlayer() )
     {
         if ( m_characterPhys->getStickedEdgeIndex() != U32_INVALID ||
@@ -212,7 +212,7 @@ void Ray_PlayerControllerComponent::StateHitRelease::onEnter()
     m_hitQueue.clear();
     m_memorizedHits.clear();
     m_shapePoints.clear();
-    
+
     if ( m_parent->m_prevState != &m_parent->m_statePrepareHit )
     {
         bbool wallSlide = m_parent->m_stance == STANCE_WALLSLIDE;
@@ -331,7 +331,7 @@ bbool Ray_PlayerControllerComponent::StateHitRelease::checkStateChange( f32 _dt 
         }
     }
 
-    if ( m_canMove && ( exitToMove || pressedAction || m_exitSoon ) ) 
+    if ( m_canMove && ( exitToMove || pressedAction || m_exitSoon ) )
     {
         changeState = btrue;
     }
@@ -590,7 +590,7 @@ void Ray_PlayerControllerComponent::StateHitRelease::update(f32 _dt)
 
     m_justEntered = bfalse;
     m_switchHitTimer = Max(m_switchHitTimer-_dt,0.f);
-    
+
     if ( m_characterPhys->getStickedEdgeIndex() != U32_INVALID )
     {
         m_parent->setActionPose(ACTIONPOSE_FIGHT);
@@ -1343,7 +1343,7 @@ void Ray_PlayerControllerComponent::StateHitRelease::updatePermanentHit()
         m_shapePoints.push_back( mulTransform2dT(xf,pointsEnd[0]) );
         m_shapePoints.push_back( mulTransform2dT(xf,pointsEnd[1]) );
     }
-    
+
     m_shape.setPoints(m_shapePoints);
     m_hitQueue.clear();
 
@@ -1565,7 +1565,7 @@ void Ray_PlayerControllerComponent::StateHitRelease::processPerformCrush()
     const PolyLineEdge* bounceEdge = NULL;
     ObjectRef bounceEdgePoly = ITF_INVALID_OBJREF;
     u32 bounceEdgeIndex = U32_INVALID;
-    u32 bounceEdgeDangerLevel = 0;    
+    u32 bounceEdgeDangerLevel = 0;
 
     if ( points )
     {
@@ -1694,7 +1694,7 @@ void Ray_PlayerControllerComponent::StateHitRelease::processPerformCrush()
             m_parent->changeState(&m_parent->m_stateJumping);
             jumped = btrue;
             addShakeCamera = bfalse;
-        }        
+        }
     }
 
     if ( !jumped )
@@ -1715,9 +1715,10 @@ void Ray_PlayerControllerComponent::StateHitRelease::processPerformCrush()
     {
         shakeCamera(m_parent->m_currentPunchHitLevel);
     }
-    
+#ifndef USE_PAD_HAPTICS
     // also rumble player's pad a bit (RO-11860)
     PADRUMBLEMANAGER->startRumble(ITF_GET_STRINGID_CRC(LightShort,1228717030), m_parent->m_playerIndex);
+#endif
 }
 
 void Ray_PlayerControllerComponent::StateHitRelease::processQueryHitType(Ray_EventQueryHitType* _hitTypeQuery)
@@ -2207,7 +2208,7 @@ void Ray_PlayerControllerComponent::StateHitRelease::calculateHitQueue( const Ve
                         if ( isSolid && contact.m_actor == ITF_INVALID_OBJREF )
                         {
                             f32 dotProd = _hitDir.dot(edge->m_normalizedVector.getPerpendicular());
-                            
+
                             if ( dotProd <= 0.f )
                             {
                                 hitBlocked = btrue;
@@ -2262,7 +2263,7 @@ void Ray_PlayerControllerComponent::StateHitRelease::calculateHitQueue( const Ve
                     {
                         inserted = btrue;
                         _queue.insert(tempHit,queueIndex);
-                        
+
                         if ( hitBlocks )
                         {
                             lastHitIndex = queueIndex;
@@ -2328,7 +2329,7 @@ void Ray_PlayerControllerComponent::StateHitRelease::releaseHitsFromQueue( Punch
             if ( receiver )
             {
                 bbool hasPhantom = bfalse;
-                
+
                 _stim->resetContacts();
 
                 for (u32 i = 0; i < info.m_contacts.size(); i++)

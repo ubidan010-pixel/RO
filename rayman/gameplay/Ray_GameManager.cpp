@@ -5338,7 +5338,14 @@ namespace ITF
     void Ray_GameManager::init()
     {
         GameManager::init();
-
+           auto ak = m_configTemplate->getLevelsInfo();
+           for (auto& item : ak){
+           if (item.m_type != StringID("world")
+           && item.m_type != StringID("empty")
+           && item.m_type != StringID("chest")
+           && item.m_type != StringID("bonus"))
+            LOG("LevelID=%s LevelName=%ls",item.m_tag.getDebugString(),LOCALISATIONMANAGER->getText(item.m_titleId).cStr());
+           }
         if (m_inputManager)
         {
             // WIN32 + X360 support
@@ -12259,11 +12266,17 @@ namespace ITF
         intensity = std::max(intensity, 0.0f);
         intensity = std::min(intensity, 1.0f);
         m_gameOptionManager.setFloatOption(OPTION_INTENSITY, intensity);
-        LOG("[OptionMenu] Intensity: %.2f (%.0f%%)", intensity, intensity * 100.0f);
+            LOG("[OptionMenu] Intensity: %.2f (%.0f%%)", intensity, intensity * 100.0f);
+#if defined(ITF_SUPPORT_WWISE) && defined(USE_PAD_HAPTICS)
+            Adapter_AudioMiddleware* audioAdapter = Adapter_AudioMiddleware::getptr();
+            if (audioAdapter)
+                audioAdapter->setMotionVolume(Volume(intensity, false));
+#else
         if (PADRUMBLEMANAGER)
         {
             PADRUMBLEMANAGER->setIntensityMultiplier(intensity);
         }
+#endif
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////

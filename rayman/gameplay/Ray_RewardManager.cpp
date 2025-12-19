@@ -57,6 +57,7 @@ namespace ITF
     #define s_BlueBaron                     ITF_GET_STRINGID_CRC(BlueBaron,3459223780)
     #define s_TimeAttackWon                 ITF_GET_STRINGID_CRC(TimeAttackWon,2060670818)
     #define s_MedalCompleted                ITF_GET_STRINGID_CRC(MedalCompleted,738589224)
+    #define s_RewardCompleted               ITF_GET_STRINGID_CRC(RewardCompleted,815846922)
     #define s_FinishedLevelWithCostume      ITF_GET_STRINGID_CRC(FinishedLevelWithCostume,3874240283)
 
     #define s_PowerUp_Fight                 ITF_GET_STRINGID_CRC(PowerUp_Fight,1054894714)
@@ -140,6 +141,7 @@ namespace ITF
             addTriggerForTags(Action_ChainBubble, s_ChainBubble);
             addTriggerForTags(Action_TimeAttackWon, s_TimeAttackWon);
             addTriggerForTags(Action_MedalCompleted, s_MedalCompleted);
+            addTriggerForTags(Action_RewardCompleted, s_RewardCompleted);
             addTriggerForTags(Action_FinishedLevelWithCostume, s_FinishedLevelWithCostume);
             addTriggerForTags(Action_PowerUp_Fight, s_PowerUp_Fight);
             addTriggerForTags(Action_PowerUp_Helicopter, s_PowerUp_Helicopter);
@@ -151,21 +153,26 @@ namespace ITF
             addTriggerForTimers(Timer_DoingHelico, s_DoingHelico);
             addTriggerForTimers(Timer_BlueBaron, s_BlueBaron );
 
+#if defined(ITF_WINDOWS) || defined(ITF_XBOX_SERIES)
+            u32 platformId = 1; // achievement ID starts at 1
+#elif defined(ITF_PS5)
+            u32 platformId = 0; // trophy ID starts at 0
+#endif
 
-
-#ifdef ITF_WINDOWS
+#if defined(ITF_WINDOWS) || defined(ITF_PS5) || defined(ITF_XBOX_SERIES)
             Ray_RewardContainer_Template::RewardDetailList::const_iterator ite = m_container->getRewards().begin();
-            u32 win32Counter = 0;
+
+            // Order is same as data/GameConfig/rewardlist.isg now
             for (; ite != m_container->getRewards().end(); ite++ )
             {
                 const Ray_RewardDetail*   pDetail = &(*ite);
                 if(!pDetail) continue;
 
-                REWARD_ADAPTER_WIN->addReward(pDetail->ID, win32Counter);
-                win32Counter++;
+                REWARD_ADAPTER->addReward(pDetail->ID, platformId++);
             }
-#endif //ITF_WINDOWS
-        } else
+#endif
+        }
+        else
         {
             REWARD_MANAGER->disable();
         }
@@ -307,14 +314,18 @@ namespace ITF
 
         Ray_RewardContainer_Template::RewardDetailList::const_iterator ite = m_container->getRewards().begin();
         bbool   wantToSaveGame = bfalse;
+        u32     unlockedRewards = 0;
         for (; ite != m_container->getRewards().end(); ite++ )
         {
             const Ray_RewardDetail*   pDetail = &(*ite);
             if(!pDetail) continue;
 
             RewardID        currentID = pDetail->ID;
-            if(!REWARD_ADAPTER->isLocked(currentID))
+            if (!REWARD_ADAPTER->isLocked(currentID))
+            {
+                unlockedRewards++;
                 continue;
+            }
 
             bbool hasToUnlockReward = btrue;
             u32 TriggerCount = pDetail->Triggers.size();
@@ -338,7 +349,11 @@ namespace ITF
                 // Don't break here, because reward manager can list several reward to unlock
                 if (REWARD_ADAPTER->unlock(currentID))
                 {
-
+                    // update Sweet Dreams each time we unlock a new reward
+                    unlockedRewards++;
+                    u32 playerId = GAMEMANAGER->getMainIndexPlayer();
+                    REWARD_MANAGER->Action_Set(Ray_RewardManager::Action_RewardCompleted, playerId,
+                        f32(unlockedRewards));
 
 #ifdef ITF_SUPPORT_ONLINETRACKING
                     RAY_GAMEMANAGER->getOnlineTrackingManager()->AwardUnlock(REWARD_ADAPTER->m_rewardMap[currentID]);
