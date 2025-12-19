@@ -37,6 +37,46 @@ namespace ITF
     {
         return (mode == PCControlMode_Keyboard) ? 1u : 0u;
     }
+
+    ITF_INLINE bbool IsPlayerSlotAssigned(u32 playerIndex)
+    {
+        if (!RAY_GAMEMANAGER)
+            return bfalse;
+        if (playerIndex >= RAY_GAMEMANAGER->getMaxPlayerCount())
+            return bfalse;
+
+        Player* player = RAY_GAMEMANAGER->getPlayer(playerIndex);
+        return player && player->getActive();
+    }
+
+    ITF_INLINE void AssignUnassignedControllerToPlayer0(i32 slotGamepad[JOY_MAX_COUNT])
+    {
+        if (!slotGamepad || slotGamepad[0] != -1)
+            return;
+        i32 bestSlot = -1;
+        i32 bestGamepadIdx = 0x7fffffff;
+        for (u32 slot = 1; slot < JOY_MAX_COUNT; ++slot)
+        {
+            const i32 gamepadIdx = slotGamepad[slot];
+            if (gamepadIdx < 0)
+                continue;
+            if (IsPlayerSlotAssigned(slot))
+                continue;
+
+            if (gamepadIdx < bestGamepadIdx)
+            {
+                bestGamepadIdx = gamepadIdx;
+                bestSlot = static_cast<i32>(slot);
+            }
+        }
+
+        if (bestSlot < 0)
+            return;
+
+        const i32 primaryIdx = slotGamepad[bestSlot];
+        slotGamepad[bestSlot] = -1;
+        slotGamepad[0] = primaryIdx;
+    }
 #endif
 
     ITF_INLINE i32 TranslateSDLKey(SDL_Keycode keycode)
@@ -1261,38 +1301,7 @@ namespace ITF
 
         if (firstGamepadSlot == 0 && m_slotGamepad[0] == -1)
         {
-            i32 mapped[JOY_MAX_COUNT];
-            u32 mappedCount = 0;
-            for (u32 slot = 0; slot < JOY_MAX_COUNT; ++slot)
-            {
-                const i32 idx = m_slotGamepad[slot];
-                if (idx < 0)
-                    continue;
-
-                bbool duplicate = bfalse;
-                for (u32 j = 0; j < mappedCount; ++j)
-                {
-                    if (mapped[j] == idx)
-                    {
-                        duplicate = btrue;
-                        break;
-                    }
-                }
-                if (!duplicate && mappedCount < JOY_MAX_COUNT)
-                {
-                    mapped[mappedCount++] = idx;
-                }
-            }
-
-            for (u32 slot = 0; slot < JOY_MAX_COUNT; ++slot)
-            {
-                m_slotGamepad[slot] = -1;
-            }
-
-            for (u32 i = 0; i < mappedCount && i < JOY_MAX_COUNT; ++i)
-            {
-                m_slotGamepad[i] = mapped[i];
-            }
+            AssignUnassignedControllerToPlayer0(m_slotGamepad);
         }
         else if (firstGamepadSlot == 1 && m_slotGamepad[0] != -1)
         {
@@ -1447,31 +1456,7 @@ namespace ITF
             }
             else
             {
-                i32 primarySlot = -1;
-                for (i32 slot = static_cast<i32>(JOY_MAX_COUNT) - 1; slot >= 0; --slot)
-                {
-                    if (m_slotGamepad[slot] != -1)
-                    {
-                        primarySlot = slot;
-                        break;
-                    }
-                }
-
-                if (primarySlot > 0)
-                {
-                    const i32 primaryIdx = m_slotGamepad[primarySlot];
-                    m_slotGamepad[primarySlot] = -1;
-
-                    for (u32 slot = 0; slot < JOY_MAX_COUNT; ++slot)
-                    {
-                        if (slot != 0 && m_slotGamepad[slot] == primaryIdx)
-                        {
-                            m_slotGamepad[slot] = -1;
-                        }
-                    }
-
-                    m_slotGamepad[0] = primaryIdx;
-                }
+                AssignUnassignedControllerToPlayer0(m_slotGamepad);
             }
         }
 
