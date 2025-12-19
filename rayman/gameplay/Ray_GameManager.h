@@ -1763,6 +1763,7 @@ namespace ITF
 
 #if defined(ITF_WINDOWS)
         i32             getPCControlMode() const;
+        bbool           isPCControllerModeAvailable() const;
         void            setPCControlMode(i32 mode);
         const char*     getPCControlModeDisplayName(i32 index) const;
 #endif
@@ -2059,4 +2060,3 @@ namespace ITF
 }
 
 #endif //_ITF_RAY_GAMEMANAGER_H_
-

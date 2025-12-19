@@ -683,9 +683,7 @@ namespace ITF
             return;
 
         const i32 currentIndex = RAY_GAMEMANAGER->getPCControlMode();
-        const auto hasConnectedController = []() -> bbool {
-            return (INPUT_ADAPTER && INPUT_ADAPTER->getGamePadCount() > 0);
-        };
+        const bbool isControllerModeAvailable = RAY_GAMEMANAGER->isPCControllerModeAvailable();
 
         i32 candidateIndex = currentIndex;
         for (u32 attempt = 0; attempt < PC_CONTROL_MODE_CHOICES; ++attempt)
@@ -696,9 +694,9 @@ namespace ITF
             else if (candidateIndex >= static_cast<i32>(PC_CONTROL_MODE_CHOICES))
                 candidateIndex = 0;
 
-            if (candidateIndex == PCControlMode_Controller && !hasConnectedController())
+            if (candidateIndex == PCControlMode_Controller && !isControllerModeAvailable)
             {
-                LOG("[ControlsRemapping] Skipping Controller mode: no controllers connected\n");
+                LOG("[ControlsRemapping] Skipping Controller mode: no unassigned controllers available\n");
                 continue;
             }
             break;

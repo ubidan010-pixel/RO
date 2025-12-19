@@ -12154,22 +12154,46 @@ namespace ITF
         return m_gameOptionManager.getIntListOptionValue(OPTION_PC_KEYBOARD_CONTROLLER_SHARING, PCControlMode_Hybrid);
     }
 
+    bbool Ray_GameManager::isPCControllerModeAvailable() const
+    {
+        if (!INPUT_ADAPTER)
+            return bfalse;
+
+        const u32 maxSlots = std::min(getMaxPlayerCount(), static_cast<u32>(JOY_MAX_COUNT));
+
+        if (INPUT_ADAPTER->isPadConnected(0))
+        {
+            const InputAdapter::PadType padType = INPUT_ADAPTER->getPadType(0);
+            if (padType != InputAdapter::Pad_Invalid && padType != InputAdapter::Pad_Keyboard)
+                return btrue;
+        }
+
+        for (u32 slot = 1; slot < maxSlots; ++slot)
+        {
+            if (!INPUT_ADAPTER->isPadConnected(slot))
+                continue;
+
+            const InputAdapter::PadType padType = INPUT_ADAPTER->getPadType(slot);
+            if (padType == InputAdapter::Pad_Invalid || padType == InputAdapter::Pad_Keyboard)
+                continue;
+
+            const Player* player = getPlayer(slot);
+            if (!player || !player->getActive())
+                return btrue;
+        }
+
+        return bfalse;
+    }
+
     void Ray_GameManager::setPCControlMode(i32 type)
     {
-        const i32 currentMode = getPCControlMode();
         type = std::max(0, std::min(type, static_cast<i32>(PC_CONTROL_MODE_CHOICES) - 1));
 
-#if defined(ITF_WINDOWS)
-        if (type == PCControlMode_Controller && currentMode != PCControlMode_Controller)
+        if (type == PCControlMode_Controller && !isPCControllerModeAvailable())
         {
-            const u32 padCount = (INPUT_ADAPTER) ? INPUT_ADAPTER->getGamePadCount() : 0;
-            if (padCount == 0)
-            {
-                LOG("[ControlsRemapping] Controller mode blocked: no controllers connected\n");
-                return;
-            }
+            LOG("[ControlsRemapping] Controller mode blocked: no unassigned controllers available\n");
+            type = PCControlMode_Hybrid;
         }
-#endif
 
         m_gameOptionManager.setListOptionIndex(OPTION_PC_KEYBOARD_CONTROLLER_SHARING, type);
 

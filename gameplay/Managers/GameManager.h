@@ -711,6 +711,7 @@ namespace ITF
         //PLAYER MANAGEMENT
         virtual u32                 getMaxPlayerCount() const { return 0; }
         Player*                     getPlayer(u32 _index);
+        const Player*               getPlayer(u32 _index) const;
         Player*                     getPlayerFromActiveIndex(u32 _activeIndex);
         Player*                     getPlayerFromID(StringID _playerID);
         Player*                     getPlayerFromActor(ObjectRef _actorRef, bbool _warnIfNotAPlayer = btrue);
@@ -1124,4 +1125,3 @@ namespace ITF
 }
 
 #endif // _ITF_GAMEMANAGER_H_
-

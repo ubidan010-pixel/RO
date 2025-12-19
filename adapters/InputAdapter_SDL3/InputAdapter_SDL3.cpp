@@ -1316,17 +1316,17 @@ namespace ITF
                 }
             }
 
-            i32 lastOccupied = -1;
+            i32 targetSlot = -1;
             for (u32 slot = 1; slot < JOY_MAX_COUNT; ++slot)
             {
-                if (m_slotGamepad[slot] != -1)
+                if (m_slotGamepad[slot] == -1)
                 {
-                    lastOccupied = static_cast<i32>(slot);
+                    targetSlot = static_cast<i32>(slot);
+                    break;
                 }
             }
 
-            const u32 targetSlot = (lastOccupied < 0) ? 1u : static_cast<u32>(lastOccupied + 1);
-            if (targetSlot < JOY_MAX_COUNT)
+            if (targetSlot >= 0)
             {
                 m_slotGamepad[targetSlot] = primaryIdx;
             }
@@ -1439,17 +1439,17 @@ namespace ITF
                     }
                 }
 
-                i32 lastOccupied = -1;
+                i32 targetSlot = -1;
                 for (u32 slot = 1; slot < JOY_MAX_COUNT; ++slot)
                 {
-                    if (m_slotGamepad[slot] != -1)
+                    if (m_slotGamepad[slot] == -1)
                     {
-                        lastOccupied = static_cast<i32>(slot);
+                        targetSlot = static_cast<i32>(slot);
+                        break;
                     }
                 }
 
-                const u32 targetSlot = (lastOccupied < 0) ? 1u : static_cast<u32>(lastOccupied + 1);
-                if (targetSlot < JOY_MAX_COUNT)
+                if (targetSlot >= 0)
                 {
                     m_slotGamepad[targetSlot] = primaryIdx;
                 }
