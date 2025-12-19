@@ -3823,6 +3823,9 @@ namespace ITF
         u32 inputFileCount = m_configTemplate->getInputConfigFilePath().size();
         for (u32 i = 0; i < inputFileCount; i++)
         {
+#ifndef ITF_FINAL
+                LOG("Input file loaded: \"%s\"", m_configTemplate->getInputConfigFilePath()[i].getString8().cStr());
+#endif
                 m_inputManager->load_configFile(m_configTemplate->getInputConfigFilePath()[i]);
             }
         }
@@ -3871,9 +3874,6 @@ namespace ITF
             if (INPUT_ADAPTER)
             {
 #if defined(ITF_WINDOWS)
-                // On PC when the keyboard owns slot 0, keep controller slots stable.
-                // Swapping a gamepad into slot 0 forces the input adapter to relocate it,
-                // which can create gaps in the controller slots shown by the UI.
                 if (INPUT_ADAPTER->GetPCControlMode() != PCControlMode_Keyboard)
                 {
                     INPUT_ADAPTER->swapControllers(_index, 0);
