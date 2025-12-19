@@ -11587,7 +11587,7 @@ void Ray_PlayerControllerComponent::receiveDamage( i32 _points )
 
     if (isImmune())
     {
-        if (player && player->getHeartTier() == HeartTier_Diamond && player->getHitPoints() > 0 )
+        if (player && player->getHeartTier() == HeartTier_Diamond && player->getHitPoints() > 0 && _points != 0)
         {
             player->onTakeDamage();
         }

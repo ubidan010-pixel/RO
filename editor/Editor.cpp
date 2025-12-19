@@ -276,7 +276,7 @@ Editor::Editor()
     m_lastCameraRotationFrame =  (u32)-1;
     m_hoveredFriseOrActorProjectedZ = 1.f;
     m_bRequireHoveredActorOrFriseDetection = false;
-    m_resetCameraRotation = bfalse; 
+    m_resetCameraRotation = bfalse;
     m_bMayDuplicateSelectedAfterDrag = bfalse;
     m_hide2d = 0;
 
@@ -334,7 +334,7 @@ void Editor::start()
     m_iconStock->loadIcons();
     SCENE_MANAGER->addListener(this);
     WorldManager::addListener(this);
-    
+
     m_pSelectionObject = newAlloc(mId_Editor, Selection);
 
     m_nextMenu.m_active = bfalse;
@@ -449,8 +449,8 @@ void Editor::clearScene()
 }
 
 
-bbool Editor::onKey (i32 _key, InputAdapter::PressStatus _keyStatus) { 
-    return btrue; 
+bbool Editor::onKey (i32 _key, InputAdapter::PressStatus _keyStatus) {
+    return btrue;
 }
 
 // return true to let CommandHandler handle the key
@@ -471,7 +471,7 @@ bbool Editor::onKeyProcess (i32 _key, InputAdapter::PressStatus _keyStatus)
                 return bfalse;
             }
             break;
-            
+
         case KEY_BACKSPACE:
             {
                 goBackOneStep();
@@ -511,7 +511,7 @@ bbool Editor::onKeyProcess (i32 _key, InputAdapter::PressStatus _keyStatus)
                 }
             }
             break;
-            
+
         case KEY_F3:
             {
 #ifndef ITF_CONSOLE
@@ -524,7 +524,7 @@ bbool Editor::onKeyProcess (i32 _key, InputAdapter::PressStatus _keyStatus)
         case KEY_F4:
             {
                 teleportCheat();
-                return bfalse;               
+                return bfalse;
             }
             break;
 
@@ -538,7 +538,7 @@ bbool Editor::onKeyProcess (i32 _key, InputAdapter::PressStatus _keyStatus)
             else
             {
                 #if !defined(ITF_FINAL)
-                    COMMANDHANDLER->loadLastCheckpoint(INPUT_ADAPTER->isKeyPressed(KEY_LALT));                    
+                    COMMANDHANDLER->loadLastCheckpoint(INPUT_ADAPTER->isKeyPressed(KEY_LALT));
                 #endif
                 return bfalse;
             }
@@ -586,10 +586,10 @@ bbool Editor::onKeyProcess (i32 _key, InputAdapter::PressStatus _keyStatus)
             }
             break;
 
-#if defined(ITF_WINDOWS) 
+#if defined(ITF_WINDOWS)
     #if !defined(ITF_FINAL)
         case KEY_F9:
-            {   
+            {
                 //don t use it reserved for developper (actoreditor on picking)
             }
             break;
@@ -660,7 +660,7 @@ bbool Editor::onKeyProcess (i32 _key, InputAdapter::PressStatus _keyStatus)
                 }
             }
             break;
-            
+
         case 'G':
             {
                 if(INPUT_ADAPTER->isKeyPressed(KEY_LCTRL))
@@ -677,7 +677,7 @@ bbool Editor::onKeyProcess (i32 _key, InputAdapter::PressStatus _keyStatus)
                     }
                 }
                 else
-                { 
+                {
                     if (m_joingroupList.size())
                     {
                         m_joingroupList.clear();
@@ -742,8 +742,8 @@ bbool Editor::onKeyProcess (i32 _key, InputAdapter::PressStatus _keyStatus)
 
                 break;
             }
-            
-            
+
+
     #endif // !ITF_FINAL
 
         case KEY_F11:
@@ -873,7 +873,7 @@ bbool Editor::onKeyProcess (i32 _key, InputAdapter::PressStatus _keyStatus)
             }
             break;
 
-        case KEY_KP_7:    
+        case KEY_KP_7:
             if (m_authorizeDeactivatedObjects)
             {
                 m_authorizeDeactivatedObjects = bfalse;
@@ -963,20 +963,20 @@ bbool Editor::onKeyProcess (i32 _key, InputAdapter::PressStatus _keyStatus)
 
         case '6':
             {
-                GFX_ADAPTER->startScreenCapture(); 
+                GFX_ADAPTER->startScreenCapture();
                 return bfalse;
             }
             break;
 
         case '7':
             {
-                GFX_ADAPTER->stopScreenCapture(); 
+                GFX_ADAPTER->stopScreenCapture();
                 return bfalse;
             }
             break;
         case '8':
             {
-                GFX_ADAPTER->cancelScreenCapture(); 
+                GFX_ADAPTER->cancelScreenCapture();
                 return bfalse;
             }
             break;
@@ -1204,7 +1204,7 @@ bbool Editor::onKeyProcess (i32 _key, InputAdapter::PressStatus _keyStatus)
                 PLUGINGATEWAY->onSceneSave();
                 saveCurrentWorld(INPUT_ADAPTER->isKeyPressed(KEY_LSHIFT), bfalse);
                 return bfalse;
-            }     
+            }
             else if(INPUT_ADAPTER->isKeyPressed(KEY_LSHIFT))
             {
                 PLUGINGATEWAY->onSceneSave();
@@ -1554,7 +1554,7 @@ bbool Editor::snapToGrid(Vec2d &_2dPos, Vec3d *_snapped3DPos)
         if (nearGridPoint2d.m_z<0 || nearGridPoint2d.m_z>1)
             return bfalse;
         //we now have a grid vertex near _2dPos
-        
+
         //rotate around the 2d point to get typical 3D distance for snapping
         const i32 seedCount = 4;
         static Vec2d seedDeltas[seedCount]=
@@ -1574,7 +1574,7 @@ bbool Editor::snapToGrid(Vec2d &_2dPos, Vec3d *_snapped3DPos)
                 nearGridPoint2d.m_z);
             Vec3d seedPos3d;
             GFX_ADAPTER->compute2DTo3D(seedPos2d, seedPos3d);
-            
+
             f32 distance = (seedPos3d-nearGridPoint).norm();
             if (distance<minDistPos3d)
                 minDistPos3d = distance;
@@ -1622,7 +1622,7 @@ bbool Editor::snapToNearestShape( Vec3d &_posWorld, PickingShape* _positionOwner
         const PickingShape* pShape = m_activeShapesListOrdered[i];
         if(!pShape)
             continue;
-        
+
         if(pShape == _positionOwner || pShape->getShapeType() != PickingShape::ShapeType_Disc)
             continue;
 
@@ -1658,7 +1658,7 @@ bbool Editor::snapToNearestShape( Vec3d &_posWorld, PickingShape* _positionOwner
             break;
         }
     }
-    
+
     return result;
 }
 
@@ -1666,7 +1666,7 @@ bbool Editor::snapToNearestShape( Vec3d &_posWorld, PickingShape* _positionOwner
 bbool Editor::snap( Vec3d &_posWorld, PickingShape* _positionOwner, bbool _ignoreSelection/* = btrue*/ )
 {
     bbool result = bfalse;
-    
+
     if(m_snapByDefault != INPUT_ADAPTER->isKeyPressed(KEY_LALT))
     {
         result = snapOnMeasurePoint(_posWorld);
@@ -1720,15 +1720,15 @@ void Editor::getClipboardData()
 
         if (IsClipboardFormatAvailable(uLabelFormat))
         {
-            
-            HGLOBAL   hglb = GetClipboardData(uLabelFormat); 
-            if (hglb != NULL) 
+
+            HGLOBAL   hglb = GetClipboardData(uLabelFormat);
+            if (hglb != NULL)
             {
                 using std::byte;
                 byte* ptr;
-                ptr = (byte*)GlobalLock(hglb); 
-                if (ptr != NULL) 
-                { 
+                ptr = (byte*)GlobalLock(hglb);
+                if (ptr != NULL)
+                {
                     //get a blob...
                     ITF::u32 blobsize = 0;
                     ITF_Memcpy(&blobsize,ptr,sizeof(blobsize));
@@ -1738,13 +1738,13 @@ void Editor::getClipboardData()
                     blob.setData(pData,blobsize);
 
                     ITF::String poui;
-                    i64 selected; 
+                    i64 selected;
                     blob.extractString(poui);
 
                     selected = blob.extractInt64();
-                    GlobalUnlock(hglb); 
-                } 
-            } 
+                    GlobalUnlock(hglb);
+                }
+            }
 
         }
 
@@ -1868,7 +1868,7 @@ void convertOldScale(const Scene* pScene)
             for(u32 iContent = 0; iContent < content.size(); ++iContent)
             {
                 Pickable* pObj = content[iContent];
-                
+
                 Vec3d localPos = pObj->getLocalInitialPos();
                 localPos.setX(localPos.getX() / scale.m_x);
                 localPos.setY(localPos.getY() / scale.m_y);
@@ -1987,7 +1987,7 @@ void Editor::onSwitchToWorld(World* _pWorld, bbool _bSwitchDone)
                 for(u32 i = 0; i < _pWorld->getSceneCount(); ++i)
                 {
                     const Scene* pScene = _pWorld->getSceneAt(i);
-                    
+
                     if(currentEngineVersion < pScene->getEngineVersionWhenSaved())
                     {
                         ITF_ERROR("Scene '%ls' was saved with engine version %u.\n\nThe engine may have an unknown behavior.\n\nSaving is not allowed for this scene.", pScene->getPath().getString().cStr(), pScene->getEngineVersionWhenSaved());
@@ -2072,7 +2072,7 @@ void Editor::onSwitchToWorld(World* _pWorld, bbool _bSwitchDone)
         }
 
         // Add new world
-        if(_pWorld && 
+        if(_pWorld &&
             std::find(m_tabList.begin(), m_tabList.end(), _pWorld->getUniqueName()) == m_tabList.end())
         {
             m_tabList.push_back(TabEditInfo());
@@ -2146,7 +2146,7 @@ void Editor::onDeleteScene(const Scene* _pScene)
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 void Editor::dispatchUpdateForPickingShapes()
-{    
+{
     PickingShapeVector::iterator it = m_activeShapesListOrdered.begin();
     PickingShapeVector::iterator itEnd = m_activeShapesListOrdered.end();
     while(it != itEnd)
@@ -2197,7 +2197,7 @@ void fillSubSceneMenuRecursive(ContextMenuItem* _parentMenu, Scene* _pScene)
                 _parentMenu = _parentMenu->m_subMenu.addItem(EditorContextMenu::ItemId_SubScenesMenu, "SubScenes");
                 needRootMenu = bfalse;
             }
-            else 
+            else
             {
                 if(needSeparator)
                 {
@@ -2205,12 +2205,12 @@ void fillSubSceneMenuRecursive(ContextMenuItem* _parentMenu, Scene* _pScene)
                     needSeparator = bfalse;
                 }
             }
-            
+
             SafeArray<ContextMenuItem*> menuList;
             ContextMenuItem* sceneItem = _parentMenu->m_subMenu.addItem(EditorContextMenu::ItemId_SubScenesMenuScene, pSSA->getUserFriendly());
 
             menuList.push_back(sceneItem);
-            
+
             menuList.push_back(sceneItem->m_subMenu.addItem(EditorContextMenu::ItemId_SubSceneGoto, "Goto"));
 
             if(EDITOR->allowEditSubScene(pSSA))
@@ -2219,7 +2219,7 @@ void fillSubSceneMenuRecursive(ContextMenuItem* _parentMenu, Scene* _pScene)
                     menuList.push_back(sceneItem->m_subMenu.addItem(EditorContextMenu::ItemId_SubSceneLock, "Lock inside"));
                 else if(EDITOR->getWorkingSubScene().isValid())
                     menuList.push_back(sceneItem->m_subMenu.addItem(EditorContextMenu::ItemId_SubSceneUnlock, "Unlock"));
-            
+
                 if(EDITOR->getEditedSubSceneHolder() != pSSA->getRef())
                 {
                     bbool allowEnter = !EDITOR->getWorkingSubScene().isValid();
@@ -2280,7 +2280,7 @@ void fillSound(ContextMenuItem* _parentMenu)
     displaySoundBankItem->m_userData = 1;
     ContextMenuItem* hideSoundBankItem = _parentMenu->m_subMenu.addItem(EditorContextMenu::ItemId_Sound, "Hide Sound Bank Loaded");
     hideSoundBankItem->m_userData = 0;
-    if (AUDIO_ADAPTER->isInDebugMode())
+    if (AUDIO_ADAPTER && AUDIO_ADAPTER->isInDebugMode())
         displaySoundBankItem->setInactiveColor();
     else
         hideSoundBankItem->setInactiveColor();
@@ -2318,21 +2318,21 @@ void Editor::updateTopBarMenu()
 
         const u32 listSize = m_tabList.size();
 
-        if(listSize > 1) 
+        if(listSize > 1)
         {
             // Close current tab
             if(ContextMenuItem* pItem = m_menuWorlds->m_subMenu.addItem(EditorContextMenu::ItemId_TopBar_Scenes, "Close current"))
             {
                 pItem->m_userData = 1;
             }
-            
+
             // Close other tabs
             if(ContextMenuItem* pItem = m_menuWorlds->m_subMenu.addItem(EditorContextMenu::ItemId_TopBar_Scenes, "Close all but current"))
             {
                 pItem->m_userData = 2;
             }
         }
-        
+
         if(listSize)
             m_menuWorlds->m_subMenu.addItem(EditorContextMenu::ItemId_None, "", btrue);
 
@@ -2400,7 +2400,7 @@ void Editor::updateTopBarMenu()
     #endif // !ITF_FINAL
 #endif // ITF_WINDOWS
         }
-            
+
         if(World* currentWorld = CURRENTWORLD)
             fillSubSceneMenuRecursive(item, currentWorld->getRootScene());
 
@@ -2417,7 +2417,7 @@ void Editor::updateTopBarMenu()
             menu.addSubItem(EditorContextMenu::ItemId_FriezePointsToggleDisplay, "Toggle frieze's points (NUMPAD_5)", EditorContextMenu::ItemId_TopBar_Display, "Display");
             menu.addSubItem(EditorContextMenu::ItemId_FriezeCollisionsToggleDisplay, "Toggle frieze's collisions (NUMPAD_6)", EditorContextMenu::ItemId_TopBar_Display, "Display");
             menu.addSubItem(EditorContextMenu::ItemId_SubSceneContentShapesToggleDisplay, "Toggle subscene/group content's icon (SHIFT + A)", EditorContextMenu::ItemId_TopBar_Display, "Display");
-            
+
             menu.addSubItem(EditorContextMenu::ItemId_2DItems, "Toggle 2D items (F6)", EditorContextMenu::ItemId_TopBar_Display, "Display");
             if (getSelectionSize())
             {
@@ -2474,13 +2474,13 @@ void Editor::updateTopBarMenu()
             else
                 menu.addSubItem(EditorContextMenu::ItemId_TopBar_PickAlphaObjects, "Pick alpha objects (alt+a)", EditorContextMenu::ItemId_TopBar_Utils, "Utils");
 
-			
+
 			menu.addSubItem(EditorContextMenu::ItemId_OT_LaunchTrackingTool,"Launch Tracking Tool",EditorContextMenu::ItemId_TopBar_Utils, "Utils");
 
 			menu.addSubItem(EditorContextMenu::ItemId_OT_ClearTrackingData,"Clear Tracking Data",EditorContextMenu::ItemId_TopBar_Utils, "Utils");
 
 			menu.addSubItem(EditorContextMenu::ItemId_OT_SendLevelName,"Send Level Name",EditorContextMenu::ItemId_TopBar_Utils, "Utils");
-			
+
 
 
 
@@ -2500,7 +2500,7 @@ void Editor::updateTopBarMenu()
         menu.addItem(EditorContextMenu::ItemId_TopBar_Redo, "Redo (ctrl+y)");
 
 
-		
+
 
 #ifndef ITF_FINAL
         if (!WarningManager::isEmpty())
@@ -2605,7 +2605,7 @@ void Editor::update(double _elapsed)
             setContextMenuShowable(bfalse);
             showContextMenu(btrue, m_nextMenu.m_forceTarget, m_nextMenu.m_keepPos);
         }
-        else 
+        else
             setContextMenuShowable(m_nextMenu.m_show);
     }
 
@@ -2613,13 +2613,13 @@ void Editor::update(double _elapsed)
 
     m_activeShapesListOrdered.clear();
     m_pickableObjects.clear();
-    
+
     //  back to camera in game with joyButton
     for (u32 i=0; i<GAMEMANAGER->getMaxPlayerCount(); i++)
     {
         InputAdapter::PressStatus buttons[JOY_MAX_BUT];
         INPUT_ADAPTER->getGamePadButtons(InputAdapter::EnvironmentLua,i, buttons, JOY_MAX_BUT);
-        
+
         if ( buttons[m_joyButton_ThumbRight] == InputAdapter::JustPressed && (!buttons[m_joyButton_LB]==InputAdapter::Pressed || !buttons[m_joyButton_RB]==InputAdapter::Pressed))
         {
             showContextMenu(bfalse);
@@ -2640,7 +2640,7 @@ void Editor::update(double _elapsed)
         showMouseIcon(Editor_IconStock::Icon_Save);
         m_SaveIconTimer -= LOGICDT;
     }
-    
+
     if (m_InitialInfoTimer > 0.f)
     {
         showMouseIcon(Editor_IconStock::Icon_Ok);
@@ -2777,9 +2777,9 @@ void Editor::update(double _elapsed)
 
         m_contextMenu[1].setPos(m_contextMenu[0].getPos() - Vec2d(m_contextMenu[1].getWidth() + pixBetweenMenus, 0.f));
 
-      
 
-        
+
+
         m_contextMenu[0].getAABB(aabb[0]);
 
         if (m_contextMenu[1].getItemsCount())
@@ -2874,7 +2874,7 @@ void Editor::update(double _elapsed)
                 GFX_ADAPTER->draw2dBox(Vec2d(barMidX-barWidth*0.5f, aabb[1].getMin().m_y), barWidth, aabb[0].getHeight()-fCharMaxHeight_Big*1.5f, uColor, uColor, uColor, uColor);
             GFX_ADAPTER->drawDBGText(name, startX + fTextSubOffset, startY - interstice, 1.f, 1.f, 1.f, btrue);
         }
-        else 
+        else
         {
             {   // draw background rect
                 f32 backval = cosf((f32)CURRENTFRAME * 0.05f) * 10.f;
@@ -3008,7 +3008,7 @@ void Editor::preDraw()
             const f32 var = ((cosf(ELAPSEDTIME * 5.f) + 1.f) * 0.25f);
             Color highlightColor = Color::white();
             highlightColor.m_r = highlightColor.m_g = highlightColor.m_b = 1.0f - var;
-            
+
             applyRenderColor(highlightColor, static_cast<Pickable*>(pUnderMouseObj));
 
             if(SubSceneActor* pSSA = pUnderMouseObj->DynamicCast<SubSceneActor>(ITF_GET_STRINGID_CRC(SubSceneActor,1336151817)))
@@ -3083,7 +3083,7 @@ void Editor::draw()
             const Vec3d& vA1 = m_MeasureLines[i-1];
 
             GFX_ADAPTER->drawDBG3DLine(vA1, vB1);
-            
+
             const Vec3d textPos3d = (vA1+vB1)/ 2.0f;
             Vec3d proj2d;
             GFX_ADAPTER->compute3DTo2D(textPos3d, proj2d);
@@ -3153,7 +3153,7 @@ void Editor::draw()
 
                         GFX_ADAPTER->drawDBG3DLine(vAngleLine1, vAngleLine2);
                     }
-                }                
+                }
             }
         }
     }
@@ -3175,7 +3175,7 @@ void Editor::draw()
         {
             ObjectRefList _objects;
             PickingShapeVector _orderedShapes;
-            
+
             Scene* pFilterScene = NULL;
 
             if(displayAllSubContent())
@@ -3185,7 +3185,7 @@ void Editor::draw()
             }
             else
                 pFilterScene = getEditedScene();
-          
+
             PLUGINGATEWAY->fillEditorActiveList(_objects, _orderedShapes, pFilterScene);
 
             std::sort(_orderedShapes.begin(), _orderedShapes.end(), PickingShape::compareShapes);
@@ -3228,9 +3228,9 @@ void Editor::draw()
             break;
         }
     }
-    
+
     m_iconStock->draw();
-    
+
     if(m_gridMode != 0)
         EditorDraw::drawGrid(m_gridPoint, m_gridSize);
 
@@ -3249,7 +3249,7 @@ void Editor::getWorldAABB(AABB &_aabb, f32 &_minZ, f32 &_maxZ)const
     objects.clear();
     pickingShapes.clear();
     PLUGINGATEWAY->fillEditorActiveList(objects, pickingShapes, NULL);
-    //    
+    //
     for (u32 i=0; i<objects.size(); i++)
     {
         const ObjectRef & o = objects[i];
@@ -3270,7 +3270,7 @@ void Editor::getWorldAABB(AABB &_aabb, f32 &_minZ, f32 &_maxZ)const
             }
         }
     }
-    //    
+    //
 }
 
 Vec3d Editor::limitRayToWorldAABB(const Vec3d &v0, const Vec3d &v1, bbool mustLimitWithGreatestDistance)const
@@ -3295,7 +3295,7 @@ Vec3d Editor::limitRayToWorldAABB(const Vec3d &v0, const Vec3d &v1, bbool mustLi
         Vec3d intersection;
         f32 lambda;
         f32 maxLambda = 0;
-        
+
         Vec2d worldCorners2D[4]= {worldAABB.getMin(), worldAABB.getMinXMaxY(), worldAABB.getMaxXMinY(), worldAABB.getMax()};
         Vec3d zminCorner, zmaxCorner;
         f32 maxCornerDistance = 10.f; //dont limit less than this distance
@@ -3449,11 +3449,11 @@ bbool Editor::handleCameraRotationMode(bbool _reset)
             m_bRequireHoveredActorOrFriseDetection = btrue;
             return btrue; ///AND RETRY
         }
-        
+
         //if not from pickable, take depth range
         rotationCenter = getMouse3d_NoWorkingDepth();
 
-        
+
         rotationCenter = limitRayToWorldAABB(CAMERA->getCorrectedPos(), rotationCenter, bfalse /*this is temporary*/);
         //
 
@@ -3467,9 +3467,9 @@ bbool Editor::handleCameraRotationMode(bbool _reset)
             if (typeOfObjectUnderMouse==BaseObject::eActor || typeOfObjectUnderMouse == BaseObject::eFrise)
             {
                 const f32 hoveredZ = m_hoveredFriseOrActorProjectedZ;
-                
+
                 //The rotation center will be computed as the 3D point under the mouse
-                GFX_ADAPTER->compute2DTo3D( 
+                GFX_ADAPTER->compute2DTo3D(
                     Vec3d(mousePos.m_x, mousePos.m_y, hoveredZ),
                     rotationCenter
                     );
@@ -3478,7 +3478,7 @@ bbool Editor::handleCameraRotationMode(bbool _reset)
 
         //Set parameters : start a new rotation from current view
         eyePosition = CAMERA->getCorrectedPos();
- 
+
         CAMERA->setBiasedRotationMode(rotationCenter, CAMERA->m_lookAt-eyePosition);
         showMouseIcon(Editor_IconStock::Icon_CameraRotate);
         CAMERA->m_resultingBiasedPosition = eyePosition;
@@ -3566,7 +3566,7 @@ void Editor::refillPickableList()
 {
     m_activeShapesListOrdered.clear();
     m_pickableObjects.clear();
-    
+
     if(isInRotationScaleHelperMode())
         m_pickableObjects.push_back(m_rotationScale_focus);
 
@@ -3688,7 +3688,7 @@ void Editor::updateFramebufferedPicking()
             }
         }
 
-        GFX_ADAPTER->setRenderTarget_Picking();    
+        GFX_ADAPTER->setRenderTarget_Picking();
         GFX_ADAPTER->clear( GFX_CLEAR_COLOR , 0,0,0, 0);
 
         GFX_RECT rcScissor;
@@ -3708,7 +3708,7 @@ void Editor::updateFramebufferedPicking()
         vPickRequest.reserve(uSize);
 
         for (u32 index = 0; index < uSize; index++)
-        {        
+        {
             Pickable *object = (Pickable*)(hoverList[index]);
             if (!object)
                 continue;
@@ -3745,7 +3745,7 @@ void Editor::updateFramebufferedPicking()
             {
                 if (!object->isVisible(CAMERA))
                     continue;
-                Vec3d intersection;              
+                Vec3d intersection;
 
                 //If under mouse cursor
                 if (isPickableUnderPoint(object, mouseXY, intersection) )
@@ -3767,7 +3767,7 @@ void Editor::updateFramebufferedPicking()
                     GFX_ADAPTER->setAlphaRef(m_FrameBufferPickingAlphaRef);
                     //    GFX_ADAPTER->setAlphaBlend(GFX_BLEND_COPY);
                     GFX_ADAPTER->setAlphaTest(btrue);
-                    object->draw(); 
+                    object->draw();
                     GFX_ADAPTER->drawPrimitives();
                     GFX_ADAPTER->resetSceneResolvedFlag();
                     GFX_ADAPTER->setAlphaTest(isAlphaTestEnabled);
@@ -3781,10 +3781,10 @@ void Editor::updateFramebufferedPicking()
         if (backbufferPicking)
         {
             for (u32 index = 0; index < vPickRequest.size(); index++)
-            {        
+            {
                 Pickable *object = vPickRequest[index];
 
-                Vec3d intersection;              
+                Vec3d intersection;
 
                 //If under mouse cursor
 
@@ -3900,7 +3900,7 @@ bbool Editor::computeSelectionCentroidWorldPosition(Vec3d& _centroid) const
     return bfalse;
 }
 
-void Editor::showContextMenu(bbool _onOff, ObjectRef _forceTarget, bbool _keepPos ) 
+void Editor::showContextMenu(bbool _onOff, ObjectRef _forceTarget, bbool _keepPos )
 {
     if (_onOff)
         m_joingroupList.clear();
@@ -3970,8 +3970,8 @@ void Editor::showContextMenu(bbool _onOff, ObjectRef _forceTarget, bbool _keepPo
 
     setContextMenuShowable(_onOff);
 }
-           
-void Editor::switchContextMenu() 
+
+void Editor::switchContextMenu()
 {
     showContextMenu(!isContextMenuShowable());
 }
@@ -3989,7 +3989,7 @@ void Editor::onLoseFocus()
     m_applicationHasFocus = bfalse;
 }
 
- 
+
 bbool Editor::checkObjectVisible(ObjectRef _or)
 {
     const Pickable* pObj = (Pickable*)_or.getObject();
@@ -4003,7 +4003,7 @@ bbool Editor::checkObjectVisible(ObjectRef _or)
     if (isHiddenBecauseOfEditorFilter(pObj))
         return bfalse;
 #endif
-  
+
     if (!pObj->isVisible(CAMERA) )
          return bfalse;
 
@@ -4015,7 +4015,7 @@ bbool Editor::checkObjectVisible(ObjectRef _or)
         return btrue;
 
     if (pObj->getObjectType() == BaseObject::eActor && ActorEditor::getInstance()->hasActorInfoFlag(ActorEditor::ActorInfoFlag_Any))
-        return btrue; 
+        return btrue;
 
     Pickable * subEditedObj = (Pickable*)GETOBJECT(getSubEditedItem());
 
@@ -4084,7 +4084,7 @@ bbool Editor::removeMainShapeFromSelection( ObjectRef _obj )
         {
             if(getSelectionAt(i) == pShape)
             {
-                m_selection.eraseNoOrder(i);                
+                m_selection.eraseNoOrder(i);
                 bResult = btrue;
                 break;
             }
@@ -4132,7 +4132,7 @@ void Editor::startToEditSubScene(const SubSceneActor* _pSSA, const ObjectRefList
     m_gridSize = _pSSA->getSubScene()->getGridUnit();
 #endif //ITF_WINDOWS
     selectObjects(_newStartingSelection, btrue);
-    
+
     // Auto show picking shapes
     if(EditorDraw::getPickableDetailMode() < EditorDraw::PickableDetails_ShowAnchors)
         EditorDraw::setPickableDetailModes(EditorDraw::PickableDetails_ShowAnchors);
@@ -4214,7 +4214,7 @@ Scene* Editor::getEditedScene() const
 
                     ITF_VERIFY(GAMEMANAGER->loadGameplayMap(m_pendingDropMap, btrue, bfalse));
                 }
-                
+
                 m_pendingDropMap.clear();
             }
         }
@@ -4236,7 +4236,7 @@ Scene* Editor::getEditedScene() const
             ITF_VERIFY(loadTabInBackground(relativePath, NULL));
             setTabMainScenesModified();
         }
-        else 
+        else
         {
             ActorEditor* pActorEditor = ActorEditor::getInstance();
             if(pActorEditor)
@@ -4265,12 +4265,12 @@ Scene* Editor::getEditedScene() const
             m_contextMenu[i].m_launchPos = getMouse2d();
         }
     }
-    
+
     EditorContextMenu& Editor::getContextMenu()
     {
         return m_contextMenu[0];
     }
-    
+
     void Editor::forceShowContextMenu(bbool _show, bbool _reFillContent, ObjectRef _forceTarget, bbool _keepPos)
     {
         if (_show)
@@ -4415,18 +4415,18 @@ Scene* Editor::getEditedScene() const
                         while(*parser && *parser!=' ' && *parser != '\t')
                         {
                             CHECK_END
-                            filter.m_label += *parser; 
+                            filter.m_label += *parser;
                             NEXT_CHAR_NO_CHECK
                         }
                         filter.m_arithmeticArg = filter.m_label.atof32();
-                    }                    
+                    }
                 }
                 else
                 {
                     while(*parser && *parser!=' ' && *parser != '\t')
                     {
                         CHECK_END
-                        filter.m_label += *parser; 
+                        filter.m_label += *parser;
                         NEXT_CHAR_NO_CHECK
                     }
                     if (setLabelToLower)
@@ -4472,7 +4472,7 @@ Scene* Editor::getEditedScene() const
                 filter.m_op = SMultiFilter::FilterOp_includeFriendly;
                 while(*ptr && *ptr!=L' ' && *ptr != L'+' && *ptr != L'-')
                 {
-                    filter.m_label += (char)(*ptr++); 
+                    filter.m_label += (char)(*ptr++);
                     index++;
                 }
                 filter.m_label.toLower();
@@ -4497,7 +4497,7 @@ Scene* Editor::getEditedScene() const
                 filter.m_op = SMultiFilter::FilterOp_excludeFriendly;
                 while(*ptr && *ptr!=L' ' && *ptr != L'+' && *ptr != L'-')
                 {
-                    filter.m_label += (char)(*ptr++); 
+                    filter.m_label += (char)(*ptr++);
                     index++;
                 }
                 filter.m_label.toLower();
@@ -4566,7 +4566,7 @@ Scene* Editor::getEditedScene() const
                                 bestMatchs.push_back(pObj->getRef());
                                 uBestScore = diffLen;
                             }
-                        }                            
+                        }
                     }
                 }
             }
@@ -4589,7 +4589,7 @@ Scene* Editor::getEditedScene() const
     }
 
     void Editor::camFocusOnSelection()const
-    {   
+    {
         if(CAMERA->getMode() == Camera::Camera_Editor)
         {
             Vec3d target;
@@ -4607,8 +4607,8 @@ Scene* Editor::getEditedScene() const
                     else
                         aabb.grow(pObj->getAABB());
                 }
-        
-                f32 tanFocalBy2 = f32_Abs(tanf(CAMERA->getFocale()*0.5f)); 
+
+                f32 tanFocalBy2 = f32_Abs(tanf(CAMERA->getFocale()*0.5f));
                 f32 screenRatio = 0.5f;
                 if( CAMERACONTROLLERMANAGER->m_screenRatio )
                     screenRatio /= CAMERACONTROLLERMANAGER->m_screenRatio;
@@ -4744,7 +4744,7 @@ void Editor::chooseAngleStep()
     textValue.setTextFormat("%f", m_angleStepDegree);
     if (!GUI_TextInput::inputText("Angle step", "Edit the current angle step :", textValue))
         return;
-    
+
     f32 input = textValue.atof32();
     input = std::max(1.0f, input);
     input = std::min(359.0f, input);
@@ -4768,7 +4768,7 @@ bbool Editor::snapAngle( f32& angle ) const
 
 void   Editor::requestMouseFeedback(CursorIcon::Type _type)
 {
-    m_feedbackRequest = _type; 
+    m_feedbackRequest = _type;
     m_feedbackRequestFrame = CURRENTFRAME;
 }
 
@@ -4931,7 +4931,7 @@ void Editor::swapTab(bbool _next)
         return;
 
     World* pCurrentWorld = CURRENTWORLD;
-    
+
     const u32 count = m_menuWorlds ? m_menuWorlds->m_subMenu.getItemsCount() : 0;
     const u32 notSceneCount = count - m_tabList.size();
     const u32 offset = _next ? 1 : count - notSceneCount - 1;
@@ -4977,8 +4977,8 @@ void Editor::onStartDrawProcess()
     SafeArray<BaseObject*>& pObjs = obj.m_solvedPointers;
     String str;
     str.setTextFormat("Active Objects count: %d", pObjs.size());
-    GFX_ADAPTER->drawDBGText(str); 
-    for (u32 i = 0; i<pObjs.size(); i++) 
+    GFX_ADAPTER->drawDBGText(str);
+    for (u32 i = 0; i<pObjs.size(); i++)
     {
         Pickable* pObj = static_cast<Pickable*>(pObjs[i]);
         if (pObj)
@@ -5019,7 +5019,7 @@ u32 Editor::findDuplicateFriendly( World* _context, PickableList& _duplicates )
 
             if(std::find(takenNameList.begin(), takenNameList.end(), pObj->getUserFriendly()) != takenNameList.end())
                 _duplicates.push_back(pObj);
-            
+
             takenNameList.push_back(pObj->getUserFriendly());
         }
     }
@@ -5230,7 +5230,7 @@ f32 Editor::toggleWindowRatio()
         }
     }
 #endif  //ITF_WINDOWS
-    
+
     return ratio;
 }
 
@@ -5257,7 +5257,7 @@ DepthRange Editor::getWorkingDepth() const
 }
 
 void Editor::processPickableToRefresh()
-{   
+{
     for (u32 i = 0; i < m_pickablesToRefresh.size(); i++)
     {
         Pickable* pPick = (Pickable*)(m_pickablesToRefresh[i].getObject());
@@ -5498,7 +5498,7 @@ void Editor::setSceneAsModified( const Scene* _pScene )
         if(m_modifiedSceneRefList.find(sceneRef) == -1)         // Prevent duplicate informations
         {
             m_modifiedSceneRefList.push_back(sceneRef);
-            
+
 #if defined(DEVELOPER_OLIV)
             if (DEBUGINFO)
             {
@@ -5573,7 +5573,7 @@ void Editor::onSceneAsyncLoadFinished( const Scene* _pScene )
 bbool Editor::loadTabInBackground( const Path& _scenePath, World* _ownerWorld )
 {
     String path;
-    
+
     _scenePath.getString(path);
 
     if(FILEMANAGER->fileExists(path))
@@ -5710,17 +5710,17 @@ void Editor::setWorkingSubscene( const SubSceneActor* pSSA )
 
 bbool Editor::isContextMenuVisible()
 {
-    return (isContextMenuShowable() || (isTopBarMenuShowable() && !(m_topBarMenu.isFolded()) )); 
+    return (isContextMenuShowable() || (isTopBarMenuShowable() && !(m_topBarMenu.isFolded()) ));
 }
 
 
-void Editor::setContextMenuShowable(bbool _show) 
+void Editor::setContextMenuShowable(bbool _show)
 {
     EditorContextMenu::ContextMenuInfo* info = EditorContextMenu::getMenuInfo(&m_contextMenu[0]);
     info->m_allowDraw = _show;
 }
 
-void Editor::setTopBarMenuShowable(bbool _show) 
+void Editor::setTopBarMenuShowable(bbool _show)
 {
     EditorContextMenu::ContextMenuInfo* info = EditorContextMenu::getMenuInfo(&m_topBarMenu);
     info->m_allowDraw = _show;
@@ -6004,7 +6004,7 @@ bbool Editor::allowEditSubScene( const SubSceneActor* _pSSA ) const
                 if (filter[iflt].m_isIncludeQuerry)
                     oneFilterSatisfied = btrue;
             }
-            else 
+            else
             {
                 if (!filter[iflt].m_isIncludeQuerry)
                     return bfalse;
@@ -6054,7 +6054,7 @@ bbool Editor::allowEditSubScene( const SubSceneActor* _pSSA ) const
         }
         m_elements.clear();
     }
-    
+
     void ObjectGroup::draw(SafeArray<class LightComponent*>& _activeLights)
     {
         u32 numberLights = _activeLights.size();
@@ -6148,7 +6148,7 @@ bbool Editor::allowEditSubScene( const SubSceneActor* _pSSA ) const
                 Scene* curScene = curWorld->getSceneAt(iScene);
                 if (!curScene)
                     continue;
-                
+
                 const PickableList&  friezes = curScene->getFrises();
                 for (u32 itFrieze = 0; itFrieze < friezes.size(); itFrieze++)
                 {

@@ -1296,38 +1296,30 @@ namespace ITF
         }
         else if (firstGamepadSlot == 1 && m_slotGamepad[0] != -1)
         {
-            i32 mapped[JOY_MAX_COUNT];
-            u32 mappedCount = 0;
-            for (u32 slot = 0; slot < JOY_MAX_COUNT; ++slot)
-            {
-                const i32 idx = m_slotGamepad[slot];
-                if (idx < 0)
-                    continue;
+            const i32 primaryIdx = m_slotGamepad[0];
+            m_slotGamepad[0] = -1;
 
-                bbool duplicate = bfalse;
-                for (u32 j = 0; j < mappedCount; ++j)
+            for (u32 slot = 1; slot < JOY_MAX_COUNT; ++slot)
+            {
+                if (m_slotGamepad[slot] == primaryIdx)
                 {
-                    if (mapped[j] == idx)
-                    {
-                        duplicate = btrue;
-                        break;
-                    }
-                }
-                if (!duplicate && mappedCount < JOY_MAX_COUNT)
-                {
-                    mapped[mappedCount++] = idx;
+                    m_slotGamepad[slot] = -1;
                 }
             }
 
-            for (u32 slot = 0; slot < JOY_MAX_COUNT; ++slot)
+            i32 lastOccupied = -1;
+            for (u32 slot = 1; slot < JOY_MAX_COUNT; ++slot)
             {
-                m_slotGamepad[slot] = -1;
+                if (m_slotGamepad[slot] != -1)
+                {
+                    lastOccupied = static_cast<i32>(slot);
+                }
             }
 
-            u32 targetSlot = 1;
-            for (u32 i = 0; i < mappedCount && targetSlot < JOY_MAX_COUNT; ++i, ++targetSlot)
+            const u32 targetSlot = (lastOccupied < 0) ? 1u : static_cast<u32>(lastOccupied + 1);
+            if (targetSlot < JOY_MAX_COUNT)
             {
-                m_slotGamepad[targetSlot] = mapped[i];
+                m_slotGamepad[targetSlot] = primaryIdx;
             }
         }
         for (u32 t = 0; t < JOY_MAX_COUNT; ++t)
@@ -1425,38 +1417,61 @@ namespace ITF
 
         if (previousFirstSlot != currentFirstSlot)
         {
-            i32 mapped[JOY_MAX_COUNT];
-            u32 mappedCount = 0;
-            for (u32 slot = 0; slot < JOY_MAX_COUNT; ++slot)
+            if (currentFirstSlot == 1)
             {
-                const i32 idx = m_slotGamepad[slot];
-                if (idx < 0)
-                    continue;
+                const i32 primaryIdx = m_slotGamepad[0];
+                m_slotGamepad[0] = -1;
 
-                bbool duplicate = bfalse;
-                for (u32 j = 0; j < mappedCount; ++j)
+                for (u32 slot = 1; slot < JOY_MAX_COUNT; ++slot)
                 {
-                    if (mapped[j] == idx)
+                    if (m_slotGamepad[slot] == primaryIdx)
                     {
-                        duplicate = btrue;
+                        m_slotGamepad[slot] = -1;
+                    }
+                }
+
+                i32 lastOccupied = -1;
+                for (u32 slot = 1; slot < JOY_MAX_COUNT; ++slot)
+                {
+                    if (m_slotGamepad[slot] != -1)
+                    {
+                        lastOccupied = static_cast<i32>(slot);
+                    }
+                }
+
+                const u32 targetSlot = (lastOccupied < 0) ? 1u : static_cast<u32>(lastOccupied + 1);
+                if (targetSlot < JOY_MAX_COUNT)
+                {
+                    m_slotGamepad[targetSlot] = primaryIdx;
+                }
+            }
+            else
+            {
+                i32 primarySlot = -1;
+                for (i32 slot = static_cast<i32>(JOY_MAX_COUNT) - 1; slot >= 0; --slot)
+                {
+                    if (m_slotGamepad[slot] != -1)
+                    {
+                        primarySlot = slot;
                         break;
                     }
                 }
-                if (!duplicate && mappedCount < JOY_MAX_COUNT)
+
+                if (primarySlot > 0)
                 {
-                    mapped[mappedCount++] = idx;
+                    const i32 primaryIdx = m_slotGamepad[primarySlot];
+                    m_slotGamepad[primarySlot] = -1;
+
+                    for (u32 slot = 0; slot < JOY_MAX_COUNT; ++slot)
+                    {
+                        if (slot != 0 && m_slotGamepad[slot] == primaryIdx)
+                        {
+                            m_slotGamepad[slot] = -1;
+                        }
+                    }
+
+                    m_slotGamepad[0] = primaryIdx;
                 }
-            }
-
-            for (u32 slot = 0; slot < JOY_MAX_COUNT; ++slot)
-            {
-                m_slotGamepad[slot] = -1;
-            }
-
-            u32 targetSlot = currentFirstSlot;
-            for (u32 i = 0; i < mappedCount && targetSlot < JOY_MAX_COUNT; ++i, ++targetSlot)
-            {
-                m_slotGamepad[targetSlot] = mapped[i];
             }
         }
 
