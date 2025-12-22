@@ -1,6 +1,7 @@
 #include "precompiled_OnlineAdapter_Ubiservices.h"
 
 #include "adapters/OnlineAdapter_Ubiservices/OnlineAdapter_Ubiservices.h"
+#include "adapters/OnlineAdapter_Ubiservices/CloudSaveService_Ubiservices.h"
 #include "adapters/OnlineAdapter_Ubiservices/TrackingService_Ubiservices.h"
 #include "adapters/OnlineAdapter_Ubiservices/SessionService_Ubiservices.h"
 #include "adapters/OnlineAdapter_Ubiservices/NewsService_Ubiservices.h"
@@ -106,6 +107,7 @@ namespace ITF
 
         m_sessionService = newAlloc(mId_OnlineServices, SessionService_Ubiservices);
         m_newsService = newAlloc(mId_OnlineServices, NewsService_Ubiservices);
+        m_cloudSaveService = newAlloc(mId_OnlineServices, CloudSaveService_Ubiservices);
     }
 
     OnlineAdapter_Ubiservices::~OnlineAdapter_Ubiservices()
@@ -113,6 +115,7 @@ namespace ITF
 #if defined(ITF_SUPPORT_ONLINETRACKING)
         SF_DEL(m_trackingService);
 #endif
+        SF_DEL(m_cloudSaveService);
         SF_DEL(m_newsService);
         SF_DEL(m_sessionService);
     }
@@ -141,6 +144,7 @@ namespace ITF
 #endif
         m_sessionService->update();
         m_newsService->update();
+        m_cloudSaveService->update();
     }
 
     void OnlineAdapter_Ubiservices::terminate()

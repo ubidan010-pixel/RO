@@ -1,6 +1,10 @@
 #ifndef ITF_MOVIEPLAYER_H_
 #define ITF_MOVIEPLAYER_H_
 
+#ifndef _ITF_MACROS_H_
+#include "core/Macros.h"
+#endif //_ITF_MACROS_H_
+
 
 namespace ITF
 {
@@ -32,7 +36,12 @@ namespace ITF
         bbool isPaused()const;
         void update(f32 _dt);
 
-        void setListener(IMoviePlayerListener * _listener) { m_listener = _listener; }
+        void setListener(IMoviePlayerListener * _listener) 
+        { 
+#ifndef ITF_DISABLE_VIDEO_EDITOR
+            m_listener = _listener; 
+#endif
+        }
         f32  getCurrentTime();
     private:
         void closeMovie();

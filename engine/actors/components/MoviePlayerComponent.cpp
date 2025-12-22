@@ -20,6 +20,10 @@
 #include "gameplay/managers/GameManager.h"
 #endif //_ITF_GAMEMANAGER_H_
 
+#ifndef _ITF_MACROS_H_
+#include "core/Macros.h"
+#endif //_ITF_MACROS_H_
+
 namespace ITF
 {
     IMPLEMENT_OBJECT_RTTI(MoviePlayerComponent_Template)
@@ -43,12 +47,16 @@ namespace ITF
     MoviePlayerComponent::MoviePlayerComponent()
     : m_currentFrame(U32_INVALID)
     {
+#ifndef ITF_DISABLE_VIDEO_EDITOR
         m_moviePlayer.setListener(this);
+#endif
     }
 
     MoviePlayerComponent::~MoviePlayerComponent()
     {
+#ifndef ITF_DISABLE_VIDEO_EDITOR
         EVENTMANAGER->unregisterEvent(ITF_GET_STRINGID_CRC(EventPlayMovie,797811199), this);
+#endif
     }
 
 
@@ -56,21 +64,25 @@ namespace ITF
     {
         Super::onActorLoaded(_hotReload);
 
+#ifndef ITF_DISABLE_VIDEO_EDITOR
         m_moviePlayer.setFadeInTime(getTemplate()->getFadeInTime());
         m_moviePlayer.setFadeOutTime(getTemplate()->getFadeOutTime());
 
         // Register events
         EVENTMANAGER_REGISTER_EVENT_LISTENER(ITF_GET_STRINGID_CRC(EventPlayMovie,797811199),this);
+#endif
     }
 
     void MoviePlayerComponent::onBecomeActive()
     {
         Super::onBecomeActive();
 
+#ifndef ITF_DISABLE_VIDEO_EDITOR
         if ( !GAMEMANAGER->isLoadingVisible() && getTemplate()->getAutoPlay() && !m_moviePlayer.getMoviePlayed() )
         {
             m_moviePlayer.play(getTemplate()->getVideoPath(),getTemplate()->getPlayFromMemory());
         }
+#endif
     }
 
 
@@ -84,7 +96,7 @@ namespace ITF
 
         Super::Update(_dt);
         
-
+#ifndef ITF_DISABLE_VIDEO_EDITOR
         if (m_moviePlayer.isPlayingMovie())
         {
             m_moviePlayer.update(_dt);
@@ -93,28 +105,33 @@ namespace ITF
         {
             playMovie();
         }
+#endif
     }
 
     void MoviePlayerComponent::playMovie()
     {
+#ifndef ITF_DISABLE_VIDEO_EDITOR
         m_moviePlayer.play(getTemplate()->getVideoPath(),getTemplate()->getPlayFromMemory());
+#endif
     }
 
     void MoviePlayerComponent::stopMovie(bbool force)
     {
+#ifndef ITF_DISABLE_VIDEO_EDITOR
         if( getTemplate()->getPauseBeforeStop() && !force)
         {
             m_moviePlayer.pause();                
         }
         else
             m_moviePlayer.stop();
+#endif
     }
 
     void MoviePlayerComponent::onEvent( Event * _event )
     {
         Super::onEvent(_event);
 
-
+#ifndef ITF_DISABLE_VIDEO_EDITOR
         if (EventPlayMovie* playMovieEvent = _event->DynamicCast<EventPlayMovie>(ITF_GET_STRINGID_CRC(EventPlayMovie,797811199)))
         {
             if(playMovieEvent->getPlay())
@@ -125,6 +142,7 @@ namespace ITF
                 stopMovie(btrue);
             }
         }
+#endif
     }
 
 };

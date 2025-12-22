@@ -22,6 +22,7 @@
 #endif //_ITF_RAY_CONTROLSREMAPPINGMENUHELPER_H_
 
 #include "engine/AdaptersInterfaces/OnlineAdapter/OnlineError.h"
+#include "engine/AdaptersInterfaces/OnlineAdapter/CloudSaveService.h"
 
 #include <future>
 
@@ -117,6 +118,15 @@ namespace ITF
             State_ShowingMainMenu_SaveLoad_WaitingForUploadAnswer,
             State_ShowingMainMenu_SaveLoad_WaitingForDownloadAnswer,
 
+            State_ShowingMainMenu_SaveLoad_CloudUpload_StartLoadingLocal,
+            State_ShowingMainMenu_SaveLoad_CloudUpload_WaitLocalLoaded,
+            State_ShowingMainMenu_SaveLoad_CloudUpload_WaitUpload,
+
+            State_ShowingMainMenu_SaveLoad_CloudDownload_StartDownload,
+            State_ShowingMainMenu_SaveLoad_CloudDownload_WaitDownload,
+            State_ShowingMainMenu_SaveLoad_CloudDownload_WaitSavingLocal,
+            State_ShowingMainMenu_SaveLoad_CloudDownload_Refreshing,
+
             State_Online_CreateSession,
             State_Online_UpdateSession,
 
@@ -164,6 +174,15 @@ namespace ITF
         void update_ShowingMainMenu_SaveLoad_DeletingSave();
         void update_ShowingMainMenu_SaveLoad_DeleteRefreshing();
 
+        void update_ShowingMainMenu_SaveLoad_CloudUpload_StartLoadingLocal();
+        void update_ShowingMainMenu_SaveLoad_CloudUpload_WaitLocalLoaded();
+        void update_ShowingMainMenu_SaveLoad_CloudUpload_WaitUpload();
+
+        void update_ShowingMainMenu_SaveLoad_CloudDownload_StartDownload();
+        void update_ShowingMainMenu_SaveLoad_CloudDownload_WaitDownload();
+        void update_ShowingMainMenu_SaveLoad_CloudDownload_WaitSavingLocal();
+        void update_ShowingMainMenu_SaveLoad_CloudDownload_Refreshing();
+
         void onPressStartAction();
 
         void onCreateSessionSuccess();
@@ -202,6 +221,7 @@ namespace ITF
         bbool shouldShowWarningBootPopup();
         void calculateAndLogLastPlayTime();
         void updateLastPlayTime();
+        void syncCloudAvailabilityFromService();
 
         static bbool m_firstLoading;
         //
@@ -227,6 +247,20 @@ namespace ITF
         i32 m_newsItemIndex;
         std::future<void> m_newsUpdateFuture;
         std::future<void> m_authSaveFuture;
+
+        struct CloudDownloadResult
+        {
+            OnlineError m_error;
+            ITF_VECTOR<u8> m_data;
+            CloudSaveSlotInfo m_info;
+        };
+
+        u32 m_cloudOpSlotIndex = 0;
+        ITF_VECTOR<u8> m_cloudDownloadedData;
+        CloudSaveSlotInfo m_cloudDownloadedInfo;
+        std::future<OnlineError> m_cloudRefreshFuture;
+        std::future<OnlineError> m_cloudUploadFuture;
+        std::future<CloudDownloadResult> m_cloudDownloadFuture;
 #ifdef ITF_SUPPORT_NETWORKSERVICES
         NetworkServices::User* m_validUser;
 #endif //ITF_SUPPORT_NETWORKSERVICES

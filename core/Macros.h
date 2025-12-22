@@ -71,6 +71,7 @@
     #define ITF_SUPPORT_BLOBEVENT 1
     #define ITF_SUPPORT_COOKING 1
     #define ITF_SUPPORT_PLUGIN 1
+    #define ITF_DISABLE_VIDEO_EDITOR 1
 #endif  //!defined (ITF_FINAL)
 
 #if defined (ITF_PS3) || defined(ITF_PS5) || defined(ITF_NINTENDO) || defined(ITF_XBOX_SERIES)

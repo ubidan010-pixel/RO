@@ -11,6 +11,7 @@ namespace ITF
     class SessionService;
     class TrackingService;
     class NewsService;
+    class CloudSaveService;
 
     class OnlineAdapter : public TemplateSingleton<OnlineAdapter>
     {
@@ -18,6 +19,8 @@ namespace ITF
         OnlineAdapter()
             : m_sessionService(nullptr)
             , m_trackingService(nullptr)
+            , m_newsService(nullptr)
+            , m_cloudSaveService(nullptr)
             , m_offlineMode(bfalse)
         {
         }
@@ -61,10 +64,17 @@ namespace ITF
             return m_newsService;
         }
 
+        CloudSaveService* getCloudSaveService()
+        {
+            ITF_ASSERT_CRASH(m_cloudSaveService != nullptr, "Cloud save service not implemented");
+            return m_cloudSaveService;
+        }
+
     protected:
         SessionService* m_sessionService;
         TrackingService* m_trackingService;
         NewsService* m_newsService;
+        CloudSaveService* m_cloudSaveService;
 
         bbool m_offlineMode;
     };

@@ -407,7 +407,10 @@ void UIMenuManager::applySelectionChange(UIMenu* menu, UIComponent* oldSel, UICo
             return getMenuPageAction_ApplyMenuItemAction();
         else if (_action == input_actionID_Back)
             return getMenuPageAction_ShowPreviousMenu();
-        else if (_action == input_actionID_Other || _action == input_actionID_DeleteSave )
+        else if (_action == input_actionID_Other
+            || _action == input_actionID_DeleteSave
+            || _action == input_actionID_UploadSave
+            || _action == input_actionID_DownloadSave)
             return getMenuPageAction_Nothing();
 
         StringID nullCmd;
@@ -574,7 +577,10 @@ void UIMenuManager::applySelectionChange(UIMenu* menu, UIComponent* oldSel, UICo
             menuCommand = fetchMenuPageAction(input_actionID_Valid, getMenuPageAction_ApplyMenuItemAction());//applyMenuItemAction();
         else if ( _action == input_actionID_Back )
             menuCommand = fetchMenuPageAction(_action, getMenuPageAction_ShowPreviousMenu());
-        else if ( _action == input_actionID_Other || _action == input_actionID_DeleteSave )
+        else if ( _action == input_actionID_Other
+            || _action == input_actionID_DeleteSave
+            || _action == input_actionID_UploadSave
+            || _action == input_actionID_DownloadSave)
             menuCommand = fetchMenuPageAction(_action, getMenuPageAction_Nothing());
 
 
@@ -1224,6 +1230,7 @@ void UIMenuManager::applySelectionChange(UIMenu* menu, UIComponent* oldSel, UICo
         }
 
         ITF_ASSERT_MSG(wasFound, "Menu was not found");
+        LOG("[MENU] showMenuPage %s", _menuID.getDebugString());
     }
 
     UIComponent* UIMenuManager::getUIComponentFromID(const StringID& menuID, const StringID& IDToFind)

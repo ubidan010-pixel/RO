@@ -10,12 +10,17 @@
 #include "engine/AdaptersInterfaces/VideoAdapter.h"
 #endif //_ITF_VIDEOADAPTER_H_
 
+#ifndef _ITF_MACROS_H_
+#include "core/Macros.h"
+#endif //_ITF_MACROS_H_
+
 namespace  ITF
 {
 
 
     void MoviePlayer::play( const Path & _movie, bbool _fromMemory )
     {
+#ifndef ITF_DISABLE_VIDEO_EDITOR
         if (!_movie.isEmpty())
         {
             PathString_t pathName;
@@ -54,19 +59,27 @@ namespace  ITF
                 m_fadeAlphaEnd      = 1.0f;
             }
         }
+#else
+        m_moviePlayed = btrue;
+        if (m_listener)
+            m_listener->onMovieStarted();
+#endif
     }
 
     void MoviePlayer::stop()
     {
+#ifndef ITF_DISABLE_VIDEO_EDITOR
         if( m_videoHandle != NULL && !m_videoHandle->isStopped() )
         {
             m_videoHandle->stop();
             closeMovie();
         }
+#endif
     }
 
     void MoviePlayer::update( f32 _dt )
     {
+#ifndef ITF_DISABLE_VIDEO_EDITOR
         if ( m_videoHandle != NULL )
         {
             f32 videoCurrentTime = 0.0f;
@@ -120,6 +133,7 @@ namespace  ITF
                 }
             }
         }
+#endif
     }
 
     MoviePlayer::MoviePlayer(IMoviePlayerListener * _listener) 
@@ -135,11 +149,16 @@ namespace  ITF
         , m_videoTotalTime(0.0f)
         , m_moviePlayed(bfalse)
     {
-
+#ifndef ITF_DISABLE_VIDEO_EDITOR
+        m_listener = _listener;
+#else
+        m_listener = NULL;
+#endif
     }
 
     void MoviePlayer::closeMovie()
     {
+#ifndef ITF_DISABLE_VIDEO_EDITOR
         // Close movie file
         VIDEO_ADAPTER->close(m_videoHandle);
         m_videoHandle = NULL;
@@ -155,30 +174,40 @@ namespace  ITF
         if (m_listener)
             m_listener->onMovieStopped();
         //VIDEO_ADAPTER->unregisterActor();
+#endif
     }
 
     f32 MoviePlayer::getCurrentTime()
     {
+#ifndef ITF_DISABLE_VIDEO_EDITOR
         f32 currentTime = 0.0f; 
         if(!m_videoHandle) return currentTime;
         
         m_videoHandle->getCurrentTime(currentTime);
         return currentTime;
+#else
+        return 0.0f; 
+#endif
     }
 
     void MoviePlayer::pause()
     {
+#ifndef ITF_DISABLE_VIDEO_EDITOR
         if(m_videoHandle) 
         {
             m_videoHandle->pause();
             if(m_listener)
                 m_listener->onMoviePaused();
         }
+#endif
     }
 
     ITF::bbool MoviePlayer::isPaused() const
     {
-        if(m_videoHandle) return m_videoHandle->isPaused(); return bfalse;
+#ifndef ITF_DISABLE_VIDEO_EDITOR
+        if(m_videoHandle) return m_videoHandle->isPaused(); 
+#endif
+        return bfalse;
     }
 
 }
