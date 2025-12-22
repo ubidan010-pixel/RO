@@ -11985,6 +11985,7 @@ namespace ITF
     void Ray_GameManager::setPendingLanguageIndex(i32 index)
     {
         m_languageIndexChangedInGame = index;
+        m_gameOptionManager.setListOptionIndex(OPTION_LANGUAGE, index);
     }
 
     void Ray_GameManager::setLanguageIndex(i32 index)

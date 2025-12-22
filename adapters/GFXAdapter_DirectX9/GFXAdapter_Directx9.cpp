@@ -4975,7 +4975,7 @@ bbool GFXAdapter_Directx9::loadShader( ITF_shader* _shaderGroup )
 #ifdef USE_SHADER_BIN
         shadercodeP = (uPtr)loadBinPShader("movie_psh1");
 #else
-        shadercodeP = (uPtr)compilePixelShader((const char*)pCode, dwSize, "PS_MovieWIN32");
+        shadercodeP = (uPtr)compilePixelShader((const char*)pCode, dwSize, "PS_Movie");
 #endif
         _shaderGroup->mp_Ps.push_back(shadercodeP);
 #endif
@@ -6481,81 +6481,46 @@ void GFXAdapter_Directx9::drawMovie( GMatrix44* _matrix,f32 _alpha,ITF_VertexBuf
     setVertexBuffer(_pVertexBuffer);
     setVertexFormat(VertexFormat_PT);
 
-#ifndef SHADERTEST
-    ITF_shader *pMovieShader = mp_shaderManager.getShaderByIndex(6);
-    setShader( pMovieShader);
+    ITF_shader *pMovieShader = mp_shaderManager.getShaderByIndex(8);
+    setShader(pMovieShader);
 
-#ifdef ITF_X360
-    pMovieShader->m_selectedTech = 0;
-#else
-    if (_countTexture == 4)
-        pMovieShader->m_selectedTech = 2;
-    else
-        pMovieShader->m_selectedTech = 1;
-#endif
-
-    pMovieShader->setFloat(0,_alpha);
-#endif
-
-    D3DXMATRIX   mgViewSaved         = mg_View;
-    D3DXMATRIX   mgWorldSaved        = mg_World;
-    D3DXMATRIX   mgViewRenderSaved   = mg_ViewRender;
-
-    D3DXMatrixIdentity( &mg_World );
-    D3DXMatrixIdentity( &mg_View );
-    D3DXMatrixIdentity( &mg_ViewRender );
-
-#ifdef SHADERTEST
-    ITF_shader* shadergroup = mp_shaderManager.getShaderByIndex(8);
-    setShader( shadergroup);
-
-    HRESULT hr;
-    hr = m_pd3dDevice->SetVertexShader( (IDirect3DVertexShader9*)shadergroup->mp_Vs[0] );
-    hr = m_pd3dDevice->SetPixelShader( (IDirect3DPixelShader9*)shadergroup->mp_Ps[0] );
-
-    setShaderMatrix(shadergroup);
-#else
-    setShaderMatrix(pMovieShader);
-#endif
-
-    for (u32 index = 0; index < _countTexture; index++)
-        SetTextureBind(index,_pTextureArray[index]->m_adapterimplementationData);
-
-    for( u32 i = 0 ; i < _countTexture ; i++ )
+    for (u32 i = 0; i < 3; ++i)
     {
-        m_pd3dDevice->SetSamplerState( i, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP );
-        m_pd3dDevice->SetSamplerState( i, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP );
-        m_pd3dDevice->SetSamplerState( i, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR );
-        m_pd3dDevice->SetSamplerState( i, D3DSAMP_MINFILTER, D3DTEXF_LINEAR );
+        if (!_pTextureArray[i] || !_pTextureArray[i]->m_adapterimplementationData)
+            return;
+
+        SetTextureBind((int)i, _pTextureArray[i]->m_adapterimplementationData);
+
+        m_pd3dDevice->SetSamplerState(i, D3DSAMP_ADDRESSU, D3DTADDRESS_CLAMP);
+        m_pd3dDevice->SetSamplerState(i, D3DSAMP_ADDRESSV, D3DTADDRESS_CLAMP);
+        m_pd3dDevice->SetSamplerState(i, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
+        m_pd3dDevice->SetSamplerState(i, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
+        m_pd3dDevice->SetSamplerState(i, D3DSAMP_MIPFILTER, D3DTEXF_NONE);
     }
 
-#ifdef SHADERTEST
-    GFX_Vector4 vconsts(_alpha, _alpha, _alpha, _alpha);
-	m_pd3dDevice->SetPixelShaderConstantF( 8, (f32*)&vconsts, 1 );
-#else
-    beginShader(pMovieShader);
-#endif
+    {
+        D3DXMATRIX wvp;
+        D3DXMatrixIdentity(&wvp);
 
-#ifdef ITF_X360
-    m_pd3dDevice->SetRenderState( D3DRS_VIEWPORTENABLE, TRUE );
-    m_pd3dDevice->DrawPrimitive( D3DPT_QUADLIST, 0, 1 );
-#else
-    m_pd3dDevice->DrawPrimitive( D3DPT_TRIANGLESTRIP, 0, 2 );
-#endif //ITF_X360
+        wvp._11 = 2.0f / (f32)getScreenWidth();
+        wvp._22 = 2.0f / (f32)getScreenHeight();
 
-#ifdef SHADERTEST
-    m_pd3dDevice->SetVertexShader( 0 );
-    m_pd3dDevice->SetPixelShader( 0 );
-#else
-    endShader( pMovieShader);
-#endif
+        m_pd3dDevice->SetVertexShaderConstantF(0, (const float*)&wvp, 4);
 
-    mg_View         = mgViewSaved;
-    mg_World        = mgWorldSaved;
-    mg_ViewRender   = mgViewRenderSaved;
+        const float c8[4] = { _alpha, _alpha, _alpha, _alpha };
+        m_pd3dDevice->SetPixelShaderConstantF(8, c8, 1);
+    }
 
-    for (u32 index = 0;index<_countTexture;index++)
-        SetTextureBind(index, 0);
+    m_pd3dDevice->SetVertexShader((IDirect3DVertexShader9*)pMovieShader->mp_Vs[0]);
+    m_pd3dDevice->SetPixelShader((IDirect3DPixelShader9*)pMovieShader->mp_Ps[0]);
+
+    m_pd3dDevice->DrawPrimitive(D3DPT_TRIANGLESTRIP, 0, 2);
+
+    m_pd3dDevice->SetVertexShader(nullptr);
+    m_pd3dDevice->SetPixelShader(nullptr);
+
+    for (u32 i = 0; i < 3; ++i)
+        SetTextureBind((int)i, nullptr);
 }
 
 

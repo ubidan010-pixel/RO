@@ -1,7 +1,7 @@
 #ifndef _ITF_VIDEOHANDLE_SW_H_
 #define _ITF_VIDEOHANDLE_SW_H_
 
-#if defined(ITF_XBOX_SERIES) || defined(ITF_NINTENDO) || defined(ITF_PS5)
+#if defined(ITF_XBOX_SERIES) || defined(ITF_NINTENDO) || defined(ITF_PS5) || defined(ITF_WINDOWS)
 
 #include "engine/video/videoHandle.h"
 #include "engine/video/webmDecoder.h"
@@ -32,6 +32,11 @@ namespace ITF
         void    render();
 
         bbool   getCurrentTime(f32& _timeInSeconds);
+
+#if defined(ITF_WINDOWS)
+        void    OnResetDevice();
+        void    OnLostDevice();
+#endif
 
     private:
         struct CpuYuvFrame

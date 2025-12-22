@@ -1,6 +1,6 @@
 #include "precompiled_engine.h"
 
-#if defined(ITF_XBOX_SERIES) || defined(ITF_NINTENDO) || defined(ITF_PS5)
+#if defined(ITF_XBOX_SERIES) || defined(ITF_NINTENDO) || defined(ITF_PS5) || defined(ITF_WINDOWS)
 
 #include "engine/video/videoHandle_sw.h"
 #include "engine/resources/ResourceManager.h"
@@ -97,8 +97,28 @@ namespace ITF
         const vpx_image_t* img = nullptr;
         f64 pts = 0.0;
 
-        if (!m_decoder.decodeNextFrame(img, pts) || !img)
+        const auto t0 = std::chrono::high_resolution_clock::now();
+
+        for (;;)
+        {
+            const auto r = m_decoder.decodeNextFrame(img, pts);
+            if (r == ITF::webmDecoder::DecodeResult::Ok && img)
+                break;
+
+            if (r == ITF::webmDecoder::DecodeResult::Buffering)
+            {
+                std::this_thread::sleep_for(std::chrono::milliseconds(2));
+
+                const auto t1 = std::chrono::high_resolution_clock::now();
+                const auto ms = std::chrono::duration<float, std::milli>(t1 - t0).count();
+                if (ms > 2000.0f)
+                    return bfalse;
+
+                continue;
+            }
+
             return bfalse;
+        }
 
         m_currentTexIndex = 0;
         m_bufferPts[0] = pts;
@@ -110,6 +130,7 @@ namespace ITF
 
         return btrue;
     }
+
     //-------------------------------------------------------------------------
     bbool videoHandle::open(const String& _filename)
     {
@@ -236,22 +257,35 @@ namespace ITF
             const auto t0 = Clock::now();
 #endif
 
-            if (!m_decoder.decodeNextFrame(img, pts) || !img)
+            const auto r = m_decoder.decodeNextFrame(img, pts);
+
+            if (r == ITF::webmDecoder::DecodeResult::Buffering)
             {
-                if (isLoop())
+                std::unique_lock<std::mutex> lock(m_queueMutex);
+                m_queueCv.wait_for(lock, std::chrono::milliseconds(2));
+                continue;
+            }
+
+            if (r != ITF::webmDecoder::DecodeResult::Ok || !img)
+            {
+                if (r == ITF::webmDecoder::DecodeResult::End)
                 {
-                    if (!m_decoder.reset())
+                    if (isLoop())
                     {
-                        m_stopped = btrue;
+                        if (!m_decoder.reset())
+                        {
+                            m_stopped = btrue;
+                            continue;
+                        }
                         continue;
                     }
-                    continue;
-                }
-                else
-                {
                     m_stopped = btrue;
                     continue;
                 }
+
+                // Error
+                m_stopped = btrue;
+                continue;
             }
 
             if (!pushDecodedFrame(img, pts))
@@ -618,6 +652,27 @@ namespace ITF
         return btrue;
     }
 
+#if defined(ITF_WINDOWS)
+    void videoHandle::OnResetDevice()
+    {
+        if (!m_opened)
+            return;
+
+        if (m_pVertexBuffer &&
+            m_texY[0].getResource() && m_texU[0].getResource() && m_texV[0].getResource() &&
+            m_texY[1].getResource() && m_texU[1].getResource() && m_texV[1].getResource())
+        {
+            return;
+        }
+
+        createTexturesAndVB(m_textureWidth, m_textureHeight);
+    }
+
+    void videoHandle::OnLostDevice()
+    {
+        destroyTexturesAndVB();
+    }
+#endif
 } // namespace ITF
 
 #endif

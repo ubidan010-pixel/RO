@@ -4,6 +4,15 @@
 #include <vpx/vp8dx.h>
 #include <vpx/vpx_decoder.h>
 
+#include <chrono>
+#include <algorithm>
+
+static inline unsigned long long ITF_TIME_US()
+{
+    using namespace std::chrono;
+    return (unsigned long long)duration_cast<microseconds>(steady_clock::now().time_since_epoch()).count();
+}
+
 namespace ITF
 {
     webmDecoder::webmDecoder()
@@ -16,21 +25,27 @@ namespace ITF
         close();
     }
 
-    bool webmDecoder::open(const String& _path)
+    bool webmDecoder::open(const String& _path, f64 minBufferSeconds)
     {
         close();
 
         if (!m_reader.open(_path))
             return false;
 
-        if (!initSegment())
-            return false;
+        m_reader.setCacheSize(512 * 1024);
 
-        if (!buildFrameIndex())
+        if (!initSegment())
             return false;
 
         if (!initDecoder())
             return false;
+
+        m_reader.setCacheSize(2 * 1024 * 1024);
+
+        startIndexBuild();
+
+        const double fps = m_fpsGuess;
+        m_minBufferedFrames = (u32)std::max(1.0, minBufferSeconds * fps);
 
         m_currentFrame = 0;
         return true;
@@ -50,8 +65,6 @@ namespace ITF
             m_segment = nullptr;
         }
 
-        m_cluster = nullptr;
-        m_blockEntry = nullptr;
         m_videoTrack = nullptr;
         m_videoTrackNumber = 0;
         m_width = m_height = 0;
@@ -59,10 +72,36 @@ namespace ITF
         m_codecType = CodecType::Unknown;
 
         m_frameIndex.clear();
-        m_frameIndex.shrink_to_fit();
         m_currentFrame = 0;
 
+        m_indexBuilding = false;
+        m_indexDone = false;
+        m_indexCluster = nullptr;
+        m_indexBlockEntry = nullptr;
+
+        m_minBufferedFrames = 0;
+
         m_reader.close();
+    }
+
+    bool webmDecoder::reset()
+    {
+        m_currentFrame = 0;
+        return !m_frameIndex.empty() || m_indexBuilding || m_indexDone;
+    }
+
+    bool webmDecoder::isReady() const
+    {
+        return m_frameIndex.size() >= (size_t)m_minBufferedFrames;
+    }
+
+    size_t webmDecoder::estimateFrameCount() const
+    {
+        if (m_duration <= 0.0)
+            return 2048;
+
+        const double est = m_duration * m_fpsGuess + 256.0;
+        return (size_t)std::max(1024.0, est);
     }
 
     bool webmDecoder::initSegment()
@@ -97,7 +136,6 @@ namespace ITF
             const mkvparser::Track* const t = tracks->GetTrackByIndex(i);
             if (!t)
                 continue;
-
             if (t->GetType() != mkvparser::Track::kVideo)
                 continue;
 
@@ -111,9 +149,7 @@ namespace ITF
                 else if (strcmp(codecId, "V_VP9") == 0)
                     detected = CodecType::VP9;
                 else
-                {
                     continue;
-                }
             }
             else
             {
@@ -125,81 +161,12 @@ namespace ITF
             m_videoTrackNumber = t->GetNumber();
 
             const auto* const vt = static_cast<const mkvparser::VideoTrack*>(t);
-            m_width  = (u32)vt->GetWidth();
+            m_width = (u32)vt->GetWidth();
             m_height = (u32)vt->GetHeight();
             break;
         }
 
-        if (!m_videoTrack || m_codecType == CodecType::Unknown)
-            return false;
-
-        m_cluster = m_segment->GetFirst();
-        if (!m_cluster || m_cluster->EOS())
-            return false;
-
-        long status = m_cluster->GetFirst(m_blockEntry);
-        return (status >= 0 && m_blockEntry && !m_blockEntry->EOS());
-    }
-
-    bool webmDecoder::buildFrameIndex()
-    {
-        if (!m_segment || !m_videoTrackNumber)
-            return false;
-
-        m_frameIndex.clear();
-        m_frameIndex.shrink_to_fit();
-        m_frameIndex.reserve(1024);
-
-        mkvparser::Segment* segment = m_segment;
-        const mkvparser::Cluster* cluster = segment->GetFirst();
-
-        while (cluster && !cluster->EOS())
-        {
-            const mkvparser::BlockEntry* blockEntry = nullptr;
-            long status = cluster->GetFirst(blockEntry);
-            if (status < 0)
-                return false;
-            if (!blockEntry || blockEntry->EOS())
-            {
-                cluster = segment->GetNext(cluster);
-                continue;
-            }
-
-            while (blockEntry && !blockEntry->EOS())
-            {
-                const mkvparser::Block* const block = blockEntry->GetBlock();
-                if (!block)
-                    return false;
-
-                const unsigned int track_number =
-                    static_cast<unsigned int>(block->GetTrackNumber());
-
-                if (track_number == m_videoTrackNumber)
-                {
-                    const int frameCount = block->GetFrameCount();
-                    if (frameCount > 0)
-                    {
-                        const mkvparser::Block::Frame& frame = block->GetFrame(0);
-
-                        FrameIndexEntry fi{};
-
-                        fi.time_ns = block->GetTime(cluster);
-                        fi.pos     = frame.pos;
-                        fi.len     = frame.len;
-
-                        m_frameIndex.push_back(fi);
-                    }
-                }
-
-                status = cluster->GetNext(blockEntry, blockEntry);
-                if (status < 0)
-                    return false;
-            }
-
-            cluster = segment->GetNext(cluster);
-        }
-
-        return !m_frameIndex.empty();
+        return (m_videoTrack != nullptr && m_videoTrackNumber != 0 && m_codecType != CodecType::Unknown);
     }
 
     bool webmDecoder::initDecoder()
@@ -236,60 +203,165 @@ namespace ITF
         if (err != VPX_CODEC_OK)
             ITF_ASSERT_MSG(0, "vpx_codec_dec_init_ver failed: %s\n", vpx_codec_err_to_string(err));
 
-        //vp8_postproc_cfg_t pp = {};
-        //pp.post_proc_flag = 0;
-        //vpx_codec_control(&m_codec, VP8_SET_POSTPROC, &pp);
-
         m_codecInited = true;
         return true;
     }
 
-    bool webmDecoder::decodeNextFrame(const vpx_image_t*& outImage, f64& outPtsSeconds)
+    void webmDecoder::startIndexBuild()
+    {
+        m_frameIndex.clear();
+        m_frameIndex.reserve(estimateFrameCount());
+
+        m_indexCluster = m_segment ? m_segment->GetFirst() : nullptr;
+        m_indexBlockEntry = nullptr;
+
+        m_indexDone = false;
+        m_indexBuilding = (m_indexCluster && !m_indexCluster->EOS());
+
+        if (m_indexBuilding)
+        {
+            const mkvparser::BlockEntry* first = nullptr;
+            long st = m_indexCluster->GetFirst(first);
+            if (st >= 0)
+                m_indexBlockEntry = first;
+        }
+    }
+
+    bool webmDecoder::stepIndexOneBlock()
+    {
+        if (!m_indexBuilding || m_indexDone || !m_segment)
+            return false;
+
+        mkvparser::Segment* segment = m_segment;
+
+        while (m_indexCluster && !m_indexCluster->EOS() && (!m_indexBlockEntry || m_indexBlockEntry->EOS()))
+        {
+            m_indexCluster = segment->GetNext(m_indexCluster);
+            if (!m_indexCluster || m_indexCluster->EOS())
+            {
+                m_indexDone = true;
+                m_indexBuilding = false;
+                return false;
+            }
+
+            const mkvparser::BlockEntry* first = nullptr;
+            long st = m_indexCluster->GetFirst(first);
+            if (st < 0)
+            {
+                m_indexDone = true;
+                m_indexBuilding = false;
+                return false;
+            }
+            m_indexBlockEntry = first;
+        }
+
+        if (!m_indexCluster || m_indexCluster->EOS() || !m_indexBlockEntry || m_indexBlockEntry->EOS())
+        {
+            m_indexDone = true;
+            m_indexBuilding = false;
+            return false;
+        }
+
+        const mkvparser::Block* const block = m_indexBlockEntry->GetBlock();
+        if (!block)
+        {
+            m_indexDone = true;
+            m_indexBuilding = false;
+            return false;
+        }
+
+        if ((unsigned int)block->GetTrackNumber() == (unsigned int)m_videoTrackNumber)
+        {
+            const int frameCount = block->GetFrameCount();
+            if (frameCount > 0)
+            {
+                const mkvparser::Block::Frame& frame = block->GetFrame(0);
+
+                FrameIndexEntry fi{};
+                fi.time_ns = block->GetTime(m_indexCluster);
+                fi.pos = frame.pos;
+                fi.len = frame.len;
+
+                m_frameIndex.push_back(fi);
+            }
+        }
+
+        const mkvparser::BlockEntry* next = nullptr;
+        long status = m_indexCluster->GetNext(m_indexBlockEntry, next);
+        if (status < 0)
+        {
+            m_indexDone = true;
+            m_indexBuilding = false;
+            return false;
+        }
+        m_indexBlockEntry = next;
+
+        return true;
+    }
+
+    void webmDecoder::pumpIndexBuild(u32 budgetUs)
+    {
+        if (!m_indexBuilding || m_indexDone)
+            return;
+
+        const unsigned long long startUs = ITF_TIME_US();
+
+        while (m_indexBuilding && !m_indexDone)
+        {
+            stepIndexOneBlock();
+
+            const unsigned long long nowUs = ITF_TIME_US();
+            if ((nowUs - startUs) >= (unsigned long long)budgetUs)
+                break;
+        }
+    }
+
+    webmDecoder::DecodeResult webmDecoder::decodeNextFrame(const vpx_image_t*& outImage, f64& outPtsSeconds)
     {
         outImage = nullptr;
         outPtsSeconds = 0.0;
 
         if (!m_codecInited || !m_segment)
-            return false;
+            return DecodeResult::Error;
+
+        const bool buffering = !isReady();
+        pumpIndexBuild(buffering ? m_budgetBufferingUs : m_budgetSteadyUs);
+
+        if (!isReady())
+            return DecodeResult::Buffering;
 
         if (m_currentFrame >= m_frameIndex.size())
-            return false;
+        {
+            if (m_indexDone)
+                return DecodeResult::End;
+
+            return DecodeResult::Buffering;
+        }
 
         const FrameIndexEntry& fi = m_frameIndex[m_currentFrame];
+        if (fi.len <= 0)
+            return DecodeResult::Error;
 
-        if (m_frameBuffer.size() < static_cast<size_t>(fi.len))
-            m_frameBuffer.resize(static_cast<size_t>(fi.len));
+        if (m_frameBuffer.size() < (size_t)fi.len)
+            m_frameBuffer.resize((size_t)fi.len);
 
-        uint8_t* frameData = m_frameBuffer.data();
+        if (m_reader.Read(fi.pos, fi.len, m_frameBuffer.data()) != 0)
+            return DecodeResult::Error;
 
-        if (m_reader.Read(fi.pos, fi.len, frameData) != 0)
-            return false;
-
-        const vpx_codec_err_t err = vpx_codec_decode(&m_codec, frameData, static_cast<unsigned int>(fi.len), nullptr, 0);
+        const vpx_codec_err_t err = vpx_codec_decode(&m_codec, m_frameBuffer.data(), (unsigned int)fi.len, nullptr, 0);
 
         if (err != VPX_CODEC_OK)
-            return false;
+            return DecodeResult::Error;
 
         vpx_codec_iter_t iter = nullptr;
         vpx_image_t* img = vpx_codec_get_frame(&m_codec, &iter);
         if (!img)
-            return false;
+            return DecodeResult::Error;
 
         outImage = img;
-        outPtsSeconds = static_cast<double>(fi.time_ns) / 1000000000.0;
+        outPtsSeconds = (double)fi.time_ns / 1e9;
 
         ++m_currentFrame;
-        return true;
+        return DecodeResult::Ok;
     }
-
-    bool webmDecoder::reset()
-    {
-        if (m_frameIndex.empty())
-            return false;
-
-        m_currentFrame = 0;
-
-        return true;
-    }
-
 }

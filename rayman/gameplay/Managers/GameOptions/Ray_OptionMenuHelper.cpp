@@ -321,11 +321,6 @@ namespace ITF
                 componentId == OPTIONMENU_ACCEPT_BUTTON ||
                 componentId == OPTIONMENU_CANCEL_BUTTON)
             {
-                if (m_showLanguageWarning)
-                {
-                    TRC_ADAPTER->addMessage(TRCManagerAdapter::Language_Warn);
-                    m_showLanguageWarning = false;
-                }
                 if (isEditing())
                 {
                     exitEditMode();
@@ -477,6 +472,11 @@ namespace ITF
 
         if (RAY_GAMEMANAGER)
         {
+            if (m_showLanguageWarning)
+            {
+                TRC_ADAPTER->addMessage(TRCManagerAdapter::Language_Warn);
+                m_showLanguageWarning = false;
+            }
             RAY_GAMEMANAGER->saveGameOptions();
             RAY_GAMEMANAGER->applyGameSetting(RAY_GAMEMANAGER->getResolutionIndex() != m_snapshotResolutionIndex);
 
@@ -496,7 +496,7 @@ namespace ITF
     {
         if (id != OPTIONMENU_CANCEL_BUTTON)
             return bfalse;
-
+        m_showLanguageWarning = false;
         if (m_hasSnapshot)
         {
             restoreSnapshot();
