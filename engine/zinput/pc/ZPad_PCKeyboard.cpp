@@ -43,7 +43,7 @@ namespace ITF
 
             { m_joyButton_A,          ZPad_Base::BUTTON_FACE_SOUTH, KEY_SPACE },
             { m_joyButton_B,          ZPad_Base::BUTTON_FACE_EAST,  KEY_BACKSPACE },
-            { m_joyButton_X,          ZPad_Base::BUTTON_FACE_WEST,  's' },
+            { m_joyButton_X,          ZPad_Base::BUTTON_FACE_WEST,  'S' },
             { m_joyButton_Y,          ZPad_Base::BUTTON_FACE_NORTH, -1 },
 
             { m_joyButton_LB,         ZPad_Base::BUTTON_L_SHOULDER, -1 },
@@ -91,6 +91,15 @@ namespace ITF
         {
             return positive ? (value > threshold) : (value < -threshold);
         }
+
+        ITF_INLINE i32 NormalizeKeyboardKeyCode(i32 keyCode)
+        {
+            if (keyCode >= 'a' && keyCode <= 'z')
+            {
+                return keyCode - ('a' - 'A');
+            }
+            return keyCode;
+        }
     }
 
     ZPad_PCKeyboard::ZPad_PCKeyboard(u32 id) : ZPad_Base(id)
@@ -112,6 +121,8 @@ namespace ITF
         {
             return;
         }
+
+        keyCode = NormalizeKeyboardKeyCode(keyCode);
 
         const i32 previousKey = GetKeyMapping(logicalControl);
         m_keyMappings[logicalControl] = keyCode;
@@ -138,20 +149,20 @@ namespace ITF
         {
             if (m_keyMappings[logicalControl] >= 0)
             {
-                return m_keyMappings[logicalControl];
+                return NormalizeKeyboardKeyCode(m_keyMappings[logicalControl]);
             }
             for (const auto& mapping : kKeyboardButtonMappings)
             {
                 if (mapping.controlIndex == logicalControl)
                 {
-                    return mapping.defaultKey;
+                    return NormalizeKeyboardKeyCode(mapping.defaultKey);
                 }
             }
             for (const auto& mapping : kKeyboardAxisButtonMappings)
             {
                 if (mapping.controlIndex == logicalControl)
                 {
-                    return mapping.defaultKey;
+                    return NormalizeKeyboardKeyCode(mapping.defaultKey);
                 }
             }
         }
@@ -185,7 +196,7 @@ namespace ITF
         {
             if (mapping.buttonIndex == buttonIndex)
             {
-                return mapping.defaultKey;
+                return NormalizeKeyboardKeyCode(mapping.defaultKey);
             }
         }
         return -1;

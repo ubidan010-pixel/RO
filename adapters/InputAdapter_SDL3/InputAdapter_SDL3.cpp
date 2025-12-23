@@ -1220,7 +1220,7 @@ namespace ITF
             updateKeyboardButton(m_joyButton_DPadR, getKeyboardStatus(KEY_RIGHT));
 
             updateKeyboardButton(m_joyButton_A, getKeyboardStatus(KEY_SPACE));
-            updateKeyboardButton(m_joyButton_X, getKeyboardStatus('s'));
+            updateKeyboardButton(m_joyButton_X, getKeyboardStatus('S'));
             updateKeyboardButton(m_joyButton_B, getKeyboardStatus(KEY_BACKSPACE));
             updateKeyboardButton(m_joyButton_Start, getKeyboardStatus(KEY_ESC));
 

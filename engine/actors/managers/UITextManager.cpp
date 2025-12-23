@@ -275,7 +275,7 @@ namespace ITF
         case ZInputManager::Action_Left:  return KEY_LEFT;
         case ZInputManager::Action_Right: return KEY_RIGHT;
         case ZInputManager::Action_Jump:  return KEY_SPACE;
-        case ZInputManager::Action_Hit:   return 's';
+        case ZInputManager::Action_Hit:   return 'S';
         case ZInputManager::Action_Run:   return KEY_LSHIFT;
         case ZInputManager::Action_Back:  return KEY_BACKSPACE;
         default:
