@@ -59,6 +59,10 @@ namespace ITF
     m_animComponent(NULL), m_moviePlayerComponent(NULL),
         m_screenState(Idle), m_resetAnimDone(bfalse), m_loaded(bfalse),
         m_japLogoStartedTime(0.0), m_japLogo_Duration(0.0), m_currentJapLogo(Kenko_480)
+#ifdef ITF_PS5
+        , m_ps5StartupStartedTime(0.0)
+        , m_ps5StartupHidden(bfalse)
+#endif
     {        
 
         for(u32 i = 0; i < JapLogo_MAX; i++)
@@ -200,6 +204,11 @@ namespace ITF
             // Wait for TRC opening
             if(!TRC_ADAPTER || TRC_ADAPTER->canDrawContent())
             {
+#ifdef ITF_PS5
+                if (m_ps5StartupStartedTime == 0.0)
+                    m_ps5StartupStartedTime = SYSTEM_ADAPTER->getTime();
+#endif
+
                 m_japLogo_Duration = 4.0;
 #ifdef ITF_PS3
                 if ( SYSTEM_ADAPTER->getSystemTerritory() != ITF_TERRITORY_OTHER )
@@ -226,6 +235,16 @@ namespace ITF
 
                     m_japLogoStartedTime = SYSTEM_ADAPTER->getTime();
                 }
+#ifdef ITF_PS5
+                else if (!m_ps5StartupHidden && m_ps5StartupStartedTime > 0.0)
+                {
+                    if (SYSTEM_ADAPTER->getTime() - m_ps5StartupStartedTime >= PS5_SPLASH_DURATION)
+                    {
+                        SYSTEM_ADAPTER->hideStartupSplashScreen();
+                        m_ps5StartupHidden = btrue;
+                    }
+                }
+#endif
                 else
                 {
                     startPlayingVideo();

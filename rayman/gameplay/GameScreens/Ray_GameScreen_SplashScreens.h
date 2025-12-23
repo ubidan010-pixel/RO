@@ -81,6 +81,12 @@ namespace ITF
         bbool m_loaded;
         f64 m_japLogoStartedTime, m_japLogo_Duration;
 
+#ifdef ITF_PS5
+        f64 m_ps5StartupStartedTime;
+        bbool m_ps5StartupHidden;
+        const f64 PS5_SPLASH_DURATION = 3.6;
+#endif
+
         ScreenState  m_screenState;
         void changeScreenState(ScreenState screenState) { m_screenState = screenState; }
         void changeGameScreen();

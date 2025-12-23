@@ -503,6 +503,9 @@ namespace ITF
     void Ray_ChangePageComponent::setShut(bbool _isShut) 
     {
         m_isShut = _isShut;
+
+		if (m_isShut)
+			RAY_GAMEMANAGER->markMurphyAssistTargetCollected(m_actor->getRef());
     }
 
 	//--------------------------------------------------------------------------------------------------------
