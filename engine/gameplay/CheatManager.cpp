@@ -1,5 +1,7 @@
 #include "precompiled_engine.h"
 
+#include "AdaptersInterfaces/TRCManager_Adapter.h"
+
 #ifndef _ITF_CHEATMANAGER_H_
 #include "engine/gameplay/CheatManager.h"
 #endif //_ITF_CHEATMANAGER_H_
@@ -88,7 +90,6 @@ void CheatManager::init( const CommandArgs& _args )
 {
     setActive(CONFIG->m_startWithCheatsOn);
     //teleportPlayersToCurrentCheckpoint();
-	INPUT_ADAPTER->addListener(this, 0);
 }
 float CheatManager::getPauseStepDt()
 {
@@ -165,6 +166,11 @@ bbool CheatManager::onKey( i32 _key, InputAdapter::PressStatus _keyStatus )
                     m_resetCharacterDebugTrajectories = 2;
                 }
             }
+            break;
+            case 'P':
+                {
+                    TRC_ADAPTER->addMessage(TRCManagerAdapter::Sav_WarningBoot);
+                }
             break;
         }
     }
