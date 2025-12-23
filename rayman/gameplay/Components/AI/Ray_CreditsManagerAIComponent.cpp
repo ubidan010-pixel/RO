@@ -26,11 +26,10 @@
 #define CREDITS_TIME_DYSPLAY_LUMS 25.0f
 
 
-    namespace ITF
-    {
-    
+namespace ITF
+{
     IMPLEMENT_OBJECT_RTTI(Ray_CreditsManagerAIComponent)
-    
+
     BEGIN_SERIALIZATION_CHILD(Ray_CreditsManagerAIComponent)
     END_SERIALIZATION()
 
@@ -38,30 +37,30 @@
         VALIDATE_COMPONENT_PARAM("", m_linkComponent, "This component requires an LinkComponent.");
     END_VALIDATE_COMPONENT()
 
-    #define fxFall ITF_GET_STRINGID_CRC(Tetris_IceFX_Fall,81788461)
-    #define fxHit ITF_GET_STRINGID_CRC(Tetris_IceFX_Hit,3103459808)
-    #define fxSteam ITF_GET_STRINGID_CRC(Tetris_IceFX_Steam,414946245)
-    #define soundFall ITF_GET_STRINGID_CRC(Tetris_IceSnd_Fall,2564637324)
-    #define soundHit ITF_GET_STRINGID_CRC(Tetris_IceSnd_Hit,3104294098)
-    #define soundDestroy ITF_GET_STRINGID_CRC(Tetris_IceSnd_Destroy,2152943846)
+#define fxFall ITF_GET_STRINGID_CRC(Tetris_IceFX_Fall,81788461)
+#define fxHit ITF_GET_STRINGID_CRC(Tetris_IceFX_Hit,3103459808)
+#define fxSteam ITF_GET_STRINGID_CRC(Tetris_IceFX_Steam,414946245)
+#define soundFall ITF_GET_STRINGID_CRC(Tetris_IceSnd_Fall,2564637324)
+#define soundHit ITF_GET_STRINGID_CRC(Tetris_IceSnd_Hit,3104294098)
+#define soundDestroy ITF_GET_STRINGID_CRC(Tetris_IceSnd_Destroy,2152943846)
 
     // Link tag
-    #define nameGridTag ITF_GET_STRINGID_CRC(Grid,4267112909)
-    #define nameChampiBumperTag ITF_GET_STRINGID_CRC(ChampiBumper,2965586883)
-	#define nameLogoTag ITF_GET_STRINGID_CRC(Logo,1691847678)
-	#define nameTheEndTag ITF_GET_STRINGID_CRC(TheEnd,1374271802)
+#define nameGridTag ITF_GET_STRINGID_CRC(Grid,4267112909)
+#define nameChampiBumperTag ITF_GET_STRINGID_CRC(ChampiBumper,2965586883)
+#define nameLogoTag ITF_GET_STRINGID_CRC(Logo,1691847678)
+#define nameTheEndTag ITF_GET_STRINGID_CRC(TheEnd,1374271802)
 
 
     //*****************************************************************************
 
     Ray_CreditsManagerAIComponent::Ray_CreditsManagerAIComponent()
-    : m_linkComponent(NULL)  
-    , m_time(0.0f)
-    , m_indexLine(0)
-    , m_isInit(bfalse)
-    , m_logoIsDisplay(bfalse)
-	, m_endIsRequest(bfalse)
-	, m_resetMapRequest(bfalse)
+        : m_linkComponent(NULL)
+          , m_time(0.0f)
+          , m_indexLine(0)
+          , m_isInit(bfalse)
+          , m_logoIsDisplay(bfalse)
+          , m_endIsRequest(bfalse)
+          , m_resetMapRequest(bfalse)
     {
         // none
     }
@@ -84,52 +83,59 @@
         ITF_ASSERT_MSG(m_linkComponent, "The door MUST have an LinkComponent.");
 
         // Event
-        ACTOR_REGISTER_EVENT_COMPONENT(m_actor,ITF_GET_STRINGID_CRC(EventGeneric,4063838687), this);
+        ACTOR_REGISTER_EVENT_COMPONENT(m_actor, ITF_GET_STRINGID_CRC(EventGeneric,4063838687), this);
 
-		// Load GMat		
-		if ( getTemplate()->getGmatPath().getStringID() != GameMaterial_Template::nullMatName.getStringID() )
-		{
-			World::addGameMaterialFromFile(getTemplate()->getGmatPath(), m_actor->getResourceGroup());
-		}
-
+        // Load GMat
+        if (getTemplate()->getGmatPath().getStringID() != GameMaterial_Template::nullMatName.getStringID())
+        {
+            World::addGameMaterialFromFile(getTemplate()->getGmatPath(), m_actor->getResourceGroup());
+        }
     }
 
     //*****************************************************************************
+    // [ROE-1114] [Switch1][Gameplay][Credits] Character dies jumping from Champibumper during Credit Sequuence
+    //Player is crushed by polylines
+    void Ray_CreditsManagerAIComponent::setInvinciblePlayers(bbool _invincibal)
+    {
+        for (u32 i = 0; i < RAY_GAMEMANAGER->getMaxPlayerCount(); i++)
+        {
+            Ray_Player* player = static_cast<Ray_Player*>(GAMEMANAGER->getPlayer(i));
+            player->setInvincible(_invincibal);
+        }
+    }
 
     void Ray_CreditsManagerAIComponent::init()
     {
-
-        StringID valueTag; 
-
+        StringID valueTag;
         if (m_linkComponent)
         {
-            const LinkComponent::ChildrenList& children  = m_linkComponent->getChildren();
+            const LinkComponent::ChildrenList& children = m_linkComponent->getChildren();
             for (u32 i = 0; i < children.size(); i++)
             {
                 Pickable* pickable = SceneObjectPathUtils::getObjectFromRelativePath(m_actor, children[i].getPath());
 
-                if ( pickable )
+                if (pickable)
                 {
-                    Actor* childActor = pickable->DynamicCast<Actor>(ITF_GET_STRINGID_CRC(Actor,2546623115));
+                    Actor* childActor = pickable->DynamicCast<Actor>(ITF_GET_STRINGID_CRC(Actor, 2546623115));
 
                     if (childActor)
                     {
                         if (children[i].getTagValue(nameGridTag, valueTag) && !m_gridCreditRef.isValid())
                         {
-                            m_gridCreditRef = childActor->getRef();                            
-                        }    
+                            m_gridCreditRef = childActor->getRef();
+                        }
                         else if (children[i].getTagValue(nameChampiBumperTag, valueTag) && !m_champiBumperRef.isValid())
                         {
-                            m_champiBumperRef = childActor->getRef();                            
+                            m_champiBumperRef = childActor->getRef();
                         }
                         else if (children[i].getTagValue(nameLogoTag, valueTag) && !m_logoRef.isValid())
                         {
-                            m_logoRef = childActor->getRef();                            
-                        }    
-						else if (children[i].getTagValue(nameTheEndTag, valueTag) && !m_theEndRef.isValid())
-						{
-							m_theEndRef = childActor->getRef();                            
-						}   
+                            m_logoRef = childActor->getRef();
+                        }
+                        else if (children[i].getTagValue(nameTheEndTag, valueTag) && !m_theEndRef.isValid())
+                        {
+                            m_theEndRef = childActor->getRef();
+                        }
                     }
                 }
             }
@@ -161,51 +167,58 @@
             if (Actor* logoAct = m_logoRef.getActor())
             {
                 logoAct->disable();
-                EventShow alphaChange( 0.0f );
+                EventShow alphaChange(0.0f);
                 logoAct->onEvent(&alphaChange);
             }
         }
 
-		// Init Grid
-		if (m_gridCreditRef.isValid())
-		{
-			if (Actor* gridAct = m_gridCreditRef.getActor())
-			{
-				if (Ray_BreakableStackManagerAIComponent* gridCompo = gridAct->GetComponent<Ray_BreakableStackManagerAIComponent>())
-				{
-					gridCompo->setCreditsMap(btrue);
-				}
-			}
-		}
+        // Init Grid
+        if (m_gridCreditRef.isValid())
+        {
+            if (Actor* gridAct = m_gridCreditRef.getActor())
+            {
+                if (Ray_BreakableStackManagerAIComponent* gridCompo = gridAct->GetComponent<Ray_BreakableStackManagerAIComponent>())
+                {
+                    gridCompo->setCreditsMap(btrue);
+                }
+            }
+        }
 
         m_isInit = btrue;
     }
 
     //*****************************************************************************
 
-    void Ray_CreditsManagerAIComponent::onBecomeActive( )
+    void Ray_CreditsManagerAIComponent::onBecomeActive()
     {
         Super::onBecomeActive();
+        setInvinciblePlayers(btrue);
+    }
+
+    void Ray_CreditsManagerAIComponent::onBecomeInactive()
+    {
+        Ray_AIComponent::onBecomeInactive();
+        setInvinciblePlayers(bfalse);
     }
 
     //*****************************************************************************
 
-    void Ray_CreditsManagerAIComponent::onEvent(Event * _event)
+    void Ray_CreditsManagerAIComponent::onEvent(Event* _event)
     {
         Super::onEvent(_event);
 
-        if (EventGeneric* evtGeneric = _event->DynamicCast<EventGeneric>(ITF_GET_STRINGID_CRC(EventGeneric,4063838687)))
+        if (EventGeneric* evtGeneric = _event->DynamicCast<EventGeneric>(ITF_GET_STRINGID_CRC(EventGeneric, 4063838687)))
         {
-            if (evtGeneric->getId() == ITF_GET_STRINGID_CRC(breakableNewLine,1910942963))
+            if (evtGeneric->getId() == ITF_GET_STRINGID_CRC(breakableNewLine, 1910942963))
             {
-               newLine();
+                newLine();
             }
         }
     }
 
     //*****************************************************************************
 
-    void Ray_CreditsManagerAIComponent::Update( f32 _dt )
+    void Ray_CreditsManagerAIComponent::Update(f32 _dt)
     {
         Super::Update(_dt);
 
@@ -215,34 +228,32 @@
         }
 
         // End of credits
-		if (!m_endIsRequest)
-		{
-			if (!m_logoIsDisplay)
-			{
-				checkEndCredits();
-			}
-			else
-			{
-				// WII
-				m_time -= _dt;
-				if (m_time <= 0.0f)
-				{
-					onEndCredits();
-				}
-			}
-		}
+        if (!m_endIsRequest)
+        {
+            if (!m_logoIsDisplay)
+            {
+                checkEndCredits();
+            }
+            else
+            {
+                // WII
+                m_time -= _dt;
+                if (m_time <= 0.0f)
+                {
+                    onEndCredits();
+                }
+            }
+        }
 
-		if (m_endIsRequest && !m_resetMapRequest)
-		{
-			m_time -= _dt;
-			if (m_time <= 0.0f)
-			{
-				m_resetMapRequest = btrue;
-
-				RAY_GAMEMANAGER->resetToWorldMap();
-			}
-		}
-      
+        if (m_endIsRequest && !m_resetMapRequest)
+        {
+            m_time -= _dt;
+            if (m_time <= 0.0f)
+            {
+                m_resetMapRequest = btrue;
+                RAY_GAMEMANAGER->resetToWorldMap();
+            }
+        }
     }
 
 
@@ -255,16 +266,16 @@
             if (Ray_BreakableStackManagerAIComponent* breakManagerCompo = gridAct->GetComponent<Ray_BreakableStackManagerAIComponent>())
             {
                 u32 gridHeight = breakManagerCompo->getHeight();
-                const CreditsList& credits = getTemplate()->getCreditsList(); 
+                const CreditsList& credits = getTemplate()->getCreditsList();
                 if (m_indexLine > credits.size() + gridHeight + CREDITS_OFFSET_LINE)
                 {
-                    #ifdef ITF_WII
+#ifdef ITF_WII
                         m_logoIsDisplay = btrue;
                         m_time = CREDITS_TIME_DYSPLAY_LOGO;
                         displayLogo(btrue);
-                    #else
-                        onEndCredits();
-                    #endif
+#else
+                    onEndCredits();
+#endif
                 }
             }
         }
@@ -272,7 +283,7 @@
 
     //*****************************************************************************
 
-    void Ray_CreditsManagerAIComponent::displayLogo( bbool _value )
+    void Ray_CreditsManagerAIComponent::displayLogo(bbool _value)
     {
         if (m_logoRef.isValid())
         {
@@ -286,7 +297,7 @@
                     alphaValue = 1.0f;
                 }
 
-                EventShow alphaChange( alphaValue, CREDITS_TIME_FADE_LOGO);
+                EventShow alphaChange(alphaValue, CREDITS_TIME_FADE_LOGO);
                 logoAct->onEvent(&alphaChange);
             }
         }
@@ -296,36 +307,36 @@
 
     void Ray_CreditsManagerAIComponent::onEndCredits()
     {
-		if (!m_endIsRequest)
-		{
-			m_endIsRequest = btrue;
-			m_time = CREDITS_TIME_DYSPLAY_LUMS;
+        if (!m_endIsRequest)
+        {
+            m_endIsRequest = btrue;
+            m_time = CREDITS_TIME_DYSPLAY_LUMS;
 
-			if (m_logoIsDisplay)
-			{
-				displayLogo( bfalse );
-			}
+            if (m_logoIsDisplay)
+            {
+                displayLogo(bfalse);
+            }
 
-			if (m_theEndRef.isValid())
-			{
-				if (Actor* theEndAct = m_theEndRef.getActor())
-				{
-					EventTrigger eventTrig;
-					eventTrig.setSender( m_actor->getRef() );
-					eventTrig.setActivated(btrue);
-					eventTrig.setActivator(m_actor->getRef());
-					theEndAct->onEvent(&eventTrig);
-				}
-			}
-		}
+            if (m_theEndRef.isValid())
+            {
+                if (Actor* theEndAct = m_theEndRef.getActor())
+                {
+                    EventTrigger eventTrig;
+                    eventTrig.setSender(m_actor->getRef());
+                    eventTrig.setActivated(btrue);
+                    eventTrig.setActivator(m_actor->getRef());
+                    theEndAct->onEvent(&eventTrig);
+                }
+            }
+        }
     }
 
     //*****************************************************************************
 
 
-    void Ray_CreditsManagerAIComponent::newLine( )
+    void Ray_CreditsManagerAIComponent::newLine()
     {
-        const CreditsList& credits = getTemplate()->getCreditsList(); 
+        const CreditsList& credits = getTemplate()->getCreditsList();
 
         if (m_indexLine < credits.size())
         {
@@ -339,7 +350,7 @@
                     u32 gridWidth = breakManagerCompo->getWidth();
 
                     // Get Infos
-                    if ( typeLine == 0 || typeLine == 1 )
+                    if (typeLine == 0 || typeLine == 1)
                     {
                         String curText = credLine.m_text;
 
@@ -349,9 +360,8 @@
                         u32 row = 1;
 
                         parseChar(curText, typeLine, row, col, breakManagerCompo);
-
                     }
-                    else  if ( typeLine == 2 )
+                    else if (typeLine == 2)
                     {
                         String firstName = credLine.m_firstName;
                         u32 colCenter = gridWidth / 2;
@@ -364,8 +374,7 @@
                         col = colCenter + 1;
                         parseChar(lastName, typeLine, row, col, breakManagerCompo);
 
-                        ITF_WARNING_CATEGORY(LD, m_actor, firstName.getLen() +  lastName.getLen() + 1 <= gridWidth, "Credit line is bigger than grid width ! Check with Romain V.");
-
+                        ITF_WARNING_CATEGORY(LD, m_actor, firstName.getLen() + lastName.getLen() + 1 <= gridWidth, "Credit line is bigger than grid width ! Check with Romain V.");
                     }
                     else
                     {
@@ -374,19 +383,19 @@
                     }
                 }
             }
-        }         
+        }
         m_indexLine++;
     }
 
     //*****************************************************************************
 
-    void Ray_CreditsManagerAIComponent::parseChar( String& _text, u32 _type, u32 _row, u32 _col, Ray_BreakableStackManagerAIComponent* _breakManagerCompo )
+    void Ray_CreditsManagerAIComponent::parseChar(String& _text, u32 _type, u32 _row, u32 _col, Ray_BreakableStackManagerAIComponent* _breakManagerCompo)
     {
         if (!_breakManagerCompo)
             return;
 
         u32 stringLen = _text.getLen();
-        if(!stringLen)
+        if (!stringLen)
             return;
 
         char* c = _text.getCharCopy();
@@ -395,20 +404,20 @@
             return;
 
         for (u32 i = 0; i < stringLen; i++)
-        {                           
+        {
             u32 asciiCode = *(c + i);
             u32 indexAtlas = 0;
 
             if (asciiCode == 32)
             {
-                 // Space
+                // Space
                 _col++;
                 continue;
             }
             else if (asciiCode == 45)
             {
                 // "-"
-               indexAtlas = 30;
+                indexAtlas = 30;
             }
             else if (asciiCode == 38)
             {
@@ -417,7 +426,7 @@
             }
             else if (asciiCode >= 64 && asciiCode <= 90)
             {
-                indexAtlas =  asciiCode - 65;
+                indexAtlas = asciiCode - 65;
             }
             else
             {
@@ -433,17 +442,17 @@
             // Rewards
             u32 reward = 0;
             if (
-                asciiCode == 82/*R*/  || 
-                asciiCode == 65/*A*/  || 
-                asciiCode == 89/*Y*/  || 
-                asciiCode == 77/*M*/  || 
-                asciiCode == 78/*N*/ 
-                )
+                asciiCode == 82/*R*/ ||
+                asciiCode == 65/*A*/ ||
+                asciiCode == 89/*Y*/ ||
+                asciiCode == 77/*M*/ ||
+                asciiCode == 78 /*N*/
+            )
             {
                 reward = 1;
             }
 
-            addBlock( indexAtlas, _type, _breakManagerCompo, _row, _col, reward );
+            addBlock(indexAtlas, _type, _breakManagerCompo, _row, _col, reward);
             _col++;
         }
 
@@ -452,9 +461,8 @@
 
     //*****************************************************************************
 
-    void Ray_CreditsManagerAIComponent::addBlock( u32 _index, u32 _type, Ray_BreakableStackManagerAIComponent* _breakManagerCompo, u32 _row, u32 _col, u32 _reward )
+    void Ray_CreditsManagerAIComponent::addBlock(u32 _index, u32 _type, Ray_BreakableStackManagerAIComponent* _breakManagerCompo, u32 _row, u32 _col, u32 _reward)
     {
-
         ITF_ASSERT(_breakManagerCompo);
 
         InfoHeadElement infohead;
@@ -483,7 +491,7 @@
         AnimationAtlas animAtlasBreak;
         animAtlasBreak.m_sequence.push_back(sequenceKey);
 
-        FragmentsList  fragments;
+        FragmentsList fragments;
         if (_type == 0 || _type == 1)
         {
             fragments.m_fragments.push_back(58);
@@ -512,7 +520,6 @@
 
 
         _breakManagerCompo->createCreditsBlocks(infohead, fxData, gridElement, _row, _col);
-
     }
 
     //*****************************************************************************
@@ -520,13 +527,12 @@
 
 #ifdef ITF_SUPPORT_EDITOR
 
-    void Ray_CreditsManagerAIComponent::drawEdit( ActorDrawEditInterface* _drawInterface, u32 _flags ) const
+    void Ray_CreditsManagerAIComponent::drawEdit(ActorDrawEditInterface* _drawInterface, u32 _flags) const
     {
         Super::drawEdit(_drawInterface, _flags);
 
         if (_flags != ActorComponent::DrawEditFlag_All)
             return;
-
     }
 
 #endif // ITF_SUPPORT_EDITOR
@@ -538,11 +544,11 @@
     IMPLEMENT_OBJECT_RTTI(Ray_CreditsManagerAIComponent_Template)
 
     BEGIN_SERIALIZATION(CreditsLine)
-        SERIALIZE_MEMBER("type",    m_type);
-        SERIALIZE_MEMBER("flag",    m_flag);
-        SERIALIZE_MEMBER("text",    m_text);
-        SERIALIZE_MEMBER("firstName",    m_firstName);
-        SERIALIZE_MEMBER("lastName",     m_lastName);
+        SERIALIZE_MEMBER("type", m_type);
+        SERIALIZE_MEMBER("flag", m_flag);
+        SERIALIZE_MEMBER("text", m_text);
+        SERIALIZE_MEMBER("firstName", m_firstName);
+        SERIALIZE_MEMBER("lastName", m_lastName);
     END_SERIALIZATION()
 
 
@@ -554,7 +560,7 @@
 
     //*****************************************************************************
 
-    Ray_CreditsManagerAIComponent_Template::Ray_CreditsManagerAIComponent_Template()   
+    Ray_CreditsManagerAIComponent_Template::Ray_CreditsManagerAIComponent_Template()
     {
         // none
     }
@@ -567,7 +573,4 @@
     }
 
     //*****************************************************************************
-
-
-
 }

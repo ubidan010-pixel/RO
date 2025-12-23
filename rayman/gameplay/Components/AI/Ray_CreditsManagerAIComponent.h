@@ -31,10 +31,10 @@ namespace ITF
         ~CreditsLine(){}
 
         u32     m_type;
-        u32     m_flag; 
-        String  m_text; 
-        String  m_firstName; 
-        String  m_lastName; 
+        u32     m_flag;
+        String  m_text;
+        String  m_firstName;
+        String  m_lastName;
 
     };
 
@@ -58,7 +58,7 @@ namespace ITF
         virtual bbool   needsDraw2D() const     { return bfalse; }
 
         virtual void    onBecomeActive();
-
+        virtual void    onBecomeInactive();
         virtual void    Update( f32 _deltaTime );
         virtual void    onActorLoaded(Pickable::HotReloadType /*_hotReload*/);
         virtual void    onEvent(Event * _event);
@@ -77,12 +77,12 @@ namespace ITF
         void newLine();
         void checkEndCredits();
         void onEndCredits();
-      
+
         void parseChar( String& _text, u32 _type, u32 _row, u32 _col, Ray_BreakableStackManagerAIComponent* _breakManagerCompo );
         void displayLogo( bbool _value );
 
     private:
-     
+		void            setInvinciblePlayers(bbool _invincibal);
         LinkComponent*     m_linkComponent;
 
         f32    m_time;
@@ -97,7 +97,7 @@ namespace ITF
         bbool    m_logoIsDisplay;
 		bbool	 m_endIsRequest;
 		bbool	 m_resetMapRequest;
-      
+
 
     };
 
@@ -120,7 +120,7 @@ namespace ITF
         ~Ray_CreditsManagerAIComponent_Template();
 
     private:
-    
+
         CreditsList m_creditsList;
         Path        m_gmatPath;
 

@@ -233,7 +233,7 @@ void InputAdapter_Nintendo::updateAllInputState()
 
     for (u32 padInd = 0; padInd < MAX_PAD_COUNT; padInd++)
     {
-        const InputPad_Nintendo* pad = getPad(padInd);
+        InputPad_Nintendo* pad = getPad(padInd);
 
         bbool wasConnected = isPadConnected(padInd);
         bool isConnected;
@@ -253,7 +253,8 @@ void InputAdapter_Nintendo::updateAllInputState()
         {
             if (isConnected)
             {
-                OnControllerConnected(padInd);
+                auto npad = static_cast<InputNpad_Nintendo*>(pad);
+                OnControllerConnected(padInd,npad->getDeviceId(),0,padType);
             }
             else
             {

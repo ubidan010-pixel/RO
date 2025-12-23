@@ -79,7 +79,7 @@ namespace ITF
         void setVibration(f32 _leftMotorSpeed, f32 _rightMotorSpeed, f64 _time) override;
 
         ESide getPadSide() { return m_currentSide; }
-
+        u32   getDeviceId() {return m_npadId;}
     protected:
 
         nn::hid::NpadIdType m_npadId{};

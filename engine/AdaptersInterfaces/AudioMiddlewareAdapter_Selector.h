@@ -19,13 +19,10 @@
 #endif
 
 #if defined(ITF_SUPPORT_WWISE)
-	#if defined(ITF_WINDOWS) || defined(ITF_PS5) || defined(ITF_XBOX_SERIES)
 		#define USE_PAD_HAPTICS
 		#if defined(ITF_DEBUG) || defined(ITF_RELEASE)
 			#define ITF_LOG_SOUND_EVENTS
 		#endif
-	#endif
-
 	#if defined(ITF_SUPPORT_RAKI)
 	#error "(macros.h) : Choose only one audio engine"
 	#endif
