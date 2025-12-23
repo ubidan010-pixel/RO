@@ -1944,25 +1944,33 @@ namespace ITF
 #endif 
         setImmuneTime( getTemplate()->getHurtImmunityDuration() );
 
-        if ( !m_isDead )
-        {
-            Ray_Player* pCurRayPlayer = static_cast<Ray_Player*>( RAY_GAMEMANAGER->getPlayer(m_playerIndex) );
-            if ( pCurRayPlayer->getActive() )
-            {
-                pCurRayPlayer->die();
-                // cheet
-                if ( !pCurRayPlayer->isDead() )
-                {
-                    if ( checkOutOfScreen( 0.0f ) )
-                    {
-                        RAY_GAMEMANAGER->resetToLastCheckpoint();
-                    }
-                    return;
-                }
-            }
-           
-            // Check other players life
-            bbool restartGame = RAY_GAMEMANAGER->getShooterGameModeController()->isAllPlayerDead();
+         if ( !m_isDead )
+         {
+             Ray_Player* pCurRayPlayer = static_cast<Ray_Player*>( RAY_GAMEMANAGER->getPlayer(m_playerIndex) );
+             if ( pCurRayPlayer->getActive() )
+             {
+                 pCurRayPlayer->die();
+                 if ( !pCurRayPlayer->isDead() )
+                 {
+                     if ( checkOutOfScreen( 0.0f ) )
+                     {
+                         if ( pCurRayPlayer->getInvincible() )
+                         {
+                             RAY_GAMEMANAGER->resetToLastCheckpoint();
+                             return;
+                         }
+
+                         pCurRayPlayer->setHitPoints( 0 );
+                     }
+                     else
+                     {
+                         return;
+                     }
+                 }
+             }
+            
+             // Check other players life
+             bbool restartGame = RAY_GAMEMANAGER->getShooterGameModeController()->isAllPlayerDead();
           
             // Restart
             if ( restartGame )
