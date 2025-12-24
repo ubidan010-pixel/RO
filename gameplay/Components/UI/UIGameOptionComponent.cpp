@@ -177,6 +177,7 @@ namespace ITF
 
         m_isInEditingMode = editing;
         applyLabelColor(getIsSelected());
+        updateSelectedBackgroundVisibility(getIsSelected());
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -353,6 +354,8 @@ namespace ITF
     ///////////////////////////////////////////////////////////////////////////////////////////
     void UIGameOptionComponent::updateSelectedBackgroundVisibility(bbool isSelected)
     {
+        const bbool shouldBeVisible = isSelected && m_isInEditingMode;
+
         if (!m_selectedBackgroundActor && !m_selectedBackgroundPath.isEmpty())
         {
             resolveSelectedBackgroundActor();
@@ -368,7 +371,7 @@ namespace ITF
             return;
         }
 
-        if (isSelected)
+        if (shouldBeVisible)
         {
             m_selectedBackgroundActor->enable();
             m_selectedBackgroundVisible = btrue;

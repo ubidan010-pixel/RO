@@ -86,10 +86,12 @@ namespace ITF
                 );
 
             finalScale *= getGameOptionEditScale();
+            finalScale = 1.0f;
 
             if (isSelected)
             {
                 f32 curScale = 1.0f + getTemplate()->getIdleSelectedScale() * f32_Sin(MTH_2PI * getTemplate()->getIdleSelectedPulseFrequency() * m_timer);
+                curScale = 1.0f;
                 m_actor->setScale(Vec2d::One * curScale * finalScale);
             }
             else
