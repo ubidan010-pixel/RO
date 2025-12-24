@@ -1725,7 +1725,7 @@ namespace ITF
         void            applyHealthModifierForAllPlayers();
         void            applyHealthModifierForPlayer(u32 _playerIndex);
         void            clearHealthModifierForAllPlayers();
-        void            applyHealthModifierForPlayerInternal(Ray_GameManager* _gameManager, u32 _playerIndex, EHealthModifier _modifier);
+        static void     applyHealthModifierForPlayerInternal(Ray_GameManager* _gameManager, u32 _playerIndex, EHealthModifier _modifier);
         //==========================================================================
         // Option Menu - Display Options
         //==========================================================================
