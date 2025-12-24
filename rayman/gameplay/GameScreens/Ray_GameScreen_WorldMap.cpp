@@ -48,6 +48,10 @@
 #include "gameplay/components/UI/UIMenu.h"
 #endif //_ITF_UIMENU_H_
 
+#ifndef _ITF_UIMENUMANAGER_H_
+#include "engine/actors/managers/UIMenuManager.h"
+#endif //_ITF_UIMENUMANAGER_H_
+
 #ifndef _ITF_UICOMPONENT_H_
 #include "gameplay/components/UI/UIComponent.h"
 #endif //_ITF_UICOMPONENT_H_
@@ -252,51 +256,54 @@ void Ray_GameScreen_WorldMap::update()
             contextIconControls = ContextIcon_Invalid;
 #endif //ITF_PS3
 
-            // show the proper context icons
-            if (inHomeMap)
+            if (!UIMenuManager::IsBaseMenuHelper())
             {
-                // home map: no icon
-                CONTEXTICONSMANAGER->hide();
-            }
-            else if ( m_showingControls )
-            {
-                // standing
-                CONTEXTICONSMANAGER->show(ContextIcon_Back, ContextIcon_Invalid);
-            }
-            else if (RAY_GAMEMANAGER->isPlayingWorldMapUnlockSequenceAndDisplayingUnlocks())
-            {
-                // unlock pop-up: continue only
-                CONTEXTICONSMANAGER->show(ContextIcon_Invalid, ContextIcon_Continue);
-            }
-            else if (onLevel)
-            {
-                if (isMoving)
+                // show the proper context icons
+                if (inHomeMap)
                 {
-                    // moving: no entering
-                    CONTEXTICONSMANAGER->show(ContextIcon_RayHome, ContextIcon_Invalid, ContextIcon_Back);
+                    // home map: no icon
+                    CONTEXTICONSMANAGER->hide();
                 }
-                else if (standSpot && (standSpot->getState()!=SPOT_STATE_CANNOT_ENTER) && !standSpot->isMid())
+                else if ( m_showingControls )
                 {
-                    // open stand spot: enter displayed
-                    CONTEXTICONSMANAGER->show(ContextIcon_RayHome, ContextIcon_Enter, ContextIcon_Back, contextIconControls);
+                    // standing
+                    CONTEXTICONSMANAGER->show(ContextIcon_Back, ContextIcon_Invalid);
                 }
-                else
+                else if (RAY_GAMEMANAGER->isPlayingWorldMapUnlockSequenceAndDisplayingUnlocks())
                 {
-                    // inaccessible stand spot: no enter (RO-16086)
-                    CONTEXTICONSMANAGER->show(ContextIcon_RayHome, ContextIcon_Invalid, ContextIcon_Back, contextIconControls);
+                    // unlock pop-up: continue only
+                    CONTEXTICONSMANAGER->show(ContextIcon_Invalid, ContextIcon_Continue);
                 }
-            }
-            else
-            {
-                if (isMoving)
+                else if (onLevel)
                 {
-                    // moving: no entering
-                    CONTEXTICONSMANAGER->show(ContextIcon_RayHome, ContextIcon_Invalid);
+                    if (isMoving)
+                    {
+                        // moving: no entering
+                        CONTEXTICONSMANAGER->show(ContextIcon_RayHome, ContextIcon_Invalid, ContextIcon_Back);
+                    }
+                    else if (standSpot && (standSpot->getState()!=SPOT_STATE_CANNOT_ENTER) && !standSpot->isMid())
+                    {
+                        // open stand spot: enter displayed
+                        CONTEXTICONSMANAGER->show(ContextIcon_RayHome, ContextIcon_Enter, ContextIcon_Back, contextIconControls);
+                    }
+                    else
+                    {
+                        // inaccessible stand spot: no enter (RO-16086)
+                        CONTEXTICONSMANAGER->show(ContextIcon_RayHome, ContextIcon_Invalid, ContextIcon_Back, contextIconControls);
+                    }
                 }
                 else
                 {
-                    // open spot: enter displayed
-                    CONTEXTICONSMANAGER->show(ContextIcon_RayHome, ContextIcon_Enter, ContextIcon_Invalid, contextIconControls);
+                    if (isMoving)
+                    {
+                        // moving: no entering
+                        CONTEXTICONSMANAGER->show(ContextIcon_RayHome, ContextIcon_Invalid);
+                    }
+                    else
+                    {
+                        // open spot: enter displayed
+                        CONTEXTICONSMANAGER->show(ContextIcon_RayHome, ContextIcon_Enter, ContextIcon_Invalid, contextIconControls);
+                    }
                 }
             }
 

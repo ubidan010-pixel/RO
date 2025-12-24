@@ -1222,6 +1222,8 @@ namespace ITF
     {
         if (getPlayerIndex() == U32_INVALID)
             return;
+        if (UIMenuManager::IsBaseMenuHelper())
+            return;
 
         if (m_state > State_ShowingPressStart
             && m_state != State_ShowingMainMenu_NewGame_PlayingVideo

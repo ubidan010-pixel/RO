@@ -2,6 +2,10 @@
 
 #include "engine/actors/managers/ContextIconsManager.h"
 
+#ifndef _ITF_UIMENUMANAGER_H_
+#include "engine/actors/managers/UIMenuManager.h"
+#endif //_ITF_UIMENUMANAGER_H_
+
 #ifndef _ITF_RAY_PLAYERSCORECOMPONENT_H_
 #include "rayman/gameplay/Components/score/Ray_PlayerScoreComponent.h"
 #endif //_ITF_RAY_PLAYERSCORECOMPONENT_H_
@@ -114,11 +118,13 @@ namespace ITF
     {
         if (_show)
         {
-            CONTEXTICONSMANAGER->show(ContextIcon_SpeedUp, ContextIcon_Invalid);
+            if (!UIMenuManager::IsBaseMenuHelper())
+                CONTEXTICONSMANAGER->show(ContextIcon_SpeedUp, ContextIcon_Invalid);
         }
         else
         {
-            CONTEXTICONSMANAGER->hide();
+            if (!UIMenuManager::IsBaseMenuHelper())
+                CONTEXTICONSMANAGER->hide();
         }
     }
 

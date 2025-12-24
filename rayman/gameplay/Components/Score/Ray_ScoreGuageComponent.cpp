@@ -32,6 +32,10 @@
 #include "engine/actors/managers/ContextIconsManager.h"
 #endif //_ITF_CONTEXTICONSMANAGER_H_
 
+#ifndef _ITF_UIMENUMANAGER_H_
+#include "engine/actors/managers/UIMenuManager.h"
+#endif //_ITF_UIMENUMANAGER_H_
+
 #ifndef _ITF_FXCONTROLLERCOMPONENT_H_
 #include "gameplay/components/Misc/FXControllerComponent.h"
 #endif //_ITF_FXCONTROLLERCOMPONENT_H_
@@ -199,7 +203,8 @@ namespace ITF
             m_listenerRegistered = bfalse;
             GAMEMANAGER->setInputModeForMenu(bfalse);
             GAMEMANAGER->removeInputListener(this);
-            CONTEXTICONSMANAGER->hide();
+			if (!UIMenuManager::IsBaseMenuHelper())
+				CONTEXTICONSMANAGER->hide();
         }
     }
 
@@ -594,7 +599,8 @@ namespace ITF
         {
             if (m_soundHandle != ITF::SoundHandle::getInvalidHandle())
             {
-				CONTEXTICONSMANAGER->show(ContextIcon_Retry, ContextIcon_Continue);
+				if (!UIMenuManager::IsBaseMenuHelper())
+					CONTEXTICONSMANAGER->show(ContextIcon_Retry, ContextIcon_Continue);
 
 				m_soundComponent->stopSound(m_soundHandle);
                 m_soundHandle = ITF::SoundHandle::getInvalidHandle();

@@ -333,9 +333,9 @@ bbool UIMenuManager::IsBaseMenuHelper()
     MenuItemActionListener* listener = UI_MENUMANAGER->getCurrentMenuActionListener();
     if (!listener)
     {
-        return btrue;
+        return bfalse;
     }
-    return !listener->isBaseMenuHelper();
+    return listener->isBaseMenuHelper();
 }
 
 void UIMenuManager::applySelectionChange(UIMenu* menu, UIComponent* oldSel, UIComponent* newSel)

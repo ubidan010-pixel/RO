@@ -28,6 +28,10 @@
 #include "engine/scene/sceneManager.h"
 #endif //_ITF_SCENE_MANAGER_H_
 
+#ifndef _ITF_UIMENUMANAGER_H_
+#include "engine/actors/managers/UIMenuManager.h"
+#endif //_ITF_UIMENUMANAGER_H_
+
 #ifndef _ITF_POLYLINE_H_
 #include "engine/physics/PolyLine.h"
 #endif //_ITF_POLYLINE_H_
@@ -790,7 +794,8 @@ void SequencePlayerComponent::initSkipSequence(EContextIcon _contextIcon)
         m_menuBackPressed = bfalse;
         GAMEMANAGER->setInputModeForMenu(btrue);
         GAMEMANAGER->addMenuInputListener(this);
-        CONTEXTICONSMANAGER->show(ContextIcon_Invalid, _contextIcon);
+        if (!UIMenuManager::IsBaseMenuHelper())
+            CONTEXTICONSMANAGER->show(ContextIcon_Invalid, _contextIcon);
     }
 }void SequencePlayerComponent::resetSkipSequence()
 {
@@ -803,7 +808,8 @@ void SequencePlayerComponent::initSkipSequence(EContextIcon _contextIcon)
         m_isSkipButtonHeld = bfalse;
         GAMEMANAGER->setInputModeForMenu(bfalse);
         GAMEMANAGER->removeInputListener(this);
-        CONTEXTICONSMANAGER->hide();
+        if (!UIMenuManager::IsBaseMenuHelper())
+            CONTEXTICONSMANAGER->hide();
     }
 }void SequencePlayerComponent::onEvent(Event * _evt)
 {

@@ -20,6 +20,10 @@
 #include "engine/actors/managers/ContextIconsManager.h"
 #endif //_ITF_CONTEXTICONSMANAGER_H_
 
+#ifndef _ITF_UIMENUMANAGER_H_
+#include "engine/actors/managers/UIMenuManager.h"
+#endif //_ITF_UIMENUMANAGER_H_
+
 #ifndef _ITF_UITEXTMANAGER_H_
 #include "engine/actors/managers/UITextManager.h"
 #endif //_ITF_UITEXTMANAGER_H_
@@ -155,7 +159,8 @@ void Ray_TimeAttackHUDResultsComponent::onBecomeInactive()
     {
         m_waitInput = bfalse;
         GAMEMANAGER->removeInputListener(this);
-        CONTEXTICONSMANAGER->hide();
+        if (!UIMenuManager::IsBaseMenuHelper())
+            CONTEXTICONSMANAGER->hide();
     }
 }
 
@@ -183,7 +188,8 @@ void Ray_TimeAttackHUDResultsComponent::updateFinish()
         if ( m_animatedComponent->isMainNodeFinished() )
         {
             GAMEMANAGER->addGamePlayInputListener(this);
-            CONTEXTICONSMANAGER->show(ContextIcon_Retry, ContextIcon_Continue);
+            if (!UIMenuManager::IsBaseMenuHelper())
+                CONTEXTICONSMANAGER->show(ContextIcon_Retry, ContextIcon_Continue);
             RAY_GAMEMANAGER->setCurrentLevelTimeAttackTime(m_myTime);
             m_waitInput = btrue;
         }
