@@ -157,6 +157,8 @@ namespace ITF
 #if defined(ITF_WINDOWS)
           , m_hasSnapshotPCControlMode(bfalse)
           , m_snapshotPCControlMode(0)
+          , m_hasSnapshotPCControlModeEdit(bfalse)
+          , m_snapshotPCControlModeEdit(0)
           , m_isEditingControllerType(bfalse)
           , m_editingControllerTypeComponent(nullptr)
           , m_controllerTypeChangeCooldown(0.0f)
@@ -204,6 +206,7 @@ namespace ITF
         m_editingControllerTypeComponent = nullptr;
         m_controllerTypeChangeCooldown = 0.0f;
         m_previousSelectionStates.clear();
+    m_hasSnapshotPCControlModeEdit = bfalse;
 #endif
         m_mainListener = mainListener;
         UI_MENUMANAGER->setMenuListener(m_menuBaseName, this);
@@ -370,6 +373,16 @@ namespace ITF
 #if defined(ITF_WINDOWS)
         if (m_isEditingControllerType && action == input_actionID_Back)
         {
+            if (m_hasSnapshotPCControlModeEdit && RAY_GAMEMANAGER)
+            {
+                RAY_GAMEMANAGER->setPCControlMode(m_snapshotPCControlModeEdit);
+
+                UIListOptionComponent* ctrlTypeComp = findControllerTypeComponent();
+                if (ctrlTypeComp)
+                {
+                    updateControllerTypeDisplay(ctrlTypeComp, m_snapshotPCControlModeEdit);
+                }
+            }
             exitControllerTypeEditMode();
             showContextIcons();
             return UI_MENUMANAGER->getMenuPageAction_Nothing();
@@ -791,6 +804,13 @@ namespace ITF
         if (!component || m_isEditingControllerType)
             return;
 
+        m_hasSnapshotPCControlModeEdit = bfalse;
+        if (RAY_GAMEMANAGER)
+        {
+            m_snapshotPCControlModeEdit = RAY_GAMEMANAGER->getPCControlMode();
+            m_hasSnapshotPCControlModeEdit = btrue;
+        }
+
         m_isEditingControllerType = btrue;
         m_editingControllerTypeComponent = component;
         m_controllerTypeChangeCooldown = 0.0f;
@@ -853,6 +873,7 @@ namespace ITF
         m_isEditingControllerType = bfalse;
         m_editingControllerTypeComponent = nullptr;
         m_controllerTypeChangeCooldown = 0.0f;
+        m_hasSnapshotPCControlModeEdit = bfalse;
         showContextIcons();
         LOG("[ControlsRemapping] Exited controller type edit mode\n");
     }
@@ -982,6 +1003,11 @@ namespace ITF
 
         if (action == input_actionID_Back)
         {
+            if (m_hasSnapshotPCControlModeEdit && RAY_GAMEMANAGER)
+            {
+                RAY_GAMEMANAGER->setPCControlMode(m_snapshotPCControlModeEdit);
+                updateControllerTypeDisplay(listComponent, m_snapshotPCControlModeEdit);
+            }
             exitControllerTypeEditMode();
             return btrue;
         }

@@ -99,6 +99,8 @@ namespace ITF
 #if defined(ITF_WINDOWS)
         bbool m_hasSnapshotPCControlMode;
         i32 m_snapshotPCControlMode;
+        bbool m_hasSnapshotPCControlModeEdit;
+        i32 m_snapshotPCControlModeEdit;
         bbool m_isEditingControllerType;
         UIListOptionComponent* m_editingControllerTypeComponent;
         f32 m_controllerTypeChangeCooldown;
