@@ -35,6 +35,7 @@ namespace ITF
 
         void activateForControlsRemappingMenu(MenuItemActionListener* mainListener);
         void onMenuItemAction(UIComponent* _UIComponent) override;
+        StringID onMenuPageAction(UIMenu* _menu, const StringID& _action, const StringID& _defaultAction) override;
         ObjectRef getNavigationOverrideTarget(UIComponent* current, f32 joyX, f32 joyY) override;
         
         static Ray_ControlsRemappingMenuHelper* getActiveHelper();
@@ -47,8 +48,9 @@ namespace ITF
 #endif
 
     private:
-        bbool handleAccept(const StringID& id);
-        bbool handleCancel(const StringID& id);
+        void showContextIcons() override;
+        void applyAndClose();
+        void cancelAndClose();
         bbool handleIconAction(const StringID& id, UIComponent* component);
         bbool handleResetToDefault(const StringID& id);
         bbool parseResetButtonId(const StringID& id, u32& outPlayerIndex);

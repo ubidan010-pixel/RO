@@ -1,5 +1,7 @@
 #include "precompiled_gameplay_rayman.h"
 
+#include "engine/actors/managers/ContextIconsManager.h"
+
 #ifndef _ITF_RAY_CONTROLSREMAPPINGMENUHELPER_H_
 #include "rayman/gameplay/Managers/GameOptions/Ray_ControlsRemappingMenuHelper.h"
 #endif
@@ -210,6 +212,79 @@ namespace ITF
         }
 #endif
 
+        showContextIcons();
+
+    }
+
+    void Ray_ControlsRemappingMenuHelper::showContextIcons()
+    {
+        if (!m_isActive || !CONTEXTICONSMANAGER)
+            return;
+
+        CONTEXTICONSMANAGER->show(ContextIcon_Confirm, ContextIcon_Cancel);
+    }
+
+    StringID Ray_ControlsRemappingMenuHelper::onMenuPageAction(UIMenu* menu, const StringID& action, const StringID& defaultAction)
+    {
+        if (!UI_MENUMANAGER)
+            return defaultAction;
+        if (m_isRemappingMode || m_isWaitingForRelease)
+        {
+            if (action == input_actionID_Back)
+            {
+                cancelRemappingMode(btrue);
+                m_isWaitingForRelease = bfalse;
+                m_postRemapCooldown = 0.0f;
+                if (GAMEMANAGER && GAMEMANAGER->getInputManager())
+                {
+                    GAMEMANAGER->getInputManager()->SetSuppressReceive(bfalse);
+                }
+                showContextIcons();
+                return UI_MENUMANAGER->getMenuPageAction_Nothing();
+            }
+
+            if (action == input_actionID_DeleteSave)
+            {
+                return UI_MENUMANAGER->getMenuPageAction_Nothing();
+            }
+        }
+
+#if defined(ITF_WINDOWS)
+        if (m_isEditingControllerType && action == input_actionID_Back)
+        {
+            exitControllerTypeEditMode();
+            showContextIcons();
+            return UI_MENUMANAGER->getMenuPageAction_Nothing();
+        }
+#endif
+
+        if (action == input_actionID_DeleteSave)
+        {
+            applyAndClose();
+            return UI_MENUMANAGER->getMenuPageAction_Nothing();
+        }
+
+        if (action == input_actionID_Back)
+        {
+            cancelAndClose();
+            return UI_MENUMANAGER->getMenuPageAction_Nothing();
+        }
+
+        return Ray_BaseMenuHelper::onMenuPageAction(menu, action, defaultAction);
+    }
+
+    void Ray_ControlsRemappingMenuHelper::applyAndClose()
+    {
+        if (RAY_GAMEMANAGER)
+        {
+            RAY_GAMEMANAGER->saveGameOptions();
+        }
+        closeAndReturn();
+    }
+
+    void Ray_ControlsRemappingMenuHelper::cancelAndClose()
+    {
+        closeAndReturn();
     }
 
     void Ray_ControlsRemappingMenuHelper::onMenuItemAction(UIComponent* component)
@@ -222,8 +297,6 @@ namespace ITF
             actorId = StringID(actor->getUserFriendly().cStr());
         }
         const StringID componentId = component->getID();
-        if (handleAccept(componentId) || handleCancel(componentId))
-            return;
         if (actorId.isValid() && handleResetToDefault(actorId))
             return;
 #if defined(ITF_WINDOWS)
@@ -232,28 +305,6 @@ namespace ITF
 #endif
         if (actorId.isValid() && handleIconAction(actorId, component))
             return;
-    }
-
-    bbool Ray_ControlsRemappingMenuHelper::handleAccept(const StringID& id)
-    {
-        if (id != CONTROLSREMAPPING_ACCEPT_BUTTON)
-            return bfalse;
-
-        if (RAY_GAMEMANAGER)
-        {
-            RAY_GAMEMANAGER->saveGameOptions();
-        }
-
-        closeAndReturn();
-        return btrue;
-    }
-
-    bbool Ray_ControlsRemappingMenuHelper::handleCancel(const StringID& id)
-    {
-        if (id != CONTROLSREMAPPING_CANCEL_BUTTON)
-            return bfalse;
-        closeAndReturn();
-        return btrue;
     }
 
     bbool Ray_ControlsRemappingMenuHelper::parseResetButtonId(const StringID& id, u32& outPlayerIndex)
