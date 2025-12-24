@@ -151,6 +151,8 @@ namespace ITF
           , m_remappingCooldown(0.0f)
           , m_postRemapCooldown(0.0f)
           , m_remappingSource(InputSource_Gamepad)
+          , m_hasCommittedChanges(bfalse)
+          , m_hasSnapshot(bfalse)
 #if defined(ITF_WINDOWS)
           , m_isEditingControllerType(bfalse)
           , m_editingControllerTypeComponent(nullptr)
@@ -158,6 +160,12 @@ namespace ITF
 #endif
     {
         m_menuBaseName = "controlremapping";
+
+        for (u32 i = 0; i < 4; ++i)
+        {
+            m_hasSnapshotGamepad[i] = bfalse;
+            m_hasSnapshotKeyboard[i] = bfalse;
+        }
     }
 
     Ray_ControlsRemappingMenuHelper::~Ray_ControlsRemappingMenuHelper()
@@ -200,6 +208,9 @@ namespace ITF
 
         s_activeHelper = this;
 
+        m_hasCommittedChanges = bfalse;
+        captureRemappingSnapshot();
+
 #if defined(ITF_WINDOWS)
         if (RAY_GAMEMANAGER)
         {
@@ -216,12 +227,90 @@ namespace ITF
 
     }
 
+    void Ray_ControlsRemappingMenuHelper::captureRemappingSnapshot()
+    {
+        m_hasSnapshot = bfalse;
+        for (u32 i = 0; i < 4; ++i)
+        {
+            m_hasSnapshotGamepad[i] = bfalse;
+            m_hasSnapshotKeyboard[i] = bfalse;
+            m_snapshotGamepad[i].clear();
+            m_snapshotKeyboard[i].clear();
+        }
+
+        if (!GAMEMANAGER || !GAMEMANAGER->getInputManager())
+            return;
+
+        ZInputManager* input = GAMEMANAGER->getInputManager();
+        for (u32 playerIndex = 0; playerIndex < 4; ++playerIndex)
+        {
+            ITF_VECTOR<u32> mapping;
+            if (input->GetRemapping(playerIndex, InputSource_Gamepad, mapping))
+            {
+                m_snapshotGamepad[playerIndex] = mapping;
+                m_hasSnapshotGamepad[playerIndex] = btrue;
+                m_hasSnapshot = btrue;
+            }
+
+#if defined(ITF_WINDOWS)
+            mapping.clear();
+            if (input->GetRemapping(playerIndex, InputSource_Keyboard, mapping))
+            {
+                m_snapshotKeyboard[playerIndex] = mapping;
+                m_hasSnapshotKeyboard[playerIndex] = btrue;
+                m_hasSnapshot = btrue;
+            }
+#endif
+        }
+    }
+
+    void Ray_ControlsRemappingMenuHelper::restoreRemappingSnapshot()
+    {
+        if (!m_hasSnapshot)
+            return;
+        if (!GAMEMANAGER || !GAMEMANAGER->getInputManager())
+            return;
+        cancelRemappingMode(btrue);
+        m_isWaitingForRelease = bfalse;
+        m_postRemapCooldown = 0.0f;
+
+        ZInputManager* input = GAMEMANAGER->getInputManager();
+        input->SetSuppressReceive(bfalse);
+
+        for (u32 playerIndex = 0; playerIndex < 4; ++playerIndex)
+        {
+            if (m_hasSnapshotGamepad[playerIndex])
+            {
+                input->ApplyRemapping(playerIndex, InputSource_Gamepad, m_snapshotGamepad[playerIndex]);
+            }
+
+#if defined(ITF_WINDOWS)
+            if (m_hasSnapshotKeyboard[playerIndex])
+            {
+                input->ApplyRemapping(playerIndex, InputSource_Keyboard, m_snapshotKeyboard[playerIndex]);
+            }
+#endif
+        }
+    }
+
     void Ray_ControlsRemappingMenuHelper::showContextIcons()
     {
         if (!m_isActive || !CONTEXTICONSMANAGER)
             return;
+        if (m_isRemappingMode)
+        {
+            CONTEXTICONSMANAGER->hide();
+            return;
+        }
 
-        CONTEXTICONSMANAGER->show(ContextIcon_Confirm, ContextIcon_Cancel);
+#if defined(ITF_WINDOWS)
+        if (m_isEditingControllerType)
+        {
+            CONTEXTICONSMANAGER->show(ContextIcon_EditConfirm, ContextIcon_EditBack);
+            return;
+        }
+#endif
+        CONTEXTICONSMANAGER->show(ContextIcon_Confirm, ContextIcon_Cancel, ContextIcon_EditConfirm);
     }
 
     StringID Ray_ControlsRemappingMenuHelper::onMenuPageAction(UIMenu* menu, const StringID& action, const StringID& defaultAction)
@@ -275,6 +364,7 @@ namespace ITF
 
     void Ray_ControlsRemappingMenuHelper::applyAndClose()
     {
+        m_hasCommittedChanges = btrue;
         if (RAY_GAMEMANAGER)
         {
             RAY_GAMEMANAGER->saveGameOptions();
@@ -284,6 +374,7 @@ namespace ITF
 
     void Ray_ControlsRemappingMenuHelper::cancelAndClose()
     {
+        restoreRemappingSnapshot();
         closeAndReturn();
     }
 
@@ -410,6 +501,8 @@ namespace ITF
             GAMEMANAGER->getInputManager()->SetSuppressReceive(btrue);
         }
 
+        showContextIcons();
+
         LOG("[ControlsRemapping] Starting remap mode for Player %d, Action %d\n", playerIndex + 1, action);
     }
 
@@ -503,6 +596,7 @@ namespace ITF
             m_remappingPlayerIndex + 1, m_remappingAction, physicalControl, appliedSource);
 
         cancelRemappingMode(btrue);
+		showContextIcons();
     }
 
     void Ray_ControlsRemappingMenuHelper::updateRemappingMode(f32 deltaTime)
@@ -567,6 +661,12 @@ namespace ITF
         exitControllerTypeEditMode();
         m_previousSelectionStates.clear();
 #endif
+
+        if (!m_hasCommittedChanges)
+        {
+            restoreRemappingSnapshot();
+        }
+
         if (GAMEMANAGER && GAMEMANAGER->getInputManager())
         {
             GAMEMANAGER->getInputManager()->SetSuppressReceive(bfalse);
@@ -696,6 +796,7 @@ namespace ITF
         }
 
         component->setEditingMode(btrue);
+        showContextIcons();
         LOG("[ControlsRemapping] Entered controller type edit mode\n");
     }
 
@@ -722,6 +823,7 @@ namespace ITF
         m_isEditingControllerType = bfalse;
         m_editingControllerTypeComponent = nullptr;
         m_controllerTypeChangeCooldown = 0.0f;
+        showContextIcons();
         LOG("[ControlsRemapping] Exited controller type edit mode\n");
     }
 

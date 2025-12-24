@@ -51,6 +51,8 @@ namespace ITF
         void showContextIcons() override;
         void applyAndClose();
         void cancelAndClose();
+        void captureRemappingSnapshot();
+        void restoreRemappingSnapshot();
         bbool handleIconAction(const StringID& id, UIComponent* component);
         bbool handleResetToDefault(const StringID& id);
         bbool parseResetButtonId(const StringID& id, u32& outPlayerIndex);
@@ -85,6 +87,13 @@ namespace ITF
         f32 m_remappingCooldown;
         f32 m_postRemapCooldown;
         EInputSourceType m_remappingSource;
+
+        bbool m_hasCommittedChanges;
+        bbool m_hasSnapshot;
+        bbool m_hasSnapshotGamepad[4];
+        bbool m_hasSnapshotKeyboard[4];
+        ITF_VECTOR<u32> m_snapshotGamepad[4];
+        ITF_VECTOR<u32> m_snapshotKeyboard[4];
 
 #if defined(ITF_WINDOWS)
         bbool m_isEditingControllerType;
