@@ -152,8 +152,11 @@ namespace ITF
           , m_postRemapCooldown(0.0f)
           , m_remappingSource(InputSource_Gamepad)
           , m_hasCommittedChanges(bfalse)
+          , m_hasRestoredOnCancel(bfalse)
           , m_hasSnapshot(bfalse)
 #if defined(ITF_WINDOWS)
+          , m_hasSnapshotPCControlMode(bfalse)
+          , m_snapshotPCControlMode(0)
           , m_isEditingControllerType(bfalse)
           , m_editingControllerTypeComponent(nullptr)
           , m_controllerTypeChangeCooldown(0.0f)
@@ -209,6 +212,7 @@ namespace ITF
         s_activeHelper = this;
 
         m_hasCommittedChanges = bfalse;
+        m_hasRestoredOnCancel = bfalse;
         captureRemappingSnapshot();
 
 #if defined(ITF_WINDOWS)
@@ -230,6 +234,17 @@ namespace ITF
     void Ray_ControlsRemappingMenuHelper::captureRemappingSnapshot()
     {
         m_hasSnapshot = bfalse;
+
+#if defined(ITF_WINDOWS)
+        m_hasSnapshotPCControlMode = bfalse;
+        if (RAY_GAMEMANAGER)
+        {
+            m_snapshotPCControlMode = RAY_GAMEMANAGER->getPCControlMode();
+            m_hasSnapshotPCControlMode = btrue;
+            m_hasSnapshot = btrue;
+        }
+#endif
+
         for (u32 i = 0; i < 4; ++i)
         {
             m_hasSnapshotGamepad[i] = bfalse;
@@ -268,6 +283,20 @@ namespace ITF
     {
         if (!m_hasSnapshot)
             return;
+
+#if defined(ITF_WINDOWS)
+        if (m_hasSnapshotPCControlMode && RAY_GAMEMANAGER)
+        {
+            RAY_GAMEMANAGER->setPCControlMode(m_snapshotPCControlMode);
+
+            UIListOptionComponent* ctrlTypeComp = findControllerTypeComponent();
+            if (ctrlTypeComp)
+            {
+                updateControllerTypeDisplay(ctrlTypeComp, m_snapshotPCControlMode);
+            }
+        }
+#endif
+
         if (!GAMEMANAGER || !GAMEMANAGER->getInputManager())
             return;
         cancelRemappingMode(btrue);
@@ -375,6 +404,7 @@ namespace ITF
     void Ray_ControlsRemappingMenuHelper::cancelAndClose()
     {
         restoreRemappingSnapshot();
+        m_hasRestoredOnCancel = btrue;
         closeAndReturn();
     }
 
@@ -662,7 +692,7 @@ namespace ITF
         m_previousSelectionStates.clear();
 #endif
 
-        if (!m_hasCommittedChanges)
+        if (!m_hasCommittedChanges && !m_hasRestoredOnCancel)
         {
             restoreRemappingSnapshot();
         }

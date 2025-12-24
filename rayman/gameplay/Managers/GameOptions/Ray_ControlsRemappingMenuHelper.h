@@ -89,6 +89,7 @@ namespace ITF
         EInputSourceType m_remappingSource;
 
         bbool m_hasCommittedChanges;
+        bbool m_hasRestoredOnCancel;
         bbool m_hasSnapshot;
         bbool m_hasSnapshotGamepad[4];
         bbool m_hasSnapshotKeyboard[4];
@@ -96,6 +97,8 @@ namespace ITF
         ITF_VECTOR<u32> m_snapshotKeyboard[4];
 
 #if defined(ITF_WINDOWS)
+        bbool m_hasSnapshotPCControlMode;
+        i32 m_snapshotPCControlMode;
         bbool m_isEditingControllerType;
         UIListOptionComponent* m_editingControllerTypeComponent;
         f32 m_controllerTypeChangeCooldown;
