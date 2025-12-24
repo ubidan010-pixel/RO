@@ -46,8 +46,8 @@ namespace ITF
             { m_joyButton_X,          ZPad_Base::BUTTON_FACE_WEST,  'S' },
             { m_joyButton_Y,          ZPad_Base::BUTTON_FACE_NORTH, -1 },
 
-            { m_joyButton_LB,         ZPad_Base::BUTTON_L_SHOULDER, -1 },
-            { m_joyButton_RB,         ZPad_Base::BUTTON_R_SHOULDER, KEY_LSHIFT },
+            { m_joyButton_LB,         ZPad_Base::BUTTON_L_SHOULDER, 'Q' },
+            { m_joyButton_RB,         ZPad_Base::BUTTON_R_SHOULDER, 'E' },
 
             { m_joyButton_ThumbLeft,  ZPad_Base::BUTTON_L_THUMB,    -1 },
             { m_joyButton_ThumbRight, ZPad_Base::BUTTON_R_THUMB,    -1 },
