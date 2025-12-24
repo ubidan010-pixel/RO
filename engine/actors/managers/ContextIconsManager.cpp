@@ -322,6 +322,10 @@ const EPhysicalButtonAction ContextIconsManager::s_iconToActionMap[ContextIcon_C
     PhysicalButtonAction_Upload, // Upload (RT)
     //ContextIcon_Download
     PhysicalButtonAction_Download, // Download (LT)
+    // ContextIcon_Confirm
+    PhysicalButtonAction_Delete,
+    // ContextIcon_Cancel
+    PhysicalButtonAction_Back,
 };
 
 //------------------------------------------------------------------------------
@@ -351,6 +355,10 @@ const EContextIconType ContextIconsManager::s_iconsTypes[ContextIcon_Count] =
     ContextIconType_Upload,
     // ContextIcon_Download
     ContextIconType_Download,
+    // ContextIcon_Confirm
+    ContextIconType_Confirm,
+    // ContextIcon_Cancel
+    ContextIconType_Cancel,
 };
 
 //------------------------------------------------------------------------------

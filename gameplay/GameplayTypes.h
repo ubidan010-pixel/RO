@@ -29,6 +29,8 @@ namespace ITF
         ContextIconType_RayHome = 3,
         ContextIconType_Upload = 4,
         ContextIconType_Download = 5,
+        ContextIconType_Confirm = 6,
+        ContextIconType_Cancel = 7,
         ContextIconType_Count,
     };
 
@@ -47,6 +49,8 @@ namespace ITF
         ContextIcon_SpeedUp,
         ContextIcon_Upload,
         ContextIcon_Download,
+        ContextIcon_Confirm,
+        ContextIcon_Cancel,
         ContextIcon_Count,
     };
 
