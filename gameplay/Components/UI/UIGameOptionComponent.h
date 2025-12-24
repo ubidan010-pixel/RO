@@ -50,16 +50,21 @@ namespace ITF
         Actor*                  m_backgroundActor;
         Vec2d                   m_backgroundOriginalScale;
         bbool                   m_backgroundScaleInitialized;
+        Actor*                  m_selectedBackgroundActor;
+        bbool                   m_selectedBackgroundVisible;
 
     private:
         virtual void                    clear();
         Actor*                  resolveActorFromPath(const String8& path) const;
         void                    resolveLabelActor();
         void                    resolveBackgroundActor();
+        void                    resolveSelectedBackgroundActor();
         void                    updateBackgroundSelection(bbool isSelected);
+        void                    updateSelectedBackgroundVisibility(bbool isSelected);
 
         String8                 m_labelPath;
         String8                 m_backgroundPath;
+        String8                 m_selectedBackgroundPath;
         bbool                   m_labelColorsApplied;
         bbool                   m_selectionInitialized;
         bbool                   m_wasSelected;

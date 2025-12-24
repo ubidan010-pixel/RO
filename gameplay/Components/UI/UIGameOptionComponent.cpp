@@ -28,6 +28,7 @@ namespace ITF
         BEGIN_CONDITION_BLOCK(ESerializeGroup_DataEditable)
             SERIALIZE_MEMBER("labelPath", m_labelPath);
             SERIALIZE_MEMBER("backgroundPath", m_backgroundPath);
+            SERIALIZE_MEMBER("selectedBackgroundPath", m_selectedBackgroundPath);
         END_CONDITION_BLOCK()
     END_SERIALIZATION()
 
@@ -60,6 +61,8 @@ namespace ITF
     , m_backgroundActor(NULL)
     , m_backgroundOriginalScale(Vec2d::One)
     , m_backgroundScaleInitialized(bfalse)
+    , m_selectedBackgroundActor(NULL)
+    , m_selectedBackgroundVisible(bfalse)
     , m_labelColorsApplied(bfalse)
     , m_selectionInitialized(bfalse)
     , m_wasSelected(bfalse)
@@ -82,10 +85,17 @@ namespace ITF
             updateBackgroundSelection(bfalse);
         }
 
+        if (m_selectedBackgroundActor && m_selectedBackgroundVisible)
+        {
+            m_selectedBackgroundActor->disable();
+        }
+
         m_labelActor = NULL;
         m_backgroundActor = NULL;
         m_backgroundOriginalScale = Vec2d::One;
         m_backgroundScaleInitialized = bfalse;
+        m_selectedBackgroundActor = NULL;
+        m_selectedBackgroundVisible = bfalse;
         m_labelColorsApplied = bfalse;
         m_selectionInitialized = bfalse;
         m_wasSelected = bfalse;
@@ -233,11 +243,19 @@ namespace ITF
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
+    void UIGameOptionComponent::resolveSelectedBackgroundActor()
+    {
+        m_selectedBackgroundActor = resolveActorFromPath(m_selectedBackgroundPath);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
     void UIGameOptionComponent::onActorLoaded(Pickable::HotReloadType _hotReload)
     {
         Super::onActorLoaded(_hotReload);
         resolveLabelActor();
         resolveBackgroundActor();
+        resolveSelectedBackgroundActor();
+        updateSelectedBackgroundVisibility(getIsSelected());
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -269,6 +287,7 @@ namespace ITF
     void UIGameOptionComponent::handleSelectionChanged(bbool isSelected)
     {
         updateBackgroundSelection(isSelected);
+        updateSelectedBackgroundVisibility(isSelected);
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -328,6 +347,36 @@ namespace ITF
         else
         {
             m_backgroundActor->setScale(m_backgroundOriginalScale);
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    void UIGameOptionComponent::updateSelectedBackgroundVisibility(bbool isSelected)
+    {
+        if (!m_selectedBackgroundActor && !m_selectedBackgroundPath.isEmpty())
+        {
+            resolveSelectedBackgroundActor();
+        }
+
+        if (!m_selectedBackgroundActor || m_selectedBackgroundPath.isEmpty())
+        {
+            return;
+        }
+
+        if (m_selectedBackgroundActor->getUserFriendly() != m_selectedBackgroundPath)
+        {
+            return;
+        }
+
+        if (isSelected)
+        {
+            m_selectedBackgroundActor->enable();
+            m_selectedBackgroundVisible = btrue;
+        }
+        else
+        {
+            m_selectedBackgroundActor->disable();
+            m_selectedBackgroundVisible = bfalse;
         }
     }
 
