@@ -69,6 +69,10 @@ namespace ITF
         void showContextIcons() override;
 
     private:
+        void updateContextIconsForState();
+        void captureEditSnapshot(UIComponent* component, const StringID& optionId);
+        void restoreEditSnapshot();
+
         bbool handleResetToDefault(const StringID& id);
         bbool handleAccept(const StringID& id);
         bbool handleCancel(const StringID& id);
@@ -124,6 +128,14 @@ namespace ITF
         void unregisterEventListeners();
         void updateVibrationOptionAvailability();
 
+        enum EEditSnapshotType
+        {
+            EditSnapshot_None,
+            EditSnapshot_ListIndex,
+            EditSnapshot_Float,
+            EditSnapshot_Bool,
+        };
+
         EMenuState m_menuState;
         StringID   m_currentEditingOption;
         UIComponent* m_currentEditingComponent;
@@ -149,6 +161,13 @@ namespace ITF
         bbool m_acceptActionPressed;
         bbool m_cancelActionPressed;
         bbool m_eventListenerRegistered;
+
+        bbool m_hasEditSnapshot;
+        EEditSnapshotType m_editSnapshotType;
+        StringID m_editSnapshotOption;
+        i32 m_editSnapshotListIndex;
+        f32 m_editSnapshotFloatValue;
+        bbool m_editSnapshotBoolValue;
         
 
         static Ray_OptionMenuHelper* s_activeHelper;

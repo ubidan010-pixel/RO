@@ -309,6 +309,10 @@ const EPhysicalButtonAction ContextIconsManager::s_iconToActionMap[ContextIcon_C
     PhysicalButtonAction_Delete,
     // ContextIcon_Cancel
     PhysicalButtonAction_Back,
+    // ContextIcon_EditConfirm
+    PhysicalButtonAction_Confirm,
+    // ContextIcon_EditBack
+    PhysicalButtonAction_Back,
 };
 
 //------------------------------------------------------------------------------
@@ -341,6 +345,10 @@ const EContextIconType ContextIconsManager::s_iconsTypes[ContextIcon_Count] =
     // ContextIcon_Confirm
     ContextIconType_Delete,
     // ContextIcon_Cancel
+    ContextIconType_Back,
+    // ContextIcon_EditConfirm
+    ContextIconType_Select,
+    // ContextIcon_EditBack
     ContextIconType_Back,
 };
 

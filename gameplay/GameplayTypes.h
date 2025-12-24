@@ -49,6 +49,8 @@ namespace ITF
         ContextIcon_Download,
         ContextIcon_Confirm,
         ContextIcon_Cancel,
+        ContextIcon_EditConfirm,
+        ContextIcon_EditBack,
         ContextIcon_Count,
     };
 

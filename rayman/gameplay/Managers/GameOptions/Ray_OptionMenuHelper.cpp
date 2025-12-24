@@ -159,6 +159,12 @@ namespace ITF
           , m_acceptActionPressed(bfalse)
           , m_cancelActionPressed(bfalse)
           , m_eventListenerRegistered(bfalse)
+          , m_hasEditSnapshot(bfalse)
+          , m_editSnapshotType(EditSnapshot_None)
+          , m_editSnapshotOption(StringID::Invalid)
+          , m_editSnapshotListIndex(-1)
+          , m_editSnapshotFloatValue(0.0f)
+          , m_editSnapshotBoolValue(bfalse)
     {
         m_menuBaseName = OPTION_MENU_NAME;
     }
@@ -304,9 +310,170 @@ namespace ITF
 
     void Ray_OptionMenuHelper::showContextIcons()
     {
-        if (CONTEXTICONSMANAGER)
+        updateContextIconsForState();
+    }
+
+    void Ray_OptionMenuHelper::updateContextIconsForState()
+    {
+        if (!m_isActive || !CONTEXTICONSMANAGER)
+            return;
+
+        if (isEditing())
         {
-            CONTEXTICONSMANAGER->show(ContextIcon_Confirm, ContextIcon_Cancel);
+            CONTEXTICONSMANAGER->show(ContextIcon_EditConfirm, ContextIcon_EditBack);
+        }
+        else
+        {
+            CONTEXTICONSMANAGER->show(ContextIcon_Confirm, ContextIcon_Cancel, ContextIcon_Select);
+        }
+    }
+
+    void Ray_OptionMenuHelper::captureEditSnapshot(UIComponent* component, const StringID& optionId)
+    {
+        m_hasEditSnapshot = bfalse;
+        m_editSnapshotType = EditSnapshot_None;
+        m_editSnapshotOption = StringID::Invalid;
+        m_editSnapshotListIndex = -1;
+        m_editSnapshotFloatValue = 0.0f;
+        m_editSnapshotBoolValue = bfalse;
+
+        if (!component || !optionId.isValid() || !RAY_GAMEMANAGER)
+            return;
+
+        m_editSnapshotOption = optionId;
+
+        if (component->DynamicCast<UIListOptionComponent>(ITF_GET_STRINGID_CRC(UIListOptionComponent, 3621365669)))
+        {
+            m_editSnapshotType = EditSnapshot_ListIndex;
+            if (optionId == OPTION_RESOLUTION)
+                m_editSnapshotListIndex = RAY_GAMEMANAGER->getResolutionIndex();
+            else if (optionId == OPTION_LANGUAGE)
+                m_editSnapshotListIndex = RAY_GAMEMANAGER->getLanguageIndex();
+            else if (optionId == OPTION_START_WITH_HEART)
+                m_editSnapshotListIndex = RAY_GAMEMANAGER->getStartWithHeartIndex();
+            else if (optionId == OPTION_RUN_BUTTON)
+                m_editSnapshotListIndex = RAY_GAMEMANAGER->getRunButtonMode();
+            else if (optionId == OPTION_VIBRATIONS)
+                m_editSnapshotListIndex = RAY_GAMEMANAGER->getVibrationMode();
+            else
+                m_editSnapshotListIndex = RAY_GAMEMANAGER->getGameOptionManager().getListOptionIndex(optionId, -1);
+
+            m_hasEditSnapshot = (m_editSnapshotListIndex >= 0);
+            return;
+        }
+
+        if (component->DynamicCast<UIFloatOptionComponent>(ITF_GET_STRINGID_CRC(UIFloatOptionComponent, 226609316)))
+        {
+            m_editSnapshotType = EditSnapshot_Float;
+            if (optionId == OPTION_MASTER_VOLUME)
+                m_editSnapshotFloatValue = RAY_GAMEMANAGER->getMasterVolume();
+            else if (optionId == OPTION_MUSIC_VOLUME)
+                m_editSnapshotFloatValue = RAY_GAMEMANAGER->getMusicVolume();
+            else if (optionId == OPTION_SFX_VOLUME)
+                m_editSnapshotFloatValue = RAY_GAMEMANAGER->getSFXVolume();
+            else if (optionId == OPTION_INTENSITY)
+                m_editSnapshotFloatValue = RAY_GAMEMANAGER->getIntensity();
+            else
+                m_editSnapshotFloatValue = RAY_GAMEMANAGER->getGameOptionManager().getFloatOption(optionId, -1.0f);
+
+            m_hasEditSnapshot = btrue;
+            return;
+        }
+
+        if (component->DynamicCast<UIToggleOptionComponent>(ITF_GET_STRINGID_CRC(UIToggleOptionComponent, 3689192266)))
+        {
+            m_editSnapshotType = EditSnapshot_Bool;
+            if (optionId == OPTION_WINDOWED)
+                m_editSnapshotBoolValue = RAY_GAMEMANAGER->isWindowed();
+            else if (optionId == OPTION_MURFY_ASSIST)
+                m_editSnapshotBoolValue = RAY_GAMEMANAGER->isMurfyAssistEnabled();
+            else
+                m_editSnapshotBoolValue = RAY_GAMEMANAGER->getGameOptionManager().getBoolOption(optionId, bfalse);
+
+            m_hasEditSnapshot = btrue;
+            return;
+        }
+    }
+
+    void Ray_OptionMenuHelper::restoreEditSnapshot()
+    {
+        if (!m_hasEditSnapshot || !m_editSnapshotOption.isValid() || !RAY_GAMEMANAGER)
+            return;
+
+        const StringID optionId = m_editSnapshotOption;
+
+        if (m_editSnapshotType == EditSnapshot_ListIndex)
+        {
+            const i32 idx = m_editSnapshotListIndex;
+            if (idx < 0)
+                return;
+
+            if (optionId == OPTION_RESOLUTION)
+                RAY_GAMEMANAGER->setResolutionIndex(idx);
+            else if (optionId == OPTION_LANGUAGE)
+            {
+                if (RAY_GAMEMANAGER->getCurrentGameScreen() != Ray_GameScreen_MainMenu::GetClassCRCStatic())
+                {
+                    RAY_GAMEMANAGER->setPendingLanguageIndex(idx);
+                    m_showLanguageWarning = bfalse;
+                }
+                else
+                {
+                    RAY_GAMEMANAGER->setLanguageIndex(idx);
+                }
+            }
+            else if (optionId == OPTION_START_WITH_HEART)
+            {
+                RAY_GAMEMANAGER->setStartWithHeartIndex(idx);
+                if (RAY_GAMEMANAGER->areAllActivePlayersInGameMode(RAY_GAMEMODE_WORLDMAP))
+                {
+                    RAY_GAMEMANAGER->applyHealthModifierForAllPlayers();
+                }
+            }
+            else if (optionId == OPTION_RUN_BUTTON)
+                RAY_GAMEMANAGER->setRunButtonMode(idx);
+            else if (optionId == OPTION_VIBRATIONS)
+                RAY_GAMEMANAGER->setVibrationMode(idx);
+            else
+                RAY_GAMEMANAGER->getGameOptionManager().setListOptionIndex(optionId, idx);
+
+            if (UIListOptionComponent* listComp = findListOptionComponent(optionId))
+                updateListOptionDisplay(listComp, optionId, idx);
+            return;
+        }
+
+        if (m_editSnapshotType == EditSnapshot_Float)
+        {
+            const f32 val = m_editSnapshotFloatValue;
+            if (optionId == OPTION_MASTER_VOLUME)
+                RAY_GAMEMANAGER->setMasterVolume(val);
+            else if (optionId == OPTION_MUSIC_VOLUME)
+                RAY_GAMEMANAGER->setMusicVolume(val);
+            else if (optionId == OPTION_SFX_VOLUME)
+                RAY_GAMEMANAGER->setSFXVolume(val);
+            else if (optionId == OPTION_INTENSITY)
+                RAY_GAMEMANAGER->setIntensity(val);
+            else
+                RAY_GAMEMANAGER->getGameOptionManager().setFloatOption(optionId, val);
+
+            if (UIFloatOptionComponent* floatComp = findFloatOptionComponent(optionId))
+                floatComp->setValue(val, btrue);
+            return;
+        }
+
+        if (m_editSnapshotType == EditSnapshot_Bool)
+        {
+            const bbool val = m_editSnapshotBoolValue;
+            if (optionId == OPTION_WINDOWED)
+                RAY_GAMEMANAGER->setWindowed(val);
+            else if (optionId == OPTION_MURFY_ASSIST)
+                RAY_GAMEMANAGER->setMurfyAssist(val);
+            else
+                RAY_GAMEMANAGER->getGameOptionManager().setBoolOption(optionId, val);
+
+            if (UIToggleOptionComponent* toggleComp = findToggleOptionComponent(optionId))
+                toggleComp->setValue(val);
+            return;
         }
     }
 
@@ -577,14 +744,26 @@ namespace ITF
             (this->*handler)(id);
         };
 
-        if (acceptNow && !m_acceptActionPressed)
+        if (!isEditing())
         {
-            triggerPadAction(&Ray_OptionMenuHelper::handleAccept, OPTIONMENU_ACCEPT_BUTTON);
-        }
+            if (acceptNow && !m_acceptActionPressed)
+            {
+                triggerPadAction(&Ray_OptionMenuHelper::handleAccept, OPTIONMENU_ACCEPT_BUTTON);
+            }
 
-        if (cancelNow && !m_cancelActionPressed)
+            if (cancelNow && !m_cancelActionPressed)
+            {
+                triggerPadAction(&Ray_OptionMenuHelper::handleCancel, OPTIONMENU_CANCEL_BUTTON);
+            }
+        }
+        else
         {
-            triggerPadAction(&Ray_OptionMenuHelper::handleCancel, OPTIONMENU_CANCEL_BUTTON);
+            if (cancelNow && !m_cancelActionPressed)
+            {
+                restoreEditSnapshot();
+                exitEditMode();
+                updateContextIconsForState();
+            }
         }
 
         m_acceptActionPressed = acceptNow;
@@ -605,6 +784,9 @@ namespace ITF
         m_currentEditingOption = optionId;
         m_currentEditingComponent = component;
         m_previousSelectionStates.clear();
+
+        captureEditSnapshot(component, optionId);
+        updateContextIconsForState();
 
         if (m_menu)
         {
@@ -666,6 +848,10 @@ namespace ITF
         m_menuState = MenuState_Navigate;
         m_currentEditingOption = StringID::Invalid;
         m_currentEditingComponent = nullptr;
+        m_hasEditSnapshot = bfalse;
+        m_editSnapshotType = EditSnapshot_None;
+        m_editSnapshotOption = StringID::Invalid;
+        updateContextIconsForState();
         m_timer = 0.0f;
         m_firstPressed = btrue;
     }
@@ -1468,6 +1654,7 @@ namespace ITF
 
         if (action == input_actionID_Back)
         {
+            restoreEditSnapshot();
             exitEditMode();
             return btrue;
         }
