@@ -2,9 +2,7 @@
 
 #include "engine/localisation/LocalisationManager.h"
 
-#ifndef _ITF_RAY_OPTIONMENUHELPER_H_
 #include "rayman/gameplay/Managers/GameOptions/Ray_OptionMenuHelper.h"
-#endif
 
 #ifndef _ITF_UIMENUMANAGER_H_
 #include "engine/actors/managers/UIMenuManager.h"
@@ -156,8 +154,6 @@ namespace ITF
           , m_snapshotSFXVolume(0.0f)
           , m_snapshotIntensity(0.0f)
           , m_showLanguageWarning(bfalse)
-          , m_acceptActionPressed(bfalse)
-          , m_cancelActionPressed(bfalse)
           , m_eventListenerRegistered(bfalse)
           , m_hasEditSnapshot(bfalse)
           , m_editSnapshotType(EditSnapshot_None)
@@ -530,6 +526,33 @@ namespace ITF
         enterEditMode(component, optionId);
     }
 
+    ITF::StringID ITF::Ray_OptionMenuHelper::onMenuPageAction(ITF::UIMenu* menu, const ITF::StringID& action, const ITF::StringID& defaultAction)
+    {
+        if (!UI_MENUMANAGER)
+            return defaultAction;
+        if (isEditing())
+        {
+            if (action == input_actionID_Back || action == input_actionID_DeleteSave)
+                return UI_MENUMANAGER->getMenuPageAction_Nothing();
+
+            return Ray_BaseMenuHelper::onMenuPageAction(menu, action, defaultAction);
+        }
+
+        if (action == input_actionID_DeleteSave)
+        {
+            applyAndClose();
+            return UI_MENUMANAGER->getMenuPageAction_Nothing();
+        }
+
+        if (action == input_actionID_Back)
+        {
+            cancelAndClose();
+            return UI_MENUMANAGER->getMenuPageAction_Nothing();
+        }
+
+        return Ray_BaseMenuHelper::onMenuPageAction(menu, action, defaultAction);
+    }
+
 
     void Ray_OptionMenuHelper::UpdateMenuOnSelectionChange(UIComponent* uiComponent, bbool isSelected)
     {
@@ -630,11 +653,8 @@ namespace ITF
         return btrue;
     }
 
-    bbool Ray_OptionMenuHelper::handleAccept(const StringID& id)
+    void ITF::Ray_OptionMenuHelper::applyAndClose()
     {
-        if (id != OPTIONMENU_ACCEPT_BUTTON)
-            return bfalse;
-
         if (RAY_GAMEMANAGER)
         {
             if (m_showLanguageWarning)
@@ -642,6 +662,7 @@ namespace ITF
                 TRC_ADAPTER->addMessage(TRCManagerAdapter::Language_Warn);
                 m_showLanguageWarning = false;
             }
+
             RAY_GAMEMANAGER->saveGameOptions();
             RAY_GAMEMANAGER->applyGameSetting(RAY_GAMEMANAGER->getResolutionIndex() != m_snapshotResolutionIndex);
 
@@ -654,23 +675,19 @@ namespace ITF
         }
 
         closeAndReturn();
-        return btrue;
     }
 
-    bbool Ray_OptionMenuHelper::handleCancel(const StringID& id)
+    void ITF::Ray_OptionMenuHelper::cancelAndClose()
     {
-        if (id != OPTIONMENU_CANCEL_BUTTON)
-            return bfalse;
         m_showLanguageWarning = false;
+
         if (m_hasSnapshot)
         {
             restoreSnapshot();
         }
 
         refreshAllOptionVisuals();
-
         closeAndReturn();
-        return btrue;
     }
 
     void Ray_OptionMenuHelper::onClose()
@@ -684,8 +701,6 @@ namespace ITF
         m_timer = 0.0f;
         m_firstPressed = btrue;
         m_hasSnapshot = bfalse;
-        m_acceptActionPressed = bfalse;
-        m_cancelActionPressed = bfalse;
         if (s_activeHelper == this)
             s_activeHelper = nullptr;
     }
@@ -717,58 +732,6 @@ namespace ITF
         captureSnapshot();
     }
 
-    void Ray_OptionMenuHelper::updatePadActionButtons()
-    {
-        if (!GAMEMANAGER)
-            return;
-
-        InputAdapter* inputAdapter = SINGLETONS.getInputAdapter();
-        if (!inputAdapter)
-            return;
-
-        const u32 mainPlayerIndex = GAMEMANAGER->getMainIndexPlayer();
-        const bbool acceptNow = inputAdapter->IsActionPressed(mainPlayerIndex, ZInputManager::Action_Hit);
-        const bbool cancelNow = inputAdapter->IsActionPressed(mainPlayerIndex, ZInputManager::Action_Back);
-
-        const auto triggerPadAction = [&](bbool (Ray_OptionMenuHelper::*handler)(const StringID&), const StringID& id)
-        {
-            if (m_showLanguageWarning)
-            {
-                TRC_ADAPTER->addMessage(TRCManagerAdapter::Language_Warn);
-                m_showLanguageWarning = false;
-            }
-            if (isEditing())
-            {
-                exitEditMode();
-            }
-            (this->*handler)(id);
-        };
-
-        if (!isEditing())
-        {
-            if (acceptNow && !m_acceptActionPressed)
-            {
-                triggerPadAction(&Ray_OptionMenuHelper::handleAccept, OPTIONMENU_ACCEPT_BUTTON);
-            }
-
-            if (cancelNow && !m_cancelActionPressed)
-            {
-                triggerPadAction(&Ray_OptionMenuHelper::handleCancel, OPTIONMENU_CANCEL_BUTTON);
-            }
-        }
-        else
-        {
-            if (cancelNow && !m_cancelActionPressed)
-            {
-                restoreEditSnapshot();
-                exitEditMode();
-                updateContextIconsForState();
-            }
-        }
-
-        m_acceptActionPressed = acceptNow;
-        m_cancelActionPressed = cancelNow;
-    }
 
     void Ray_OptionMenuHelper::enterEditMode(UIComponent* component, const StringID& optionId)
     {
@@ -1640,7 +1603,6 @@ namespace ITF
 
     void Ray_OptionMenuHelper::updateTimer()
     {
-        updatePadActionButtons();
         if (isEditing())
         {
             m_timer += LOGICDT;

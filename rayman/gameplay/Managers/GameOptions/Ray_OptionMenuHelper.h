@@ -11,10 +11,6 @@
 #include "rayman/gameplay/Managers/GameOptions/Ray_GameOptionNames.h"
 #endif
 
-#ifndef _ITF_INPUTADAPTER_H_
-#include "engine/AdaptersInterfaces/InputAdapter.h"
-#endif
-
 #ifndef _ITF_EVENTLISTENER_H_
 #include "engine/events/IEventListener.h"
 #endif
@@ -58,6 +54,7 @@ namespace ITF
         void activateForOptionMenu(MenuItemActionListener* mainListener);
         void setOptionComponentDeactivated(const StringID& optionId, bbool deactivated);
         void onMenuItemAction(UIComponent* _UIComponent) override;
+        StringID onMenuPageAction(UIMenu* _menu, const StringID& _action, const StringID& _defaultAction) override;
         void UpdateMenuOnSelectionChange(UIComponent* uiComponent, bbool isSelected) override;
         void onEvent(Event* _event) override;
         void updateTimer();
@@ -73,9 +70,10 @@ namespace ITF
         void captureEditSnapshot(UIComponent* component, const StringID& optionId);
         void restoreEditSnapshot();
 
+        void applyAndClose();
+        void cancelAndClose();
+
         bbool handleResetToDefault(const StringID& id);
-        bbool handleAccept(const StringID& id);
-        bbool handleCancel(const StringID& id);
         bbool handleConnect(const StringID& id);
 
         void initializeMenuState();
@@ -98,7 +96,6 @@ namespace ITF
         void captureSnapshot();
         void restoreSnapshot();
         void refreshAllOptionVisuals();
-        void updatePadActionButtons();
         void UpdateResolutionText();
         void UpdateLanguageText();
         void UpdateStartWithHeartText();
@@ -158,8 +155,6 @@ namespace ITF
         f32 m_snapshotSFXVolume;
         f32 m_snapshotIntensity;
         bbool m_showLanguageWarning;
-        bbool m_acceptActionPressed;
-        bbool m_cancelActionPressed;
         bbool m_eventListenerRegistered;
 
         bbool m_hasEditSnapshot;
