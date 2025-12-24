@@ -276,7 +276,6 @@ namespace ITF
         setActorVisibility(m_actionRunPath, visible);
         setActorVisibility(m_actionJumpPath, visible);
         setActorVisibility(m_actionHitPath, visible);
-        setActorVisibility(m_actionBackPath, visible);
 
         setActorVisibility(m_connectControllerTextPath, !visible);
     }

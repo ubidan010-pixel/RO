@@ -62,7 +62,6 @@ namespace ITF
 #define ICON_PLAYER1_RUN    ITF_GET_STRINGID_CRC(player1_run_icon,3457228901)
 #define ICON_PLAYER1_JUMP   ITF_GET_STRINGID_CRC(player1_jump_icon,3525025255)
 #define ICON_PLAYER1_HIT    ITF_GET_STRINGID_CRC(player1_hit_icon,4282892399)
-#define ICON_PLAYER1_BACK   ITF_GET_STRINGID_CRC(player1_back_icon,1021152668)
 
 #define ICON_PLAYER2_UP     ITF_GET_STRINGID_CRC(player2_up_icon,4288940261)
 #define ICON_PLAYER2_DOWN   ITF_GET_STRINGID_CRC(player2_down_icon,441889963)
@@ -71,7 +70,6 @@ namespace ITF
 #define ICON_PLAYER2_RUN    ITF_GET_STRINGID_CRC(player2_run_icon,2628100497)
 #define ICON_PLAYER2_JUMP   ITF_GET_STRINGID_CRC(player2_jump_icon,2380529337)
 #define ICON_PLAYER2_HIT    ITF_GET_STRINGID_CRC(player2_hit_icon,425931337)
-#define ICON_PLAYER2_BACK   ITF_GET_STRINGID_CRC(player2_back_icon,3528166033)
 
 #define ICON_PLAYER3_UP     ITF_GET_STRINGID_CRC(player3_up_icon,1876599777)
 #define ICON_PLAYER3_DOWN   ITF_GET_STRINGID_CRC(player3_down_icon,548047626)
@@ -80,7 +78,6 @@ namespace ITF
 #define ICON_PLAYER3_RUN    ITF_GET_STRINGID_CRC(player3_run_icon,1971818420)
 #define ICON_PLAYER3_JUMP   ITF_GET_STRINGID_CRC(player3_jump_icon,3551164230)
 #define ICON_PLAYER3_HIT    ITF_GET_STRINGID_CRC(player3_hit_icon,1301281176)
-#define ICON_PLAYER3_BACK   ITF_GET_STRINGID_CRC(player3_back_icon,3624079622)
 
 #define ICON_PLAYER4_UP     ITF_GET_STRINGID_CRC(player4_up_icon,4257930662)
 #define ICON_PLAYER4_DOWN   ITF_GET_STRINGID_CRC(player4_down_icon,1841519437)
@@ -89,7 +86,6 @@ namespace ITF
 #define ICON_PLAYER4_RUN    ITF_GET_STRINGID_CRC(player4_run_icon,3273055250)
 #define ICON_PLAYER4_JUMP   ITF_GET_STRINGID_CRC(player4_jump_icon,3258270794)
 #define ICON_PLAYER4_HIT    ITF_GET_STRINGID_CRC(player4_hit_icon,3161019062)
-#define ICON_PLAYER4_BACK   ITF_GET_STRINGID_CRC(player4_back_icon,1461371878)
 
 #define RESET_PLAYER1_BUTTON ITF_GET_STRINGID_CRC(player1_reset_to_default,3165421879)
 #define RESET_PLAYER2_BUTTON ITF_GET_STRINGID_CRC(player2_reset_to_default,2129089661)
@@ -112,7 +108,6 @@ namespace ITF
         { ICON_PLAYER1_RUN,   0, ZInputManager::Action_Run   },
         { ICON_PLAYER1_JUMP,  0, ZInputManager::Action_Jump  },
         { ICON_PLAYER1_HIT,   0, ZInputManager::Action_Hit   },
-        { ICON_PLAYER1_BACK,  0, ZInputManager::Action_Back  },
         { ICON_PLAYER2_UP,    1, ZInputManager::Action_Up    },
         { ICON_PLAYER2_DOWN,  1, ZInputManager::Action_Down  },
         { ICON_PLAYER2_LEFT,  1, ZInputManager::Action_Left  },
@@ -120,7 +115,6 @@ namespace ITF
         { ICON_PLAYER2_RUN,   1, ZInputManager::Action_Run   },
         { ICON_PLAYER2_JUMP,  1, ZInputManager::Action_Jump  },
         { ICON_PLAYER2_HIT,   1, ZInputManager::Action_Hit   },
-        { ICON_PLAYER2_BACK,  1, ZInputManager::Action_Back  },
         { ICON_PLAYER3_UP,    2, ZInputManager::Action_Up    },
         { ICON_PLAYER3_DOWN,  2, ZInputManager::Action_Down  },
         { ICON_PLAYER3_LEFT,  2, ZInputManager::Action_Left  },
@@ -128,7 +122,6 @@ namespace ITF
         { ICON_PLAYER3_RUN,   2, ZInputManager::Action_Run   },
         { ICON_PLAYER3_JUMP,  2, ZInputManager::Action_Jump  },
         { ICON_PLAYER3_HIT,   2, ZInputManager::Action_Hit   },
-        { ICON_PLAYER3_BACK,  2, ZInputManager::Action_Back  },
         { ICON_PLAYER4_UP,    3, ZInputManager::Action_Up    },
         { ICON_PLAYER4_DOWN,  3, ZInputManager::Action_Down  },
         { ICON_PLAYER4_LEFT,  3, ZInputManager::Action_Left  },
@@ -136,7 +129,6 @@ namespace ITF
         { ICON_PLAYER4_RUN,   3, ZInputManager::Action_Run   },
         { ICON_PLAYER4_JUMP,  3, ZInputManager::Action_Jump  },
         { ICON_PLAYER4_HIT,   3, ZInputManager::Action_Hit   },
-        { ICON_PLAYER4_BACK,  3, ZInputManager::Action_Back  },
     };
 
     static const u32 s_iconMappingsCount = sizeof(s_iconMappings) / sizeof(s_iconMappings[0]);
@@ -530,6 +522,12 @@ namespace ITF
 
     void Ray_ControlsRemappingMenuHelper::startRemappingMode(u32 playerIndex, ZInputManager::EGameAction action, UIComponent* component)
     {
+        if (action == ZInputManager::Action_Back)
+        {
+            LOG("[ControlsRemapping] Action_Back remapping is disabled\n");
+            return;
+        }
+
         cancelRemappingMode(btrue);
         m_isRemappingMode = btrue;
         m_remappingPlayerIndex = playerIndex;
