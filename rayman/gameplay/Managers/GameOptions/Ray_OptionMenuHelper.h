@@ -94,9 +94,6 @@ namespace ITF
         void captureSnapshot();
         void restoreSnapshot();
         void refreshAllOptionVisuals();
-        void updateActionButtonText(const char* friendlyName, u32 lineId, EContextIconType iconType,
-                                    InputAdapter::PadType padType) const;
-        void updateActionButtonsText(bbool force = bfalse) const;
         void updatePadActionButtons();
         void UpdateResolutionText();
         void UpdateLanguageText();
@@ -152,8 +149,7 @@ namespace ITF
         bbool m_acceptActionPressed;
         bbool m_cancelActionPressed;
         bbool m_eventListenerRegistered;
-        mutable InputAdapter::PadType m_lastPadType;
-        mutable i32 m_lastLanguage;
+        
 
         static Ray_OptionMenuHelper* s_activeHelper;
 

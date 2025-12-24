@@ -104,25 +104,21 @@ namespace ITF
 
         static const OptionNavigationEntry s_optionNavigationEntries[] =
         {
-            { "resolution_option",        "accept_button",           "window_option",          "start_with_heart_option",  "start_with_heart_option" },
+            { "resolution_option",        "sfx_volume_option",       "window_option",          "start_with_heart_option",  "start_with_heart_option" },
             { "window_option",            "resolution_option",       "language_option",        "run_button_option",        "run_button_option" },
             { "language_option",          "window_option",           "master_volume_option",   "vibration_option",         "vibration_option" },
             { "master_volume_option",     "language_option",         "music_volume_option",    "intensity_option",         "intensity_option" },
             { "music_volume_option",      "master_volume_option",    "sfx_volume_option",      "reset_to_default_button",  "reset_to_default_button" },
-            { "sfx_volume_option",        "music_volume_option",     "accept_button",          "ubisoftconnect_button",    "ubisoftconnect_button" },
-            { "accept_button",            "sfx_volume_option",       "resolution_option",      "cancel_button",            "cancel_button" },
-            { "cancel_button",            "ubisoftconnect_button",   "start_with_heart_option","accept_button",            "accept_button" },
+            { "sfx_volume_option",        "music_volume_option",     "resolution_option",      "ubisoftconnect_button",    "ubisoftconnect_button" },
             { "reset_to_default_button",  "intensity_option",        "ubisoftconnect_button",  "music_volume_option",      "music_volume_option" },
-            { "ubisoftconnect_button",    "reset_to_default_button", "cancel_button",          "sfx_volume_option",        "sfx_volume_option" },
-            { "start_with_heart_option",  "cancel_button",           "run_button_option",      "resolution_option",        "resolution_option" },
+            { "ubisoftconnect_button",    "reset_to_default_button", "start_with_heart_option",          "sfx_volume_option",        "sfx_volume_option" },
+            { "start_with_heart_option",  "ubisoftconnect_button",           "run_button_option",      "resolution_option",        "resolution_option" },
             { "run_button_option",        "start_with_heart_option", "vibration_option",       "window_option",            "window_option" },
             { "vibration_option",         "run_button_option",       "intensity_option",       "language_option",          "language_option" },
             { "intensity_option",         "vibration_option",        "reset_to_default_button","master_volume_option",     "master_volume_option" },
         };
 
         static const size_t s_optionNavigationEntryCount = sizeof(s_optionNavigationEntries) / sizeof(s_optionNavigationEntries[0]);
-        static const u32 s_acceptButtonLineId = 5378u;
-        static const u32 s_cancelButtonLineId = 6326u;
     }
 
     Ray_OptionMenuHelper* Ray_OptionMenuHelper::s_activeHelper = nullptr;
@@ -163,8 +159,6 @@ namespace ITF
           , m_acceptActionPressed(bfalse)
           , m_cancelActionPressed(bfalse)
           , m_eventListenerRegistered(bfalse)
-          , m_lastPadType(InputAdapter::Pad_Invalid)
-          , m_lastLanguage(-1)
     {
         m_menuBaseName = OPTION_MENU_NAME;
     }
@@ -324,9 +318,7 @@ namespace ITF
         if (componentId.isValid())
         {
             if (componentId == OPTIONMENU_RESET_TO_DEFAULT_BUTTON ||
-                componentId == OPTIONMENU_UBISOFTCONNECT_BUTTON ||
-                componentId == OPTIONMENU_ACCEPT_BUTTON ||
-                componentId == OPTIONMENU_CANCEL_BUTTON)
+                componentId == OPTIONMENU_UBISOFTCONNECT_BUTTON)
             {
                 if (isEditing())
                 {
@@ -335,8 +327,7 @@ namespace ITF
 
             }
 
-            if (handleResetToDefault(componentId) || handleConnect(componentId) ||
-                handleAccept(componentId) || handleCancel(componentId))
+            if (handleResetToDefault(componentId) || handleConnect(componentId))
             {
                 return;
             }
@@ -528,8 +519,6 @@ namespace ITF
         m_hasSnapshot = bfalse;
         m_acceptActionPressed = bfalse;
         m_cancelActionPressed = bfalse;
-        m_lastPadType = InputAdapter::Pad_Invalid;
-        m_lastLanguage = -1;
         if (s_activeHelper == this)
             s_activeHelper = nullptr;
     }
@@ -559,51 +548,6 @@ namespace ITF
 
         loadOptionsFromSaveFile();
         captureSnapshot();
-        updateActionButtonsText();
-    }
-
-    void Ray_OptionMenuHelper::updateActionButtonText(const char* friendlyName, u32 lineId,
-                                                      EContextIconType iconType, InputAdapter::PadType padType) const
-    {
-        if (!friendlyName || lineId == 0u || !m_menu || !LOCALISATIONMANAGER || !CONTEXTICONSMANAGER || !GAMEMANAGER)
-            return;
-
-        UIComponent* component = findComponentByFriendlyName(friendlyName);
-        if (!component)
-            return;
-
-        LocalisationId locId;
-        locId = lineId;
-
-        String buttonText = LOCALISATIONMANAGER->getText(locId);
-        String iconString = CONTEXTICONSMANAGER->getIconStr(padType, iconType);
-        buttonText = iconString + " " + buttonText;
-
-        component->forceContent(buttonText);
-    }
-
-    void Ray_OptionMenuHelper::updateActionButtonsText(bbool force) const
-    {
-        if (!GAMEMANAGER)
-            return;
-
-        InputAdapter* inputAdapter = SINGLETONS.getInputAdapter();
-        if (!inputAdapter)
-            return;
-
-        const InputAdapter::PadType padType = inputAdapter->getLastUsedPadType(GAMEMANAGER->getMainIndexPlayer());
-        i32 language = -1;
-        if (LOCALISATIONMANAGER)
-        {
-            language = static_cast<i32>(LOCALISATIONMANAGER->getCurrentLanguage());
-        }
-
-        if (!force && padType == m_lastPadType && language == m_lastLanguage)
-            return;
-        m_lastPadType = padType;
-        m_lastLanguage = language;
-        updateActionButtonText("accept_button", s_acceptButtonLineId, ContextIconType_Delete, padType);
-        updateActionButtonText("cancel_button", s_cancelButtonLineId, ContextIconType_Back, padType);
     }
 
     void Ray_OptionMenuHelper::updatePadActionButtons()
@@ -1467,7 +1411,6 @@ namespace ITF
         UpdateMusicVolumeSlider();
         UpdateSFXVolumeSlider();
         UpdateIntensitySlider();
-        updateActionButtonsText(btrue);
     }
 
     void Ray_OptionMenuHelper::captureSnapshot()
@@ -1511,7 +1454,6 @@ namespace ITF
 
     void Ray_OptionMenuHelper::updateTimer()
     {
-        updateActionButtonsText();
         updatePadActionButtons();
         if (isEditing())
         {
