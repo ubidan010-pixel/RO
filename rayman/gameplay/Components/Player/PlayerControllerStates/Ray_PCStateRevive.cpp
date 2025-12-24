@@ -224,6 +224,7 @@ namespace ITF
         {
             Ray_Player* player = static_cast<Ray_Player*>(GAMEMANAGER->getPlayer(m_parent->m_playerIndex));
             player->setHitPoints(RAY_GAMEMANAGER->getStartHitPointsAfterDeath());
+            RAY_GAMEMANAGER->applyHealthModifierForPlayer(m_parent->m_playerIndex);
         }
 
         m_parent->m_inmunityCounter = m_parent->getTemplate()->getInmunityTimeRevive();

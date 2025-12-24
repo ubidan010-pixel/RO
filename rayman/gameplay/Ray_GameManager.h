@@ -1723,7 +1723,9 @@ namespace ITF
         EHealthModifier getHealthModifier() const;
         void            setHealthModifier(EHealthModifier _modifier);
         void            applyHealthModifierForAllPlayers();
+        void            applyHealthModifierForPlayer(u32 _playerIndex);
         void            clearHealthModifierForAllPlayers();
+        void            applyHealthModifierForPlayerInternal(Ray_GameManager* _gameManager, u32 _playerIndex, EHealthModifier _modifier);
         //==========================================================================
         // Option Menu - Display Options
         //==========================================================================

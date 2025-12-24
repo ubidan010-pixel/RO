@@ -11881,6 +11881,48 @@ namespace ITF
         m_gameOptionManager.setListOptionIndex(OPTION_START_WITH_HEART, _modifier);
     }
 
+    void Ray_GameManager::applyHealthModifierForPlayerInternal(Ray_GameManager* _gameManager, u32 _playerIndex, EHealthModifier _modifier)
+    {
+        Ray_Player* player = static_cast<Ray_Player*>(_gameManager->getPlayer(_playerIndex));
+        if (!player || player->isDead() || !player->getActiveAndPersistent())
+        {
+            return;
+        }
+
+        switch (_modifier)
+        {
+        case HealthModifier_RedHeart:
+            player->setHeartTier(HeartTier_Red);
+            if (player->getHitPoints() < player->getMaxHitPoints())
+            {
+                player->addHitPoints(1);
+            }
+            break;
+
+        case HealthModifier_GoldenHeart:
+            player->setHeartTier(HeartTier_Golden);
+            if (player->getHitPoints() < player->getMaxHitPoints())
+            {
+                player->addHitPoints(1);
+            }
+            break;
+
+        case HealthModifier_DiamondHeart:
+            player->setHeartTier(HeartTier_Diamond);
+            if (player->getHitPoints() < player->getMaxHitPoints())
+            {
+                player->addHitPoints(1);
+            }
+            player->resetConsecutiveHits();
+            break;
+
+        default:
+            break;
+        }
+
+        _gameManager->getPowerUpManager().setEnabled(Ray_PowerUp_HeartShield, _playerIndex, btrue);
+    }
+
     //////////////////////////////////////////////////////////////////////////
     void Ray_GameManager::applyHealthModifierForAllPlayers()
     {
@@ -11891,42 +11933,18 @@ namespace ITF
 
         for (u32 i = 0; i < getMaxPlayerCount(); ++i)
         {
-            Ray_Player* player = static_cast<Ray_Player*>(getPlayer(i));
-            if (player && !player->isDead() && player->getActiveAndPersistent())
-            {
-                switch (modifier)
-                {
-                case HealthModifier_RedHeart:
-                    player->setHeartTier(HeartTier_Red);
-                    if (player->getHitPoints() < player->getMaxHitPoints())
-                    {
-                        player->addHitPoints(1);
-                    }
-                    break;
-
-                case HealthModifier_GoldenHeart:
-                    player->setHeartTier(HeartTier_Golden);
-                    if (player->getHitPoints() < player->getMaxHitPoints())
-                    {
-                        player->addHitPoints(1);
-                    }
-                    break;
-
-                case HealthModifier_DiamondHeart:
-                    player->setHeartTier(HeartTier_Diamond);
-                    if (player->getHitPoints() < player->getMaxHitPoints())
-                    {
-                        player->addHitPoints(1);
-                    }
-                    player->resetConsecutiveHits();
-                    break;
-
-                default:
-                    break;
-                }
-                m_powerUpManager.setEnabled(Ray_PowerUp_HeartShield, i, btrue);
-            }
+            applyHealthModifierForPlayerInternal(this, i, modifier);
         }
+    }
+
+    //////////////////////////////////////////////////////////////////////////
+    void Ray_GameManager::applyHealthModifierForPlayer(u32 _playerIndex)
+    {
+        EHealthModifier modifier = getHealthModifier();
+        if (modifier == HealthModifier_Default)
+            return;
+
+        applyHealthModifierForPlayerInternal(this, _playerIndex, modifier);
     }
 
     void Ray_GameManager::clearHealthModifierForAllPlayers()

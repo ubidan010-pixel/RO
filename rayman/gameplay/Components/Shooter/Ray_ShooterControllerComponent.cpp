@@ -1901,11 +1901,12 @@ namespace ITF
                 m_actor->set2DPos( pos );
             }*/
 
-            Ray_Player* pCurRayPlayer = static_cast<Ray_Player*>( RAY_GAMEMANAGER->getPlayer(m_playerIndex) );
-            if ( pCurRayPlayer->getActive() )
-            {
-                pCurRayPlayer->revive();
-            }
+             Ray_Player* pCurRayPlayer = static_cast<Ray_Player*>( RAY_GAMEMANAGER->getPlayer(m_playerIndex) );
+             if ( pCurRayPlayer->getActive() )
+             {
+                 pCurRayPlayer->revive();
+                 RAY_GAMEMANAGER->applyHealthModifierForPlayer(m_playerIndex);
+             }
 
             m_actor->disableDraw( bfalse );
             m_characterPhys->setDisabled(bfalse);
