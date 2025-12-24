@@ -179,9 +179,6 @@ namespace ITF
         UIMenu* menu = UI_MENUMANAGER->getMenu(m_menuBaseName);
         if (!menu)
             return;
-
-        hideContextIcons();
-
         m_isActive = btrue;
         m_isRemappingMode = bfalse;
         m_isWaitingForRelease = bfalse;

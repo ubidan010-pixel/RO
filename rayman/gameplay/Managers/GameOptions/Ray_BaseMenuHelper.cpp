@@ -48,14 +48,6 @@ namespace ITF
     {
     }
 
-    void Ray_BaseMenuHelper::hideContextIcons()
-    {
-        if (CONTEXTICONSMANAGER)
-        {
-            CONTEXTICONSMANAGER->hide();
-        }
-    }
-
     void Ray_BaseMenuHelper::closeAndReturn()
     {
         m_isActive = bfalse;

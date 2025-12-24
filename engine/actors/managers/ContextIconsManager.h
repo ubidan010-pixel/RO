@@ -54,7 +54,6 @@ public:
     void changeRightIcon(EContextIcon _icon);
     void changeTopLeftIcon(EContextIcon _icon);
     void changeTopRightIcon(EContextIcon _icon);
-    bbool canShowIcon() const;
     EContextIconType getType(EContextIcon _icon) const;
 
     const String8& getIconStr(u32 _padType, EContextIconType _context);
@@ -68,7 +67,7 @@ private:
         UIComponent* iconUI;
         UIComponent* textUI;
     };
-    
+
     struct ButtonIconMapping
     {
         const char* south;
@@ -78,7 +77,7 @@ private:
         const char* r_shoulder;
         const char* l_shoulder;
     };
-    
+
     Map<EContextIcon,IconDataHolder> m_iconData;
     void setupMenu();
     void setupIcon(EContextIcon _icon, UIComponent* _iconUI, UIComponent* _textUI);
@@ -89,7 +88,7 @@ private:
     static const ButtonIconMapping& getButtonMappingForPadType(InputAdapter::PadType _padType);
     static String8 formatIconTag(const char* _iconName);
     static const EPhysicalButtonAction s_iconToActionMap[ContextIcon_Count];
-    static const EContextIconType s_iconsTypes[ContextIcon_Count];  
+    static const EContextIconType s_iconsTypes[ContextIcon_Count];
     static const ButtonIconMapping s_iconMapping_X360;
     static const ButtonIconMapping s_iconMapping_XboxSeries;
     static const ButtonIconMapping s_iconMapping_PS3;

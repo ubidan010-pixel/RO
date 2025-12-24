@@ -185,8 +185,6 @@ namespace ITF
         if (!menu)
             return;
 
-        hideContextIcons();
-
         m_isActive = btrue;
         s_activeHelper = this;
         m_mainListener = mainListener;
@@ -201,6 +199,7 @@ namespace ITF
         onActivate();
         initializeMenuState();
         updateVibrationOptionAvailability();
+        showContextIcons();
     }
 
     void Ray_OptionMenuHelper::registerEventListeners()
@@ -307,6 +306,14 @@ namespace ITF
     void Ray_OptionMenuHelper::onActivate()
     {
         // Called after menu is set up, override point for derived classes
+    }
+
+    void Ray_OptionMenuHelper::showContextIcons()
+    {
+        if (CONTEXTICONSMANAGER)
+        {
+            CONTEXTICONSMANAGER->show(ContextIcon_Confirm, ContextIcon_Cancel);
+        }
     }
 
     void Ray_OptionMenuHelper::onMenuItemAction(UIComponent* component)

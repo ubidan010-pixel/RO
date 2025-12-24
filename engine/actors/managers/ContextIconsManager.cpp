@@ -172,7 +172,7 @@ void ContextIconsManager::show(
     EContextIcon _topRight /*= ContextIcon_Invalid*/
     )
 {
-    if (!GAMEMANAGER->isMenusLoaded() || !canShowIcon())
+    if (!GAMEMANAGER->isMenusLoaded())
     {
         return;
     }
@@ -268,23 +268,6 @@ void ContextIconsManager::changeTopRightIcon(EContextIcon _icon)
         m_topRight = _icon;
     }
 }
-
-//------------------------------------------------------------------------------
-bbool ContextIconsManager::canShowIcon() const
-{
-    if (!UI_MENUMANAGER)
-    {
-        return bfalse;
-    }
-
-    UIMenuManager::MenuItemActionListener* listener = UI_MENUMANAGER->getCurrentMenuActionListener();
-    if (!listener)
-    {
-        return btrue;
-    }
-    return !listener->isBaseMenuHelper();
-}
-
 //------------------------------------------------------------------------------
 EContextIconType ContextIconsManager::getType(EContextIcon _icon) const
 {
@@ -356,9 +339,9 @@ const EContextIconType ContextIconsManager::s_iconsTypes[ContextIcon_Count] =
     // ContextIcon_Download
     ContextIconType_Download,
     // ContextIcon_Confirm
-    ContextIconType_Confirm,
+    ContextIconType_Delete,
     // ContextIcon_Cancel
-    ContextIconType_Cancel,
+    ContextIconType_Back,
 };
 
 //------------------------------------------------------------------------------
@@ -392,7 +375,7 @@ u32 ContextIconsManager::getPhysicalButtonForAction(EPhysicalButtonAction _actio
         return ZPad_Base::BUTTON_R_SHOULDER;
     case PhysicalButtonAction_Download:
         return ZPad_Base::BUTTON_L_SHOULDER;
-        
+
     default:
         return ZPad_Base::BUTTON_FACE_SOUTH;
     }
@@ -456,7 +439,7 @@ String8 ContextIconsManager::getIconNameForPhysicalButton(u32 _physicalButton, I
         iconName = mapping.r_shoulder;
     else if (_physicalButton == ZPad_Base::BUTTON_L_SHOULDER)
         iconName = mapping.l_shoulder;
-    
+
     return formatIconTag(iconName);
 }
 
@@ -472,7 +455,7 @@ const String8& ContextIconsManager::getIconStr(u32 _padType, EContextIconType _c
     if(!m_template)
         return String8::emptyString;
 
-    EPhysicalButtonAction action = PhysicalButtonAction_Invalid;
+    EPhysicalButtonAction action;
     switch (_context)
     {
     case ContextIconType_Select:

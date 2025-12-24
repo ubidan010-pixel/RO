@@ -66,6 +66,7 @@ namespace ITF
     protected:
         void onActivate() override;
         void onClose() override;
+        void showContextIcons() override;
 
     private:
         bbool handleResetToDefault(const StringID& id);

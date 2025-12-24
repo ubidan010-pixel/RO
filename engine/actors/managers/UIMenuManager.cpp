@@ -324,6 +324,20 @@ void UIMenuManager::notifySiblingUIComponents(UIComponent* component, bbool isSe
     }
 }
 
+bbool UIMenuManager::IsBaseMenuHelper()
+{
+    if (!UI_MENUMANAGER)
+    {
+        return bfalse;
+    }
+    MenuItemActionListener* listener = UI_MENUMANAGER->getCurrentMenuActionListener();
+    if (!listener)
+    {
+        return btrue;
+    }
+    return !listener->isBaseMenuHelper();
+}
+
 void UIMenuManager::applySelectionChange(UIMenu* menu, UIComponent* oldSel, UIComponent* newSel)
 {
     MenuItemActionListener* listener = getCurrentMenuActionListener();

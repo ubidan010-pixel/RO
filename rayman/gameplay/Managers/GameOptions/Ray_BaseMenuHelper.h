@@ -24,8 +24,7 @@ namespace ITF
         virtual ObjectRef getNavigationOverrideTarget(UIComponent* current, f32 joyX, f32 joyY);
 
     protected:
-        void showContextIcons();
-        void hideContextIcons();
+        virtual void showContextIcons();
         void closeAndReturn();
 
         virtual void onActivate() {}
