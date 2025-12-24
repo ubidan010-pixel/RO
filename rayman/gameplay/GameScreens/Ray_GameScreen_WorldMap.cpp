@@ -105,21 +105,33 @@ void Ray_GameScreen_WorldMap::init()
         ITF_ASSERT(rWorld.isValid());
 
         m_world = (World*)GETOBJECT(rWorld);
-        ITF_ASSERT(m_world!=NULL);
+         ITF_ASSERT(m_world!=NULL);
+ 
+         Vector<ObjectPath> prefetchTargets;
+ 
+         ObjectPath prefetchTarget = RAY_GAMEMANAGER->getWMCurrentLevelObjectPath();
+         if (!prefetchTarget.isValid())
+         {
+             prefetchTarget = RAY_GAMEMANAGER->getWMCurrentWorldObjectPath();
+         }
 
-        Vector<ObjectPath> prefetchTargets;
+         if (!prefetchTarget.isValid())
+         {
+             if (const Ray_GameManagerConfig_Template* configTemplate = RAY_GAMEMANAGER->getTemplate())
+             {
+                 prefetchTarget = configTemplate->getWmStartNode();
+             }
+         }
 
-        const ObjectPath& world = RAY_GAMEMANAGER->getWMCurrentWorldObjectPath();
-        const ObjectPath& level = RAY_GAMEMANAGER->getWMCurrentLevelObjectPath();
-        if(level.isValid())
-            prefetchTargets.push_back(level);
-        else
-            prefetchTargets.push_back(world);
-
-        m_world->setPrefetchTargets(prefetchTargets);
-
-        RAY_GAMEMANAGER->loadMap(rWorld, RAY_GAMEMANAGER->getWorldMap(), btrue, bfalse, btrue, GameManager::LEVEL_NAME_INITIALISATION_TYPE_SET);
-        m_prefetchStarted = bfalse;
+         if (prefetchTarget.isValid())
+         {
+             prefetchTargets.push_back(prefetchTarget);
+         }
+ 
+         m_world->setPrefetchTargets(prefetchTargets);
+ 
+         RAY_GAMEMANAGER->loadMap(rWorld, RAY_GAMEMANAGER->getWorldMap(), btrue, bfalse, btrue, GameManager::LEVEL_NAME_INITIALISATION_TYPE_SET);
+         m_prefetchStarted = bfalse;
         m_musicThemeSet = bfalse;
     }
 
