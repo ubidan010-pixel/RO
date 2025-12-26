@@ -16,7 +16,6 @@ namespace ITF
             SERIALIZE_MEMBER("playerIndex", m_playerIndex);
             SERIALIZE_MEMBER("resetButtonPath", m_resetButtonPath);
             SERIALIZE_MEMBER("controlsPath", m_controlsPath);
-            SERIALIZE_MEMBER("presetPath", m_presetPath);
             SERIALIZE_MEMBER("playerTitlePath", m_playerTitlePath);
             SERIALIZE_MEMBER("playerTitlePathConnected", m_playerTitlePathConnected);
             SERIALIZE_MEMBER("playerTitlePathDisconnected", m_playerTitlePathDisconnected);
@@ -54,7 +53,6 @@ namespace ITF
         m_playerIndex = 0;
         m_resetButtonPath.clear();
         m_controlsPath.clear();
-        m_presetPath.clear();
         m_playerTitlePath.clear();
         m_playerTitlePathConnected.clear();
         m_playerTitlePathDisconnected.clear();
@@ -255,7 +253,6 @@ namespace ITF
             m_playerIndex, visible ? "connected" : "disconnected");
         setActorVisibility(m_resetButtonPath, visible);
         setActorVisibility(m_controlsPath, visible);
-        setActorVisibility(m_presetPath, visible);
 
         if (!m_playerTitlePathConnected.isEmpty() && !m_playerTitlePathDisconnected.isEmpty())
         {
