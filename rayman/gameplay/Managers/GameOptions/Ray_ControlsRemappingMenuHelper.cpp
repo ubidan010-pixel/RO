@@ -524,6 +524,45 @@ namespace ITF
         return nullptr;
     }
 
+    ObjectRef Ray_ControlsRemappingMenuHelper::getFocusOverrideTargetForInputPlayer(UIComponent* current, u32 inputPlayer) const
+    {
+        if (!m_isActive || !m_menu || !current)
+            return ObjectRef::InvalidRef;
+
+        if (inputPlayer >= 4)
+            return ObjectRef::InvalidRef;
+        if (m_isRemappingMode || m_isWaitingForRelease)
+            return ObjectRef::InvalidRef;
+
+#if defined(ITF_WINDOWS)
+        if (m_isEditingControllerType)
+            return ObjectRef::InvalidRef;
+#endif
+
+        u32 selectedPlayer = U32_INVALID;
+        ZInputManager::EGameAction selectedAction = ZInputManager::Action_Up;
+        const bbool onIcon = tryGetIconInfoFromComponent(current, selectedPlayer, selectedAction);
+        if (onIcon && selectedPlayer == inputPlayer)
+            return ObjectRef::InvalidRef;
+
+        ZInputManager::EGameAction focusAction = ZInputManager::Action_Up;
+        if (onIcon)
+        {
+            focusAction = selectedAction;
+        }
+        else if (m_hasLastActionByPlayer[inputPlayer])
+        {
+            focusAction = m_lastActionByPlayer[inputPlayer];
+        }
+
+        if (UIComponent* target = findIconComponent(inputPlayer, focusAction))
+        {
+            return target->getUIref();
+        }
+
+        return ObjectRef::InvalidRef;
+    }
+
     u32 Ray_ControlsRemappingMenuHelper::getActionIndex(ZInputManager::EGameAction action)
     {
         switch (action)

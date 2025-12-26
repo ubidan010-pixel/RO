@@ -38,6 +38,7 @@ namespace ITF
         StringID onMenuPageAction(UIMenu* _menu, const StringID& _action, const StringID& _defaultAction) override;
         void UpdateMenuOnSelectionChange(UIComponent* uiComponent, bbool isSelected) override;
         ObjectRef getNavigationOverrideTarget(UIComponent* current, f32 joyX, f32 joyY) override;
+        ObjectRef getFocusOverrideTargetForInputPlayer(UIComponent* current, u32 inputPlayer) const;
         static Ray_ControlsRemappingMenuHelper* getActiveHelper();
         void updateRemappingMode(f32 deltaTime);
 
@@ -64,7 +65,6 @@ namespace ITF
         void onClose() override;
         EInputSourceType getActiveSourceForReset(u32 playerIndex) const;
         bbool tryGetSelectedPlayerIndex(u32& outPlayerIndex);
-
         bbool tryGetIconInfoFromComponent(UIComponent* component, u32& outPlayerIndex, ZInputManager::EGameAction& outAction) const;
         UIComponent* findIconComponent(u32 playerIndex, ZInputManager::EGameAction action) const;
         static u32 getActionIndex(ZInputManager::EGameAction action);

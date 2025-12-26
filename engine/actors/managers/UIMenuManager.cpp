@@ -453,6 +453,27 @@ void UIMenuManager::applySelectionChange(UIMenu* menu, UIComponent* oldSel, UICo
             {
                 bStartActionIsValid = btrue;
             }
+            Ray_ControlsRemappingMenuHelper* controlsRemappingHelper = Ray_ControlsRemappingMenuHelper::getActiveHelper();
+            if (controlsRemappingHelper)
+            {
+                UIComponent* selected = pMenu->getUIComponentSelected();
+                if (selected)
+                {
+                    const ObjectRef overrideRef = controlsRemappingHelper->getFocusOverrideTargetForInputPlayer(selected, m_currentInputPlayer);
+                    if (overrideRef.isValid() && overrideRef != selected->getUIref())
+                    {
+                        UIComponent* newSel = getUIComponent(overrideRef);
+                        if (newSel)
+                        {
+                            Actor* overrideActor = newSel->GetActor();
+                            if (overrideActor && overrideActor->isEnabled())
+                            {
+                                applySelectionChange(pMenu, selected, newSel);
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         // Use of the D-pad: the button is just pressed -> go up, down, left or right
