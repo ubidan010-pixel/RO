@@ -1264,19 +1264,6 @@ namespace ITF
         return nullptr;
     }
 
-    bbool Ray_ControlsRemappingMenuHelper::handleExternalEditingInput(UIComponent* component, const StringID& action)
-    {
-#if defined(ITF_WINDOWS)
-        if (!s_activeHelper)
-            return bfalse;
-
-        return s_activeHelper->processEditingInput(component, action);
-#else
-        (void)component; (void)action;
-        return bfalse;
-#endif
-    }
-
     void Ray_ControlsRemappingMenuHelper::updateControllerTypeEditing(f32 deltaTime)
     {
         if (!m_isEditingControllerType || !m_editingControllerTypeComponent)

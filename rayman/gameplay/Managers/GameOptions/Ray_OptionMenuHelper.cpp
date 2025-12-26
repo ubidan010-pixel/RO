@@ -195,9 +195,20 @@ namespace ITF
         onActivate();
         initializeMenuState();
 
-#if defined(ITF_WINDOWS)
+#if !defined(ITF_WINDOWS)
         setOptionComponentHidden(OPTION_RESOLUTION, btrue);
         setOptionComponentHidden(OPTION_WINDOWED, btrue);
+        if (UI_MENUMANAGER)
+        {
+            if (UIComponent* languageComponent = findOptionComponent(OPTION_LANGUAGE))
+            {
+                if (languageComponent->getActive() && languageComponent->getCanBeSelected())
+                {
+                    UIComponent* selected = m_menu ? m_menu->getUIComponentSelected() : nullptr;
+                    UI_MENUMANAGER->applySelectionChange(m_menu, selected, languageComponent);
+                }
+            }
+        }
 #endif
 
         updateVibrationOptionAvailability();
