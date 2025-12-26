@@ -36,6 +36,13 @@ namespace ITF
         void setDrawColor(u32 col) { m_drawColor = col; }
         void setAngle2D(f32 angleRad) { m_angle2D = angleRad; }
         f32  getAngle2D() const { return m_angle2D; }
+
+        Vec2d getQuadSize() const { return m_quadSize; }
+        void setQuadSize(const Vec2d& quadSize)
+        {
+            m_quadSize = quadSize;
+            m_isWaitingForTex = btrue;
+        }
     private:
         void                clear();
         void                setScreenPourcentValues();

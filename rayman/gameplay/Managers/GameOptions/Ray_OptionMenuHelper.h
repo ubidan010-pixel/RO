@@ -164,6 +164,9 @@ namespace ITF
         i32 m_editSnapshotListIndex;
         f32 m_editSnapshotFloatValue;
         bbool m_editSnapshotBoolValue;
+        bbool m_hasDisplayOptionsBackgroundOverride;
+        Vec2d m_displayOptionsBackgroundOriginalQuadSize;
+        Vec2d m_displayOptionsBackgroundOriginalRelativePos;
         
 
         static Ray_OptionMenuHelper* s_activeHelper;

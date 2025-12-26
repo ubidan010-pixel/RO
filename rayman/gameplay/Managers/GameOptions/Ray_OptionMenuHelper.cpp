@@ -50,6 +50,14 @@
 #include "gameplay/components/UI/UIMenuItemText.h"
 #endif
 
+#ifndef _ITF_TEXTUREGRAPHICCOMPONENT2D_H_
+#include "engine/actors/components/texturegraphiccomponent2D.h"
+#endif
+
+#ifndef _ITF_SCENE_H_
+#include "engine/scene/scene.h"
+#endif
+
 #ifndef _ITF_RAY_GAMEOPTIONMANAGER_H_
 #include "rayman/gameplay/Managers/GameOptions/Ray_GameOptionManager.h"
 #endif
@@ -91,6 +99,47 @@ namespace ITF
 {
     namespace
     {
+        static Actor* findActorInMenuWorldByUserFriendly(UIMenu* menu, const char* userFriendly)
+        {
+            if (!menu || !userFriendly || userFriendly[0] == '\0')
+                return nullptr;
+
+            World* world = (World*)GETOBJECT(menu->getWorldMenuRef());
+            if (!world)
+                return nullptr;
+
+            Scene* rootScene = world->getRootScene();
+            if (!rootScene)
+                return nullptr;
+
+            auto findInList = [&](const PickableList& list) -> Actor*
+            {
+                for (u32 i = 0; i < list.size(); ++i)
+                {
+                    Pickable* pickable = list[i];
+                    if (!pickable)
+                        continue;
+
+                    Actor* actor = static_cast<Actor*>(pickable);
+                    if (!actor)
+                        continue;
+
+                    const String8& friendly = actor->getUserFriendly();
+                    if (friendly.isEmpty())
+                        continue;
+
+                    if (friendly.equals(userFriendly, bfalse))
+                        return actor;
+                }
+                return nullptr;
+            };
+
+            if (Actor* actor = findInList(rootScene->get2DActors()))
+                return actor;
+
+            return findInList(rootScene->getActors());
+        }
+
         static void applyRelativePosOffset(UIComponent* component, const Vec2d& offset)
         {
             if (!component)
@@ -197,6 +246,9 @@ namespace ITF
           , m_editSnapshotListIndex(-1)
           , m_editSnapshotFloatValue(0.0f)
           , m_editSnapshotBoolValue(bfalse)
+          , m_hasDisplayOptionsBackgroundOverride(bfalse)
+          , m_displayOptionsBackgroundOriginalQuadSize(Vec2d::Zero)
+          , m_displayOptionsBackgroundOriginalRelativePos(Vec2d::Zero)
     {
         m_menuBaseName = OPTION_MENU_NAME;
     }
@@ -254,6 +306,47 @@ namespace ITF
                 {
                     UIComponent* selected = m_menu ? m_menu->getUIComponentSelected() : nullptr;
                     UI_MENUMANAGER->applySelectionChange(m_menu, selected, languageComponent);
+                }
+            }
+        }
+
+        if (!m_hasDisplayOptionsBackgroundOverride)
+        {
+            Actor* backgroundActor = findActorInMenuWorldByUserFriendly(m_menu, "option_background");
+            if (backgroundActor)
+            {
+                UIMenuItemText* backgroundUI = backgroundActor->GetComponent<UIMenuItemText>();
+                if (TextureGraphicComponent2D* backgroundTex = backgroundActor->GetComponent<TextureGraphicComponent2D>())
+                {
+                    const Vec2d originalQuadSize = backgroundTex->getQuadSize();
+                    if (originalQuadSize.m_y > 0.0f)
+                    {
+                        m_hasDisplayOptionsBackgroundOverride = btrue;
+                        m_displayOptionsBackgroundOriginalQuadSize = originalQuadSize;
+                        if (backgroundUI)
+                            m_displayOptionsBackgroundOriginalRelativePos = Vec2d(backgroundUI->getRelativePosX(), backgroundUI->getRelativePosY());
+
+                        Vec2d newQuadSize = originalQuadSize;
+                        newQuadSize.m_y *= 0.75f;
+                        backgroundTex->setQuadSize(newQuadSize);
+
+                        int screenW = 0;
+                        int screenH = 0;
+                        SYSTEM_ADAPTER->getWindowSize(screenW, screenH);
+
+                        const f32 screenScaleY = (screenH > 0) ? (static_cast<f32>(screenH) / UI2D_HeightRef) : 1.0f;
+                        const f32 actorScaleY = backgroundActor->getScale().m_y;
+                        const f32 removedHeightRef = (originalQuadSize.m_y - newQuadSize.m_y) * actorScaleY;
+                        const f32 removedHeightScreen = removedHeightRef * screenScaleY;
+                        if (backgroundUI && screenH > 0)
+                        {
+                            const f32 deltaRelativeY = (removedHeightScreen * 0.5f) / static_cast<f32>(screenH);
+                            const Vec2d newRelativePos(m_displayOptionsBackgroundOriginalRelativePos.m_x,
+                                m_displayOptionsBackgroundOriginalRelativePos.m_y - deltaRelativeY);
+                            backgroundUI->setRelativePos(newRelativePos);
+                            backgroundUI->onResourceLoaded();
+                        }
+                    }
                 }
             }
         }
@@ -836,6 +929,31 @@ namespace ITF
     {
         unregisterEventListeners();
         exitEditMode();
+
+#if defined(ITF_WINDOWS)
+        if (m_hasDisplayOptionsBackgroundOverride)
+        {
+            Actor* backgroundActor = findActorInMenuWorldByUserFriendly(m_menu, "option_background");
+            if (backgroundActor)
+            {
+                UIMenuItemText* backgroundUI = backgroundActor->GetComponent<UIMenuItemText>();
+                if (TextureGraphicComponent2D* backgroundTex = backgroundActor->GetComponent<TextureGraphicComponent2D>())
+                {
+                    backgroundTex->setQuadSize(m_displayOptionsBackgroundOriginalQuadSize);
+                    if (backgroundUI)
+                    {
+                        backgroundUI->setRelativePos(m_displayOptionsBackgroundOriginalRelativePos);
+                        backgroundUI->onResourceLoaded();
+                    }
+                }
+            }
+
+            m_hasDisplayOptionsBackgroundOverride = bfalse;
+            m_displayOptionsBackgroundOriginalQuadSize = Vec2d::Zero;
+            m_displayOptionsBackgroundOriginalRelativePos = Vec2d::Zero;
+        }
+#endif
+
         m_menuState = MenuState_Navigate;
         m_currentEditingOption = StringID::Invalid;
         m_currentEditingComponent = nullptr;
