@@ -65,6 +65,11 @@ namespace ITF
         EInputSourceType getActiveSourceForReset(u32 playerIndex) const;
         bbool tryGetSelectedPlayerIndex(u32& outPlayerIndex);
 
+        bbool tryGetIconInfoFromComponent(UIComponent* component, u32& outPlayerIndex, ZInputManager::EGameAction& outAction) const;
+        UIComponent* findIconComponent(u32 playerIndex, ZInputManager::EGameAction action) const;
+        static u32 getActionIndex(ZInputManager::EGameAction action);
+        static ZInputManager::EGameAction getActionByIndex(u32 index);
+
 #if defined(ITF_WINDOWS)
         bbool handleControllerTypeAction(const StringID& id, UIComponent* component);
         void enterControllerTypeEditMode(UIListOptionComponent* component);
@@ -105,6 +110,8 @@ namespace ITF
         f32 m_controllerTypeChangeCooldown;
         std::vector<std::pair<UIComponent*, bbool>> m_previousSelectionStates;
 #endif
+        bbool m_hasLastActionByPlayer[4];
+        ZInputManager::EGameAction m_lastActionByPlayer[4];
     };
 }
 

@@ -157,6 +157,9 @@ namespace ITF
         {
             m_hasSnapshotGamepad[i] = bfalse;
             m_hasSnapshotKeyboard[i] = bfalse;
+
+            m_hasLastActionByPlayer[i] = bfalse;
+            m_lastActionByPlayer[i] = ZInputManager::Action_Up;
         }
     }
 
@@ -203,6 +206,12 @@ namespace ITF
 
         m_hasCommittedChanges = bfalse;
         m_hasRestoredOnCancel = bfalse;
+
+        for (u32 i = 0; i < 4; ++i)
+        {
+            m_hasLastActionByPlayer[i] = bfalse;
+            m_lastActionByPlayer[i] = ZInputManager::Action_Up;
+        }
         captureRemappingSnapshot();
 
 #if !defined(ITF_WINDOWS)
@@ -420,9 +429,111 @@ namespace ITF
 
     void Ray_ControlsRemappingMenuHelper::UpdateMenuOnSelectionChange(UIComponent* uiComponent, bbool isSelected)
     {
-        ITF_UNUSED(uiComponent);
-        ITF_UNUSED(isSelected);
+        if (isSelected && uiComponent)
+        {
+            u32 playerIndex = U32_INVALID;
+            ZInputManager::EGameAction action = ZInputManager::Action_Up;
+            if (tryGetIconInfoFromComponent(uiComponent, playerIndex, action) && playerIndex < 4)
+            {
+                m_hasLastActionByPlayer[playerIndex] = btrue;
+                m_lastActionByPlayer[playerIndex] = action;
+            }
+        }
         showContextIcons();
+    }
+
+    bbool Ray_ControlsRemappingMenuHelper::tryGetIconInfoFromComponent(
+        UIComponent* component, u32& outPlayerIndex, ZInputManager::EGameAction& outAction) const
+    {
+        outPlayerIndex = U32_INVALID;
+        outAction = ZInputManager::Action_Up;
+
+        if (!component)
+            return bfalse;
+
+        Actor* actor = component->GetActor();
+        if (!actor)
+            return bfalse;
+
+        const StringID actorId(actor->getUserFriendly().cStr());
+        if (!actorId.isValid())
+            return bfalse;
+
+        return const_cast<Ray_ControlsRemappingMenuHelper*>(this)->parseIconId(actorId, outPlayerIndex, outAction);
+    }
+
+    UIComponent* Ray_ControlsRemappingMenuHelper::findIconComponent(u32 playerIndex, ZInputManager::EGameAction action) const
+    {
+        if (!m_menu || playerIndex >= 4)
+            return nullptr;
+
+        StringID iconId;
+        for (u32 i = 0; i < s_iconMappingsCount; ++i)
+        {
+            if (s_iconMappings[i].playerIndex == playerIndex && s_iconMappings[i].action == action)
+            {
+                iconId = s_iconMappings[i].iconId;
+                break;
+            }
+        }
+        if (!iconId.isValid())
+            return nullptr;
+
+        const ObjectRefList& componentsList = m_menu->getUIComponentsList();
+        for (u32 i = 0; i < componentsList.size(); ++i)
+        {
+            UIComponent* comp = UIMenuManager::getUIComponent(componentsList[i]);
+            if (!comp)
+                continue;
+
+            Actor* actor = comp->GetActor();
+            if (!actor)
+                continue;
+
+            const StringID actorId(actor->getUserFriendly().cStr());
+            if (actorId == iconId)
+            {
+                return comp;
+            }
+        }
+
+        return nullptr;
+    }
+
+    u32 Ray_ControlsRemappingMenuHelper::getActionIndex(ZInputManager::EGameAction action)
+    {
+        switch (action)
+        {
+        case ZInputManager::Action_Up:    return 0;
+        case ZInputManager::Action_Down:  return 1;
+        case ZInputManager::Action_Left:  return 2;
+        case ZInputManager::Action_Right: return 3;
+        case ZInputManager::Action_Run:   return 4;
+        case ZInputManager::Action_Jump:  return 5;
+        case ZInputManager::Action_Hit:   return 6;
+        default: return -1;
+        }
+    }
+
+    ZInputManager::EGameAction Ray_ControlsRemappingMenuHelper::getActionByIndex(u32 index)
+    {
+        const u32 count = 7;
+        if (index < 0)
+            index = (index % count + count) % count;
+        else
+            index = index % count;
+
+        switch (index)
+        {
+        case 0: return ZInputManager::Action_Up;
+        case 1: return ZInputManager::Action_Down;
+        case 2: return ZInputManager::Action_Left;
+        case 3: return ZInputManager::Action_Right;
+        case 4: return ZInputManager::Action_Run;
+        case 5: return ZInputManager::Action_Jump;
+        case 6: return ZInputManager::Action_Hit;
+        default: return ZInputManager::Action_Up;
+        }
     }
 
     bbool Ray_ControlsRemappingMenuHelper::tryGetSelectedPlayerIndex(u32& outPlayerIndex)
@@ -818,26 +929,76 @@ namespace ITF
         if (!m_isActive || !m_menu || !current)
             return ObjectRef::InvalidRef;
 
-#if defined(ITF_WINDOWS)
-        if (!m_isEditingControllerType)
-            return ObjectRef::InvalidRef;
+        const ObjectRef currentRef = current->getUIref();
 
         const f32 absJoyX = f32_Abs(joyX);
         const f32 absJoyY = f32_Abs(joyY);
         if (absJoyX < MTH_EPSILON && absJoyY < MTH_EPSILON)
             return ObjectRef::InvalidRef;
 
+#if defined(ITF_WINDOWS)
+        if (m_isEditingControllerType)
+        {
+            const bbool preferHorizontal = absJoyX >= absJoyY;
+            if (!preferHorizontal)
+            {
+                exitControllerTypeEditMode();
+            }
+            return ObjectRef::InvalidRef;
+        }
+#endif
         const bbool preferHorizontal = absJoyX >= absJoyY;
         if (preferHorizontal)
         {
-            return ObjectRef::InvalidRef;
+            return currentRef;
         }
 
-        exitControllerTypeEditMode();
-        return ObjectRef::InvalidRef;
-#else
-        return ObjectRef::InvalidRef;
-#endif
+        u32 selectedPlayer = U32_INVALID;
+        ZInputManager::EGameAction selectedAction = ZInputManager::Action_Up;
+        const bbool isOnIcon = tryGetIconInfoFromComponent(current, selectedPlayer, selectedAction);
+
+        u32 inputPlayer = U32_INVALID;
+        if (UI_MENUMANAGER)
+        {
+            inputPlayer = UI_MENUMANAGER->getCurrentInputPlayer();
+        }
+        if (inputPlayer == U32_INVALID || inputPlayer >= 4)
+        {
+            inputPlayer = isOnIcon && selectedPlayer < 4 ? selectedPlayer : 0;
+        }
+        if (!isOnIcon || selectedPlayer != inputPlayer)
+        {
+            ZInputManager::EGameAction focusAction = ZInputManager::Action_Up;
+            if (isOnIcon)
+            {
+                focusAction = selectedAction;
+            }
+            else if (m_hasLastActionByPlayer[inputPlayer])
+            {
+                focusAction = m_lastActionByPlayer[inputPlayer];
+            }
+
+            if (UIComponent* target = findIconComponent(inputPlayer, focusAction))
+            {
+                return target->getUIref();
+            }
+
+            return currentRef;
+        }
+        const u32 currentIdx = getActionIndex(selectedAction);
+        if (currentIdx < 0)
+        {
+            return currentRef;
+        }
+
+        const u32 dir = (joyY > 0.0f) ? 1 : -1; 
+        const ZInputManager::EGameAction nextAction = getActionByIndex(currentIdx + dir);
+        if (UIComponent* target = findIconComponent(inputPlayer, nextAction))
+        {
+            return target->getUIref();
+        }
+
+        return currentRef;
     }
 
 #if defined(ITF_WINDOWS)
