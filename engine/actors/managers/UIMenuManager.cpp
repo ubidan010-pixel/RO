@@ -445,6 +445,10 @@ void UIMenuManager::applySelectionChange(UIMenu* menu, UIComponent* oldSel, UICo
     {
         StringID menuCommand;
 
+        const bbool isNavigateAction =
+            _action == input_actionID_Left || _action == input_actionID_Right || _action == input_actionID_Up || _action == input_actionID_Down
+            || _action == input_actionID_LeftHold || _action == input_actionID_RightHold || _action == input_actionID_UpHold || _action == input_actionID_DownHold;
+
         UIMenu* pMenu = getMenu(m_currentMenuID);
         bbool   bStartActionIsValid = bfalse;
         if(pMenu)
@@ -457,7 +461,15 @@ void UIMenuManager::applySelectionChange(UIMenu* menu, UIComponent* oldSel, UICo
             if (controlsRemappingHelper)
             {
                 UIComponent* selected = pMenu->getUIComponentSelected();
-                if (selected)
+                if (selected && Ray_ControlsRemappingMenuHelper::handleExternalEditingInput(selected, _action))
+                {
+                    return btrue;
+                }
+                if (isNavigateAction && controlsRemappingHelper->isNavigationLocked())
+                {
+                    return btrue;
+                }
+                if (isNavigateAction && selected)
                 {
                     const ObjectRef overrideRef = controlsRemappingHelper->getFocusOverrideTargetForInputPlayer(selected, m_currentInputPlayer);
                     if (overrideRef.isValid() && overrideRef != selected->getUIref())

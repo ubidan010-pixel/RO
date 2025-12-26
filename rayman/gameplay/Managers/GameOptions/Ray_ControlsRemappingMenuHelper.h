@@ -39,6 +39,16 @@ namespace ITF
         void UpdateMenuOnSelectionChange(UIComponent* uiComponent, bbool isSelected) override;
         ObjectRef getNavigationOverrideTarget(UIComponent* current, f32 joyX, f32 joyY) override;
         ObjectRef getFocusOverrideTargetForInputPlayer(UIComponent* current, u32 inputPlayer) const;
+        bbool isNavigationLocked() const
+        {
+            if (m_isRemappingMode || m_isWaitingForRelease)
+                return btrue;
+#if defined(ITF_WINDOWS)
+            if (m_isEditingControllerType)
+                return btrue;
+#endif
+            return bfalse;
+        }
         static Ray_ControlsRemappingMenuHelper* getActiveHelper();
         void updateRemappingMode(f32 deltaTime);
 
