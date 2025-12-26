@@ -210,6 +210,79 @@ namespace ITF
         m_hasRestoredOnCancel = bfalse;
         captureRemappingSnapshot();
 
+#if !defined(ITF_WINDOWS)
+        {
+            const ObjectRefList& componentsList = m_menu->getUIComponentsList();
+            bbool disabledControllerOptions = bfalse;
+            for (u32 i = 0; i < componentsList.size(); ++i)
+            {
+                UIComponent* comp = UIMenuManager::getUIComponent(componentsList[i]);
+                if (!comp)
+                    continue;
+
+                Actor* actor = comp->GetActor();
+                if (!actor)
+                    continue;
+
+                if (actor->getUserFriendly() == "controller_options")
+                {
+                    comp->setCanBeSelected(bfalse);
+                    disabledControllerOptions = btrue;
+                    break;
+                }
+            }
+
+            if (disabledControllerOptions)
+            {
+                const auto isSelectableComponent = [](UIComponent* component) -> bbool
+                {
+                    if (!component || !component->getActive() || !component->getCanBeSelected())
+                        return bfalse;
+
+                    Actor* actor = component->GetActor();
+                    return actor && actor->isEnabled();
+                };
+
+                UIComponent* selected = m_menu->getUIComponentSelected();
+                if (!isSelectableComponent(selected))
+                {
+                    UIComponent* candidate = nullptr;
+
+                    for (u32 i = 0; i < componentsList.size(); ++i)
+                    {
+                        UIComponent* comp = UIMenuManager::getUIComponent(componentsList[i]);
+                        if (!isSelectableComponent(comp))
+                            continue;
+
+                        if (comp->getIsDefaultSelected())
+                        {
+                            candidate = comp;
+                            break;
+                        }
+                    }
+
+                    if (!candidate)
+                    {
+                        for (u32 i = 0; i < componentsList.size(); ++i)
+                        {
+                            UIComponent* comp = UIMenuManager::getUIComponent(componentsList[i]);
+                            if (isSelectableComponent(comp))
+                            {
+                                candidate = comp;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (candidate)
+                    {
+                        UI_MENUMANAGER->applySelectionChange(m_menu, selected, candidate);
+                    }
+                }
+            }
+        }
+#endif
+
 #if defined(ITF_WINDOWS)
         if (RAY_GAMEMANAGER)
         {
