@@ -195,13 +195,10 @@ namespace ITF
         onActivate();
         initializeMenuState();
 
-    #if !defined(ITF_WINDOWS)
-        setOptionComponentDeactivated(OPTION_RESOLUTION, btrue);
-        setOptionComponentDeactivated(OPTION_WINDOWED, btrue);
-    #else
-        setOptionComponentDeactivated(OPTION_RESOLUTION, bfalse);
-        setOptionComponentDeactivated(OPTION_WINDOWED, bfalse);
-    #endif
+#if defined(ITF_WINDOWS)
+        setOptionComponentHidden(OPTION_RESOLUTION, btrue);
+        setOptionComponentHidden(OPTION_WINDOWED, btrue);
+#endif
 
         updateVibrationOptionAvailability();
         showContextIcons();
@@ -216,6 +213,83 @@ namespace ITF
         {
             EVENTMANAGER->registerEvent(ITF_GET_STRINGID_CRC(EventControllerStateChanged, 3543189344), this);
             m_eventListenerRegistered = btrue;
+        }
+    }
+
+
+    void Ray_OptionMenuHelper::setOptionComponentHidden(const StringID& optionId, bbool hidden)
+    {
+        if (!m_menu || !optionId.isValid())
+            return;
+
+        UIComponent* component = findOptionComponent(optionId);
+        if (!component)
+            return;
+        setOptionComponentDeactivated(optionId, hidden);
+
+        auto disableActor = [](Actor* actor)
+        {
+            if (actor)
+                actor->disable();
+        };
+
+        auto enableActor = [](Actor* actor)
+        {
+            if (actor)
+                actor->enable();
+        };
+
+        if (hidden)
+        {
+            disableActor(component->GetActor());
+
+            if (UIGameOptionComponent* optionComponent = component->DynamicCast<UIGameOptionComponent>(ITF_GET_STRINGID_CRC(UIGameOptionComponent, 3059104641)))
+            {
+                disableActor(optionComponent->getLabelActor());
+                disableActor(optionComponent->getSelectedBackgroundActor());
+
+                if (UIListOptionComponent* listOption = component->DynamicCast<UIListOptionComponent>(ITF_GET_STRINGID_CRC(UIListOptionComponent, 3621365669)))
+                {
+                    disableActor(listOption->getValueActor());
+                    disableActor(listOption->getLeftArrowActor());
+                    disableActor(listOption->getLeftArrowHighlightActor());
+                    disableActor(listOption->getRightArrowActor());
+                    disableActor(listOption->getRightArrowHighlightActor());
+                }
+
+                if (UIFloatOptionComponent* floatOption = component->DynamicCast<UIFloatOptionComponent>(ITF_GET_STRINGID_CRC(UIFloatOptionComponent, 226609316)))
+                {
+                    disableActor(floatOption->getSliderBackgroundStartActor());
+                    disableActor(floatOption->getSliderBackgroundEndActor());
+                    disableActor(floatOption->getSliderCursorActor());
+                    disableActor(floatOption->getSliderBackgroundSelectedActor());
+                    disableActor(floatOption->getSliderCursorSelectedActor());
+                }
+
+                if (UIToggleOptionComponent* toggleOption = component->DynamicCast<UIToggleOptionComponent>(ITF_GET_STRINGID_CRC(UIToggleOptionComponent, 3689192266)))
+                {
+                    disableActor(toggleOption->getCheckboxOnActor());
+                    disableActor(toggleOption->getCheckboxOffActor());
+                }
+            }
+
+            return;
+        }
+        enableActor(component->GetActor());
+        if (UIGameOptionComponent* optionComponent = component->DynamicCast<UIGameOptionComponent>(ITF_GET_STRINGID_CRC(UIGameOptionComponent, 3059104641)))
+        {
+            enableActor(optionComponent->getLabelActor());
+            if (UIListOptionComponent* listOption = component->DynamicCast<UIListOptionComponent>(ITF_GET_STRINGID_CRC(UIListOptionComponent, 3621365669)))
+            {
+                enableActor(listOption->getValueActor());
+            }
+
+            if (UIFloatOptionComponent* floatOption = component->DynamicCast<UIFloatOptionComponent>(ITF_GET_STRINGID_CRC(UIFloatOptionComponent, 226609316)))
+            {
+                enableActor(floatOption->getSliderBackgroundStartActor());
+                enableActor(floatOption->getSliderBackgroundEndActor());
+                enableActor(floatOption->getSliderCursorActor());
+            }
         }
     }
 

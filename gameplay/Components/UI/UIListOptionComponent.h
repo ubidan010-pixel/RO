@@ -34,6 +34,10 @@ namespace ITF
         virtual void        onAction            (const StringID & action);
 
         ITF_INLINE Actor*       getValueActor() const { return m_valueActor; }
+        ITF_INLINE Actor*       getLeftArrowActor() const { return m_leftArrowActor; }
+        ITF_INLINE Actor*       getLeftArrowHighlightActor() const { return m_leftArrowHighlightActor; }
+        ITF_INLINE Actor*       getRightArrowActor() const { return m_rightArrowActor; }
+        ITF_INLINE Actor*       getRightArrowHighlightActor() const { return m_rightArrowHighlightActor; }
         void                    setEditingMode(bbool editing) override;
 
     protected:

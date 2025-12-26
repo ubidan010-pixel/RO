@@ -37,6 +37,8 @@ namespace ITF
         virtual     void        onAction            (const StringID & action);
 
         ITF_INLINE Actor*       getLabelActor() const { return m_labelActor; }
+        ITF_INLINE Actor*       getBackgroundActor() const { return m_backgroundActor; }
+        ITF_INLINE Actor*       getSelectedBackgroundActor() const { return m_selectedBackgroundActor; }
 
         virtual void            setEditingMode(bbool editing);
 

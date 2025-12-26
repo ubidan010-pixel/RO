@@ -46,6 +46,8 @@ namespace ITF
         ITF_INLINE Actor*       getSliderBackgroundStartActor() const { return m_sliderBackgroundStartActor; }
         ITF_INLINE Actor*       getSliderBackgroundEndActor() const { return m_sliderBackgroundEndActor; }
         ITF_INLINE Actor*       getSliderCursorActor() const { return m_sliderCursorActor; }
+        ITF_INLINE Actor*       getSliderBackgroundSelectedActor() const { return m_sliderBackgroundSelectedActor; }
+        ITF_INLINE Actor*       getSliderCursorSelectedActor() const { return m_sliderCursorSelectedActor; }
 
     protected:
         ITF_INLINE const class UIFloatOptionComponent_Template* getTemplate() const;

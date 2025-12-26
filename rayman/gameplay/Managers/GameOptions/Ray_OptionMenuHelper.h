@@ -53,6 +53,7 @@ namespace ITF
         virtual ~Ray_OptionMenuHelper();
         void activateForOptionMenu(MenuItemActionListener* mainListener);
         void setOptionComponentDeactivated(const StringID& optionId, bbool deactivated);
+        void setOptionComponentHidden(const StringID& optionId, bbool hidden);
         void onMenuItemAction(UIComponent* _UIComponent) override;
         StringID onMenuPageAction(UIMenu* _menu, const StringID& _action, const StringID& _defaultAction) override;
         void UpdateMenuOnSelectionChange(UIComponent* uiComponent, bbool isSelected) override;
