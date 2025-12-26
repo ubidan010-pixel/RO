@@ -35,7 +35,6 @@ namespace ITF
         virtual     void        onAction            (const StringID & action);
         u32            getPlayerIndex() const { return m_playerIndex; }
         void           setPlayerIndex(u32 index) { m_playerIndex = index; }
-        const String8& getResetButtonPath() const { return m_resetButtonPath; }
         const String8& getControlsPath() const { return m_controlsPath; }
         const String8& getPlayerTitlePath() const { return m_playerTitlePath; }
         const String8& getPlayerTitlePathConnected() const { return m_playerTitlePathConnected; }
@@ -69,7 +68,6 @@ namespace ITF
         void                    onControllerStateChanged(u32 padIndex, bbool connected, InputAdapter::PadType padType);
 
         u32                     m_playerIndex;
-        String8                 m_resetButtonPath;
         String8                 m_controlsPath;
         String8                 m_playerTitlePath;
         String8                 m_playerTitlePathConnected;

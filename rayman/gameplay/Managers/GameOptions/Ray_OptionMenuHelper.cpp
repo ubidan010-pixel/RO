@@ -194,6 +194,15 @@ namespace ITF
         }
         onActivate();
         initializeMenuState();
+
+    #if !defined(ITF_WINDOWS)
+        setOptionComponentDeactivated(OPTION_RESOLUTION, btrue);
+        setOptionComponentDeactivated(OPTION_WINDOWED, btrue);
+    #else
+        setOptionComponentDeactivated(OPTION_RESOLUTION, bfalse);
+        setOptionComponentDeactivated(OPTION_WINDOWED, bfalse);
+    #endif
+
         updateVibrationOptionAvailability();
         showContextIcons();
     }

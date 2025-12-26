@@ -14,7 +14,6 @@ namespace ITF
     BEGIN_SERIALIZATION_CHILD(UIProfileSlotComponent)
         BEGIN_CONDITION_BLOCK(ESerializeGroup_DataEditable)
             SERIALIZE_MEMBER("playerIndex", m_playerIndex);
-            SERIALIZE_MEMBER("resetButtonPath", m_resetButtonPath);
             SERIALIZE_MEMBER("controlsPath", m_controlsPath);
             SERIALIZE_MEMBER("playerTitlePath", m_playerTitlePath);
             SERIALIZE_MEMBER("playerTitlePathConnected", m_playerTitlePathConnected);
@@ -51,7 +50,6 @@ namespace ITF
     void UIProfileSlotComponent::clear()
     {
         m_playerIndex = 0;
-        m_resetButtonPath.clear();
         m_controlsPath.clear();
         m_playerTitlePath.clear();
         m_playerTitlePathConnected.clear();
@@ -251,7 +249,6 @@ namespace ITF
         bbool visible = isControllerConnected();
         LOG("[UIProfileSlotComponent] Player %u: Updating visibility (controller %s)",
             m_playerIndex, visible ? "connected" : "disconnected");
-        setActorVisibility(m_resetButtonPath, visible);
         setActorVisibility(m_controlsPath, visible);
 
         if (!m_playerTitlePathConnected.isEmpty() && !m_playerTitlePathDisconnected.isEmpty())
