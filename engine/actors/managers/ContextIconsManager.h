@@ -56,6 +56,8 @@ public:
     void changeTopLeftIcon(EContextIcon _icon);
     void changeTopRightIcon(EContextIcon _icon);
     EContextIconType getType(EContextIcon _icon) const;
+    void setForcedPlayerIndex(u32 _playerIndex);
+    void clearForcedPlayerIndex();
 
     const String8& getIconStr(u32 _padType, EContextIconType _context);
 
@@ -114,6 +116,8 @@ private:
     i32 m_runtimeDepthRank;
     UIComponent* iconBgSkipCine;
     UIComponent* iconProcessSkipCine;
+    bbool m_useForcedPlayerIndex;
+    u32 m_forcedPlayerIndex;
 };
 
 //------------------------------------------------------------------------------

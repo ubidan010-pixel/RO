@@ -89,7 +89,23 @@ ContextIconsManager::ContextIconsManager()
     , m_runtimeDepthRank(0)
     , iconBgSkipCine(nullptr)
     , iconProcessSkipCine(nullptr)
+    , m_useForcedPlayerIndex(bfalse)
+    , m_forcedPlayerIndex(0)
 {
+}
+
+//------------------------------------------------------------------------------
+void ContextIconsManager::setForcedPlayerIndex(u32 _playerIndex)
+{
+    m_useForcedPlayerIndex = btrue;
+    m_forcedPlayerIndex = _playerIndex;
+}
+
+//------------------------------------------------------------------------------
+void ContextIconsManager::clearForcedPlayerIndex()
+{
+    m_useForcedPlayerIndex = bfalse;
+    m_forcedPlayerIndex = 0;
 }
 
 //------------------------------------------------------------------------------
@@ -590,11 +606,14 @@ void ContextIconsManager::setupIcon(EContextIcon _icon, UIComponent* _iconUI, UI
     }
     else
     {
-        // Get the player in control (main player)
-        u32 mainPlayer = GAMEMANAGER->getMainIndexPlayer();
+        u32 playerIndex = GAMEMANAGER->getMainIndexPlayer();
+        if (m_useForcedPlayerIndex)
+        {
+            playerIndex = m_forcedPlayerIndex;
+        }
 
         // Get controller type
-        InputAdapter::PadType padType = INPUT_ADAPTER->getLastUsedPadType(mainPlayer);
+        InputAdapter::PadType padType = INPUT_ADAPTER->getLastUsedPadType(playerIndex);
         if (padType == InputAdapter::Pad_Invalid) return;
         EPhysicalButtonAction action = getPhysicalButtonAction(_icon);
         if (action == PhysicalButtonAction_Invalid) return;

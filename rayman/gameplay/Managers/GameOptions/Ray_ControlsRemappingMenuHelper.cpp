@@ -398,6 +398,30 @@ namespace ITF
     {
         if (!m_isActive || !CONTEXTICONSMANAGER)
             return;
+        {
+            u32 selectedPlayerIndex = U32_INVALID;
+            if (tryGetSelectedPlayerIndex(selectedPlayerIndex))
+            {
+                CONTEXTICONSMANAGER->setForcedPlayerIndex(selectedPlayerIndex);
+            }
+            else if (UI_MENUMANAGER)
+            {
+                const u32 inputPlayer = UI_MENUMANAGER->getCurrentInputPlayer();
+                if (inputPlayer != U32_INVALID)
+                {
+                    CONTEXTICONSMANAGER->setForcedPlayerIndex(inputPlayer);
+                }
+                else
+                {
+                    CONTEXTICONSMANAGER->clearForcedPlayerIndex();
+                }
+            }
+            else
+            {
+                CONTEXTICONSMANAGER->clearForcedPlayerIndex();
+            }
+        }
+
         if (m_isRemappingMode)
         {
             CONTEXTICONSMANAGER->hide();
@@ -886,6 +910,11 @@ namespace ITF
 
     void Ray_ControlsRemappingMenuHelper::onClose()
     {
+        if (CONTEXTICONSMANAGER)
+        {
+            CONTEXTICONSMANAGER->clearForcedPlayerIndex();
+        }
+
         cancelRemappingMode(btrue);
         m_isWaitingForRelease = bfalse;
 #if defined(ITF_WINDOWS)
