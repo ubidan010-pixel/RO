@@ -91,6 +91,42 @@ namespace ITF
 {
     namespace
     {
+        static void applyRelativePosOffset(UIComponent* component, const Vec2d& offset)
+        {
+            if (!component)
+                return;
+
+            component->setRelativePos(Vec2d(
+                component->getRelativePosX() + offset.m_x,
+                component->getRelativePosY() + offset.m_y));
+        }
+
+        static void applyRelativePosOffsetToActor(Actor* actor, const Vec2d& offset)
+        {
+            if (!actor)
+                return;
+
+            if (UIComponent* ui = actor->GetComponent<UIComponent>())
+                applyRelativePosOffset(ui, offset);
+        }
+
+        static void repositionListOptionInteractiveElements(UIListOptionComponent* listOption, const Vec2d& offset)
+        {
+            if (!listOption)
+                return;
+            if (UIGameOptionComponent* gameOption = listOption->DynamicCast<UIGameOptionComponent>(
+                    ITF_GET_STRINGID_CRC(UIGameOptionComponent, 3059104641)))
+            {
+                applyRelativePosOffsetToActor(gameOption->getLabelActor(), offset);
+            }
+
+            applyRelativePosOffsetToActor(listOption->getValueActor(), offset);
+            applyRelativePosOffsetToActor(listOption->getLeftArrowActor(), offset);
+            applyRelativePosOffsetToActor(listOption->getLeftArrowHighlightActor(), offset);
+            applyRelativePosOffsetToActor(listOption->getRightArrowActor(), offset);
+            applyRelativePosOffsetToActor(listOption->getRightArrowHighlightActor(), offset);
+        }
+
         struct OptionNavigationEntry
         {
             const char* friendly;
@@ -195,9 +231,21 @@ namespace ITF
         onActivate();
         initializeMenuState();
 
-#if !defined(ITF_WINDOWS)
+#if defined(ITF_WINDOWS)
         setOptionComponentHidden(OPTION_RESOLUTION, btrue);
         setOptionComponentHidden(OPTION_WINDOWED, btrue);
+        if (UIListOptionComponent* languageList = findListOptionComponent(OPTION_LANGUAGE))
+        {
+            if (UIComponent* resolutionComponent = findOptionComponent(OPTION_RESOLUTION))
+            {
+                const Vec2d offset(
+                    resolutionComponent->getRelativePosX() - languageList->getRelativePosX(),
+                    resolutionComponent->getRelativePosY() - languageList->getRelativePosY());
+
+                repositionListOptionInteractiveElements(languageList, offset);
+            }
+        }
+
         if (UI_MENUMANAGER)
         {
             if (UIComponent* languageComponent = findOptionComponent(OPTION_LANGUAGE))
@@ -1404,11 +1452,26 @@ namespace ITF
         if (friendly.isEmpty())
             return nullptr;
 
+    #if defined(ITF_WINDOWS)
+        const bbool languageAsResolution = friendly.equals("language_option", bfalse);
+    #endif
+
         for (size_t i = 0; i < s_optionNavigationEntryCount; ++i)
         {
             const OptionNavigationEntry& entry = s_optionNavigationEntries[i];
-            if (!entry.friendly || !friendly.equals(entry.friendly, bfalse))
-                continue;
+
+#if defined(ITF_WINDOWS)
+            if (languageAsResolution)
+            {
+                if (!entry.friendly || std::strcmp(entry.friendly, "resolution_option") != 0)
+                    continue;
+            }
+            else
+#endif
+            {
+                if (!entry.friendly || !friendly.equals(entry.friendly, bfalse))
+                    continue;
+            }
 
             const char* targetFriendly = nullptr;
             switch (direction)
@@ -1422,6 +1485,17 @@ namespace ITF
 
             if (!targetFriendly)
                 return nullptr;
+
+#if defined(ITF_WINDOWS)
+            if (languageAsResolution && direction == Navigation_Down)
+            {
+                targetFriendly = "master_volume_option";
+            }
+            if (std::strcmp(targetFriendly, "resolution_option") == 0 || std::strcmp(targetFriendly, "window_option") == 0)
+            {
+                targetFriendly = "language_option";
+            }
+#endif
 
             return findComponentByFriendlyName(targetFriendly);
         }
