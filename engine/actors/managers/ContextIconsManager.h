@@ -27,6 +27,7 @@ enum EPhysicalButtonAction
     PhysicalButtonAction_HomeMap,      // Usually mapped to BUTTON_FACE_WEST
     PhysicalButtonAction_Upload,
     PhysicalButtonAction_Download,
+    PhysicalButtonAction_ResetControlToDefault, // Mapped to BUTTON_FACE_NORTH
     PhysicalButtonAction_Count,
     PhysicalButtonAction_Invalid = -1
 };

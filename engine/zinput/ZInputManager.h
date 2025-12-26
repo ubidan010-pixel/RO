@@ -73,7 +73,7 @@ namespace  ITF
         u32                 GetFirstActiveControl(u32 _playerIndex, EInputSourceType* _outSource = nullptr);
         bbool               GetRemapping(u32 _playerIndex, EInputSourceType _source, ITF_VECTOR<u32>& _outMapping);
         void                ApplyRemapping(u32 _playerIndex, EInputSourceType _source, const ITF_VECTOR<u32>& _mapping);
-
+        bbool               IsRemappingDefault(u32 _playerIndex, EInputSourceType _source) const;
         void                SetSuppressReceive(bbool _suppress) { m_suppressReceive = _suppress; }
         bbool               GetSuppressReceive() const { return m_suppressReceive; }
 

@@ -51,6 +51,7 @@ namespace ITF
         ContextIcon_Cancel,
         ContextIcon_EditConfirm,
         ContextIcon_EditBack,
+        ContextIcon_ResetControlToDefault,
         ContextIcon_Count,
     };
 

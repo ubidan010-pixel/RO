@@ -72,7 +72,7 @@ const ContextIconsManager::ButtonIconMapping ContextIconsManager::s_iconMapping_
     { "WII_CLASSIC_BUTTON_B", "WII_CLASSIC_BUTTON_A", "WII_CLASSIC_BUTTON_Y", "WII_CLASSIC_BUTTON_X" };
 
 const ContextIconsManager::ButtonIconMapping ContextIconsManager::s_iconMapping_Keyboard =
-    { "KEYBOARD_SPACE", "KEYBOARD_BACKSPACE", "KEYBOARD_S", "KEYBOARD_W", "KEYBOARD_E", "KEYBOARD_ENTER" };
+    { "KEYBOARD_SPACE", "KEYBOARD_BACKSPACE", "KEYBOARD_S", "KEYBOARD_F", "KEYBOARD_E", "KEYBOARD_ENTER" };
 
 const ContextIconsManager::ButtonIconMapping ContextIconsManager::s_iconMapping_Fallback =
     { "BUTTON_SOUTH", "BUTTON_EAST", "BUTTON_WEST", "BUTTON_NORTH", "BUTTON_R_SHOULDER", "BUTTON_L_SHOULDER" };
@@ -313,6 +313,8 @@ const EPhysicalButtonAction ContextIconsManager::s_iconToActionMap[ContextIcon_C
     PhysicalButtonAction_Confirm,
     // ContextIcon_EditBack
     PhysicalButtonAction_Back,
+    // ContextIcon_ResetControlToDefault
+    PhysicalButtonAction_ResetControlToDefault,
 };
 
 //------------------------------------------------------------------------------
@@ -350,6 +352,8 @@ const EContextIconType ContextIconsManager::s_iconsTypes[ContextIcon_Count] =
     ContextIconType_Select,
     // ContextIcon_EditBack
     ContextIconType_Back,
+    // ContextIcon_ResetControlToDefault
+    ContextIconType_Select,
 };
 
 //------------------------------------------------------------------------------
@@ -383,6 +387,8 @@ u32 ContextIconsManager::getPhysicalButtonForAction(EPhysicalButtonAction _actio
         return ZPad_Base::BUTTON_R_SHOULDER;
     case PhysicalButtonAction_Download:
         return ZPad_Base::BUTTON_L_SHOULDER;
+    case PhysicalButtonAction_ResetControlToDefault:
+        return ZPad_Base::BUTTON_FACE_NORTH;
 
     default:
         return ZPad_Base::BUTTON_FACE_SOUTH;

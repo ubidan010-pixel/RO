@@ -638,6 +638,38 @@ namespace ITF
         return bfalse;
     }
 
+    bbool ZInputManager::IsRemappingDefault(u32 _playerIndex, EInputSourceType _source) const
+    {
+        for (u32 i = 0; i < m_devices.size(); ++i)
+        {
+            IInputDevice* device = m_devices[i];
+            if (!device || device->GetId() != _playerIndex || device->GetInputSourceType() != _source)
+                continue;
+
+#if defined(ITF_WINDOWS)
+            if (_source == InputSource_Keyboard)
+            {
+                if (const ZPad_PCKeyboard* keyboard = static_cast<const ZPad_PCKeyboard*>(device))
+                {
+                    return !keyboard->HasCustomKeyMappings();
+                }
+                return btrue;
+            }
+#endif
+
+            for (u32 c = 0; c < ZPad_Base::CONTROL_MAX; ++c)
+            {
+                if (device->GetRemap(c) != c)
+                {
+                    return bfalse;
+                }
+            }
+            return btrue;
+        }
+
+        return btrue;
+    }
+
     void ZInputManager::ApplyRemapping(u32 _playerIndex, EInputSourceType _source, const ITF_VECTOR<u32>& _mapping)
     {
         for (u32 i = 0; i < m_devices.size(); ++i)

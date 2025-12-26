@@ -36,8 +36,8 @@ namespace ITF
         void activateForControlsRemappingMenu(MenuItemActionListener* mainListener);
         void onMenuItemAction(UIComponent* _UIComponent) override;
         StringID onMenuPageAction(UIMenu* _menu, const StringID& _action, const StringID& _defaultAction) override;
+        void UpdateMenuOnSelectionChange(UIComponent* uiComponent, bbool isSelected) override;
         ObjectRef getNavigationOverrideTarget(UIComponent* current, f32 joyX, f32 joyY) override;
-        
         static Ray_ControlsRemappingMenuHelper* getActiveHelper();
         void updateRemappingMode(f32 deltaTime);
 
@@ -63,6 +63,7 @@ namespace ITF
         void finalizeRemapping(u32 physicalControl);
         void onClose() override;
         EInputSourceType getActiveSourceForReset(u32 playerIndex) const;
+        bbool tryGetSelectedPlayerIndex(u32& outPlayerIndex);
 
 #if defined(ITF_WINDOWS)
         bbool handleControllerTypeAction(const StringID& id, UIComponent* component);

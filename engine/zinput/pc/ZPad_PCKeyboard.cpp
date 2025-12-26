@@ -115,6 +115,18 @@ namespace ITF
         }
     }
 
+    bbool ZPad_PCKeyboard::HasCustomKeyMappings() const
+    {
+        for (u32 i = 0; i < MAX_KEY_MAPPINGS; ++i)
+        {
+            if (m_keyMappings[i] >= 0)
+            {
+                return btrue;
+            }
+        }
+        return bfalse;
+    }
+
     void ZPad_PCKeyboard::SetKeyMapping(u32 logicalControl, i32 keyCode)
     {
         if (logicalControl >= MAX_KEY_MAPPINGS)

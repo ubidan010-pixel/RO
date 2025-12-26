@@ -27,7 +27,7 @@ namespace ITF
         void SetKeyMapping(u32 logicalControl, i32 keyCode);
         i32 GetKeyMapping(u32 logicalControl) const;
         void ResetKeyMappings();
-
+        bbool HasCustomKeyMappings() const;
     protected:
         PhysicalButtonMapping GetPhysicalButtonMapping() const override;
         void UpdateDeviceInfo(SDeviceInfo& deviceInfo) override;

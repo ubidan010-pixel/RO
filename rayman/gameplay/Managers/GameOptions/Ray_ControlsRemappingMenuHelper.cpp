@@ -402,7 +402,50 @@ namespace ITF
             return;
         }
 #endif
-        CONTEXTICONSMANAGER->show(ContextIcon_Confirm, ContextIcon_Cancel, ContextIcon_EditConfirm);
+
+        EContextIcon topRightIcon = ContextIcon_Invalid;
+        u32 selectedPlayerIndex = U32_INVALID;
+        if (tryGetSelectedPlayerIndex(selectedPlayerIndex) && GAMEMANAGER && GAMEMANAGER->getInputManager())
+        {
+            ZInputManager* input = GAMEMANAGER->getInputManager();
+            const EInputSourceType source = getActiveSourceForReset(selectedPlayerIndex);
+            if (!input->IsRemappingDefault(selectedPlayerIndex, source))
+            {
+                topRightIcon = ContextIcon_ResetControlToDefault;
+            }
+        }
+
+        CONTEXTICONSMANAGER->show(ContextIcon_Confirm, ContextIcon_Cancel, ContextIcon_EditConfirm, topRightIcon);
+    }
+
+    void Ray_ControlsRemappingMenuHelper::UpdateMenuOnSelectionChange(UIComponent* uiComponent, bbool isSelected)
+    {
+        ITF_UNUSED(uiComponent);
+        ITF_UNUSED(isSelected);
+        showContextIcons();
+    }
+
+    bbool Ray_ControlsRemappingMenuHelper::tryGetSelectedPlayerIndex(u32& outPlayerIndex)
+    {
+        outPlayerIndex = U32_INVALID;
+
+        if (!m_menu)
+            return bfalse;
+
+        UIComponent* selected = m_menu->getUIComponentSelected();
+        if (!selected)
+            return bfalse;
+
+        Actor* actor = selected->GetActor();
+        if (!actor)
+            return bfalse;
+
+        const StringID actorId(actor->getUserFriendly().cStr());
+        if (!actorId.isValid())
+            return bfalse;
+
+        ZInputManager::EGameAction unusedAction = ZInputManager::Action_Up;
+        return parseIconId(actorId, outPlayerIndex, unusedAction);
     }
 
     StringID Ray_ControlsRemappingMenuHelper::onMenuPageAction(UIMenu* menu, const StringID& action, const StringID& defaultAction)
@@ -452,6 +495,22 @@ namespace ITF
         if (action == input_actionID_DeleteSave)
         {
             applyAndClose();
+            return UI_MENUMANAGER->getMenuPageAction_Nothing();
+        }
+
+        if (action == input_actionID_Other)
+        {
+            u32 selectedPlayerIndex = U32_INVALID;
+            if (tryGetSelectedPlayerIndex(selectedPlayerIndex) && GAMEMANAGER && GAMEMANAGER->getInputManager())
+            {
+                ZInputManager* input = GAMEMANAGER->getInputManager();
+                const EInputSourceType source = getActiveSourceForReset(selectedPlayerIndex);
+                if (!input->IsRemappingDefault(selectedPlayerIndex, source))
+                {
+                    input->ResetRemapping(selectedPlayerIndex, source);
+                    showContextIcons();
+                }
+            }
             return UI_MENUMANAGER->getMenuPageAction_Nothing();
         }
 
