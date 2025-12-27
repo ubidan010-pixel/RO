@@ -167,6 +167,7 @@ namespace ITF
                     ITF_GET_STRINGID_CRC(UIGameOptionComponent, 3059104641)))
             {
                 applyRelativePosOffsetToActor(gameOption->getLabelActor(), offset);
+                applyRelativePosOffsetToActor(gameOption->getSelectedBackgroundActor(), offset);
             }
 
             applyRelativePosOffsetToActor(listOption->getValueActor(), offset);
