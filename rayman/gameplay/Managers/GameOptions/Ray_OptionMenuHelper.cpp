@@ -97,6 +97,10 @@
 
 namespace ITF
 {
+#if !defined(ITF_WINDOWS) || defined(ITF_FORCE_CONSOLE_OPTION_MENU)
+    #define ITF_OPTIONMENU_CONSOLE_LAYOUT 1
+#endif
+
     namespace
     {
         static Actor* findActorInMenuWorldByUserFriendly(UIMenu* menu, const char* userFriendly)
@@ -284,7 +288,7 @@ namespace ITF
         onActivate();
         initializeMenuState();
 
-#if defined(ITF_WINDOWS)
+#if defined(ITF_OPTIONMENU_CONSOLE_LAYOUT)
         setOptionComponentHidden(OPTION_RESOLUTION, btrue);
         setOptionComponentHidden(OPTION_WINDOWED, btrue);
         if (UIListOptionComponent* languageList = findListOptionComponent(OPTION_LANGUAGE))
@@ -931,7 +935,7 @@ namespace ITF
         unregisterEventListeners();
         exitEditMode();
 
-#if defined(ITF_WINDOWS)
+#if defined(ITF_OPTIONMENU_CONSOLE_LAYOUT)
         if (m_hasDisplayOptionsBackgroundOverride)
         {
             Actor* backgroundActor = findActorInMenuWorldByUserFriendly(m_menu, "option_background");
@@ -1571,7 +1575,7 @@ namespace ITF
         if (friendly.isEmpty())
             return nullptr;
 
-    #if defined(ITF_WINDOWS)
+    #if defined(ITF_OPTIONMENU_CONSOLE_LAYOUT)
         const bbool languageAsResolution = friendly.equals("language_option", bfalse);
     #endif
 
@@ -1579,7 +1583,7 @@ namespace ITF
         {
             const OptionNavigationEntry& entry = s_optionNavigationEntries[i];
 
-#if defined(ITF_WINDOWS)
+#if defined(ITF_OPTIONMENU_CONSOLE_LAYOUT)
             if (languageAsResolution)
             {
                 if (!entry.friendly || std::strcmp(entry.friendly, "resolution_option") != 0)
@@ -1605,7 +1609,7 @@ namespace ITF
             if (!targetFriendly)
                 return nullptr;
 
-#if defined(ITF_WINDOWS)
+#if defined(ITF_OPTIONMENU_CONSOLE_LAYOUT)
             if (languageAsResolution && direction == Navigation_Down)
             {
                 targetFriendly = "master_volume_option";
