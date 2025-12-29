@@ -461,11 +461,18 @@ void UIMenuManager::applySelectionChange(UIMenu* menu, UIComponent* oldSel, UICo
             if (controlsRemappingHelper)
             {
                 UIComponent* selected = pMenu->getUIComponentSelected();
+                if (m_currentInputPlayer < 4)
+                {
+                    if (UIComponent* perPlayerSelected = controlsRemappingHelper->getSelectedComponentForPlayer(m_currentInputPlayer))
+                    {
+                        selected = perPlayerSelected;
+                    }
+                }
                 if (selected && Ray_ControlsRemappingMenuHelper::handleExternalEditingInput(selected, _action))
                 {
                     return btrue;
                 }
-                if (isNavigateAction && controlsRemappingHelper->isNavigationLocked())
+                if (isNavigateAction && m_currentInputPlayer < 4 && controlsRemappingHelper->isNavigationLockedForPlayer(m_currentInputPlayer))
                 {
                     return btrue;
                 }
@@ -988,6 +995,13 @@ void UIMenuManager::applySelectionChange(UIMenu* menu, UIComponent* oldSel, UICo
                     Ray_ControlsRemappingMenuHelper* controlsRemappingHelper = Ray_ControlsRemappingMenuHelper::getActiveHelper();
                     if (controlsRemappingHelper)
                     {
+                        if (m_currentInputPlayer < 4)
+                        {
+                            if (UIComponent* perPlayerSelected = controlsRemappingHelper->getSelectedComponentForPlayer(m_currentInputPlayer))
+                            {
+                                pUIComponentSelected = perPlayerSelected;
+                            }
+                        }
                         ObjectRef overrideRef = controlsRemappingHelper->getNavigationOverrideTarget(pUIComponentSelected, joyX, joyY);
                         if (overrideRef.isValid())
                         {
@@ -1384,6 +1398,15 @@ void UIMenuManager::applySelectionChange(UIMenu* menu, UIComponent* oldSel, UICo
         {
             // Get the current item selected in order to know the action to apply
             UIComponent* pUIComponent = pMenu->getUIComponentSelected();
+
+            Ray_ControlsRemappingMenuHelper* controlsRemappingHelper = Ray_ControlsRemappingMenuHelper::getActiveHelper();
+            if (controlsRemappingHelper && m_currentInputPlayer < 4)
+            {
+                if (UIComponent* perPlayerSelected = controlsRemappingHelper->getSelectedComponentForPlayer(m_currentInputPlayer))
+                {
+                    pUIComponent = perPlayerSelected;
+                }
+            }
             if (pUIComponent)
             {
                 MenuItemActionListener *listener = getCurrentMenuActionListener();
@@ -1401,6 +1424,15 @@ void UIMenuManager::applySelectionChange(UIMenu* menu, UIComponent* oldSel, UICo
         {
             // Get the current item selected in order to know the action to apply
             UIComponent* pUIComponent = pMenu->getUIComponentSelected();
+
+            Ray_ControlsRemappingMenuHelper* controlsRemappingHelper = Ray_ControlsRemappingMenuHelper::getActiveHelper();
+            if (controlsRemappingHelper && m_currentInputPlayer < 4)
+            {
+                if (UIComponent* perPlayerSelected = controlsRemappingHelper->getSelectedComponentForPlayer(m_currentInputPlayer))
+                {
+                    pUIComponent = perPlayerSelected;
+                }
+            }
             if (pUIComponent)
             {
                 StringID menuSonID = pUIComponent->getMenuSonID();
@@ -1434,6 +1466,15 @@ void UIMenuManager::applySelectionChange(UIMenu* menu, UIComponent* oldSel, UICo
         if (pMenu)
         {
             UIComponent* pUIComponent = pMenu->getUIComponentSelected();
+
+            Ray_ControlsRemappingMenuHelper* controlsRemappingHelper = Ray_ControlsRemappingMenuHelper::getActiveHelper();
+            if (controlsRemappingHelper && m_currentInputPlayer < 4)
+            {
+                if (UIComponent* perPlayerSelected = controlsRemappingHelper->getSelectedComponentForPlayer(m_currentInputPlayer))
+                {
+                    pUIComponent = perPlayerSelected;
+                }
+            }
             if (pUIComponent)
             {
                 MenuItemActionListener *listener = getCurrentMenuActionListener();

@@ -42,6 +42,7 @@
 #include "rayman/gameplay/Managers/GameOptions/Ray_GameOptionNames.h"
 #endif
 #include <algorithm>
+
 namespace ITF
 {
     namespace ControlsRemappingConstants
@@ -134,14 +135,6 @@ namespace ITF
 
     Ray_ControlsRemappingMenuHelper::Ray_ControlsRemappingMenuHelper()
         : Ray_BaseMenuHelper()
-          , m_isRemappingMode(bfalse)
-          , m_isWaitingForRelease(bfalse)
-          , m_remappingPlayerIndex(0)
-          , m_remappingAction(ZInputManager::Action_Up)
-          , m_remappingComponent(nullptr)
-          , m_remappingCooldown(0.0f)
-          , m_postRemapCooldown(0.0f)
-          , m_remappingSource(InputSource_Gamepad)
           , m_hasCommittedChanges(bfalse)
           , m_hasRestoredOnCancel(bfalse)
           , m_hasSnapshot(bfalse)
@@ -159,6 +152,17 @@ namespace ITF
 
         for (u32 i = 0; i < 4; ++i)
         {
+            m_isRemappingModeByPlayer[i] = bfalse;
+            m_isWaitingForReleaseByPlayer[i] = bfalse;
+            m_remappingActionByPlayer[i] = ZInputManager::Action_Up;
+            m_remappingComponentByPlayer[i] = nullptr;
+            m_remappingCooldownByPlayer[i] = 0.0f;
+            m_postRemapCooldownByPlayer[i] = 0.0f;
+            m_remappingSourceByPlayer[i] = InputSource_Gamepad;
+
+            m_selectedComponentRefByPlayer[i] = ObjectRef::InvalidRef;
+            m_hasSelectedComponentByPlayer[i] = bfalse;
+
             m_hasSnapshotGamepad[i] = bfalse;
             m_hasSnapshotKeyboard[i] = bfalse;
 
@@ -189,18 +193,24 @@ namespace ITF
         if (!menu)
             return;
         m_isActive = btrue;
-        m_isRemappingMode = bfalse;
-        m_isWaitingForRelease = bfalse;
-        m_remappingComponent = nullptr;
-        m_remappingCooldown = 0.0f;
-        m_postRemapCooldown = 0.0f;
-        m_remappingSource = InputSource_Gamepad;
+        for (u32 i = 0; i < 4; ++i)
+        {
+            m_isRemappingModeByPlayer[i] = bfalse;
+            m_isWaitingForReleaseByPlayer[i] = bfalse;
+            m_remappingComponentByPlayer[i] = nullptr;
+            m_remappingCooldownByPlayer[i] = 0.0f;
+            m_postRemapCooldownByPlayer[i] = 0.0f;
+            m_remappingSourceByPlayer[i] = InputSource_Gamepad;
+
+            m_selectedComponentRefByPlayer[i] = ObjectRef::InvalidRef;
+            m_hasSelectedComponentByPlayer[i] = bfalse;
+        }
 #if defined(ITF_WINDOWS)
         m_isEditingControllerType = bfalse;
         m_editingControllerTypeComponent = nullptr;
         m_controllerTypeChangeCooldown = 0.0f;
         m_previousSelectionStates.clear();
-    m_hasSnapshotPCControlModeEdit = bfalse;
+        m_hasSnapshotPCControlModeEdit = bfalse;
 #endif
         m_mainListener = mainListener;
         UI_MENUMANAGER->setMenuListener(m_menuBaseName, this);
@@ -217,6 +227,21 @@ namespace ITF
             m_lastActionByPlayer[i] = ZInputManager::Action_Up;
         }
         captureRemappingSnapshot();
+        for (u32 playerIndex = 0; playerIndex < 4; ++playerIndex)
+        {
+            const bbool hasPad = (INPUT_ADAPTER && INPUT_ADAPTER->isPadConnected(playerIndex)) ? btrue : bfalse;
+            if (playerIndex != 0 && !hasPad)
+                continue;
+
+            if (UIComponent* upComp = findIconComponent(playerIndex, ZInputManager::Action_Up))
+            {
+                m_selectedComponentRefByPlayer[playerIndex] = upComp->getUIref();
+                m_hasSelectedComponentByPlayer[playerIndex] = btrue;
+                upComp->setIsSelected(btrue);
+                upComp->onRollover();
+                UIMenuManager::notifySiblingUIComponents(upComp, btrue);
+            }
+        }
 
 #if !defined(ITF_WINDOWS)
         {
@@ -304,7 +329,6 @@ namespace ITF
 #endif
 
         showContextIcons();
-
     }
 
     void Ray_ControlsRemappingMenuHelper::captureRemappingSnapshot()
@@ -375,12 +399,14 @@ namespace ITF
 
         if (!GAMEMANAGER || !GAMEMANAGER->getInputManager())
             return;
-        cancelRemappingMode(btrue);
-        m_isWaitingForRelease = bfalse;
-        m_postRemapCooldown = 0.0f;
+        for (u32 playerIndex = 0; playerIndex < 4; ++playerIndex)
+        {
+            cancelRemappingMode(playerIndex, btrue);
+            m_isWaitingForReleaseByPlayer[playerIndex] = bfalse;
+            m_postRemapCooldownByPlayer[playerIndex] = 0.0f;
+        }
 
         ZInputManager* input = GAMEMANAGER->getInputManager();
-        input->SetSuppressReceive(bfalse);
 
         for (u32 playerIndex = 0; playerIndex < 4; ++playerIndex)
         {
@@ -403,22 +429,26 @@ namespace ITF
         if (!m_isActive || !CONTEXTICONSMANAGER)
             return;
         {
-            u32 selectedPlayerIndex = U32_INVALID;
-            if (tryGetSelectedPlayerIndex(selectedPlayerIndex))
-            {
-                CONTEXTICONSMANAGER->setForcedPlayerIndex(selectedPlayerIndex);
-            }
-            else if (UI_MENUMANAGER)
+            u32 forcedPlayerIndex = U32_INVALID;
+            if (UI_MENUMANAGER)
             {
                 const u32 inputPlayer = UI_MENUMANAGER->getCurrentInputPlayer();
-                if (inputPlayer != U32_INVALID)
+                if (inputPlayer != U32_INVALID && inputPlayer < 4)
                 {
-                    CONTEXTICONSMANAGER->setForcedPlayerIndex(inputPlayer);
+                    forcedPlayerIndex = inputPlayer;
                 }
-                else
+            }
+            if (forcedPlayerIndex == U32_INVALID)
+            {
+                u32 selectedPlayerIndex = U32_INVALID;
+                if (tryGetSelectedPlayerIndex(selectedPlayerIndex))
                 {
-                    CONTEXTICONSMANAGER->clearForcedPlayerIndex();
+                    forcedPlayerIndex = selectedPlayerIndex;
                 }
+            }
+            if (forcedPlayerIndex != U32_INVALID)
+            {
+                CONTEXTICONSMANAGER->setForcedPlayerIndex(forcedPlayerIndex);
             }
             else
             {
@@ -426,10 +456,13 @@ namespace ITF
             }
         }
 
-        if (m_isRemappingMode)
+        for (u32 playerIndex = 0; playerIndex < 4; ++playerIndex)
         {
-            CONTEXTICONSMANAGER->hide();
-            return;
+            if (m_isRemappingModeByPlayer[playerIndex])
+            {
+                CONTEXTICONSMANAGER->hide();
+                return;
+            }
         }
 
 #if defined(ITF_WINDOWS)
@@ -442,7 +475,19 @@ namespace ITF
 
         EContextIcon topRightIcon = ContextIcon_Invalid;
         u32 selectedPlayerIndex = U32_INVALID;
-        if (tryGetSelectedPlayerIndex(selectedPlayerIndex) && GAMEMANAGER && GAMEMANAGER->getInputManager())
+        if (UI_MENUMANAGER)
+        {
+            const u32 inputPlayer = UI_MENUMANAGER->getCurrentInputPlayer();
+            if (inputPlayer != U32_INVALID && inputPlayer < 4)
+            {
+                selectedPlayerIndex = inputPlayer;
+            }
+        }
+        if (selectedPlayerIndex == U32_INVALID)
+        {
+            (void)tryGetSelectedPlayerIndex(selectedPlayerIndex);
+        }
+        if (selectedPlayerIndex != U32_INVALID && GAMEMANAGER && GAMEMANAGER->getInputManager())
         {
             ZInputManager* input = GAMEMANAGER->getInputManager();
             const EInputSourceType source = getActiveSourceForReset(selectedPlayerIndex);
@@ -465,9 +510,55 @@ namespace ITF
             {
                 m_hasLastActionByPlayer[playerIndex] = btrue;
                 m_lastActionByPlayer[playerIndex] = action;
+
+                m_selectedComponentRefByPlayer[playerIndex] = uiComponent->getUIref();
+                m_hasSelectedComponentByPlayer[playerIndex] = btrue;
+            }
+            else if (UI_MENUMANAGER)
+            {
+                const u32 inputPlayer = UI_MENUMANAGER->getCurrentInputPlayer();
+                if (inputPlayer < 4)
+                {
+                    m_selectedComponentRefByPlayer[inputPlayer] = uiComponent->getUIref();
+                    m_hasSelectedComponentByPlayer[inputPlayer] = btrue;
+                }
             }
         }
         showContextIcons();
+    }
+
+    UIComponent* Ray_ControlsRemappingMenuHelper::getSelectedComponentForPlayer(u32 inputPlayer) const
+    {
+        if (!m_menu || inputPlayer >= 4)
+            return nullptr;
+
+        if (m_hasSelectedComponentByPlayer[inputPlayer] && m_selectedComponentRefByPlayer[inputPlayer].isValid())
+        {
+            if (UIComponent* comp = UIMenuManager::getUIComponent(m_selectedComponentRefByPlayer[inputPlayer]))
+            {
+                return comp;
+            }
+        }
+
+        // Fallback
+        return const_cast<Ray_ControlsRemappingMenuHelper*>(this)->findIconComponent(
+            inputPlayer, ZInputManager::Action_Up);
+    }
+
+    bbool Ray_ControlsRemappingMenuHelper::isNavigationLockedForPlayer(u32 inputPlayer) const
+    {
+        if (inputPlayer >= 4)
+            return bfalse;
+
+        if (m_isRemappingModeByPlayer[inputPlayer] || m_isWaitingForReleaseByPlayer[inputPlayer])
+            return btrue;
+
+#if defined(ITF_WINDOWS)
+        if (inputPlayer == 0 && m_isEditingControllerType)
+            return btrue;
+#endif
+
+        return bfalse;
     }
 
     bbool Ray_ControlsRemappingMenuHelper::tryGetIconInfoFromComponent(
@@ -490,7 +581,8 @@ namespace ITF
         return const_cast<Ray_ControlsRemappingMenuHelper*>(this)->parseIconId(actorId, outPlayerIndex, outAction);
     }
 
-    UIComponent* Ray_ControlsRemappingMenuHelper::findIconComponent(u32 playerIndex, ZInputManager::EGameAction action) const
+    UIComponent* Ray_ControlsRemappingMenuHelper::findIconComponent(u32 playerIndex,
+                                                                    ZInputManager::EGameAction action) const
     {
         if (!m_menu || playerIndex >= 4)
             return nullptr;
@@ -528,19 +620,18 @@ namespace ITF
         return nullptr;
     }
 
-    ObjectRef Ray_ControlsRemappingMenuHelper::getFocusOverrideTargetForInputPlayer(UIComponent* current, u32 inputPlayer) const
+    ObjectRef Ray_ControlsRemappingMenuHelper::getFocusOverrideTargetForInputPlayer(
+        UIComponent* current, u32 inputPlayer) const
     {
         if (!m_isActive || !m_menu || !current)
             return ObjectRef::InvalidRef;
 
         if (inputPlayer >= 4)
             return ObjectRef::InvalidRef;
-        if (m_isRemappingMode || m_isWaitingForRelease)
+        if (isNavigationLockedForPlayer(inputPlayer))
             return ObjectRef::InvalidRef;
 
 #if defined(ITF_WINDOWS)
-        if (m_isEditingControllerType)
-            return ObjectRef::InvalidRef;
         if (Actor* actor = current->GetActor())
         {
             const StringID actorId(actor->getUserFriendly().cStr());
@@ -601,7 +692,6 @@ namespace ITF
 
     ZInputManager::EGameAction Ray_ControlsRemappingMenuHelper::getActionByIndex(u32 index)
     {
-
         switch (index)
         {
         case 0: return ZInputManager::Action_Up;
@@ -638,20 +728,37 @@ namespace ITF
         return parseIconId(actorId, outPlayerIndex, unusedAction);
     }
 
-    StringID Ray_ControlsRemappingMenuHelper::onMenuPageAction(UIMenu* menu, const StringID& action, const StringID& defaultAction)
+    StringID Ray_ControlsRemappingMenuHelper::onMenuPageAction(UIMenu* menu, const StringID& action,
+                                                               const StringID& defaultAction)
     {
         if (!UI_MENUMANAGER)
             return defaultAction;
-        if (m_isRemappingMode || m_isWaitingForRelease)
+
+        const u32 inputPlayer = UI_MENUMANAGER->getCurrentInputPlayer();
+        const bbool validInputPlayer = (inputPlayer != U32_INVALID && inputPlayer < 4);
+
+        bbool anyRemappingOrWaiting = bfalse;
+        for (u32 playerIndex = 0; playerIndex < 4; ++playerIndex)
+        {
+            if (m_isRemappingModeByPlayer[playerIndex] || m_isWaitingForReleaseByPlayer[playerIndex])
+            {
+                anyRemappingOrWaiting = btrue;
+                break;
+            }
+        }
+
+        if (anyRemappingOrWaiting)
         {
             if (action == input_actionID_Back)
             {
-                cancelRemappingMode(btrue);
-                m_isWaitingForRelease = bfalse;
-                m_postRemapCooldown = 0.0f;
-                if (GAMEMANAGER && GAMEMANAGER->getInputManager())
+                if (validInputPlayer && m_isRemappingModeByPlayer[inputPlayer])
                 {
-                    GAMEMANAGER->getInputManager()->SetSuppressReceive(bfalse);
+                    cancelRemappingMode(inputPlayer, btrue);
+                }
+                if (validInputPlayer)
+                {
+                    m_isWaitingForReleaseByPlayer[inputPlayer] = bfalse;
+                    m_postRemapCooldownByPlayer[inputPlayer] = 0.0f;
                 }
                 showContextIcons();
                 return UI_MENUMANAGER->getMenuPageAction_Nothing();
@@ -689,20 +796,33 @@ namespace ITF
         }
 
         if (action == input_actionID_Other)
-        {
-            u32 selectedPlayerIndex = U32_INVALID;
-            if (tryGetSelectedPlayerIndex(selectedPlayerIndex) && GAMEMANAGER && GAMEMANAGER->getInputManager())
+            if (action == input_actionID_DeleteSave)
             {
-                ZInputManager* input = GAMEMANAGER->getInputManager();
-                const EInputSourceType source = getActiveSourceForReset(selectedPlayerIndex);
-                if (!input->IsRemappingDefault(selectedPlayerIndex, source))
+                u32 selectedPlayerIndex = U32_INVALID;
+                if (UI_MENUMANAGER)
                 {
-                    input->ResetRemapping(selectedPlayerIndex, source);
-                    showContextIcons();
+                    const u32 inputPlayer = UI_MENUMANAGER->getCurrentInputPlayer();
+                    if (inputPlayer != U32_INVALID && inputPlayer < 4)
+                    {
+                        selectedPlayerIndex = inputPlayer;
+                    }
                 }
+                if (selectedPlayerIndex == U32_INVALID)
+                {
+                    (void)tryGetSelectedPlayerIndex(selectedPlayerIndex);
+                }
+                if (selectedPlayerIndex != U32_INVALID && GAMEMANAGER && GAMEMANAGER->getInputManager())
+                {
+                    ZInputManager* input = GAMEMANAGER->getInputManager();
+                    const EInputSourceType source = getActiveSourceForReset(selectedPlayerIndex);
+                    if (!input->IsRemappingDefault(selectedPlayerIndex, source))
+                    {
+                        input->ResetRemapping(selectedPlayerIndex, source);
+                        showContextIcons();
+                    }
+                }
+                return UI_MENUMANAGER->getMenuPageAction_Nothing();
             }
-            return UI_MENUMANAGER->getMenuPageAction_Nothing();
-        }
 
         if (action == input_actionID_Back)
         {
@@ -734,6 +854,16 @@ namespace ITF
     {
         if (!component)
             return;
+
+        if (UI_MENUMANAGER)
+        {
+            const u32 inputPlayer = UI_MENUMANAGER->getCurrentInputPlayer();
+            if (inputPlayer < 4)
+            {
+                if (m_isRemappingModeByPlayer[inputPlayer] || m_isWaitingForReleaseByPlayer[inputPlayer])
+                    return;
+            }
+        }
 
         StringID actorId;
         if (Actor* actor = component->GetActor())
@@ -789,7 +919,8 @@ namespace ITF
         return btrue;
     }
 
-    void Ray_ControlsRemappingMenuHelper::startRemappingMode(u32 playerIndex, ZInputManager::EGameAction action, UIComponent* component)
+    void Ray_ControlsRemappingMenuHelper::startRemappingMode(u32 playerIndex, ZInputManager::EGameAction action,
+                                                             UIComponent* component)
     {
         if (action == ZInputManager::Action_Back)
         {
@@ -797,19 +928,13 @@ namespace ITF
             return;
         }
 
-        cancelRemappingMode(btrue);
-        m_isRemappingMode = btrue;
-        m_remappingPlayerIndex = playerIndex;
-        m_remappingAction = action;
-        m_remappingComponent = component;
-        m_remappingCooldown = ControlsRemappingConstants::REMAPPING_COOLDOWN;
-        m_remappingSource = InputSource_Count;
+        cancelRemappingMode(playerIndex, btrue);
+        m_isRemappingModeByPlayer[playerIndex] = btrue;
+        m_remappingActionByPlayer[playerIndex] = action;
+        m_remappingComponentByPlayer[playerIndex] = component;
+        m_remappingCooldownByPlayer[playerIndex] = ControlsRemappingConstants::REMAPPING_COOLDOWN;
+        m_remappingSourceByPlayer[playerIndex] = InputSource_Count;
         clearIconDisplay(component);
-
-        if (GAMEMANAGER && GAMEMANAGER->getInputManager())
-        {
-            GAMEMANAGER->getInputManager()->SetSuppressReceive(btrue);
-        }
 
         showContextIcons();
 
@@ -831,29 +956,36 @@ namespace ITF
         component->forceContent(content);
     }
 
-    void Ray_ControlsRemappingMenuHelper::cancelRemappingMode(bbool restoreDisplay)
+    void Ray_ControlsRemappingMenuHelper::cancelRemappingMode(u32 playerIndex, bbool restoreDisplay)
     {
-        if (!m_isRemappingMode)
+        if (playerIndex >= 4)
+            return;
+
+        if (!m_isRemappingModeByPlayer[playerIndex])
             return;
 
         if (restoreDisplay)
         {
-            restoreIconDisplay(m_remappingComponent);
+            restoreIconDisplay(m_remappingComponentByPlayer[playerIndex]);
         }
 
-        m_isRemappingMode = bfalse;
-        m_remappingComponent = nullptr;
-        m_remappingCooldown = 0.0f;
-        m_remappingSource = InputSource_Gamepad;
-        m_isWaitingForRelease = btrue;
-        m_postRemapCooldown = ControlsRemappingConstants::POST_REMAP_COOLDOWN;
+        m_isRemappingModeByPlayer[playerIndex] = bfalse;
+        m_remappingComponentByPlayer[playerIndex] = nullptr;
+        m_remappingCooldownByPlayer[playerIndex] = 0.0f;
+        m_remappingSourceByPlayer[playerIndex] = InputSource_Gamepad;
+        m_isWaitingForReleaseByPlayer[playerIndex] = btrue;
+        m_postRemapCooldownByPlayer[playerIndex] = ControlsRemappingConstants::POST_REMAP_COOLDOWN;
         LOG("[ControlsRemapping] Entering wait-for-release state\n");
     }
 
-    bbool Ray_ControlsRemappingMenuHelper::detectPhysicalControl(u32& outPhysicalControl, EInputSourceType& outSource)
+    bbool Ray_ControlsRemappingMenuHelper::detectPhysicalControl(u32 playerIndex, u32& outPhysicalControl,
+                                                                 EInputSourceType& outSource)
     {
         outPhysicalControl = U32_INVALID;
         outSource = InputSource_Gamepad;
+
+        if (playerIndex >= 4)
+            return bfalse;
 
         if (!GAMEMANAGER || !GAMEMANAGER->getInputManager())
             return bfalse;
@@ -861,7 +993,7 @@ namespace ITF
 
 #if defined(ITF_WINDOWS)
         // First check for raw keyboard input (allows remapping to any key)
-        i32 rawKey = inputManager->GetFirstKeyboardKey(m_remappingPlayerIndex);
+        i32 rawKey = inputManager->GetFirstKeyboardKey(playerIndex);
         if (rawKey >= 0)
         {
             outPhysicalControl = static_cast<u32>(rawKey);
@@ -871,16 +1003,19 @@ namespace ITF
 #endif
 
         // Then check gamepad/standard controls
-        outPhysicalControl = inputManager->GetFirstActiveControl(m_remappingPlayerIndex, &outSource);
+        outPhysicalControl = inputManager->GetFirstActiveControl(playerIndex, &outSource);
         return (outPhysicalControl != U32_INVALID);
     }
 
-    void Ray_ControlsRemappingMenuHelper::finalizeRemapping(u32 physicalControl)
+    void Ray_ControlsRemappingMenuHelper::finalizeRemapping(u32 playerIndex, u32 physicalControl)
     {
+        if (playerIndex >= 4)
+            return;
+
         if (!GAMEMANAGER)
         {
             LOG("[ControlsRemapping] Cannot remap: GameManager unavailable\n");
-            cancelRemappingMode(btrue);
+            cancelRemappingMode(playerIndex, btrue);
             return;
         }
 
@@ -888,25 +1023,30 @@ namespace ITF
         if (!inputManager)
         {
             LOG("[ControlsRemapping] Cannot remap: InputManager unavailable\n");
-            cancelRemappingMode(btrue);
+            cancelRemappingMode(playerIndex, btrue);
             return;
         }
+
+        const ZInputManager::EGameAction remapAction = m_remappingActionByPlayer[playerIndex];
+        const EInputSourceType remapSource = m_remappingSourceByPlayer[playerIndex];
 
         // For keyboard remapping, we allow any key - validation only applies to gamepad controls
-        bbool shouldValidate = (m_remappingSource != InputSource_Keyboard);
-        if (shouldValidate && !inputManager->IsActionRemapAllowed(m_remappingAction, physicalControl))
+        bbool shouldValidate = (remapSource != InputSource_Keyboard);
+        if (shouldValidate && !inputManager->IsActionRemapAllowed(remapAction, physicalControl))
         {
-            LOG("[ControlsRemapping] Remap rejected Player %d, Action %d -> Physical %d\n", m_remappingPlayerIndex + 1, m_remappingAction, physicalControl);
+            LOG("[ControlsRemapping] Remap rejected Player %d, Action %d -> Physical %d\n", playerIndex + 1,
+                remapAction, physicalControl);
             return;
         }
 
-        EInputSourceType appliedSource = (m_remappingSource < InputSource_Count) ? m_remappingSource : InputSource_Gamepad;
-        inputManager->SetActionRemap(m_remappingPlayerIndex, m_remappingAction, physicalControl, appliedSource);
+        EInputSourceType appliedSource = (remapSource < InputSource_Count) ? remapSource : InputSource_Gamepad;
+        inputManager->SetActionRemap(playerIndex, remapAction, physicalControl, appliedSource);
         LOG("[ControlsRemapping] Remap complete Player %d, Action %d -> Physical %d (Source %d)\n",
-            m_remappingPlayerIndex + 1, m_remappingAction, physicalControl, appliedSource);
+            playerIndex + 1, remapAction, physicalControl, appliedSource);
 
-        cancelRemappingMode(btrue);
-		showContextIcons();
+
+        cancelRemappingMode(playerIndex, btrue);
+        showContextIcons();
     }
 
     void Ray_ControlsRemappingMenuHelper::updateRemappingMode(f32 deltaTime)
@@ -915,51 +1055,42 @@ namespace ITF
         updateControllerTypeEditing(deltaTime);
 #endif
 
-        if (m_isWaitingForRelease)
+        for (u32 playerIndex = 0; playerIndex < 4; ++playerIndex)
         {
-            m_postRemapCooldown -= deltaTime;
-            bbool allReleased = bfalse;
-
-            if (m_postRemapCooldown <= 0.0f && GAMEMANAGER && GAMEMANAGER->getInputManager())
+            if (m_isWaitingForReleaseByPlayer[playerIndex])
             {
-                u32 activeControl = GAMEMANAGER->getInputManager()->GetFirstActiveControl(m_remappingPlayerIndex);
-                if (activeControl == U32_INVALID)
+                m_postRemapCooldownByPlayer[playerIndex] -= deltaTime;
+                if (m_postRemapCooldownByPlayer[playerIndex] <= 0.0f && GAMEMANAGER && GAMEMANAGER->getInputManager())
                 {
-                    allReleased = btrue;
+                    u32 activeControl = GAMEMANAGER->getInputManager()->GetFirstActiveControl(playerIndex);
+                    if (activeControl == U32_INVALID)
+                    {
+                        m_isWaitingForReleaseByPlayer[playerIndex] = bfalse;
+                    }
                 }
+                continue;
             }
 
-            if (allReleased)
+            if (!m_isRemappingModeByPlayer[playerIndex])
+                continue;
+
+            if (m_remappingCooldownByPlayer[playerIndex] > 0.0f)
             {
-                m_isWaitingForRelease = bfalse;
-                if (GAMEMANAGER && GAMEMANAGER->getInputManager())
-                {
-                    GAMEMANAGER->getInputManager()->SetSuppressReceive(bfalse);
-                }
-                LOG("[ControlsRemapping] Input released, Receive re-enabled\n");
+                m_remappingCooldownByPlayer[playerIndex] -= deltaTime;
+                if (m_remappingCooldownByPlayer[playerIndex] > 0.0f)
+                    continue;
             }
-            return;
-        }
 
-        if (!m_isRemappingMode)
-            return;
+            u32 physicalControl = U32_INVALID;
+            EInputSourceType source = InputSource_Gamepad;
+            if (!detectPhysicalControl(playerIndex, physicalControl, source))
+                continue;
 
-        if (m_remappingCooldown > 0.0f)
-        {
-            m_remappingCooldown -= deltaTime;
-            if (m_remappingCooldown > 0.0f)
-                return;
-        }
-
-        u32 physicalControl = U32_INVALID;
-        EInputSourceType source = InputSource_Gamepad;
-        if (!detectPhysicalControl(physicalControl, source))
-            return;
-
-        if (physicalControl != U32_INVALID)
-        {
-            m_remappingSource = source;
-            finalizeRemapping(physicalControl);
+            if (physicalControl != U32_INVALID)
+            {
+                m_remappingSourceByPlayer[playerIndex] = source;
+                finalizeRemapping(playerIndex, physicalControl);
+            }
         }
     }
 
@@ -971,8 +1102,11 @@ namespace ITF
             CONTEXTICONSMANAGER->hide();
         }
 
-        cancelRemappingMode(btrue);
-        m_isWaitingForRelease = bfalse;
+        for (u32 i = 0; i < 4; ++i)
+        {
+            cancelRemappingMode(i, btrue);
+            m_isWaitingForReleaseByPlayer[i] = bfalse;
+        }
 #if defined(ITF_WINDOWS)
         exitControllerTypeEditMode();
         m_previousSelectionStates.clear();
@@ -983,10 +1117,6 @@ namespace ITF
             restoreRemappingSnapshot();
         }
 
-        if (GAMEMANAGER && GAMEMANAGER->getInputManager())
-        {
-            GAMEMANAGER->getInputManager()->SetSuppressReceive(bfalse);
-        }
 
         if (s_activeHelper == this)
         {
@@ -1081,7 +1211,6 @@ namespace ITF
 
         if (!isOnIcon)
         {
-
             if (UIComponent* target = findIconComponent(inputPlayer, ZInputManager::Action_Up))
             {
                 return target->getUIref();
@@ -1166,7 +1295,8 @@ namespace ITF
             }
         }
 
-        UIListOptionComponent* listComponent = component->DynamicCast<UIListOptionComponent>(ITF_GET_STRINGID_CRC(UIListOptionComponent, 3621365669));
+        UIListOptionComponent* listComponent = component->DynamicCast<UIListOptionComponent>(
+            ITF_GET_STRINGID_CRC(UIListOptionComponent, 3621365669));
         if (!listComponent)
             return bfalse;
         if (m_isEditingControllerType && m_editingControllerTypeComponent == listComponent)
@@ -1337,7 +1467,8 @@ namespace ITF
             const String8& friendly = actor->getUserFriendly();
             if (friendly == "controller_options")
             {
-                return comp->DynamicCast<UIListOptionComponent>(ITF_GET_STRINGID_CRC(UIListOptionComponent, 3621365669));
+                return comp->DynamicCast<
+                    UIListOptionComponent>(ITF_GET_STRINGID_CRC(UIListOptionComponent, 3621365669));
             }
         }
         return nullptr;
@@ -1360,7 +1491,8 @@ namespace ITF
         if (!m_isEditingControllerType || !component)
             return bfalse;
 
-        UIListOptionComponent* listComponent = component->DynamicCast<UIListOptionComponent>(ITF_GET_STRINGID_CRC(UIListOptionComponent, 3621365669));
+        UIListOptionComponent* listComponent = component->DynamicCast<UIListOptionComponent>(
+            ITF_GET_STRINGID_CRC(UIListOptionComponent, 3621365669));
         if (!listComponent || listComponent != m_editingControllerTypeComponent)
             return bfalse;
 

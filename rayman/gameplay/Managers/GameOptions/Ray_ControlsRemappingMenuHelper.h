@@ -39,16 +39,23 @@ namespace ITF
         void UpdateMenuOnSelectionChange(UIComponent* uiComponent, bbool isSelected) override;
         ObjectRef getNavigationOverrideTarget(UIComponent* current, f32 joyX, f32 joyY) override;
         ObjectRef getFocusOverrideTargetForInputPlayer(UIComponent* current, u32 inputPlayer) const;
+        UIComponent* getSelectedComponentForPlayer(u32 inputPlayer) const;
+        bbool isNavigationLockedForPlayer(u32 inputPlayer) const;
+
         bbool isNavigationLocked() const
         {
-            if (m_isRemappingMode || m_isWaitingForRelease)
-                return btrue;
+            for (u32 i = 0; i < 4; ++i)
+            {
+                if (isNavigationLockedForPlayer(i))
+                    return btrue;
+            }
 #if defined(ITF_WINDOWS)
             if (m_isEditingControllerType)
                 return btrue;
 #endif
             return bfalse;
         }
+
         static Ray_ControlsRemappingMenuHelper* getActiveHelper();
         void updateRemappingMode(f32 deltaTime);
 
@@ -80,13 +87,14 @@ namespace ITF
         bbool parseIconId(const StringID& id, u32& outPlayerIndex, ZInputManager::EGameAction& outAction);
         void clearIconDisplay(UIComponent* component);
         void restoreIconDisplay(UIComponent* component);
-        void cancelRemappingMode(bbool restoreDisplay);
-        bbool detectPhysicalControl(u32& outPhysicalControl, EInputSourceType& outSource);
-        void finalizeRemapping(u32 physicalControl);
+        void cancelRemappingMode(u32 playerIndex, bbool restoreDisplay);
+        bbool detectPhysicalControl(u32 playerIndex, u32& outPhysicalControl, EInputSourceType& outSource);
+        void finalizeRemapping(u32 playerIndex, u32 physicalControl);
         void onClose() override;
         EInputSourceType getActiveSourceForReset(u32 playerIndex) const;
         bbool tryGetSelectedPlayerIndex(u32& outPlayerIndex);
-        bbool tryGetIconInfoFromComponent(UIComponent* component, u32& outPlayerIndex, ZInputManager::EGameAction& outAction) const;
+        bbool tryGetIconInfoFromComponent(UIComponent* component, u32& outPlayerIndex,
+                                          ZInputManager::EGameAction& outAction) const;
         UIComponent* findIconComponent(u32 playerIndex, ZInputManager::EGameAction action) const;
         static u32 getActionIndex(ZInputManager::EGameAction action);
         static ZInputManager::EGameAction getActionByIndex(u32 index);
@@ -103,15 +111,15 @@ namespace ITF
 #endif
 
         static Ray_ControlsRemappingMenuHelper* s_activeHelper;
-
-        bbool m_isRemappingMode;
-        bbool m_isWaitingForRelease;
-        u32 m_remappingPlayerIndex;
-        ZInputManager::EGameAction m_remappingAction;
-        UIComponent* m_remappingComponent;
-        f32 m_remappingCooldown;
-        f32 m_postRemapCooldown;
-        EInputSourceType m_remappingSource;
+        bbool m_isRemappingModeByPlayer[4];
+        bbool m_isWaitingForReleaseByPlayer[4];
+        ZInputManager::EGameAction m_remappingActionByPlayer[4];
+        UIComponent* m_remappingComponentByPlayer[4];
+        f32 m_remappingCooldownByPlayer[4];
+        f32 m_postRemapCooldownByPlayer[4];
+        EInputSourceType m_remappingSourceByPlayer[4];
+        ObjectRef m_selectedComponentRefByPlayer[4];
+        bbool m_hasSelectedComponentByPlayer[4];
 
         bbool m_hasCommittedChanges;
         bbool m_hasRestoredOnCancel;
