@@ -55,6 +55,10 @@ namespace ITF
 #define CONTROLSREMAPPING_ACCEPT_BUTTON  ITF_GET_STRINGID_CRC(accept_button,25226343)
 #define CONTROLSREMAPPING_CANCEL_BUTTON  ITF_GET_STRINGID_CRC(cancel_button,4260770984)
 
+#if defined(ITF_WINDOWS)
+#define CONTROLLER_OPTIONS_ID ITF_GET_STRINGID_CRC(controller_options,3547548201)
+#endif
+
 #define ICON_PLAYER1_UP     ITF_GET_STRINGID_CRC(player1_up_icon,1753979515)
 #define ICON_PLAYER1_DOWN   ITF_GET_STRINGID_CRC(player1_down_icon,845618532)
 #define ICON_PLAYER1_LEFT   ITF_GET_STRINGID_CRC(player1_left_icon,3896653396)
@@ -537,6 +541,12 @@ namespace ITF
 #if defined(ITF_WINDOWS)
         if (m_isEditingControllerType)
             return ObjectRef::InvalidRef;
+    if (Actor* actor = current->GetActor())
+    {
+        const StringID actorId(actor->getUserFriendly().cStr());
+        if (actorId == CONTROLLER_OPTIONS_ID)
+        return ObjectRef::InvalidRef;
+    }
 #endif
 
         u32 selectedPlayer = U32_INVALID;
@@ -1017,15 +1027,43 @@ namespace ITF
             return currentRef;
         }
 
-        u32 selectedPlayer = U32_INVALID;
-        ZInputManager::EGameAction selectedAction = ZInputManager::Action_Up;
-        const bbool isOnIcon = tryGetIconInfoFromComponent(current, selectedPlayer, selectedAction);
-
         u32 inputPlayer = U32_INVALID;
         if (UI_MENUMANAGER)
         {
             inputPlayer = UI_MENUMANAGER->getCurrentInputPlayer();
         }
+
+#if defined(ITF_WINDOWS)
+        if (Actor* actor = current->GetActor())
+        {
+            const StringID actorId(actor->getUserFriendly().cStr());
+            if (actorId == CONTROLLER_OPTIONS_ID)
+            {
+                if (inputPlayer == U32_INVALID || inputPlayer >= 4)
+                    inputPlayer = 0;
+
+                if (joyY < 0.0f)
+                {
+                    return currentRef;
+                }
+                if (joyY > 0.0f)
+                {
+                    if (UIComponent* target = findIconComponent(inputPlayer, ZInputManager::Action_Up))
+                    {
+                        return target->getUIref();
+                    }
+                    return currentRef;
+                }
+
+                return currentRef;
+            }
+        }
+#endif
+
+        u32 selectedPlayer = U32_INVALID;
+        ZInputManager::EGameAction selectedAction = ZInputManager::Action_Up;
+        const bbool isOnIcon = tryGetIconInfoFromComponent(current, selectedPlayer, selectedAction);
+
         if (inputPlayer == U32_INVALID || inputPlayer >= 4)
         {
             inputPlayer = isOnIcon && selectedPlayer < 4 ? selectedPlayer : 0;
@@ -1057,12 +1095,23 @@ namespace ITF
 
         const i32 dir = (joyY > 0.0f) ? 1 : -1; 
         const i32 nextIdx = static_cast<i32>(currentIdx) + dir;
-
-        // Allow escaping to controller_options when at first icon and pressing up
-        // or allow default navigation when at last icon and pressing down
         const i32 actionCount = 7;
         if (nextIdx < 0 || nextIdx >= actionCount)
         {
+#if defined(ITF_WINDOWS)
+            if (nextIdx < 0 && dir < 0 && inputPlayer == 0)
+            {
+                UIListOptionComponent* ctrlTypeComp = findControllerTypeComponent();
+                if (ctrlTypeComp && ctrlTypeComp->getActive() && ctrlTypeComp->getCanBeSelected())
+                {
+                    Actor* actor = ctrlTypeComp->GetActor();
+                    if (actor && actor->isEnabled())
+                    {
+                        return ctrlTypeComp->getUIref();
+                    }
+                }
+            }
+#endif
             return ObjectRef::InvalidRef;
         }
 
@@ -1076,8 +1125,6 @@ namespace ITF
     }
 
 #if defined(ITF_WINDOWS)
-#define CONTROLLER_OPTIONS_ID ITF_GET_STRINGID_CRC(controller_options,3547548201)
-
     bbool Ray_ControlsRemappingMenuHelper::handleControllerTypeAction(const StringID& id, UIComponent* component)
     {
         if (id != CONTROLLER_OPTIONS_ID)
