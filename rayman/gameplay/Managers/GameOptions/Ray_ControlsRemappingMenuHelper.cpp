@@ -547,7 +547,7 @@ namespace ITF
             if (actorId == CONTROLLER_OPTIONS_ID)
             {
                 if (inputPlayer == 0)
-                    return ObjectRef::InvalidRef; 
+                    return ObjectRef::InvalidRef;
                 ZInputManager::EGameAction focusAction = ZInputManager::Action_Up;
                 if (m_hasLastActionByPlayer[inputPlayer])
                 {
@@ -1081,7 +1081,7 @@ namespace ITF
 
         if (!isOnIcon)
         {
-            
+
             if (UIComponent* target = findIconComponent(inputPlayer, ZInputManager::Action_Up))
             {
                 return target->getUIref();
@@ -1106,9 +1106,7 @@ namespace ITF
         i32 nextIdx = static_cast<i32>(currentIdx) + dir;
         if (nextIdx < 0)
         {
-            // Going up from first action (Up)
 #if defined(ITF_WINDOWS)
-            // PC Player 1: wrap to control mode
             if (inputPlayer == 0)
             {
                 UIListOptionComponent* ctrlTypeComp = findControllerTypeComponent();
