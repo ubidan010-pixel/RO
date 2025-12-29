@@ -307,22 +307,24 @@ namespace ITF
                         Vec2d newQuadSize = originalQuadSize;
                         newQuadSize.m_y *= 0.75f;
                         backgroundTex->setQuadSize(newQuadSize);
-
-                        int screenW = 0;
-                        int screenH = 0;
-                        SYSTEM_ADAPTER->getWindowSize(screenW, screenH);
-
-                        const f32 screenScaleY = (screenH > 0) ? (static_cast<f32>(screenH) / UI2D_HeightRef) : 1.0f;
-                        const f32 actorScaleY = backgroundActor->getScale().m_y;
-                        const f32 removedHeightRef = (originalQuadSize.m_y - newQuadSize.m_y) * actorScaleY;
-                        const f32 removedHeightScreen = removedHeightRef * screenScaleY;
-                        if (backgroundUI && screenH > 0)
+                        Actor* accessibilityBackgroundActor = m_menu->findActorInMenuWorldByUserFriendly("accessibility_background");
+                        UIComponent* accessibilityUI = accessibilityBackgroundActor ? accessibilityBackgroundActor->GetComponent<UIComponent>() : nullptr;
+                        TextureGraphicComponent2D* accessibilityTex = accessibilityBackgroundActor ? accessibilityBackgroundActor->GetComponent<TextureGraphicComponent2D>() : nullptr;
+                        if (backgroundUI && accessibilityUI && accessibilityTex && GFX_ADAPTER)
                         {
-                            const f32 deltaRelativeY = (removedHeightScreen * 0.5f) / static_cast<f32>(screenH);
-                            const Vec2d newRelativePos(m_displayOptionsBackgroundOriginalRelativePos.m_x,
-                                m_displayOptionsBackgroundOriginalRelativePos.m_y - deltaRelativeY);
-                            backgroundUI->setRelativePos(newRelativePos);
-                            backgroundUI->onResourceLoaded();
+                            backgroundTex->Update(0.0f);
+                            accessibilityTex->Update(0.0f);
+
+                            const f32 screenH = (f32)GFX_ADAPTER->getScreenHeight();
+                            if (screenH > 0.0f)
+                            {
+                                const f32 accessibilityTopAbs = accessibilityBackgroundActor->getAABB().getMin().m_y;
+                                const f32 optionTopAbs = backgroundActor->getAABB().getMin().m_y;
+                                const f32 deltaRelY = (accessibilityTopAbs - optionTopAbs) / screenH;
+
+                                backgroundUI->setRelativePos(Vec2d(backgroundUI->getRelativePosX(), backgroundUI->getRelativePosY() + deltaRelY));
+                                backgroundUI->onResourceLoaded();
+                            }
                         }
                     }
                 }
