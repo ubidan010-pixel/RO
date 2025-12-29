@@ -1876,6 +1876,18 @@ void UIMenuManager::applySelectionChange(UIMenu* menu, UIComponent* oldSel, UICo
 				break;
 			}
 			UIComponent* selectedComponent = pMenu->getUIComponentSelected();
+            if (Ray_ControlsRemappingMenuHelper::getActiveHelper())
+            {
+                if (!componentUnderMouse)
+                {
+                    break;
+                }
+                if (selectedComponent != componentUnderMouse)
+                {
+                    applySelectionChange(pMenu, selectedComponent, componentUnderMouse);
+                    selectedComponent = componentUnderMouse;
+                }
+            }
 			if (IsCurrentMenuVerticalScrolling())
 			{
 				// in this menu, scroll up/down to the selected menu before applying the action because the elements move when highlighted
@@ -1910,9 +1922,12 @@ void UIMenuManager::applySelectionChange(UIMenu* menu, UIComponent* oldSel, UICo
 				}
 				componentUnderMouse = selectedComponent;
 			}
-			else if (!selectedComponent || (selectedComponent != componentUnderMouse && selectedComponent->IsClassCRC(UISliderComponent::GetClassCRCStatic()) == false))
+            else if (!Ray_ControlsRemappingMenuHelper::getActiveHelper())
 			{
-				break;
+                if (!selectedComponent || (selectedComponent != componentUnderMouse && selectedComponent->IsClassCRC(UISliderComponent::GetClassCRCStatic()) == false))
+                {
+                    break;
+                }
 			}
 			u32 pauseOwner = GAMEMANAGER->getIndexPauseOwner();
 			if (pauseOwner == U32_INVALID)
@@ -1942,6 +1957,10 @@ void UIMenuManager::applySelectionChange(UIMenu* menu, UIComponent* oldSel, UICo
         }
 
         if (IsCurrentMenuVerticalScrolling())
+        {
+            return true;
+        }
+        if (Ray_ControlsRemappingMenuHelper::getActiveHelper())
         {
             return true;
         }
