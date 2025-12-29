@@ -157,7 +157,6 @@ namespace ITF
         f32 m_snapshotIntensity;
         bbool m_showLanguageWarning;
         bbool m_eventListenerRegistered;
-
         bbool m_hasEditSnapshot;
         EEditSnapshotType m_editSnapshotType;
         StringID m_editSnapshotOption;
@@ -167,8 +166,8 @@ namespace ITF
         bbool m_hasDisplayOptionsBackgroundOverride;
         Vec2d m_displayOptionsBackgroundOriginalQuadSize;
         Vec2d m_displayOptionsBackgroundOriginalRelativePos;
-        
-
+        UIMenu* m_consoleLayoutOptionMenuInstance;
+        bbool m_consoleLayoutLanguageRepositionApplied;
         static Ray_OptionMenuHelper* s_activeHelper;
 
     public:

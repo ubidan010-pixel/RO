@@ -213,6 +213,10 @@ namespace ITF
           , m_hasDisplayOptionsBackgroundOverride(bfalse)
           , m_displayOptionsBackgroundOriginalQuadSize(Vec2d::Zero)
           , m_displayOptionsBackgroundOriginalRelativePos(Vec2d::Zero)
+#if defined(ITF_OPTIONMENU_CONSOLE_LAYOUT)
+          , m_consoleLayoutOptionMenuInstance(nullptr)
+          , m_consoleLayoutLanguageRepositionApplied(bfalse)
+#endif
     {
         m_menuBaseName = OPTION_MENU_NAME;
     }
@@ -248,17 +252,27 @@ namespace ITF
         initializeMenuState();
 
 #if defined(ITF_OPTIONMENU_CONSOLE_LAYOUT)
+        if (m_consoleLayoutOptionMenuInstance != m_menu)
+        {
+            m_consoleLayoutOptionMenuInstance = m_menu;
+            m_consoleLayoutLanguageRepositionApplied = bfalse;
+        }
+
         setOptionComponentHidden(OPTION_RESOLUTION, btrue);
         setOptionComponentHidden(OPTION_WINDOWED, btrue);
-        if (UIListOptionComponent* languageList = findListOptionComponent(OPTION_LANGUAGE))
+        if (!m_consoleLayoutLanguageRepositionApplied)
         {
-            if (UIComponent* resolutionComponent = findOptionComponent(OPTION_RESOLUTION))
+            if (UIListOptionComponent* languageList = findListOptionComponent(OPTION_LANGUAGE))
             {
-                const Vec2d offset(
-                    resolutionComponent->getRelativePosX() - languageList->getRelativePosX(),
-                    resolutionComponent->getRelativePosY() - languageList->getRelativePosY());
+                if (UIComponent* resolutionComponent = findOptionComponent(OPTION_RESOLUTION))
+                {
+                    const Vec2d offset(
+                        resolutionComponent->getRelativePosX() - languageList->getRelativePosX(),
+                        resolutionComponent->getRelativePosY() - languageList->getRelativePosY());
 
-                repositionListOptionInteractiveElements(languageList, offset);
+                    repositionListOptionInteractiveElements(languageList, offset);
+                    m_consoleLayoutLanguageRepositionApplied = btrue;
+                }
             }
         }
 
