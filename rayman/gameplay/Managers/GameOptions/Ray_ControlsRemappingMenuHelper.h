@@ -133,6 +133,7 @@ namespace ITF
 #endif
         bbool m_hasLastActionByPlayer[4];
         ZInputManager::EGameAction m_lastActionByPlayer[4];
+        u32 m_lastSelectedPlayerIndex;
     };
 }
 

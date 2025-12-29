@@ -541,20 +541,31 @@ namespace ITF
 #if defined(ITF_WINDOWS)
         if (m_isEditingControllerType)
             return ObjectRef::InvalidRef;
-    if (Actor* actor = current->GetActor())
-    {
-        const StringID actorId(actor->getUserFriendly().cStr());
-        if (actorId == CONTROLLER_OPTIONS_ID)
-        return ObjectRef::InvalidRef;
-    }
+        if (Actor* actor = current->GetActor())
+        {
+            const StringID actorId(actor->getUserFriendly().cStr());
+            if (actorId == CONTROLLER_OPTIONS_ID)
+            {
+                if (inputPlayer == 0)
+                    return ObjectRef::InvalidRef; 
+                ZInputManager::EGameAction focusAction = ZInputManager::Action_Up;
+                if (m_hasLastActionByPlayer[inputPlayer])
+                {
+                    focusAction = m_lastActionByPlayer[inputPlayer];
+                }
+                if (UIComponent* target = findIconComponent(inputPlayer, focusAction))
+                {
+                    return target->getUIref();
+                }
+                return ObjectRef::InvalidRef;
+            }
+        }
 #endif
-
         u32 selectedPlayer = U32_INVALID;
         ZInputManager::EGameAction selectedAction = ZInputManager::Action_Up;
         const bbool onIcon = tryGetIconInfoFromComponent(current, selectedPlayer, selectedAction);
         if (onIcon && selectedPlayer == inputPlayer)
             return ObjectRef::InvalidRef;
-
         ZInputManager::EGameAction focusAction = ZInputManager::Action_Up;
         if (onIcon)
         {
@@ -1026,12 +1037,18 @@ namespace ITF
         {
             return currentRef;
         }
-
         u32 inputPlayer = U32_INVALID;
         if (UI_MENUMANAGER)
         {
             inputPlayer = UI_MENUMANAGER->getCurrentInputPlayer();
         }
+        if (inputPlayer == U32_INVALID || inputPlayer >= 4)
+        {
+            inputPlayer = 0;
+        }
+
+        const i32 dir = (joyY > 0.0f) ? 1 : -1;
+        static const i32 actionCount = 7;
 
 #if defined(ITF_WINDOWS)
         if (Actor* actor = current->GetActor())
@@ -1039,22 +1056,20 @@ namespace ITF
             const StringID actorId(actor->getUserFriendly().cStr());
             if (actorId == CONTROLLER_OPTIONS_ID)
             {
-                if (inputPlayer == U32_INVALID || inputPlayer >= 4)
-                    inputPlayer = 0;
-
-                if (joyY < 0.0f)
+                if (dir < 0)
                 {
-                    return currentRef;
+                    if (UIComponent* target = findIconComponent(inputPlayer, ZInputManager::Action_Hit))
+                    {
+                        return target->getUIref();
+                    }
                 }
-                if (joyY > 0.0f)
+                else
                 {
                     if (UIComponent* target = findIconComponent(inputPlayer, ZInputManager::Action_Up))
                     {
                         return target->getUIref();
                     }
-                    return currentRef;
                 }
-
                 return currentRef;
             }
         }
@@ -1064,27 +1079,22 @@ namespace ITF
         ZInputManager::EGameAction selectedAction = ZInputManager::Action_Up;
         const bbool isOnIcon = tryGetIconInfoFromComponent(current, selectedPlayer, selectedAction);
 
-        if (inputPlayer == U32_INVALID || inputPlayer >= 4)
+        if (!isOnIcon)
         {
-            inputPlayer = isOnIcon && selectedPlayer < 4 ? selectedPlayer : 0;
-        }
-        if (!isOnIcon || selectedPlayer != inputPlayer)
-        {
-            ZInputManager::EGameAction focusAction = ZInputManager::Action_Up;
-            if (isOnIcon)
-            {
-                focusAction = selectedAction;
-            }
-            else if (m_hasLastActionByPlayer[inputPlayer])
-            {
-                focusAction = m_lastActionByPlayer[inputPlayer];
-            }
-
-            if (UIComponent* target = findIconComponent(inputPlayer, focusAction))
+            
+            if (UIComponent* target = findIconComponent(inputPlayer, ZInputManager::Action_Up))
             {
                 return target->getUIref();
             }
+            return currentRef;
+        }
 
+        if (selectedPlayer != inputPlayer)
+        {
+            if (UIComponent* target = findIconComponent(inputPlayer, selectedAction))
+            {
+                return target->getUIref();
+            }
             return currentRef;
         }
         const u32 currentIdx = getActionIndex(selectedAction);
@@ -1093,13 +1103,13 @@ namespace ITF
             return currentRef;
         }
 
-        const i32 dir = (joyY > 0.0f) ? 1 : -1; 
-        const i32 nextIdx = static_cast<i32>(currentIdx) + dir;
-        const i32 actionCount = 7;
-        if (nextIdx < 0 || nextIdx >= actionCount)
+        i32 nextIdx = static_cast<i32>(currentIdx) + dir;
+        if (nextIdx < 0)
         {
+            // Going up from first action (Up)
 #if defined(ITF_WINDOWS)
-            if (nextIdx < 0 && dir < 0 && inputPlayer == 0)
+            // PC Player 1: wrap to control mode
+            if (inputPlayer == 0)
             {
                 UIListOptionComponent* ctrlTypeComp = findControllerTypeComponent();
                 if (ctrlTypeComp && ctrlTypeComp->getActive() && ctrlTypeComp->getCanBeSelected())
@@ -1112,7 +1122,25 @@ namespace ITF
                 }
             }
 #endif
-            return ObjectRef::InvalidRef;
+            nextIdx = actionCount - 1;
+        }
+        else if (nextIdx >= actionCount)
+        {
+#if defined(ITF_WINDOWS)
+            if (inputPlayer == 0)
+            {
+                UIListOptionComponent* ctrlTypeComp = findControllerTypeComponent();
+                if (ctrlTypeComp && ctrlTypeComp->getActive() && ctrlTypeComp->getCanBeSelected())
+                {
+                    Actor* actor = ctrlTypeComp->GetActor();
+                    if (actor && actor->isEnabled())
+                    {
+                        return ctrlTypeComp->getUIref();
+                    }
+                }
+            }
+#endif
+            nextIdx = 0;
         }
 
         const ZInputManager::EGameAction nextAction = getActionByIndex(static_cast<u32>(nextIdx));
