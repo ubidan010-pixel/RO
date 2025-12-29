@@ -26,7 +26,7 @@ namespace ITF
     UIMenu::UIMenu(const StringID &_menuID)
     : m_worldMenuRef(ITF_INVALID_OBJREF), m_AlwaysStaySelected(bfalse), m_forcePadIndex(U32_INVALID), m_active(btrue)
     , m_padTypeAllowed(U32_INVALID)
-    {  
+    {
         m_menuID = _menuID;
     }
 
@@ -94,7 +94,7 @@ namespace ITF
     {
         ITF_ASSERT(_uiComponent!=NULL);
         if(!_uiComponent)
-            return; 
+            return;
 
         ObjectRef _ref = _uiComponent->GetActor()->getRef();
         if (_ref != ITF_INVALID_OBJREF)
@@ -139,7 +139,7 @@ namespace ITF
     ///////////////////////////////////////////////////////////////////////////////////////////
     void UIMenu::reinitMenuSelection ( )
     {
-        if ( m_AlwaysStaySelected ) return ; 
+        if ( m_AlwaysStaySelected ) return ;
 
         bbool wasSomethingSelected=bfalse;
         for (u32 i = 0; i < m_UIComponentsList.size(); i++)
@@ -168,7 +168,7 @@ namespace ITF
                         }
                     }
                 }
-                else 
+                else
                     pUIComponent->setIsSelected(bfalse);
             }
         }
@@ -258,6 +258,46 @@ namespace ITF
             _friendly.cStr()
             );
         return NULL;
+    }
+
+    Actor* UIMenu::findActorInMenuWorldByUserFriendly(const char* userFriendly)
+    {
+        if (!userFriendly || userFriendly[0] == '\0')
+            return nullptr;
+
+        World* world = (World*)GETOBJECT(getWorldMenuRef());
+        if (!world)
+            return nullptr;
+
+        Scene* rootScene = world->getRootScene();
+        if (!rootScene)
+            return nullptr;
+
+        auto findInList = [&](const PickableList& list) -> Actor*
+        {
+            for (auto pickable : list)
+            {
+                if (!pickable)
+                    continue;
+
+                Actor* actor = static_cast<Actor*>(pickable);
+                if (!actor)
+                    continue;
+
+                const String8& friendly = actor->getUserFriendly();
+                if (friendly.isEmpty())
+                    continue;
+
+                if (friendly.equals(userFriendly, bfalse))
+                    return actor;
+            }
+            return nullptr;
+        };
+
+        if (Actor* actor = findInList(rootScene->get2DActors()))
+            return actor;
+
+        return findInList(rootScene->getActors());
     }
 
     bbool UIMenu::isPadAllowed( u32 _padIndex )

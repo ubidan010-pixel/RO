@@ -103,47 +103,6 @@ namespace ITF
 
     namespace
     {
-        static Actor* findActorInMenuWorldByUserFriendly(UIMenu* menu, const char* userFriendly)
-        {
-            if (!menu || !userFriendly || userFriendly[0] == '\0')
-                return nullptr;
-
-            World* world = (World*)GETOBJECT(menu->getWorldMenuRef());
-            if (!world)
-                return nullptr;
-
-            Scene* rootScene = world->getRootScene();
-            if (!rootScene)
-                return nullptr;
-
-            auto findInList = [&](const PickableList& list) -> Actor*
-            {
-                for (u32 i = 0; i < list.size(); ++i)
-                {
-                    Pickable* pickable = list[i];
-                    if (!pickable)
-                        continue;
-
-                    Actor* actor = static_cast<Actor*>(pickable);
-                    if (!actor)
-                        continue;
-
-                    const String8& friendly = actor->getUserFriendly();
-                    if (friendly.isEmpty())
-                        continue;
-
-                    if (friendly.equals(userFriendly, bfalse))
-                        return actor;
-                }
-                return nullptr;
-            };
-
-            if (Actor* actor = findInList(rootScene->get2DActors()))
-                return actor;
-
-            return findInList(rootScene->getActors());
-        }
-
         static void applyRelativePosOffset(UIComponent* component, const Vec2d& offset)
         {
             if (!component)
@@ -317,7 +276,7 @@ namespace ITF
 
         if (!m_hasDisplayOptionsBackgroundOverride)
         {
-            Actor* backgroundActor = findActorInMenuWorldByUserFriendly(m_menu, "option_background");
+            Actor* backgroundActor = m_menu->findActorInMenuWorldByUserFriendly("option_background");
             if (backgroundActor)
             {
                 UIMenuItemText* backgroundUI = backgroundActor->GetComponent<UIMenuItemText>();
@@ -935,10 +894,15 @@ namespace ITF
         unregisterEventListeners();
         exitEditMode();
 
-#if defined(ITF_OPTIONMENU_CONSOLE_LAYOUT)
-        if (m_hasDisplayOptionsBackgroundOverride)
+        if (CONTEXTICONSMANAGER)
         {
-            Actor* backgroundActor = findActorInMenuWorldByUserFriendly(m_menu, "option_background");
+            CONTEXTICONSMANAGER->hide();
+        }
+
+#if defined(ITF_OPTIONMENU_CONSOLE_LAYOUT)
+        if (m_hasDisplayOptionsBackgroundOverride && m_menu)
+        {
+            Actor* backgroundActor = m_menu->findActorInMenuWorldByUserFriendly("option_background");
             if (backgroundActor)
             {
                 UIMenuItemText* backgroundUI = backgroundActor->GetComponent<UIMenuItemText>();

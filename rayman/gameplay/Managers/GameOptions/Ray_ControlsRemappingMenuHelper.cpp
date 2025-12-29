@@ -574,17 +574,12 @@ namespace ITF
         case ZInputManager::Action_Run:   return 4;
         case ZInputManager::Action_Jump:  return 5;
         case ZInputManager::Action_Hit:   return 6;
-        default: return -1;
+        default: return U32_INVALID;
         }
     }
 
     ZInputManager::EGameAction Ray_ControlsRemappingMenuHelper::getActionByIndex(u32 index)
     {
-        const u32 count = 7;
-        if (index < 0)
-            index = (index % count + count) % count;
-        else
-            index = index % count;
 
         switch (index)
         {
@@ -952,6 +947,7 @@ namespace ITF
         if (CONTEXTICONSMANAGER)
         {
             CONTEXTICONSMANAGER->clearForcedPlayerIndex();
+            CONTEXTICONSMANAGER->hide();
         }
 
         cancelRemappingMode(btrue);
@@ -1054,13 +1050,23 @@ namespace ITF
             return currentRef;
         }
         const u32 currentIdx = getActionIndex(selectedAction);
-        if (currentIdx < 0)
+        if (currentIdx == U32_INVALID)
         {
             return currentRef;
         }
 
-        const u32 dir = (joyY > 0.0f) ? 1 : -1; 
-        const ZInputManager::EGameAction nextAction = getActionByIndex(currentIdx + dir);
+        const i32 dir = (joyY > 0.0f) ? 1 : -1; 
+        const i32 nextIdx = static_cast<i32>(currentIdx) + dir;
+
+        // Allow escaping to controller_options when at first icon and pressing up
+        // or allow default navigation when at last icon and pressing down
+        const i32 actionCount = 7;
+        if (nextIdx < 0 || nextIdx >= actionCount)
+        {
+            return ObjectRef::InvalidRef;
+        }
+
+        const ZInputManager::EGameAction nextAction = getActionByIndex(static_cast<u32>(nextIdx));
         if (UIComponent* target = findIconComponent(inputPlayer, nextAction))
         {
             return target->getUIref();
