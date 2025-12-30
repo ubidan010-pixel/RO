@@ -155,14 +155,13 @@ namespace ITF
             { "window_option",            "resolution_option",       "language_option",        "run_button_option",        "run_button_option" },
             { "language_option",          "window_option",           "master_volume_option",   "vibration_option",         "vibration_option" },
             { "master_volume_option",     "language_option",         "music_volume_option",    "intensity_option",         "intensity_option" },
-            { "music_volume_option",      "master_volume_option",    "sfx_volume_option",      "reset_to_default_button",  "reset_to_default_button" },
+            { "music_volume_option",      "master_volume_option",    "sfx_volume_option",      "ubisoftconnect_button",    "ubisoftconnect_button" },
             { "sfx_volume_option",        "music_volume_option",     "resolution_option",      "ubisoftconnect_button",    "ubisoftconnect_button" },
-            { "reset_to_default_button",  "intensity_option",        "ubisoftconnect_button",  "music_volume_option",      "music_volume_option" },
-            { "ubisoftconnect_button",    "reset_to_default_button", "start_with_heart_option",          "sfx_volume_option",        "sfx_volume_option" },
+            { "ubisoftconnect_button",    "intensity_option",        "start_with_heart_option", "sfx_volume_option",        "sfx_volume_option" },
             { "start_with_heart_option",  "ubisoftconnect_button",           "run_button_option",      "resolution_option",        "resolution_option" },
             { "run_button_option",        "start_with_heart_option", "vibration_option",       "window_option",            "window_option" },
             { "vibration_option",         "run_button_option",       "intensity_option",       "language_option",          "language_option" },
-            { "intensity_option",         "vibration_option",        "reset_to_default_button","master_volume_option",     "master_volume_option" },
+            { "intensity_option",         "vibration_option",        "ubisoftconnect_button",  "master_volume_option",     "master_volume_option" },
         };
 
         static const size_t s_optionNavigationEntryCount = sizeof(s_optionNavigationEntries) / sizeof(s_optionNavigationEntries[0]);
@@ -535,7 +534,8 @@ namespace ITF
         }
         else
         {
-            CONTEXTICONSMANAGER->show(ContextIcon_Confirm, ContextIcon_Cancel, ContextIcon_Select);
+            const EContextIcon topRightIcon = hasNonDefaultOptions() ? ContextIcon_ResetControlToDefault : ContextIcon_Invalid;
+            CONTEXTICONSMANAGER->show(ContextIcon_Confirm, ContextIcon_Cancel, ContextIcon_Select, topRightIcon);
         }
     }
 
@@ -695,8 +695,7 @@ namespace ITF
         const StringID componentId = component->getID();
         if (componentId.isValid())
         {
-            if (componentId == OPTIONMENU_RESET_TO_DEFAULT_BUTTON ||
-                componentId == OPTIONMENU_UBISOFTCONNECT_BUTTON)
+            if (componentId == OPTIONMENU_UBISOFTCONNECT_BUTTON)
             {
                 if (isEditing())
                 {
@@ -705,7 +704,7 @@ namespace ITF
 
             }
 
-            if (handleResetToDefault(componentId) || handleConnect(componentId))
+            if (handleConnect(componentId))
             {
                 return;
             }
@@ -753,6 +752,16 @@ namespace ITF
             return Ray_BaseMenuHelper::onMenuPageAction(menu, action, defaultAction);
         }
 
+        if (action == input_actionID_Other)
+        {
+            if (hasNonDefaultOptions())
+            {
+                resetAllOptionsToDefault();
+                showContextIcons();
+            }
+            return UI_MENUMANAGER->getMenuPageAction_Nothing();
+        }
+
         if (action == input_actionID_DeleteSave)
         {
             applyAndClose();
@@ -789,13 +798,89 @@ namespace ITF
         }
     }
 
-    bbool Ray_OptionMenuHelper::handleResetToDefault(const StringID& id)
+    bbool Ray_OptionMenuHelper::hasNonDefaultOptions() const
     {
-        if (id != OPTIONMENU_RESET_TO_DEFAULT_BUTTON)
+        if (!RAY_GAMEMANAGER)
             return bfalse;
 
+        const Ray_GameOptionManager& optionManager = RAY_GAMEMANAGER->getGameOptionManager();
+
+        const StringID optionIds[] = {
+            OPTION_RESOLUTION,
+            OPTION_WINDOWED,
+            OPTION_LANGUAGE,
+            OPTION_START_WITH_HEART,
+            OPTION_RUN_BUTTON,
+            OPTION_MURFY_ASSIST,
+            OPTION_VIBRATIONS,
+            OPTION_MASTER_VOLUME,
+            OPTION_MUSIC_VOLUME,
+            OPTION_SFX_VOLUME,
+            OPTION_INTENSITY,
+        };
+
+        for (u32 i = 0; i < (sizeof(optionIds) / sizeof(optionIds[0])); ++i)
+        {
+            const Ray_GameOption* opt = optionManager.getOption(optionIds[i]);
+            if (!opt)
+                continue;
+
+            switch (opt->getType())
+            {
+            case Ray_GameOption::OptionType_Bool:
+                {
+                    const Ray_GameOptionBool* boolOpt = static_cast<const Ray_GameOptionBool*>(opt);
+                    if (boolOpt->getValue() != boolOpt->getDefaultValue())
+                        return btrue;
+                }
+                break;
+            case Ray_GameOption::OptionType_Int:
+                {
+                    const Ray_GameOptionInt* intOpt = static_cast<const Ray_GameOptionInt*>(opt);
+                    if (intOpt->getValue() != intOpt->getDefaultValue())
+                        return btrue;
+                }
+                break;
+            case Ray_GameOption::OptionType_Float:
+                {
+                    const Ray_GameOptionFloat* floatOpt = static_cast<const Ray_GameOptionFloat*>(opt);
+                    if (f32_Abs(floatOpt->getValue() - floatOpt->getDefaultValue()) > Ray_OptionMenuHelperConstants::FLOAT_EPSILON)
+                        return btrue;
+                }
+                break;
+            case Ray_GameOption::OptionType_IntList:
+                {
+                    const Ray_GameOptionIntList* listOpt = static_cast<const Ray_GameOptionIntList*>(opt);
+                    if (listOpt->getSelectedIndex() != listOpt->getDefaultIndex())
+                        return btrue;
+                }
+                break;
+            case Ray_GameOption::OptionType_FloatList:
+                {
+                    const Ray_GameOptionFloatList* listOpt = static_cast<const Ray_GameOptionFloatList*>(opt);
+                    if (listOpt->getSelectedIndex() != listOpt->getDefaultIndex())
+                        return btrue;
+                }
+                break;
+            case Ray_GameOption::OptionType_StringList:
+                {
+                    const Ray_GameOptionStringList* listOpt = static_cast<const Ray_GameOptionStringList*>(opt);
+                    if (listOpt->getSelectedIndex() != listOpt->getDefaultIndex())
+                        return btrue;
+                }
+                break;
+            default:
+                break;
+            }
+        }
+
+        return bfalse;
+    }
+
+    void Ray_OptionMenuHelper::resetAllOptionsToDefault()
+    {
         if (!RAY_GAMEMANAGER)
-            return btrue;
+            return;
 
         Ray_GameOptionManager& optionManager = RAY_GAMEMANAGER->getGameOptionManager();
 
@@ -836,8 +921,6 @@ namespace ITF
         RAY_GAMEMANAGER->setIntensity(intensity);
 
         refreshAllOptionVisuals();
-
-        return btrue;
     }
 
     bbool Ray_OptionMenuHelper::handleConnect(const StringID& id)
@@ -1820,13 +1903,17 @@ namespace ITF
         if (!m_menu)
             return;
 
+#if !defined(ITF_OPTIONMENU_CONSOLE_LAYOUT)
         UpdateResolutionText();
+#endif
         UpdateLanguageText();
         UpdateStartWithHeartText();
         UpdateRunButtonText();
         UpdateVibrationText();
         UpdateMurfyAssistToggle();
+#if !defined(ITF_OPTIONMENU_CONSOLE_LAYOUT)
         UpdateWindowCheckboxVisual();
+#endif
         UpdateMasterVolumeSlider();
         UpdateMusicVolumeSlider();
         UpdateSFXVolumeSlider();

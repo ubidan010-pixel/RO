@@ -74,7 +74,8 @@ namespace ITF
         void applyAndClose();
         void cancelAndClose();
 
-        bbool handleResetToDefault(const StringID& id);
+        bbool hasNonDefaultOptions() const;
+        void resetAllOptionsToDefault();
         bbool handleConnect(const StringID& id);
 
         void initializeMenuState();
