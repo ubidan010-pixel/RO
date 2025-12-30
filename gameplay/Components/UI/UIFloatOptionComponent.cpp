@@ -40,22 +40,28 @@ namespace ITF
     IMPLEMENT_OBJECT_RTTI(UIFloatOptionComponent)
     BEGIN_SERIALIZATION_CHILD(UIFloatOptionComponent)
         BEGIN_CONDITION_BLOCK(ESerializeGroup_DataEditable)
+            SERIALIZE_MEMBER("sliderBackgroundPath", m_sliderBackgroundPath);
             SERIALIZE_MEMBER("sliderBackgroundStartPath", m_sliderBackgroundStartPath);
             SERIALIZE_MEMBER("sliderBackgroundEndPath", m_sliderBackgroundEndPath);
             SERIALIZE_MEMBER("sliderCursorPath", m_sliderCursorPath);
             SERIALIZE_MEMBER("sliderBackgroundSelectedPath", m_sliderBackgroundSelectedPath);
             SERIALIZE_MEMBER("sliderCursorSelectedPath", m_sliderCursorSelectedPath);
+            SERIALIZE_MEMBER("sliderBackgroundDeactivatedPath", m_sliderBackgroundDeactivatedPath);
+            SERIALIZE_MEMBER("sliderCursorDeactivatedPath", m_sliderCursorDeactivatedPath);
         END_CONDITION_BLOCK()
     END_SERIALIZATION()
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     UIFloatOptionComponent::UIFloatOptionComponent()
     : Super()
+    , m_sliderBackgroundActor(NULL)
     , m_sliderBackgroundStartActor(NULL)
     , m_sliderBackgroundEndActor(NULL)
     , m_sliderCursorActor(NULL)
     , m_sliderBackgroundSelectedActor(NULL)
     , m_sliderCursorSelectedActor(NULL)
+    , m_sliderBackgroundDeactivatedActor(NULL)
+    , m_sliderCursorDeactivatedActor(NULL)
     , m_cursorGraphComponent(NULL)
     , m_isSliding(bfalse)
     , m_originalCursorScale(1.0f, 1.0f)
@@ -74,11 +80,14 @@ namespace ITF
     ///////////////////////////////////////////////////////////////////////////////////////////
     void UIFloatOptionComponent::clear()
     {
+        m_sliderBackgroundActor = NULL;
         m_sliderBackgroundStartActor = NULL;
         m_sliderBackgroundEndActor = NULL;
         m_sliderCursorActor = NULL;
         m_sliderBackgroundSelectedActor = NULL;
         m_sliderCursorSelectedActor = NULL;
+        m_sliderBackgroundDeactivatedActor = NULL;
+        m_sliderCursorDeactivatedActor = NULL;
         m_cursorGraphComponent = NULL;
         m_isSliding = bfalse;
         m_exitEditAfterRelease = bfalse;
@@ -87,11 +96,14 @@ namespace ITF
     ///////////////////////////////////////////////////////////////////////////////////////////
     void UIFloatOptionComponent::resolveSliderActors()
     {
+        m_sliderBackgroundActor = NULL;
         m_sliderBackgroundStartActor = NULL;
         m_sliderBackgroundEndActor = NULL;
         m_sliderCursorActor = NULL;
         m_sliderBackgroundSelectedActor = NULL;
         m_sliderCursorSelectedActor = NULL;
+        m_sliderBackgroundDeactivatedActor = NULL;
+        m_sliderCursorDeactivatedActor = NULL;
 
         auto resolveActor = [this](const String8& path, Actor*& outActor) -> void
         {
@@ -124,8 +136,11 @@ namespace ITF
         resolveActor(m_sliderBackgroundStartPath, m_sliderBackgroundStartActor);
         resolveActor(m_sliderBackgroundEndPath, m_sliderBackgroundEndActor);
         resolveActor(m_sliderCursorPath, m_sliderCursorActor);
+        resolveActor(m_sliderBackgroundPath, m_sliderBackgroundActor);
         resolveActor(m_sliderBackgroundSelectedPath, m_sliderBackgroundSelectedActor);
         resolveActor(m_sliderCursorSelectedPath, m_sliderCursorSelectedActor);
+        resolveActor(m_sliderBackgroundDeactivatedPath, m_sliderBackgroundDeactivatedActor);
+        resolveActor(m_sliderCursorDeactivatedPath, m_sliderCursorDeactivatedActor);
 
         if (m_sliderCursorActor)
         {
@@ -142,17 +157,54 @@ namespace ITF
         }
     }
 
+    void UIFloatOptionComponent::updateDeactivatedVisuals()
+    {
+        const bbool isActive = getActive();
+
+        if (!isActive)
+        {
+            if (m_sliderBackgroundActor)
+                m_sliderBackgroundActor->disable();
+            if (m_sliderBackgroundSelectedActor)
+                m_sliderBackgroundSelectedActor->disable();
+
+            if (m_sliderCursorActor)
+                m_sliderCursorActor->disable();
+            if (m_sliderCursorSelectedActor)
+                m_sliderCursorSelectedActor->disable();
+
+            if (m_sliderBackgroundDeactivatedActor)
+                m_sliderBackgroundDeactivatedActor->enable();
+            if (m_sliderCursorDeactivatedActor)
+                m_sliderCursorDeactivatedActor->enable();
+
+            m_isSliding = bfalse;
+            return;
+        }
+
+        if (m_sliderBackgroundDeactivatedActor)
+            m_sliderBackgroundDeactivatedActor->disable();
+        if (m_sliderCursorDeactivatedActor)
+            m_sliderCursorDeactivatedActor->disable();
+
+        if (m_sliderBackgroundActor)
+            m_sliderBackgroundActor->enable();
+
+        if (getIsSelected())
+            switchToSelectedActors();
+        else
+            switchToNormalActors();
+    }
+
     ///////////////////////////////////////////////////////////////////////////////////////////
     void UIFloatOptionComponent::updateSliderVisuals()
     {
-        if (!m_sliderBackgroundStartActor || !m_sliderBackgroundEndActor || !m_sliderCursorActor)
+        if (!m_sliderBackgroundStartActor || !m_sliderBackgroundEndActor)
             return;
 
         UIComponent* startComponent = m_sliderBackgroundStartActor->GetComponent<UIComponent>();
         UIComponent* endComponent = m_sliderBackgroundEndActor->GetComponent<UIComponent>();
-        UIComponent* cursorComponent = m_sliderCursorActor->GetComponent<UIComponent>();
-
-        if (!startComponent || !endComponent || !cursorComponent)
+        if (!startComponent || !endComponent)
             return;
 
         f32 startPos = startComponent->getRelativePosX();
@@ -163,21 +215,23 @@ namespace ITF
             return;
 
         f32 cursorRelativePos = startPos + width * m_value;
-        f32 cursorRelativePosY = cursorComponent->getRelativePosY();
 
-        Vec2d cursorRelativePosVec(cursorRelativePos, cursorRelativePosY);
-        cursorComponent->setRelativePos(cursorRelativePosVec);
-
-        if (m_sliderCursorSelectedActor)
+        auto setCursorX = [cursorRelativePos](Actor* cursorActor) -> void
         {
-            UIComponent* selectedCursorComponent = m_sliderCursorSelectedActor->GetComponent<UIComponent>();
-            if (selectedCursorComponent)
-            {
-                f32 selectedCursorRelativePosY = selectedCursorComponent->getRelativePosY();
-                Vec2d selectedCursorRelativePosVec(cursorRelativePos, selectedCursorRelativePosY);
-                selectedCursorComponent->setRelativePos(selectedCursorRelativePosVec);
-            }
-        }
+            if (!cursorActor)
+                return;
+
+            UIComponent* cursorComponent = cursorActor->GetComponent<UIComponent>();
+            if (!cursorComponent)
+                return;
+
+            Vec2d cursorRelativePosVec(cursorRelativePos, cursorComponent->getRelativePosY());
+            cursorComponent->setRelativePos(cursorRelativePosVec);
+        };
+
+        setCursorX(m_sliderCursorActor);
+        setCursorX(m_sliderCursorSelectedActor);
+        setCursorX(m_sliderCursorDeactivatedActor);
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -220,6 +274,15 @@ namespace ITF
     ///////////////////////////////////////////////////////////////////////////////////////////
     void UIFloatOptionComponent::switchToNormalActors()
     {
+        if (m_sliderBackgroundDeactivatedActor)
+            m_sliderBackgroundDeactivatedActor->disable();
+
+        if (m_sliderCursorDeactivatedActor)
+            m_sliderCursorDeactivatedActor->disable();
+
+        if (m_sliderBackgroundActor)
+            m_sliderBackgroundActor->enable();
+
         if (m_sliderBackgroundSelectedActor)
             m_sliderBackgroundSelectedActor->disable();
 
@@ -233,6 +296,15 @@ namespace ITF
     ///////////////////////////////////////////////////////////////////////////////////////////
     void UIFloatOptionComponent::switchToSelectedActors()
     {
+        if (m_sliderBackgroundDeactivatedActor)
+            m_sliderBackgroundDeactivatedActor->disable();
+
+        if (m_sliderCursorDeactivatedActor)
+            m_sliderCursorDeactivatedActor->disable();
+
+        if (m_sliderBackgroundActor)
+            m_sliderBackgroundActor->disable();
+
         if (m_sliderCursorActor)
             m_sliderCursorActor->disable();
 
@@ -247,6 +319,12 @@ namespace ITF
     void UIFloatOptionComponent::handleSelectionChanged(bbool isSelected)
     {
         Super::handleSelectionChanged(isSelected);
+
+        if (!getActive())
+        {
+            updateDeactivatedVisuals();
+            return;
+        }
 
         if (isSelected)
         {
@@ -288,6 +366,7 @@ namespace ITF
             m_sliderBackgroundEndActor->disableDraw(btrue);
         
         switchToNormalActors();
+        updateDeactivatedVisuals();
         updateSliderVisuals();
     }
 
@@ -295,6 +374,10 @@ namespace ITF
     void UIFloatOptionComponent::Update(f32 _deltaTime)
     {
         Super::Update(_deltaTime);
+
+        if (!getActive())
+            return;
+
         updateSliderFromMouse();
         updateSliderVisuals();
     }
@@ -309,12 +392,14 @@ namespace ITF
     void UIFloatOptionComponent::onBecomeActive()
     {
         Super::onBecomeActive();
+        updateDeactivatedVisuals();
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     void UIFloatOptionComponent::onBecomeInactive()
     {
         Super::onBecomeInactive();
+        updateDeactivatedVisuals();
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////

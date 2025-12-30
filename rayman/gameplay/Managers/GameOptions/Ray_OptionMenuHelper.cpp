@@ -54,6 +54,10 @@
 #include "engine/actors/components/texturegraphiccomponent2D.h"
 #endif
 
+#ifndef _ITF_RESOURCEMANAGER_H_
+#include "engine/resources/ResourceManager.h"
+#endif
+
 #ifndef _ITF_SCENE_H_
 #include "engine/scene/scene.h"
 #endif
@@ -165,6 +169,8 @@ namespace ITF
         };
 
         static const size_t s_optionNavigationEntryCount = sizeof(s_optionNavigationEntries) / sizeof(s_optionNavigationEntries[0]);
+
+
     }
 
     Ray_OptionMenuHelper* Ray_OptionMenuHelper::s_activeHelper = nullptr;

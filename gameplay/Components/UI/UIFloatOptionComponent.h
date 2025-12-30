@@ -56,11 +56,14 @@ namespace ITF
     private:
         virtual void                    clear();
         void                    resolveSliderActors();
+        void                    updateDeactivatedVisuals();
         void                    updateSliderVisuals();
         void                    updateSliderFromMouse();
         void                    switchToNormalActors();
         void                    switchToSelectedActors();
 
+        String8                 m_sliderBackgroundPath;
+        Actor*                  m_sliderBackgroundActor;
         String8                 m_sliderBackgroundStartPath;
         Actor*                  m_sliderBackgroundStartActor;
         String8                 m_sliderBackgroundEndPath;
@@ -71,6 +74,11 @@ namespace ITF
         Actor*                  m_sliderBackgroundSelectedActor;
         String8                 m_sliderCursorSelectedPath;
         Actor*                  m_sliderCursorSelectedActor;
+
+        String8                 m_sliderBackgroundDeactivatedPath;
+        Actor*                  m_sliderBackgroundDeactivatedActor;
+        String8                 m_sliderCursorDeactivatedPath;
+        Actor*                  m_sliderCursorDeactivatedActor;
 
         class TextureGraphicComponent2D* m_cursorGraphComponent;
         bbool                   m_isSliding;
