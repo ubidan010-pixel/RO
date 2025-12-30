@@ -102,7 +102,6 @@ namespace ITF
         void UpdateLanguageText();
         void UpdateStartWithHeartText();
         void UpdateRunButtonText();
-        void UpdateVibrationText();
         void UpdateMurfyAssistToggle();
         void UpdateWindowCheckboxVisual();
         void UpdateMasterVolumeSlider();
@@ -125,7 +124,7 @@ namespace ITF
 
         void registerEventListeners();
         void unregisterEventListeners();
-        void updateVibrationOptionAvailability();
+        void updateIntensityOptionAvailability();
 
         enum EEditSnapshotType
         {
@@ -151,7 +150,6 @@ namespace ITF
         i32 m_snapshotStartWithHeartIndex;
         i32 m_snapshotRunButtonMode;
         bbool m_snapshotMurfyAssist;
-        i32 m_snapshotVibrationMode;
         f32 m_snapshotMasterVolume;
         f32 m_snapshotMusicVolume;
         f32 m_snapshotSFXVolume;

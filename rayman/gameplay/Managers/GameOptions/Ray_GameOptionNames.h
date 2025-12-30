@@ -19,13 +19,6 @@ namespace ITF
         RUN_BUTTON_CHOICES = 2
     };
 
-    enum EVibrationMode
-    {
-        VibrationMode_Off = 0,
-        VibrationMode_On = 1,
-        VIBRATION_CHOICES = 2
-    };
-
     static const u32 RESOLUTION_CHOICES = 4;
     static const u32 LANGUAGE_CHOICES = 15;
     static const u32 DIAMOND_HEART_MAX_CONSECUTIVE_HITS = 10;
@@ -38,9 +31,6 @@ namespace ITF
 
     static const u32 LINEID_RUN_HOLD = 7004;
     static const u32 LINEID_RUN_TOGGLE = 7005;
-
-    static const u32 LINEID_VIBRATION_OFF = 7022;
-    static const u32 LINEID_VIBRATION_ON = 7021;
 }
 
 #define OPTION_MENU_NAME "optionmenu"
@@ -58,7 +48,6 @@ namespace ITF
 #define OPTION_START_WITH_HEART         ITF_GET_STRINGID_CRC(StartWithHeart,1992734674)
 #define OPTION_RUN_BUTTON               ITF_GET_STRINGID_CRC(RunButton,2713075566)
 #define OPTION_MURFY_ASSIST             ITF_GET_STRINGID_CRC(MurfyAssist,1587373204)
-#define OPTION_VIBRATIONS               ITF_GET_STRINGID_CRC(Vibrations,4113726075)
 
 #define OPTION_MASTER_VOLUME            ITF_GET_STRINGID_CRC(MasterVolume,598641050)
 #define OPTION_MUSIC_VOLUME             ITF_GET_STRINGID_CRC(MusicVolume,2854727058)

@@ -11795,14 +11795,6 @@ namespace ITF
         m_gameOptionManager.registerBoolOption(OPTION_MURFY_ASSIST, bfalse); // Default: Off
     }
 
-    void Ray_GameManager::registerVibrationOption()
-    {
-        Vector<i32> vibrationModes;
-        vibrationModes.push_back(VibrationMode_Off);
-        vibrationModes.push_back(VibrationMode_On);
-        m_gameOptionManager.registerIntListOption(OPTION_VIBRATIONS, vibrationModes, VibrationMode_On); // Default: On
-    }
-
     void Ray_GameManager::registerMasterVolumeOption()
     {
         m_gameOptionManager.registerFloatOption(OPTION_MASTER_VOLUME, 1.0f, 0.0f, 1.0f); // Default: Full volume
@@ -11858,7 +11850,6 @@ namespace ITF
         registerStartWithHeartOption();
         registerRunButtonOption();
         registerMurfyAssistOption();
-        registerVibrationOption();
         registerMasterVolumeOption();
         registerMusicVolumeOption();
         registerSFXVolumeOption();
@@ -12122,51 +12113,6 @@ namespace ITF
         LOG("[OptionMenu] Murfy's Assist: %s", enabled ? "ON" : "OFF");
     }
 
-    i32 Ray_GameManager::getVibrationMode() const
-    {
-        return m_gameOptionManager.getListOptionIndex(OPTION_VIBRATIONS);
-    }
-
-    void Ray_GameManager::setVibrationMode(i32 mode)
-    {
-        m_gameOptionManager.setListOptionIndex(OPTION_VIBRATIONS, mode);
-        LOG("[OptionMenu] Vibrations: %s", mode == VibrationMode_On ? "ON" : "OFF");
-#ifdef USE_PAD_HAPTICS
-        HAPTICS_MANAGER->enableHaptics(mode);
-#endif
-    }
-
-    const char* Ray_GameManager::getVibrationDisplayName(i32 index) const
-    {
-        switch (index)
-        {
-        case VibrationMode_Off: return "Off";
-        case VibrationMode_On: return "On";
-        default: return "Unknown";
-        }
-    }
-
-    u32 Ray_GameManager::getVibrationLineId(i32 index) const
-    {
-        switch (index)
-        {
-        case VibrationMode_Off: return LINEID_VIBRATION_OFF;
-        case VibrationMode_On: return LINEID_VIBRATION_ON;
-        default: return 4294967295;
-        }
-    }
-
-    bbool Ray_GameManager::areVibrationsEnabled() const
-    {
-        return m_gameOptionManager.getIntListOptionValue(OPTION_VIBRATIONS, VibrationMode_Off) == VibrationMode_On;
-    }
-
-    void Ray_GameManager::setVibrations(bbool enabled)
-    {
-        m_gameOptionManager.setListOptionIndex(OPTION_VIBRATIONS, enabled ? VibrationMode_On : VibrationMode_Off);
-        LOG("[OptionMenu] Vibrations: %s", enabled ? "ON" : "OFF");
-    }
-
 #if defined(ITF_WINDOWS)
     i32 Ray_GameManager::getPCControlMode() const
     {
@@ -12310,6 +12256,9 @@ namespace ITF
         intensity = std::min(intensity, 1.0f);
         m_gameOptionManager.setFloatOption(OPTION_INTENSITY, intensity);
             LOG("[OptionMenu] Intensity: %.2f (%.0f%%)", intensity, intensity * 100.0f);
+#ifdef USE_PAD_HAPTICS
+        HAPTICS_MANAGER->enableHaptics(intensity > 0.0f ? 1 : 0);
+#endif
 #if defined(ITF_SUPPORT_WWISE) && defined(USE_PAD_HAPTICS)
             Adapter_AudioMiddleware* audioAdapter = Adapter_AudioMiddleware::getptr();
             if (audioAdapter)
@@ -12471,7 +12420,6 @@ namespace ITF
             gm->setStartWithHeartIndex(gm->getStartWithHeartIndex());
             gm->setRunButtonMode(gm->getRunButtonMode());
             gm->setMurfyAssist(gm->isMurfyAssistEnabled());
-            gm->setVibrationMode(gm->getVibrationMode());
             gm->setIntensity(gm->getIntensity());
             gm->setMasterVolume(gm->getMasterVolume());
             gm->setMusicVolume(gm->getMusicVolume());

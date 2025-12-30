@@ -153,15 +153,14 @@ namespace ITF
         {
             { "resolution_option",        "sfx_volume_option",       "window_option",          "start_with_heart_option",  "start_with_heart_option" },
             { "window_option",            "resolution_option",       "language_option",        "run_button_option",        "run_button_option" },
-            { "language_option",          "window_option",           "master_volume_option",   "vibration_option",         "vibration_option" },
+            { "language_option",          "window_option",           "master_volume_option",   "run_button_option",        "run_button_option" },
             { "master_volume_option",     "language_option",         "music_volume_option",    "intensity_option",         "intensity_option" },
             { "music_volume_option",      "master_volume_option",    "sfx_volume_option",      "ubisoftconnect_button",    "ubisoftconnect_button" },
             { "sfx_volume_option",        "music_volume_option",     "resolution_option",      "ubisoftconnect_button",    "ubisoftconnect_button" },
             { "ubisoftconnect_button",    "intensity_option",        "start_with_heart_option","sfx_volume_option",        "sfx_volume_option" },
             { "start_with_heart_option",  "ubisoftconnect_button",   "run_button_option",      "resolution_option",        "resolution_option" },
-            { "run_button_option",        "start_with_heart_option", "vibration_option",       "window_option",            "window_option" },
-            { "vibration_option",         "run_button_option",       "intensity_option",       "language_option",          "language_option" },
-            { "intensity_option",         "vibration_option",        "ubisoftconnect_button",  "master_volume_option",     "master_volume_option" },
+            { "run_button_option",        "start_with_heart_option", "intensity_option",       "window_option",            "window_option" },
+            { "intensity_option",         "run_button_option",       "ubisoftconnect_button",  "master_volume_option",     "master_volume_option" },
         };
 
         static const size_t s_optionNavigationEntryCount = sizeof(s_optionNavigationEntries) / sizeof(s_optionNavigationEntries[0]);
@@ -196,7 +195,6 @@ namespace ITF
           , m_snapshotStartWithHeartIndex(-1)
           , m_snapshotRunButtonMode(-1)
           , m_snapshotMurfyAssist(bfalse)
-          , m_snapshotVibrationMode(-1)
           , m_snapshotMasterVolume(0.0f)
           , m_snapshotMusicVolume(0.0f)
           , m_snapshotSFXVolume(0.0f)
@@ -321,7 +319,7 @@ namespace ITF
         }
 #endif
 
-        updateVibrationOptionAvailability();
+        updateIntensityOptionAvailability();
         showContextIcons();
     }
 
@@ -427,13 +425,13 @@ namespace ITF
         m_eventListenerRegistered = bfalse;
     }
 
-    void Ray_OptionMenuHelper::updateVibrationOptionAvailability()
+    void Ray_OptionMenuHelper::updateIntensityOptionAvailability()
     {
         if (!m_isActive || !m_menu || !INPUT_ADAPTER)
             return;
 
         const bbool hasConnectedGamepad = INPUT_ADAPTER->getGamePadCount() > 0;
-        setOptionComponentDeactivated(OPTION_VIBRATIONS, !hasConnectedGamepad);
+        setOptionComponentDeactivated(OPTION_INTENSITY, !hasConnectedGamepad);
     }
 
     void Ray_OptionMenuHelper::onEvent(Event* _event)
@@ -443,7 +441,7 @@ namespace ITF
 
         if (_event->DynamicCast<EventControllerStateChanged>(ITF_GET_STRINGID_CRC(EventControllerStateChanged, 3543189344)))
         {
-            updateVibrationOptionAvailability();
+            updateIntensityOptionAvailability();
         }
     }
 
@@ -554,8 +552,6 @@ namespace ITF
                 m_editSnapshotListIndex = RAY_GAMEMANAGER->getStartWithHeartIndex();
             else if (optionId == OPTION_RUN_BUTTON)
                 m_editSnapshotListIndex = RAY_GAMEMANAGER->getRunButtonMode();
-            else if (optionId == OPTION_VIBRATIONS)
-                m_editSnapshotListIndex = RAY_GAMEMANAGER->getVibrationMode();
             else
                 m_editSnapshotListIndex = RAY_GAMEMANAGER->getGameOptionManager().getListOptionIndex(optionId, -1);
 
@@ -633,8 +629,6 @@ namespace ITF
             }
             else if (optionId == OPTION_RUN_BUTTON)
                 RAY_GAMEMANAGER->setRunButtonMode(idx);
-            else if (optionId == OPTION_VIBRATIONS)
-                RAY_GAMEMANAGER->setVibrationMode(idx);
             else
                 RAY_GAMEMANAGER->getGameOptionManager().setListOptionIndex(optionId, idx);
 
@@ -802,7 +796,6 @@ namespace ITF
             OPTION_START_WITH_HEART,
             OPTION_RUN_BUTTON,
             OPTION_MURFY_ASSIST,
-            OPTION_VIBRATIONS,
             OPTION_MASTER_VOLUME,
             OPTION_MUSIC_VOLUME,
             OPTION_SFX_VOLUME,
@@ -880,7 +873,6 @@ namespace ITF
         optionManager.resetOption(OPTION_START_WITH_HEART);
         optionManager.resetOption(OPTION_RUN_BUTTON);
         optionManager.resetOption(OPTION_MURFY_ASSIST);
-        optionManager.resetOption(OPTION_VIBRATIONS);
         optionManager.resetOption(OPTION_MASTER_VOLUME);
         optionManager.resetOption(OPTION_MUSIC_VOLUME);
         optionManager.resetOption(OPTION_SFX_VOLUME);
@@ -892,7 +884,6 @@ namespace ITF
         const i32 startWithHeartIndex = optionManager.getListOptionIndex(OPTION_START_WITH_HEART, RAY_GAMEMANAGER->getStartWithHeartIndex());
         const i32 runButtonMode = optionManager.getListOptionIndex(OPTION_RUN_BUTTON, RAY_GAMEMANAGER->getRunButtonMode());
         const bbool murfyAssist = optionManager.getBoolOption(OPTION_MURFY_ASSIST, RAY_GAMEMANAGER->isMurfyAssistEnabled());
-        const i32 vibrationMode = optionManager.getListOptionIndex(OPTION_VIBRATIONS, RAY_GAMEMANAGER->getVibrationMode());
         const f32 masterVolume = optionManager.getFloatOption(OPTION_MASTER_VOLUME, RAY_GAMEMANAGER->getMasterVolume());
         const f32 musicVolume = optionManager.getFloatOption(OPTION_MUSIC_VOLUME, RAY_GAMEMANAGER->getMusicVolume());
         const f32 sfxVolume = optionManager.getFloatOption(OPTION_SFX_VOLUME, RAY_GAMEMANAGER->getSFXVolume());
@@ -904,7 +895,6 @@ namespace ITF
         RAY_GAMEMANAGER->setStartWithHeartIndex(startWithHeartIndex);
         RAY_GAMEMANAGER->setRunButtonMode(runButtonMode);
         RAY_GAMEMANAGER->setMurfyAssist(murfyAssist);
-        RAY_GAMEMANAGER->setVibrationMode(vibrationMode);
         RAY_GAMEMANAGER->setMasterVolume(masterVolume);
         RAY_GAMEMANAGER->setMusicVolume(musicVolume);
         RAY_GAMEMANAGER->setSFXVolume(sfxVolume);
@@ -1234,8 +1224,6 @@ namespace ITF
             return OPTION_RUN_BUTTON;
         else if (friendlyName == "murfy_assist_option")
             return OPTION_MURFY_ASSIST;
-        else if (friendlyName == "vibration_option")
-            return OPTION_VIBRATIONS;
         else if (friendlyName == "master_volume_option")
             return OPTION_MASTER_VOLUME;
         else if (friendlyName == "music_volume_option")
@@ -1296,8 +1284,6 @@ namespace ITF
                                 lineId = RAY_GAMEMANAGER->getStartWithHeartLineId(currentIndex);
                             else if (optionId == OPTION_RUN_BUTTON)
                                 lineId = RAY_GAMEMANAGER->getRunButtonLineId(currentIndex);
-                            else if (optionId == OPTION_VIBRATIONS)
-                                lineId = RAY_GAMEMANAGER->getVibrationLineId(currentIndex);
 
                             if (displayName && displayName[0] != '\0')
                             {
@@ -1430,10 +1416,6 @@ namespace ITF
         {
             RAY_GAMEMANAGER->setRunButtonMode(newIndex);
         }
-        else if (optionId == OPTION_VIBRATIONS)
-        {
-            RAY_GAMEMANAGER->setVibrationMode(newIndex);
-        }
         else
         {
             optionManager.setListOptionIndex(optionId, newIndex);
@@ -1522,10 +1504,6 @@ namespace ITF
         else if (optionId == OPTION_RUN_BUTTON)
         {
             lineId = RAY_GAMEMANAGER->getRunButtonLineId(index);
-        }
-        else if (optionId == OPTION_VIBRATIONS)
-        {
-            lineId = RAY_GAMEMANAGER->getVibrationLineId(index);
         }
 
         if (lineId != 0u)
@@ -1807,20 +1785,6 @@ namespace ITF
         }
     }
 
-    void Ray_OptionMenuHelper::UpdateVibrationText()
-    {
-        if (!RAY_GAMEMANAGER)
-            return;
-
-        if (UIListOptionComponent* listComponent = findListOptionComponent(OPTION_VIBRATIONS))
-        {
-            const i32 index = RAY_GAMEMANAGER->getVibrationMode();
-            if (index >= 0)
-            {
-                updateListOptionDisplay(listComponent, OPTION_VIBRATIONS, index);
-            }
-        }
-    }
 
     void Ray_OptionMenuHelper::UpdateMurfyAssistToggle()
     {
@@ -1899,7 +1863,6 @@ namespace ITF
         UpdateLanguageText();
         UpdateStartWithHeartText();
         UpdateRunButtonText();
-        UpdateVibrationText();
         UpdateMurfyAssistToggle();
 #if !defined(ITF_OPTIONMENU_CONSOLE_LAYOUT)
         UpdateWindowCheckboxVisual();
@@ -1924,7 +1887,6 @@ namespace ITF
         m_snapshotStartWithHeartIndex = RAY_GAMEMANAGER->getStartWithHeartIndex();
         m_snapshotRunButtonMode = RAY_GAMEMANAGER->getRunButtonMode();
         m_snapshotMurfyAssist = RAY_GAMEMANAGER->isMurfyAssistEnabled();
-        m_snapshotVibrationMode = RAY_GAMEMANAGER->getVibrationMode();
         m_snapshotMasterVolume = RAY_GAMEMANAGER->getMasterVolume();
         m_snapshotMusicVolume = RAY_GAMEMANAGER->getMusicVolume();
         m_snapshotSFXVolume = RAY_GAMEMANAGER->getSFXVolume();
@@ -1942,7 +1904,6 @@ namespace ITF
         RAY_GAMEMANAGER->setStartWithHeartIndex(m_snapshotStartWithHeartIndex);
         RAY_GAMEMANAGER->setRunButtonMode(m_snapshotRunButtonMode);
         RAY_GAMEMANAGER->setMurfyAssist(m_snapshotMurfyAssist);
-        RAY_GAMEMANAGER->setVibrationMode(m_snapshotVibrationMode);
         RAY_GAMEMANAGER->setMasterVolume(m_snapshotMasterVolume);
         RAY_GAMEMANAGER->setMusicVolume(m_snapshotMusicVolume);
         RAY_GAMEMANAGER->setSFXVolume(m_snapshotSFXVolume);

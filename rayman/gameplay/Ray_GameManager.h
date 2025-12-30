@@ -1756,13 +1756,6 @@ namespace ITF
         bbool           isMurfyAssistEnabled() const;
         void            setMurfyAssist(bbool enabled);
 
-        i32             getVibrationMode() const;
-        void            setVibrationMode(i32 mode);
-        const char*     getVibrationDisplayName(i32 index) const;
-        u32             getVibrationLineId(i32 index) const;
-        bbool           areVibrationsEnabled() const;
-        void            setVibrations(bbool enabled);
-
 #if defined(ITF_WINDOWS)
         i32             getPCControlMode() const;
         bbool           isPCControllerModeAvailable() const;
