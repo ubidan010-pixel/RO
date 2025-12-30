@@ -299,7 +299,7 @@ namespace ITF
         u32             m_edgeIndex;
         Vec2d           m_speed;
         Vec2d           m_contact;
-    }; 
+    };
 
 
 
@@ -382,7 +382,7 @@ namespace ITF
     {
         DECLARE_OBJECT_CHILD_RTTI(EventShow,Event,111532112);
         DECLARE_SERIALIZE()
-
+        typedef void (*OnEnd)();
     public:
 
         EventShow()
@@ -392,6 +392,7 @@ namespace ITF
             , m_newColor(Color::white())
             , m_pauseOnEnd(bfalse)
             , m_destroyOnEnd(bfalse)
+            ,m_onEndCallback(NULL)
         {}
         EventShow( f32 _alpha )
             : m_alpha(_alpha)
@@ -400,6 +401,7 @@ namespace ITF
             , m_newColor(Color::white())
             , m_pauseOnEnd(bfalse)
             , m_destroyOnEnd(bfalse)
+            ,m_onEndCallback(NULL)
         {}
         EventShow( f32 _alpha, f32 _transitionTime )
             : m_alpha(_alpha)
@@ -408,6 +410,16 @@ namespace ITF
             , m_newColor(Color::white())
             , m_pauseOnEnd(bfalse)
             , m_destroyOnEnd(bfalse)
+            ,m_onEndCallback(NULL)
+        {}
+        EventShow( f32 _alpha, f32 _transitionTime,OnEnd _callback )
+           : m_alpha(_alpha)
+           , m_transitionTime(_transitionTime)
+           , m_overrideColor(bfalse)
+           , m_newColor(Color::white())
+           , m_pauseOnEnd(bfalse)
+           , m_destroyOnEnd(bfalse)
+           ,m_onEndCallback(_callback)
         {}
         virtual ~EventShow() {}
 
@@ -415,6 +427,7 @@ namespace ITF
         const f32       getTransitionTime() const { return m_transitionTime; }
         const bbool     getIsOverrideColor() const { return m_overrideColor; }
         const Color&    getOverrideColor() const { return m_newColor; }
+        const OnEnd&    getOnEndCallback() const { return m_onEndCallback; }
 
         void            setOverrideColor( const Color& _color ) { m_overrideColor = btrue; m_newColor = _color; }
         ITF_INLINE bbool getDestroyOnEnd() const { return m_destroyOnEnd; }
@@ -430,6 +443,7 @@ namespace ITF
         Color       m_newColor;
         bbool       m_destroyOnEnd;
         bbool       m_pauseOnEnd;
+        OnEnd       m_onEndCallback;
     };
 
     class EventRopeSwingImpulse : public Event
@@ -500,7 +514,7 @@ namespace ITF
             , m_queryPosition(_queryPosition)
         {}
         virtual ~EventSwiming() {}
-        
+
         ObjectRef                   getActor() const { return m_actor; }
         void                        setActor( ObjectRef _actor ) { m_actor = _actor; }
 
@@ -595,7 +609,7 @@ namespace ITF
 
         const class PhysShape*      getShape() const { return m_shape; }
         void                        setShape( const class PhysShape* _shape ) { m_shape = _shape; }
-        
+
         bbool                       isCollide() { return m_collided; }
         void                        setCollide(bbool _collided) { m_collided = _collided; }
 
@@ -665,7 +679,7 @@ namespace ITF
 	    void                setInteraction(CharacterInteractionType value) { m_interactionType = value; }
         ITF_INLINE const SCollidableContact * getContact() const { return m_contact; }
         ITF_INLINE void setContact(const SCollidableContact * _val) { m_contact = _val; }
-        
+
     private:
 
 	    CharacterInteractionType               m_interactionType;
@@ -1268,7 +1282,7 @@ namespace ITF
         EventSetDirection() : m_direction(Vec2d::Zero)
         {
         }
-        EventSetDirection(const Vec2d & _direction) 
+        EventSetDirection(const Vec2d & _direction)
         : Super(), m_direction(_direction)
         {}
         ITF_INLINE Vec2d getDirection() const { return m_direction; }
@@ -1286,7 +1300,7 @@ namespace ITF
         EventSetTarget() : m_target(ITF_INVALID_OBJREF)
         {
         }
-        EventSetTarget(ObjectRef _target, Vec2d _offset = Vec2d::Zero) 
+        EventSetTarget(ObjectRef _target, Vec2d _offset = Vec2d::Zero)
             : Super(), m_target(_target), m_offset(_offset)
         {}
         ITF_INLINE ObjectRef getTarget() const { return m_target; }
@@ -1493,14 +1507,14 @@ namespace ITF
         DECLARE_SERIALIZE()
     public:
         EventVirtualLinkBroadcast() : Super(), m_broadcastEvent(NULL) , m_childQuery( bfalse ) {}
-        EventVirtualLinkBroadcast( ActorRef _emitter, const StringID & _channelID, Event * _broadcastEvent, bbool _childQuery ) 
-            : Super(), 
-            m_emitter( _emitter ), 
+        EventVirtualLinkBroadcast( ActorRef _emitter, const StringID & _channelID, Event * _broadcastEvent, bbool _childQuery )
+            : Super(),
+            m_emitter( _emitter ),
             m_channelID( _channelID ),
             m_broadcastEvent( _broadcastEvent ),
             m_childQuery( _childQuery )
         {}
-        
+
         ITF_INLINE ActorRef         getEmitter() const                          { return m_emitter; }
         ITF_INLINE void             setEmitter( const ActorRef & _emitter )     { m_emitter = _emitter; }
         ITF_INLINE const StringID & getChannelID() const                        { return m_channelID; }
@@ -1604,7 +1618,7 @@ namespace ITF
     {
         DECLARE_OBJECT_CHILD_RTTI(EventTrajectorySpawn,Event,3846946197);
         DECLARE_SERIALIZE()
-    
+
     public:
         ITF_INLINE u32 getSpawneeIndex() const { return m_spawneeIndex; }
 
@@ -1622,7 +1636,7 @@ namespace ITF
     {
         DECLARE_OBJECT_CHILD_RTTI(EventOrangeContact,Event,4040257774);
         DECLARE_SERIALIZE()
-    
+
     public:
         EventOrangeContact()
         : m_speed(Vec2d::Zero)
@@ -1688,7 +1702,7 @@ namespace ITF
             _burstElementsCount = m_burstElementsCount;
             _burstCount = m_burstCount;
             _burstDelay = m_burstDelay;
-        }        
+        }
     private:
         f32	m_spawnDelay;           // first spawn after 'delay' seconds
         f32 m_spawnRate;            // then spawn every 'rate' seconds

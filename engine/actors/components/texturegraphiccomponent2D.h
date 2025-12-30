@@ -21,7 +21,7 @@ namespace ITF
         virtual bbool needsDraw() const { return bfalse; }
         virtual bbool needsDraw2D() const { return btrue; }
         virtual void  Draw2D();
-        virtual void  Update(f32 _deltaTime);        
+        virtual void  Update(f32 _deltaTime);
         virtual void  onActorLoaded(Pickable::HotReloadType /*_hotReload*/);
 #ifdef ITF_SUPPORT_EDITOR
         virtual void  onEditorCreated( class Actor* _original );
@@ -58,16 +58,18 @@ namespace ITF
         Vec2d               m_quadSize;
         bbool               m_isWaitingForTex;
         u32                 m_drawColor;
-        f32                 m_angle2D; 
+        f32                 m_angle2D;
+        bbool               m_useAlpha;
+        Color               m_alphalColor;
 
         enum QuadAlign
         {
-            align_free, 
+            align_free,
             align_centerX,
             align_centerY,
             align_centerXY
         };
-        u32                 m_align; 
+        u32                 m_align;
         Path                m_instanceFile;
     };
 

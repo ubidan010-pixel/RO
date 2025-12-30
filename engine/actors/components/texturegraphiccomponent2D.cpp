@@ -40,6 +40,7 @@ namespace ITF
     SERIALIZE_MEMBER("texture",m_instanceFile);
     SERIALIZE_MEMBER("quadSize",m_quadSize);
     SERIALIZE_MEMBER("angle", m_angle2D);
+    SERIALIZE_MEMBER("useAlpha", m_useAlpha);
     END_CONDITION_BLOCK()
 
         END_SERIALIZATION()
@@ -57,6 +58,7 @@ namespace ITF
         , m_logicalDataOwnerAdded(bfalse)
         , m_drawColor(COLOR_WHITE)
         , m_angle2D(0.f)
+        ,m_useAlpha(bfalse)
     {}
 
     TextureGraphicComponent2D::~TextureGraphicComponent2D()
@@ -95,6 +97,10 @@ namespace ITF
 
         m_depthRank = getTemplate()->getDepthRank();
         m_isWaitingForTex = btrue;
+        if (m_useAlpha) {
+            m_alphalColor = Color(m_drawColor);
+            m_alpha = m_colorFactor.getAlpha();
+        }
     }
 
     Texture* TextureGraphicComponent2D::getTexture()
@@ -182,7 +188,14 @@ namespace ITF
         {
             const Vec2d scale = m_actor->getScale();
             Quad2DInfo texInfo;
-            texInfo.m_color = m_drawColor;
+            if (m_useAlpha) {
+                m_alphalColor.setAlpha(m_alpha);
+                texInfo.m_color = m_alphalColor.getAsU32();
+            }
+            else {
+                texInfo.m_color = m_drawColor;
+            }
+
             texInfo.m_width = m_width * scale.m_x;
             texInfo.m_height = m_height * scale.m_y;
             texInfo.m_texture = tex;
@@ -191,7 +204,7 @@ namespace ITF
             texInfo.m_pos2D.m_x = m_actor->getPos().m_x - (texInfo.m_width * 0.5f);
             texInfo.m_pos2D.m_y = m_actor->getPos().m_y - (texInfo.m_height * 0.5f);
             texInfo.m_angle = m_actor->getAngle() + m_angle2D;
-            
+
             u32 depthRank = UI_TEXTMANAGER->getMenusDepthRank() + 1 - m_depthRank;
             GFX_ADAPTER->addPrimitive2d(Vec2d::Zero, Vec2d::One, depthRank, GFX_QUADS, NULL, NULL, &texInfo);
         }

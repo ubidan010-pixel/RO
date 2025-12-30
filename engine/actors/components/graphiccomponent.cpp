@@ -24,18 +24,18 @@ IMPLEMENT_OBJECT_RTTI(GraphicComponent)
 BEGIN_SERIALIZATION_CHILD(GraphicComponent)
 
     BEGIN_CONDITION_BLOCK(ESerializeGroup_DataEditable)
-       
+
         BEGIN_CONDITION_BLOCK(ESerialize_Deprecate)
         SERIALIZE_MEMBER("ColorFog_Red",m_colorFog_red);
         SERIALIZE_MEMBER("ColorFog_Green",m_colorFog_green);
         SERIALIZE_MEMBER("ColorFog_Blu",m_colorFog_blu);
-        SERIALIZE_MEMBER("fogfactor",m_colorFog_alpha); 
+        SERIALIZE_MEMBER("fogfactor",m_colorFog_alpha);
         m_colorFog = Color(m_colorFog_alpha/255.0f, m_colorFog_red/255.0f, m_colorFog_green/255.0f, m_colorFog_blu/255.0f);
         END_CONDITION_BLOCK()
 
-        SERIALIZE_MEMBER("ColorFactor", m_colorFactor);        
+        SERIALIZE_MEMBER("ColorFactor", m_colorFactor);
         SERIALIZE_MEMBER("ColorFog", m_colorFog);
-        
+
         // WARNING don't>of serialize in FINAL.
         SERIALIZE_MEMBER("colorComputerTagId", m_colorComputerTagId);
         SERIALIZE_MEMBER("renderInTarget", m_renderInTarget);
@@ -71,6 +71,7 @@ GraphicComponent::GraphicComponent()
 , m_colorComputerTagId(0)
 , m_shadowObj(NULL)
 , m_disableLight(UNINIT_BBOOL)
+,m_onEndCallback(NULL)
 {
 }
 
@@ -90,13 +91,13 @@ void GraphicComponent::clear()
 		}
 
 		destroyShadowMesh();
-	
+
 		SF_DEL(m_shadowObj)
 	}
 }
 
 ITF_IndexBuffer* GraphicComponent::getStaticIndexBuffer(u32 _hdiv, u32 _vdiv)
-{ 
+{
     return GFX_ADAPTER->getIndexBuffer(_hdiv, _vdiv);
 };
 
@@ -173,7 +174,7 @@ void GraphicComponent::reset()
 
 void GraphicComponent::processAlpha(f32 _deltaTime)
 {
-    if (m_faidingValue <= 0.f|| m_faidingTime <= 0.f) 
+    if (m_faidingValue <= 0.f|| m_faidingTime <= 0.f)
         return;
 
     m_faidingValue -= _deltaTime;
@@ -184,6 +185,9 @@ void GraphicComponent::processAlpha(f32 _deltaTime)
             m_actor->disable();
         else if (m_destroyOnFade)
             m_actor->requestDestruction();
+        if (m_onEndCallback) {
+            m_onEndCallback();
+        }
     }
     else
     {
@@ -196,8 +200,8 @@ void GraphicComponent::processAlpha(f32 _deltaTime)
 void GraphicComponent::processShadow(f32 _deltaTime, f32 _angle)
 {
 	//	shadow construction:
-	//	
-	//	p0. --- p1. --- contactPos. --- p2. --- p3. 
+	//
+	//	p0. --- p1. --- contactPos. --- p2. --- p3.
 	//
 
 	if (getTemplate()->getIsUseShadow())
@@ -216,7 +220,7 @@ void GraphicComponent::processShadow(f32 _deltaTime, f32 _angle)
 
 		if (m_actor->isFlipped())
 			offsetVector.m_x *= -1.f;
-		
+
 		Vec2d rayCastDir = Vec2d(0, -getTemplate()->getShadowDist());
 		const Vec2d raycastP0 = m_actor->getPos().truncateTo2D() + offsetVector.truncateTo2D();
 		const Vec2d raycastP1 = raycastP0 + rayCastDir;
@@ -226,7 +230,7 @@ void GraphicComponent::processShadow(f32 _deltaTime, f32 _angle)
 			/// get nearest collision.
 			f32 coeff = F32_INFINITY;
 			u32 minc = U32_INVALID;
-			
+
 			for ( u32 i = 0; i < contacts.size(); i++ )
 			{
                 SRayCastContact& c = contacts[i];
@@ -272,7 +276,7 @@ void GraphicComponent::processShadow(f32 _deltaTime, f32 _angle)
 				}
 			}
 
-			if ( minc == U32_INVALID || contacts[minc].m_edgeIndex0 == U32_INVALID ) 
+			if ( minc == U32_INVALID || contacts[minc].m_edgeIndex0 == U32_INVALID )
 			{
 				return;
 			}
@@ -300,7 +304,7 @@ void GraphicComponent::processShadow(f32 _deltaTime, f32 _angle)
 			Vec2d shadsize = getShadowSize();
 			//subanimation can control sizex.
 			shadsize.m_x *= m_shadowObj->m_shadowMul;
-			f32 tsize = shadsize.m_x * m_shadowObj->m_shadowAlpha;			
+			f32 tsize = shadsize.m_x * m_shadowObj->m_shadowAlpha;
 			f32 halfsize = tsize * 0.5f;
 
             Vec2d tmp = edge->m_normalizedVector * halfsize;
@@ -311,7 +315,7 @@ void GraphicComponent::processShadow(f32 _deltaTime, f32 _angle)
 			const f32 offsetcut = 0.2f;
 
 			PolyLine* nextPoly = NULL;
-            u32 nextEdge = U32_INVALID; 
+            u32 nextEdge = U32_INVALID;
 			f32 leng = 0.f;
 
 			Vec2d p1edg = edge->getPos();
@@ -366,8 +370,8 @@ void GraphicComponent::processShadow(f32 _deltaTime, f32 _angle)
 			if (leng > edge->m_length)
 			{
 				nextPoly = NULL;
-				nextEdge = U32_INVALID; 
-			
+				nextEdge = U32_INVALID;
+
 				/// Find on the right.
 				AIUtils::getAdjacentEdge(polyLine, contacts[minc].m_edgeIndex0, btrue, nextPoly, nextEdge);
 				if (nextPoly)
@@ -412,7 +416,7 @@ void GraphicComponent::processShadow(f32 _deltaTime, f32 _angle)
 			m_shadowObj->m_shadowPos[1] = Vec3d( p1.m_x, p1.m_y, m_actor->getDepth());
 			m_shadowObj->m_shadowPos[2] = Vec3d( contactPos.m_x, contactPos.m_y, m_actor->getDepth());
 			m_shadowObj->m_shadowPos[3] = Vec3d( p2.m_x, p2.m_y, m_actor->getDepth());
-			
+
 			m_shadowObj->m_shadowTexture = m_actor->addResource(Resource::ResourceType_Texture, getTemplate()->getShadowTextureFile());;
 			m_shadowObj->m_renderShadow = btrue;
 
@@ -428,8 +432,8 @@ void GraphicComponent::setColorFog(const Color& _color)
 }
 
 const Color& GraphicComponent::getColorFog()
-{ 
-    return m_colorFog; 
+{
+    return m_colorFog;
 }
 
 void GraphicComponent::setColorFactor(const Color& _color)
@@ -438,8 +442,8 @@ void GraphicComponent::setColorFactor(const Color& _color)
 }
 
 const Color& GraphicComponent::getColorFactor()
-{ 
-    return m_colorFactor; 
+{
+    return m_colorFactor;
 }
 
 void GraphicComponent::Update( f32 _deltaTime )
@@ -462,7 +466,7 @@ void GraphicComponent::createShadowMesh()
 {
 	//if a previous mesh is created destroy it
 	destroyShadowMesh();
-		
+
 #ifndef VBMANAGER_USE_DYNAMICRING_VB
 	m_shadowObj->m_shadowMesh.m_vtxBufferBuffered[0] = GFX_ADAPTER->createVertexBuffer(10 , VertexFormat_PCT, sizeof(VertexPCT), 1, VB_T_MESH);
     ITF_ASSERT(m_shadowObj->m_shadowMesh.m_vtxBufferBuffered[0]);
@@ -538,8 +542,8 @@ void GraphicComponent::destroyShadowMesh()
 	if( m_shadowObj->m_shadowMesh.m_vtxBuffer != NULL )
 	{
 		GFX_ADAPTER->removeVertexBuffer(m_shadowObj->m_shadowMesh.m_vtxBuffer);
-    	m_shadowObj->m_shadowMesh.m_vtxBuffer = NULL;	
-	}		
+    	m_shadowObj->m_shadowMesh.m_vtxBuffer = NULL;
+	}
 #endif //VBMANAGER_USE_DYNAMICRING_VB
 
 	//free index buffer
@@ -557,13 +561,13 @@ void GraphicComponent::computeVertexBufferCache()
 	Vec3d dir;
 	Vec3d perp;
 	Vec3d lastperp;
-	
+
     Vec2d shadsize = getShadowSize();
 	shadsize.m_x *= m_shadowObj->m_shadowMul;
 	u32 nS = m_shadowObj->m_sE - m_shadowObj->m_sS;
-	
+
 	f32 hlfsizey = shadsize.m_y * m_shadowObj->m_shadowAlpha * 0.5f;
-	
+
 	f32 distU = 0.f;
 	for (u32 i = 0; i < nS; i++ )
 	{
@@ -600,7 +604,7 @@ void GraphicComponent::computeVertexBufferCache()
 
 			m_shadowObj->m_cacheVB[i * 2 + 2].m_pos = p2 - perp;
 			m_shadowObj->m_cacheVB[i * 2 + 3].m_pos = p2 + perp;
-			
+
 			m_shadowObj->m_cacheVB[i * 2 + 2].m_uv = Vec2d(1.f, 0.f);
 			m_shadowObj->m_cacheVB[i * 2 + 3].m_uv = Vec2d(1.f, 1.f);
 		}
@@ -667,6 +671,8 @@ void GraphicComponent::onEvent( Event* _event)
             m_faidingValue  = m_faidingTime;
         m_pauseOnFade = eventShow->getPauseOnEnd();
         m_destroyOnFade = eventShow->getDestroyOnEnd();
+        m_onEndCallback = eventShow->getOnEndCallback();
+
     }
     else if ( _event->IsClassCRC(EventReset::GetClassCRCStatic()) )
     {
@@ -702,8 +708,8 @@ ITF_IndexBuffer* GraphicComponent::getMyStaticIndexBuffer()
 
 #ifndef ITF_WII
     ITF_WARNING_CATEGORY(GPP,
-        m_actor, prevHDiv == m_hDiv && prevVDiv == m_vDiv, 
-        "Actor's component is using an invalid patch level %ix%i (only allowed: %s)", 
+        m_actor, prevHDiv == m_hDiv && prevVDiv == m_vDiv,
+        "Actor's component is using an invalid patch level %ix%i (only allowed: %s)",
         prevHDiv, prevVDiv, GFXAdapter::getAllowedBufferTypesStr().cStr() );
 #endif
 
@@ -729,7 +735,7 @@ BEGIN_SERIALIZATION(GraphicComponent_Template)
     SERIALIZE_MEMBER("renderintarget",m_renderInTarget);
     SERIALIZE_MEMBER("posOffset",m_posOffset);
     SERIALIZE_MEMBER("angleOffset",m_angleOffset);
-    
+
     SERIALIZE_MEMBER("selfIllumColor",m_selfIllumColor);
     SERIALIZE_MEMBER("disableLight",m_disableLight);
     SERIALIZE_MEMBER("forceDisableLight",m_forceDisableLight);
@@ -741,7 +747,7 @@ BEGIN_SERIALIZATION(GraphicComponent_Template)
 	SERIALIZE_MEMBER("shadowDist",m_shadowDist);
 	SERIALIZE_MEMBER("shadowOffsetPos",m_shadowOffsetPos);
 	SERIALIZE_MEMBER("angleLimit",m_angleLimit);
-	
+
     SERIALIZE_ENUM_BEGIN("blendmode",m_blendMode);
         SERIALIZE_ENUM_VAR(GFX_BLEND_UNKNOWN);
         SERIALIZE_ENUM_VAR(GFX_BLEND_COPY);

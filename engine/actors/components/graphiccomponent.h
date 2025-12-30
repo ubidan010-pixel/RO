@@ -76,7 +76,7 @@ public:
     ITF_IndexBuffer*            getMyStaticIndexBuffer();
 
 	ShadowObj*				getShadowObject() {return m_shadowObj;}
-    
+
 	f32						getAlpha() const { return m_alpha; }
 	void					setAlpha(f32 _alpha) { m_alpha = _alpha; }
     void                    setColorFog(   const Color& _color );
@@ -90,7 +90,7 @@ public:
 
     void                    setTagId(u32 _tagid) {  m_colorComputerTagId = _tagid;}
     const u32               getTagId() const {  return m_colorComputerTagId;    }
-	
+
     bbool                   getDisableLight() const { return m_disableLight; }
 	void					setDisableLight(	bbool _v	) {	m_disableLight = _v;	};
 
@@ -124,11 +124,13 @@ protected:
 
     // WARNING don't serialize in Final :
     u32                     m_colorComputerTagId;
-	
+
 	bbool                   m_disableLight;
 
 	// Shadow.
 	ShadowObj*				m_shadowObj;
+    typedef void            (*OnShowEnd)();
+    OnShowEnd               m_onEndCallback;
 
 private:
     void                    reset();
@@ -159,7 +161,7 @@ public:
 
 	bbool					getIsUseShadow() const {return m_useShadow;}
 	bbool					getUseRootBone() const {return m_useRootBone;}
-	
+
 	const Path&				getShadowTextureFile() const { return m_shadowTextureFile; }
 	const Vec2d&            getShadowSize() const { return m_shadowSize; }
 	const f32	            getShadowAttenuation() const { return m_shadowAttenuation; }
