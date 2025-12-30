@@ -308,22 +308,12 @@ namespace ITF
                         backgroundTex->setQuadSize(newQuadSize);
                         Actor* accessibilityBackgroundActor = m_menu->findActorInMenuWorldByUserFriendly("accessibility_background");
                         UIComponent* accessibilityUI = accessibilityBackgroundActor ? accessibilityBackgroundActor->GetComponent<UIComponent>() : nullptr;
-                        TextureGraphicComponent2D* accessibilityTex = accessibilityBackgroundActor ? accessibilityBackgroundActor->GetComponent<TextureGraphicComponent2D>() : nullptr;
-                        if (backgroundUI && accessibilityUI && accessibilityTex && GFX_ADAPTER)
+                        if (backgroundUI && accessibilityUI)
                         {
-                            backgroundTex->Update(0.0f);
-                            accessibilityTex->Update(0.0f);
-
-                            const f32 screenH = (f32)GFX_ADAPTER->getScreenHeight();
-                            if (screenH > 0.0f)
-                            {
-                                const f32 accessibilityTopAbs = accessibilityBackgroundActor->getAABB().getMin().m_y;
-                                const f32 optionTopAbs = backgroundActor->getAABB().getMin().m_y;
-                                const f32 deltaRelY = (accessibilityTopAbs - optionTopAbs) / screenH;
-
-                                backgroundUI->setRelativePos(Vec2d(backgroundUI->getRelativePosX(), backgroundUI->getRelativePosY() + deltaRelY));
-                                backgroundUI->onResourceLoaded();
-                            }
+                            const f32 targetRelY = accessibilityUI->getRelativePosY();
+                            const f32 deltaRelY = targetRelY - backgroundUI->getRelativePosY();
+                            backgroundUI->setRelativePos(Vec2d(backgroundUI->getRelativePosX(), backgroundUI->getRelativePosY() + deltaRelY));
+                            backgroundUI->onResourceLoaded();
                         }
                     }
                 }
