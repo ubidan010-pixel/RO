@@ -103,7 +103,11 @@
 #ifndef _ITF_RAY_GAMEOPTIONNAMES_H_
 #include "rayman/gameplay/Managers/GameOptions/Ray_GameOptionNames.h"
 #endif //_ITF_RAY_GAMEOPTIONNAMES_H_
-
+#define EPILEPSY_SCREEN             "menuEpilepsy"
+#define EPILEPSY_TIME                7
+#define FADE_EFFECT_TIME            1.0f
+#define FADE_OUT_ALPHA              0.0f
+#define FADE_IN_ALPHA                1.0f
 #define TITLEMENU_FRIENDLY          "menutitlescreen"
 #define MAINMENU_FRIENDLY           "menuPlaywii" //menuPlay
 #ifdef ITF_WINDOWS
@@ -171,8 +175,9 @@ namespace ITF
         m_wasPreloaded (bfalse),
         m_waitingFrameForTRCMsg(0),
         m_pendingShowPCMenu(bfalse),
-        m_shouldShowWarningBoot(bfalse)
-
+        m_shouldShowWarningBoot(bfalse),
+        m_startEpilepsyScreenTime(0.0),
+        m_fadeBackGround(NULL)
 #ifdef ITF_SUPPORT_NETWORKSERVICES
         ,m_validUser(NULL)
 #endif //ITF_SUPPORT_NETWORKSERVICES
@@ -184,8 +189,9 @@ namespace ITF
     Ray_GameScreen_MainMenu::~Ray_GameScreen_MainMenu()
     {
         SAVEGAME_ADAPTER->setDeviceChangedCallback(NULL);
-        if(RAY_GAMEMANAGER->getDebugSaves())
-            if(TRC_ADAPTER) TRC_ADAPTER->removeListener(onCloseTRCMessage, this);
+        if (RAY_GAMEMANAGER->getDebugSaves())
+            if (TRC_ADAPTER)
+                TRC_ADAPTER->removeListener(onCloseTRCMessage, this);
 
         GAMEMANAGER->setInputModeForMenu(bfalse);
 
@@ -204,7 +210,11 @@ namespace ITF
     ///////////////////////////////////////////////////////////////////////////////////////////
     void Ray_GameScreen_MainMenu::onWorldLoaded()
     {
-        if(m_firstLoading)
+        if (m_fadeBackGround == nullptr)
+        {
+            m_fadeBackGround = (m_world->getRootScene()->getActorFromUserFriendly("FadeBackground")->GetComponent<TextureGraphicComponent2D>());
+        }
+        if (m_firstLoading)
         {
             if(TRC_ADAPTER)
             {
@@ -215,8 +225,12 @@ namespace ITF
             m_timeStartingToWait = SYSTEM_ADAPTER->getTime();
             m_timeToWaitBeforeStartScreen = TIMETOWAIT_TITLESCREEN;
             m_firstLoading = bfalse;
+            setState(State_ShowingEpilepsyScreen);
         }
-        setState(State_ShowingTitleScreen);
+        else
+        {
+            setState(State_ShowingTitleScreen);
+        }
 
         calculateAndLogLastPlayTime();
 
@@ -289,8 +303,9 @@ namespace ITF
         GAMEMANAGER->updateRichPresenceForActivePlayers(PRESENCE_NOTPLAYING, btrue);
 
         // check ..
-        if(RAY_GAMEMANAGER->getDebugSaves())
-            if(TRC_ADAPTER) TRC_ADAPTER->addListener(onCloseTRCMessage, this);
+        if (RAY_GAMEMANAGER->getDebugSaves())
+            if (TRC_ADAPTER)
+                TRC_ADAPTER->addListener(onCloseTRCMessage, this);
 
         GAMEMANAGER->setInputModeForMenu(btrue);
 
@@ -332,6 +347,39 @@ namespace ITF
     {
         m_playerIndex = GAMEMANAGER->getMainIndexPlayer_Internal();
     }
+
+    void Ray_GameScreen_MainMenu::enter_EpilepsyScreen()
+    {
+        m_startEpilepsyScreenTime = SYSTEM_ADAPTER->getTime();
+        UI_MENUMANAGER->showMenuPage(GAMEINTERFACE->getGameMenuPriority(), EPILEPSY_SCREEN, btrue, s_this);
+    }
+
+    void Ray_GameScreen_MainMenu::startUIFade(Fade _fade, void (*onComplete)())
+    {
+        m_fadeBackGround->setAlpha(_fade == Fade_In ? 0.f : 1.f);
+        EventShow evtShow(_fade == Fade_In ? FADE_IN_ALPHA : FADE_OUT_ALPHA, FADE_EFFECT_TIME, onComplete);
+        m_fadeBackGround->onEvent(&evtShow);
+    }
+
+    void Ray_GameScreen_MainMenu::update_EpilepsyScreen()
+    {
+        if (SYSTEM_ADAPTER->getTime() - m_startEpilepsyScreenTime >= EPILEPSY_TIME && !m_leaveEpilepsyOnce)
+        {
+            leave_EpilepsyScreen();
+            m_leaveEpilepsyOnce = btrue;
+        }
+    }
+
+    void Ray_GameScreen_MainMenu::leave_EpilepsyScreen()
+    {
+        startUIFade(Fade_In, []()
+        {
+            UI_MENUMANAGER->hideMenu(GAMEINTERFACE->getGameMenuPriority());
+            s_this->startUIFade(Fade_Out);
+            s_this->setState(State_ShowingTitleScreen);
+        });
+    }
+
     ///////////////////////////////////////////////////////////////////////////////////////////
     void Ray_GameScreen_MainMenu::setCanShowLoadGame(bbool _show, u32 _slot)
     {
@@ -401,8 +449,10 @@ namespace ITF
         //Leaving state
         switch(m_state)
         {
-        case State_ShowingPressStart: leave_ShowingPressStart(); break;
-        case State_Exited: leave_Exited(); break;
+        case State_ShowingPressStart: leave_ShowingPressStart();
+            break;
+        case State_Exited: leave_Exited();
+            break;
         }
 
         m_state = _state;
@@ -410,9 +460,14 @@ namespace ITF
         // Entering state
         switch(m_state)
         {
-        case State_ShowingTitleScreen: enter_ShowingTitleScreen(); break;
-        case State_Online_CreateSession: enter_OnlineCreateSession(); break;
-        case State_Exited : enter_Exited(); break;
+        case State_ShowingEpilepsyScreen: enter_EpilepsyScreen();
+            break;
+        case State_ShowingTitleScreen: enter_ShowingTitleScreen();
+            break;
+        case State_Online_CreateSession: enter_OnlineCreateSession();
+            break;
+        case State_Exited: enter_Exited();
+            break;
         }
     }
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -585,7 +640,8 @@ namespace ITF
                     m_savingProcessEnabled = btrue;
                     setState(State_Exited);
                     m_currentlyExiting = btrue;
-                } else
+                }
+                else
                 {
                     setState(State_ShowingMainMenu_Load_Error);
                 }
@@ -598,7 +654,8 @@ namespace ITF
         if(SAVEGAME_ADAPTER->IsSaveSystemEnable() && m_showLoadMenuEntry[m_currentSlotSelected])
         {
             setState(State_ShowingMainMenu_Load_StartLoading);
-        } else
+        }
+        else
         {
             ITF_ASSERT(0);
             setState(State_ShowingPressStart);
@@ -1141,7 +1198,8 @@ namespace ITF
 
                     res = bfalse;
                 }
-            } else
+            }
+            else
             {
                 // Check profile
                 if( NETWORKSERVICES->compareUsers( &newUser, m_validUser ) )
@@ -1176,6 +1234,7 @@ namespace ITF
         switch (m_state)
         {
         case State_WaitMapLoaded:                               update_WaitMapLoaded(); break;
+        case State_ShowingEpilepsyScreen:                       update_EpilepsyScreen(); break;
         case State_ShowingTitleScreen:                          update_ShowingTitleScreen(); break;
         case State_ShowingPressStart:                           update_ShowingPressStart(); break;
         case State_PressingStart:                               update_PressingStart(); break;
@@ -1467,22 +1526,23 @@ namespace ITF
         m_newsItemIndex = _newsId;
 
         TRC_ADAPTER->addMessage(TRCManagerAdapter::ErrorContext::UOR_News, [](TRCMessage_Base* pMessage, void* pParams) ->
-            bbool {
-                auto data = ONLINE_ADAPTER->getNewsService()->cachedNews();
-                i32 newsId = *(i32*)pParams;
+                                bbool
+                                {
+                                    auto data = ONLINE_ADAPTER->getNewsService()->cachedNews();
+                                    i32 newsId = *(i32*)pParams;
 
-                if (newsId < 0 || newsId >= (i32)data.size())
-                {
-                    pMessage->forceTexts("", "News are not yet available. Please retry later.");
-                    return btrue;
-                }
+                                    if (newsId < 0 || newsId >= (i32)data.size())
+                                    {
+                                        pMessage->forceTexts("", "News are not yet available. Please retry later.");
+                                        return btrue;
+                                    }
 
-                String8 title = data[newsId].m_title;
-                String8 body = data[newsId].m_body;
+                                    String8 title = data[newsId].m_title;
+                                    String8 body = data[newsId].m_body;
 
-                pMessage->forceTexts(title, body);
-                return btrue;
-            }, &m_newsItemIndex, 0, 0);
+                                    pMessage->forceTexts(title, body);
+                                    return btrue;
+                                }, &m_newsItemIndex, 0, 0);
 #endif
     }
 

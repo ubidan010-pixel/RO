@@ -26,6 +26,8 @@
 
 #include <future>
 
+#include "engine/actors/components/texturegraphiccomponent2D.h"
+
 namespace ITF
 {
     class TRCMessage_Base;
@@ -78,11 +80,15 @@ namespace ITF
         u32 getPlayerIndex() {return m_playerIndex;}
 
     private:
-
+        enum Fade {
+        Fade_In,
+        Fade_Out
+        };
         enum State
         {
             State_Initializing=0,
             State_WaitMapLoaded,
+            State_ShowingEpilepsyScreen,
             State_ShowingTitleScreen,
             State_ShowingPressStart,
             State_PressingStart,
@@ -139,6 +145,10 @@ namespace ITF
         void updatePlayerIndex();
 
         //Enter/update/leave for each state
+        void enter_EpilepsyScreen();
+        void startUIFade(Fade _fade, void (*onComplete)() = NULL);
+        void update_EpilepsyScreen();
+        void leave_EpilepsyScreen();
         void enter_WaitMapLoaded();
         void update_WaitMapLoaded();
         void leave_WaitMapLoaded();
@@ -226,6 +236,7 @@ namespace ITF
         static bbool m_firstLoading;
         //
         State m_state;
+        bbool m_leaveEpilepsyOnce = bfalse;
         static Ray_GameScreen_MainMenu *s_this;
         u32 m_playerIndex;
 
@@ -242,6 +253,7 @@ namespace ITF
         f64 m_timeToWaitBeforeStartScreen;
         f64 m_timeStartingToWait;
         u32 m_waitingFrameForTRCMsg;
+        f64 m_startEpilepsyScreenTime;
         bbool m_pendingShowPCMenu;
         bbool m_shouldShowWarningBoot;
         i32 m_newsItemIndex;
@@ -266,6 +278,7 @@ namespace ITF
 #endif //ITF_SUPPORT_NETWORKSERVICES
         Ray_OptionMenuHelper m_optionMenuHelper;
         Ray_ControlsRemappingMenuHelper m_controlsRemappingMenuHelper;
+        TextureGraphicComponent2D* m_fadeBackGround;
         //
     };
 }
