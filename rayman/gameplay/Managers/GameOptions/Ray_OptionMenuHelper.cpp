@@ -154,13 +154,13 @@ namespace ITF
             { "resolution_option",        "sfx_volume_option",       "window_option",          "start_with_heart_option",  "start_with_heart_option" },
             { "window_option",            "resolution_option",       "language_option",        "run_button_option",        "run_button_option" },
             { "language_option",          "window_option",           "master_volume_option",   "run_button_option",        "run_button_option" },
-            { "master_volume_option",     "language_option",         "music_volume_option",    "intensity_option",         "intensity_option" },
+            { "master_volume_option",     "language_option",         "music_volume_option",    "vibration_option",         "vibration_option" },
             { "music_volume_option",      "master_volume_option",    "sfx_volume_option",      "ubisoftconnect_button",    "ubisoftconnect_button" },
             { "sfx_volume_option",        "music_volume_option",     "resolution_option",      "ubisoftconnect_button",    "ubisoftconnect_button" },
-            { "ubisoftconnect_button",    "intensity_option",        "start_with_heart_option","sfx_volume_option",        "sfx_volume_option" },
+            { "ubisoftconnect_button",    "vibration_option",        "start_with_heart_option","sfx_volume_option",        "sfx_volume_option" },
             { "start_with_heart_option",  "ubisoftconnect_button",   "run_button_option",      "resolution_option",        "resolution_option" },
-            { "run_button_option",        "start_with_heart_option", "intensity_option",       "window_option",            "window_option" },
-            { "intensity_option",         "run_button_option",       "ubisoftconnect_button",  "master_volume_option",     "master_volume_option" },
+            { "run_button_option",        "start_with_heart_option", "vibration_option",       "window_option",            "window_option" },
+            { "vibration_option",         "run_button_option",       "ubisoftconnect_button",  "master_volume_option",     "master_volume_option" },
         };
 
         static const size_t s_optionNavigationEntryCount = sizeof(s_optionNavigationEntries) / sizeof(s_optionNavigationEntries[0]);
@@ -1230,7 +1230,7 @@ namespace ITF
             return OPTION_MUSIC_VOLUME;
         else if (friendlyName == "sfx_volume_option")
             return OPTION_SFX_VOLUME;
-        else if (friendlyName == "intensity_option")
+        else if (friendlyName == "vibration_option")
             return OPTION_INTENSITY;
 
         return StringID::Invalid;
