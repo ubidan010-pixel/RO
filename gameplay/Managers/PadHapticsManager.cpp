@@ -6,10 +6,17 @@
 #ifndef _ITF_HATPICMANAGER_H_
 #include "PadHapticsManager.h"
 #endif //_ITF_HATPICMANAGER_H_
+
+#if defined(ITF_WINDOWS)
+#include <algorithm>
+#include <cmath>
+#include "libScePadforPCGames/include/pad_audio.h"
+#endif
 namespace ITF
 {
     PadHapticsManager::PadHapticsManager() : m_enableHaptics(btrue)
-                                             , m_enableControllerSpeaker(btrue)
+                                            , m_enableControllerSpeaker(btrue)
+                                            , m_controllerSpeakerVolume(1.0f)
     {
     }
 
@@ -36,6 +43,10 @@ namespace ITF
         {
            m_devices[_padIndex].regSpeaker =  registerControllerSpeaker(_padIndex, _deviceID, _deviceOutputID, _padType);
         }
+
+    #if defined(ITF_WINDOWS)
+        applyControllerSpeakerVolumeToDevice(m_devices[_padIndex]);
+    #endif
     }
 
     void PadHapticsManager::onControllerDisconnected(u32 pad)
@@ -63,10 +74,38 @@ namespace ITF
                 info.regHaptics = !isSuccess;
             }
         }
-        int k = 0;
-        // TODO, wait for new option, but for now it's alongs with haptics
-        enableControllerSpeaker(m_enableHaptics);
     }
+
+    void PadHapticsManager::setControllerSpeakerVolume(f32 volume)
+    {
+        volume = std::max(0.0f, std::min(1.0f, volume));
+        m_controllerSpeakerVolume = volume;
+
+#if defined(ITF_WINDOWS)
+        for (auto& pair : m_devices)
+        {
+            applyControllerSpeakerVolumeToDevice(pair.second);
+        }
+#endif
+    }
+
+#if defined(USE_PAD_HAPTICS) && defined(ITF_WINDOWS)
+    void PadHapticsManager::applyControllerSpeakerVolumeToDevice(const DeviceInfo& info) const
+    {
+        const bbool isSonyController = info.padType == InputAdapter::Pad_PS4 || info.padType == InputAdapter::Pad_PS5;
+        if (!isSonyController)
+            return;
+        const int gain = static_cast<int>(std::lround(m_controllerSpeakerVolume * static_cast<float>(SCE_PAD_MAX_VOLUME_GAIN)));
+        const int clamped = std::max(0, std::min(static_cast<int>(SCE_PAD_MAX_VOLUME_GAIN), gain));
+        ScePadVolumeGain padGain = {
+            static_cast<uint8_t>(clamped),
+            0xff,
+            0,
+            0xff,
+        };
+        scePadSetVolumeGain(static_cast<int32_t>(info.deviceID), &padGain);
+    }
+#endif
 
     void PadHapticsManager::enableControllerSpeaker(bbool enable)
     {

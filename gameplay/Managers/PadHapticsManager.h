@@ -22,6 +22,7 @@ namespace ITF
         void onControllerDisconnected(uint32_t _pad);
         void enableHaptics(bbool enable);
         void enableControllerSpeaker(bbool enable);
+        void setControllerSpeakerVolume(f32 volume);
     private:
         struct  DeviceInfo
         {
@@ -36,10 +37,15 @@ namespace ITF
         ~PadHapticsManager();
         bbool m_enableHaptics;
         bbool m_enableControllerSpeaker;
+        f32 m_controllerSpeakerVolume;
         bbool registerHaptics(u32 _padIndex,u32 _deviceID,u32 _deviceOutputID,InputAdapter::PadType _padType);
         bbool unregisterHaptics(uint32_t _pad);
         bbool registerControllerSpeaker(u32 _padIndex,u32 _deviceID,u32 _deviceOutputID,InputAdapter::PadType _padType);
         bbool unregisterControllerSpeaker(uint32_t _pad);
+
+    #if defined(USE_PAD_HAPTICS) && defined(ITF_WINDOWS)
+        void applyControllerSpeakerVolumeToDevice(const DeviceInfo& info) const;
+    #endif
 
     };
 #define HAPTICS_MANAGER PadHapticsManager::get()

@@ -157,10 +157,11 @@ namespace ITF
             { "master_volume_option",     "language_option",         "music_volume_option",    "vibration_option",         "vibration_option" },
             { "music_volume_option",      "master_volume_option",    "sfx_volume_option",      "ubisoftconnect_button",    "ubisoftconnect_button" },
             { "sfx_volume_option",        "music_volume_option",     "resolution_option",      "ubisoftconnect_button",    "ubisoftconnect_button" },
-            { "ubisoftconnect_button",    "vibration_option",        "start_with_heart_option","sfx_volume_option",        "sfx_volume_option" },
+            { "ubisoftconnect_button",    "controller_sound_option", "start_with_heart_option","sfx_volume_option",        "sfx_volume_option" },
             { "start_with_heart_option",  "ubisoftconnect_button",   "run_button_option",      "resolution_option",        "resolution_option" },
             { "run_button_option",        "start_with_heart_option", "vibration_option",       "window_option",            "window_option" },
-            { "vibration_option",         "run_button_option",       "ubisoftconnect_button",  "master_volume_option",     "master_volume_option" },
+            { "vibration_option",         "run_button_option",       "controller_sound_option", "master_volume_option",    "master_volume_option" },
+            { "controller_sound_option",  "vibration_option",        "ubisoftconnect_button",  "master_volume_option",     "master_volume_option" },
         };
 
         static const size_t s_optionNavigationEntryCount = sizeof(s_optionNavigationEntries) / sizeof(s_optionNavigationEntries[0]);
@@ -199,6 +200,7 @@ namespace ITF
           , m_snapshotMusicVolume(0.0f)
           , m_snapshotSFXVolume(0.0f)
           , m_snapshotIntensity(0.0f)
+          , m_snapshotControllerSpeakerVolume(0.0f)
           , m_showLanguageWarning(bfalse)
           , m_eventListenerRegistered(bfalse)
           , m_hasEditSnapshot(bfalse)
@@ -429,9 +431,29 @@ namespace ITF
     {
         if (!m_isActive || !m_menu || !INPUT_ADAPTER)
             return;
+        const bbool hasAnyController = (INPUT_ADAPTER->getGamePadCount() > 0);
+        setOptionComponentDeactivated(OPTION_INTENSITY, !hasAnyController);
+        bbool hasPS5Controller = bfalse;
 
-        const bbool hasConnectedGamepad = INPUT_ADAPTER->getGamePadCount() > 0;
-        setOptionComponentDeactivated(OPTION_INTENSITY, !hasConnectedGamepad);
+#if defined(ITF_PS5)
+        hasPS5Controller = hasAnyController;
+#elif defined(ITF_WINDOWS)
+        for (u32 pad = 0; pad < JOY_MAX_COUNT; ++pad)
+        {
+            if (!INPUT_ADAPTER->isPadConnected(pad))
+                continue;
+
+            if (INPUT_ADAPTER->getPadType(pad) == InputAdapter::Pad_PS5)
+            {
+                hasPS5Controller = btrue;
+                break;
+            }
+        }
+#else
+        hasPS5Controller = bfalse;
+#endif
+
+        setOptionComponentDeactivated(OPTION_CONTROLLER_SPEAKER_VOLUME, !hasPS5Controller);
     }
 
     void Ray_OptionMenuHelper::onEvent(Event* _event)
@@ -570,6 +592,8 @@ namespace ITF
                 m_editSnapshotFloatValue = RAY_GAMEMANAGER->getSFXVolume();
             else if (optionId == OPTION_INTENSITY)
                 m_editSnapshotFloatValue = RAY_GAMEMANAGER->getIntensity();
+            else if (optionId == OPTION_CONTROLLER_SPEAKER_VOLUME)
+                m_editSnapshotFloatValue = RAY_GAMEMANAGER->getControllerSpeakerVolume();
             else
                 m_editSnapshotFloatValue = RAY_GAMEMANAGER->getGameOptionManager().getFloatOption(optionId, -1.0f);
 
@@ -648,6 +672,8 @@ namespace ITF
                 RAY_GAMEMANAGER->setSFXVolume(val);
             else if (optionId == OPTION_INTENSITY)
                 RAY_GAMEMANAGER->setIntensity(val);
+            else if (optionId == OPTION_CONTROLLER_SPEAKER_VOLUME)
+                RAY_GAMEMANAGER->setControllerSpeakerVolume(val);
             else
                 RAY_GAMEMANAGER->getGameOptionManager().setFloatOption(optionId, val);
 
@@ -800,6 +826,7 @@ namespace ITF
             OPTION_MUSIC_VOLUME,
             OPTION_SFX_VOLUME,
             OPTION_INTENSITY,
+            OPTION_CONTROLLER_SPEAKER_VOLUME,
         };
 
         for (u32 i = 0; i < (sizeof(optionIds) / sizeof(optionIds[0])); ++i)
@@ -877,6 +904,7 @@ namespace ITF
         optionManager.resetOption(OPTION_MUSIC_VOLUME);
         optionManager.resetOption(OPTION_SFX_VOLUME);
         optionManager.resetOption(OPTION_INTENSITY);
+        optionManager.resetOption(OPTION_CONTROLLER_SPEAKER_VOLUME);
 
         const i32 resolutionIndex = optionManager.getListOptionIndex(OPTION_RESOLUTION, RAY_GAMEMANAGER->getResolutionIndex());
         const bbool windowed = optionManager.getBoolOption(OPTION_WINDOWED, RAY_GAMEMANAGER->isWindowed());
@@ -888,6 +916,7 @@ namespace ITF
         const f32 musicVolume = optionManager.getFloatOption(OPTION_MUSIC_VOLUME, RAY_GAMEMANAGER->getMusicVolume());
         const f32 sfxVolume = optionManager.getFloatOption(OPTION_SFX_VOLUME, RAY_GAMEMANAGER->getSFXVolume());
         const f32 intensity = optionManager.getFloatOption(OPTION_INTENSITY, RAY_GAMEMANAGER->getIntensity());
+        const f32 controllerSpeakerVolume = optionManager.getFloatOption(OPTION_CONTROLLER_SPEAKER_VOLUME, RAY_GAMEMANAGER->getControllerSpeakerVolume());
 
         RAY_GAMEMANAGER->setResolutionIndex(resolutionIndex);
         RAY_GAMEMANAGER->setWindowed(windowed);
@@ -899,6 +928,7 @@ namespace ITF
         RAY_GAMEMANAGER->setMusicVolume(musicVolume);
         RAY_GAMEMANAGER->setSFXVolume(sfxVolume);
         RAY_GAMEMANAGER->setIntensity(intensity);
+        RAY_GAMEMANAGER->setControllerSpeakerVolume(controllerSpeakerVolume);
 
         refreshAllOptionVisuals();
     }
@@ -1232,6 +1262,8 @@ namespace ITF
             return OPTION_SFX_VOLUME;
         else if (friendlyName == "vibration_option")
             return OPTION_INTENSITY;
+        else if (friendlyName == "controller_sound_option")
+            return OPTION_CONTROLLER_SPEAKER_VOLUME;
 
         return StringID::Invalid;
     }
@@ -1464,6 +1496,10 @@ namespace ITF
         else if (optionId == OPTION_INTENSITY)
         {
             RAY_GAMEMANAGER->setIntensity(newValue);
+        }
+        else if (optionId == OPTION_CONTROLLER_SPEAKER_VOLUME)
+        {
+            RAY_GAMEMANAGER->setControllerSpeakerVolume(newValue);
         }
         else
         {
@@ -1852,6 +1888,17 @@ namespace ITF
         }
     }
 
+    void Ray_OptionMenuHelper::UpdateControllerSpeakerVolumeSlider()
+    {
+        if (!RAY_GAMEMANAGER)
+            return;
+
+        if (UIFloatOptionComponent* floatComponent = findFloatOptionComponent(OPTION_CONTROLLER_SPEAKER_VOLUME))
+        {
+            floatComponent->setValue(RAY_GAMEMANAGER->getControllerSpeakerVolume(), btrue);
+        }
+    }
+
     void Ray_OptionMenuHelper::refreshAllOptionVisuals()
     {
         if (!m_menu)
@@ -1871,6 +1918,7 @@ namespace ITF
         UpdateMusicVolumeSlider();
         UpdateSFXVolumeSlider();
         UpdateIntensitySlider();
+        UpdateControllerSpeakerVolumeSlider();
     }
 
     void Ray_OptionMenuHelper::captureSnapshot()
@@ -1891,6 +1939,7 @@ namespace ITF
         m_snapshotMusicVolume = RAY_GAMEMANAGER->getMusicVolume();
         m_snapshotSFXVolume = RAY_GAMEMANAGER->getSFXVolume();
         m_snapshotIntensity = RAY_GAMEMANAGER->getIntensity();
+        m_snapshotControllerSpeakerVolume = RAY_GAMEMANAGER->getControllerSpeakerVolume();
         m_hasSnapshot = btrue;
     }
 
@@ -1908,6 +1957,7 @@ namespace ITF
         RAY_GAMEMANAGER->setMusicVolume(m_snapshotMusicVolume);
         RAY_GAMEMANAGER->setSFXVolume(m_snapshotSFXVolume);
         RAY_GAMEMANAGER->setIntensity(m_snapshotIntensity);
+        RAY_GAMEMANAGER->setControllerSpeakerVolume(m_snapshotControllerSpeakerVolume);
     }
 
     void Ray_OptionMenuHelper::updateTimer()

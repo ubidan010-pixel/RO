@@ -53,6 +53,7 @@ namespace ITF
 #define OPTION_MUSIC_VOLUME             ITF_GET_STRINGID_CRC(MusicVolume,2854727058)
 #define OPTION_SFX_VOLUME               ITF_GET_STRINGID_CRC(SFXVolume,410342323)
 #define OPTION_INTENSITY                ITF_GET_STRINGID_CRC(Intensity,245404497)
+#define OPTION_CONTROLLER_SPEAKER_VOLUME ITF_GET_STRINGID_CRC(ControllerSpeakerVolume,3145883637)
 #define LAST_PLAY_TIME                  ITF_GET_STRINGID_CRC(LastPlayTime,1448759483)
 
 // Keeps track of Offline mode with cross progression status

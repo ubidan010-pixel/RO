@@ -108,6 +108,7 @@ namespace ITF
         void UpdateMusicVolumeSlider();
         void UpdateSFXVolumeSlider();
         void UpdateIntensitySlider();
+        void UpdateControllerSpeakerVolumeSlider();
         UIComponent* findOptionComponent(const StringID& optionId) const;
         UIListOptionComponent* findListOptionComponent(const StringID& optionId) const;
         UIToggleOptionComponent* findToggleOptionComponent(const StringID& optionId) const;
@@ -154,6 +155,7 @@ namespace ITF
         f32 m_snapshotMusicVolume;
         f32 m_snapshotSFXVolume;
         f32 m_snapshotIntensity;
+        f32 m_snapshotControllerSpeakerVolume;
         bbool m_showLanguageWarning;
         bbool m_eventListenerRegistered;
         bbool m_hasEditSnapshot;

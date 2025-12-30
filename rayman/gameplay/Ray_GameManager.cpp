@@ -11815,6 +11815,11 @@ namespace ITF
         m_gameOptionManager.registerFloatOption(OPTION_INTENSITY, 1.0f, 0.0f, 1.0f); // Default: Full intensity
     }
 
+    void Ray_GameManager::registerControllerSpeakerVolumeOption()
+    {
+        m_gameOptionManager.registerFloatOption(OPTION_CONTROLLER_SPEAKER_VOLUME, 1.0f, 0.0f, 1.0f); // Default: Full volume
+    }
+
     void Ray_GameManager::registerLastPlayTime()
     {
         m_gameOptionManager.registerFloatOption(LAST_PLAY_TIME, 0.0f, 0.0f, FLT_MAX);
@@ -11854,6 +11859,7 @@ namespace ITF
         registerMusicVolumeOption();
         registerSFXVolumeOption();
         registerIntensityOption();
+        registerControllerSpeakerVolumeOption();
         registerLastPlayTime();
         registerAuthAlreadyLinked();
         registerAuthBootCount();
@@ -11931,6 +11937,14 @@ namespace ITF
     //////////////////////////////////////////////////////////////////////////
     void Ray_GameManager::applyHealthModifierForPlayer(u32 _playerIndex)
     {
+        Ray_Player* player = static_cast<Ray_Player*>(getPlayer(_playerIndex));
+        if (player)
+        {
+            player->setHeartTier(HeartTier_None);
+            player->resetConsecutiveHits();
+        }
+        m_powerUpManager.setEnabled(Ray_PowerUp_HeartShield, _playerIndex, bfalse);
+
         EHealthModifier modifier = getHealthModifier();
         if (modifier == HealthModifier_Default)
             return;
@@ -11948,6 +11962,7 @@ namespace ITF
                 player->setHeartTier(HeartTier_None);
                 player->resetConsecutiveHits();
             }
+            m_powerUpManager.setEnabled(Ray_PowerUp_HeartShield, i, bfalse);
         }
     }
 
@@ -12271,6 +12286,27 @@ namespace ITF
 #endif
     }
 
+    f32 Ray_GameManager::getControllerSpeakerVolume() const
+    {
+        return m_gameOptionManager.getFloatOption(OPTION_CONTROLLER_SPEAKER_VOLUME, 1.0f);
+    }
+
+    void Ray_GameManager::setControllerSpeakerVolume(f32 volume)
+    {
+        volume = std::max(volume, 0.0f);
+        volume = std::min(volume, 1.0f);
+        m_gameOptionManager.setFloatOption(OPTION_CONTROLLER_SPEAKER_VOLUME, volume);
+        LOG("[OptionMenu] Controller Speaker Volume: %.2f (%.0f%%)", volume, volume * 100.0f);
+
+#ifdef USE_PAD_HAPTICS
+        if (HAPTICS_MANAGER)
+        {
+            HAPTICS_MANAGER->enableControllerSpeaker(volume > 0.0f ? 1 : 0);
+            HAPTICS_MANAGER->setControllerSpeakerVolume(volume);
+        }
+#endif
+    }
+
     ///////////////////////////////////////////////////////////////////////////////////////////
     // Ubiservices Authentication Flow
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -12421,6 +12457,7 @@ namespace ITF
             gm->setRunButtonMode(gm->getRunButtonMode());
             gm->setMurfyAssist(gm->isMurfyAssistEnabled());
             gm->setIntensity(gm->getIntensity());
+            gm->setControllerSpeakerVolume(gm->getControllerSpeakerVolume());
             gm->setMasterVolume(gm->getMasterVolume());
             gm->setMusicVolume(gm->getMusicVolume());
             gm->setSFXVolume(gm->getSFXVolume());

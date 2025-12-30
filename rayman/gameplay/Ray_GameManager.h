@@ -1777,6 +1777,9 @@ namespace ITF
         f32             getIntensity() const;
         void            setIntensity(f32 intensity);
 
+        f32             getControllerSpeakerVolume() const;
+        void            setControllerSpeakerVolume(f32 volume);
+
         //==========================================================================
         // Save/Load Options
         //==========================================================================
@@ -1857,6 +1860,7 @@ namespace ITF
         void            registerMusicVolumeOption();
         void            registerSFXVolumeOption();
         void            registerIntensityOption();
+        void            registerControllerSpeakerVolumeOption();
         void            registerLastPlayTime();
         void            registerAuthAlreadyLinked();
         void            registerAuthBootCount();
