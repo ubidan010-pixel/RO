@@ -104,7 +104,7 @@ namespace ITF
                 0.0f, 0.0f, // NB[LaurentCou]: let the text box handle its size
                 getDepthRank(), Vec2d::Zero, Vec2d::One, COLOR_WHITE, bfalse, 
                 UITextBox::BoxPosition_Center, getShadowOffset(), getShadowColor(), getTemplate()->getLineSpacingFactor(), ResourceID::Invalid, m_fontIndex,
-                getTemplate()->getTextMode(), getTemplate()->getTextModeY());
+                getTemplate()->getTextMode(), getEffectiveTextModeY());
 
             // NB[LaurentCou]: refresh text box size on resolution change (RO-13880)
             // NB2[LaurentCou]: if there's an anim, the UIComponent scales the actor for us,

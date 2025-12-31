@@ -85,8 +85,8 @@ namespace ITF
         bbool handleIconAction(const StringID& id, UIComponent* component);
         void startRemappingMode(u32 playerIndex, ZInputManager::EGameAction action, UIComponent* component);
         bbool parseIconId(const StringID& id, u32& outPlayerIndex, ZInputManager::EGameAction& outAction);
-        void clearIconDisplay(UIComponent* component);
-        void restoreIconDisplay(UIComponent* component);
+        void clearIconDisplay(u32 playerIndex, UIComponent* component);
+        void restoreIconDisplay(u32 playerIndex, UIComponent* component);
         void cancelRemappingMode(u32 playerIndex, bbool restoreDisplay);
         bbool detectPhysicalControl(u32 playerIndex, u32& outPhysicalControl, EInputSourceType& outSource);
         void finalizeRemapping(u32 playerIndex, u32 physicalControl);
@@ -128,6 +128,7 @@ namespace ITF
         bbool m_hasSnapshotKeyboard[4];
         ITF_VECTOR<u32> m_snapshotGamepad[4];
         ITF_VECTOR<u32> m_snapshotKeyboard[4];
+        LocalisationId m_previousIconLineIdByPlayer[4];
 
 #if defined(ITF_WINDOWS)
         bbool m_hasSnapshotPCControlMode;

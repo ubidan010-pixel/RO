@@ -51,6 +51,13 @@ namespace ITF
         static const f32 POST_REMAP_COOLDOWN = 0.15f;
     }
 
+    static const LocalisationId kControlsRemappingNewInputLineId = []()
+    {
+        LocalisationId id;
+        id = 7135u;
+        return id;
+    }();
+
     Ray_ControlsRemappingMenuHelper* Ray_ControlsRemappingMenuHelper::s_activeHelper = nullptr;
 
 #define CONTROLSREMAPPING_ACCEPT_BUTTON  ITF_GET_STRINGID_CRC(accept_button,25226343)
@@ -159,7 +166,7 @@ namespace ITF
             m_remappingCooldownByPlayer[i] = 0.0f;
             m_postRemapCooldownByPlayer[i] = 0.0f;
             m_remappingSourceByPlayer[i] = InputSource_Gamepad;
-
+            m_previousIconLineIdByPlayer[i] = U32_INVALID;
             m_selectedComponentRefByPlayer[i] = ObjectRef::InvalidRef;
             m_hasSelectedComponentByPlayer[i] = bfalse;
 
@@ -201,7 +208,7 @@ namespace ITF
             m_remappingCooldownByPlayer[i] = 0.0f;
             m_postRemapCooldownByPlayer[i] = 0.0f;
             m_remappingSourceByPlayer[i] = InputSource_Gamepad;
-
+            m_previousIconLineIdByPlayer[i] = U32_INVALID;
             m_selectedComponentRefByPlayer[i] = ObjectRef::InvalidRef;
             m_hasSelectedComponentByPlayer[i] = bfalse;
         }
@@ -497,7 +504,7 @@ namespace ITF
             }
         }
 
-        CONTEXTICONSMANAGER->show(ContextIcon_Confirm, ContextIcon_Cancel, ContextIcon_EditConfirm, topRightIcon);
+        CONTEXTICONSMANAGER->show(ContextIcon_Confirm, ContextIcon_Cancel, ContextIcon_Select, topRightIcon);
     }
 
     void Ray_ControlsRemappingMenuHelper::UpdateMenuOnSelectionChange(UIComponent* uiComponent, bbool isSelected)
@@ -933,24 +940,44 @@ namespace ITF
         m_remappingComponentByPlayer[playerIndex] = component;
         m_remappingCooldownByPlayer[playerIndex] = ControlsRemappingConstants::REMAPPING_COOLDOWN;
         m_remappingSourceByPlayer[playerIndex] = InputSource_Count;
-        clearIconDisplay(component);
+        clearIconDisplay(playerIndex, component);
 
         showContextIcons();
 
         LOG("[ControlsRemapping] Starting remap mode for Player %d, Action %d\n", playerIndex + 1, action);
     }
 
-    void Ray_ControlsRemappingMenuHelper::clearIconDisplay(UIComponent* component)
+    void Ray_ControlsRemappingMenuHelper::clearIconDisplay(u32 playerIndex, UIComponent* component)
     {
         if (!component)
             return;
+
+        if (playerIndex < 4)
+        {
+            m_previousIconLineIdByPlayer[playerIndex] = component->getLineId();
+        }
+
+        component->setTextModeYOverride(1u); 
+        component->setLineId(kControlsRemappingNewInputLineId);
         component->forceContent("");
     }
 
-    void Ray_ControlsRemappingMenuHelper::restoreIconDisplay(UIComponent* component)
+    void Ray_ControlsRemappingMenuHelper::restoreIconDisplay(u32 playerIndex, UIComponent* component)
     {
         if (!component)
             return;
+
+        component->clearTextModeYOverride();
+
+        if (playerIndex < 4)
+        {
+            component->setLineId(m_previousIconLineIdByPlayer[playerIndex]);
+        }
+        else
+        {
+            component->setLineId(LocalisationId::Invalid);
+        }
+
         String content(component->getFriendly().cStr());
         component->forceContent(content);
     }
@@ -965,7 +992,7 @@ namespace ITF
 
         if (restoreDisplay)
         {
-            restoreIconDisplay(m_remappingComponentByPlayer[playerIndex]);
+            restoreIconDisplay(playerIndex, m_remappingComponentByPlayer[playerIndex]);
         }
 
         m_isRemappingModeByPlayer[playerIndex] = bfalse;

@@ -101,6 +101,8 @@ namespace ITF
     , m_overrideTextColor(Color::white())
     , m_overrideTextColorHighlighted(Color::yellow())
     , m_overrideTextColorInactive(Color::black())
+    , m_hasTextModeYOverride(bfalse)
+    , m_textModeYOverride(0)
     {
     }
 
@@ -169,6 +171,17 @@ namespace ITF
     void UIComponent::onResourceLoaded()
     {
         updateActorPosition();
+    }
+
+    u32 UIComponent::getEffectiveTextModeY() const
+    {
+        if (m_hasTextModeYOverride)
+        {
+            return m_textModeYOverride;
+        }
+
+        const UIComponent_Template* templ = getTemplate();
+        return templ ? templ->getTextModeY() : 0u;
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////

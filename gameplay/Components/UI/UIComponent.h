@@ -71,6 +71,10 @@ namespace ITF
 		ITF_INLINE  void        forceContent        (const String& _content)    { m_content = _content; m_textChanged = btrue; }
         ITF_INLINE  LocalisationId getLineId        (       ) const             { return m_lineId; }
         ITF_INLINE  void        setLineId           (LocalisationId _val)       { m_lineId = _val; m_textChanged = btrue; }
+
+        ITF_INLINE  void        setTextModeYOverride(u32 _modeY)                { m_hasTextModeYOverride = btrue; m_textModeYOverride = _modeY; m_textChanged = btrue; }
+        ITF_INLINE  void        clearTextModeYOverride()                        { m_hasTextModeYOverride = bfalse; m_textChanged = btrue; }
+        u32                     getEffectiveTextModeY() const;
         ITF_INLINE  const StringID&   getID               (       ) const             { return m_id; }
         void                    fillContent         (       );
         u32                     getColor() const;
@@ -177,6 +181,9 @@ namespace ITF
 
     private:
         f32                     m_gameOptionEditScale;
+
+        bbool                   m_hasTextModeYOverride;
+        u32                     m_textModeYOverride;
     };
 
     class UIComponent_Template : public TemplateActorComponent
