@@ -103,6 +103,8 @@ namespace ITF
     , m_overrideTextColorInactive(Color::black())
     , m_hasTextModeYOverride(bfalse)
     , m_textModeYOverride(0)
+    , m_hasInitialFontHeightOverride(bfalse)
+    , m_initialFontHeightOverride(-1.0f)
     {
     }
 
@@ -182,6 +184,17 @@ namespace ITF
 
         const UIComponent_Template* templ = getTemplate();
         return templ ? templ->getTextModeY() : 0u;
+    }
+
+    f32 UIComponent::getEffectiveInitialFontHeight() const
+    {
+        if (m_hasInitialFontHeightOverride)
+        {
+            return m_initialFontHeightOverride;
+        }
+
+        const UIComponent_Template* templ = getTemplate();
+        return templ ? templ->getInitialFontHeight() : 1.0f;
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////

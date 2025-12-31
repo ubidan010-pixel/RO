@@ -65,7 +65,7 @@ namespace ITF
         {
             u32 color = getColor();
 
-            f32 initSize = getTemplate()->getInitialFontHeight();
+            f32 initSize = getEffectiveInitialFontHeight();
             f32 finalScale = 1.f;
             const bbool isSelected = getIsSelected();
             if (isSelected)

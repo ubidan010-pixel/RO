@@ -75,6 +75,10 @@ namespace ITF
         ITF_INLINE  void        setTextModeYOverride(u32 _modeY)                { m_hasTextModeYOverride = btrue; m_textModeYOverride = _modeY; m_textChanged = btrue; }
         ITF_INLINE  void        clearTextModeYOverride()                        { m_hasTextModeYOverride = bfalse; m_textChanged = btrue; }
         u32                     getEffectiveTextModeY() const;
+
+        ITF_INLINE  void        setInitialFontHeightOverride(f32 _fontHeight)   { m_hasInitialFontHeightOverride = btrue; m_initialFontHeightOverride = _fontHeight; m_textChanged = btrue; }
+        ITF_INLINE  void        clearInitialFontHeightOverride()                { m_hasInitialFontHeightOverride = bfalse; m_textChanged = btrue; }
+        f32                     getEffectiveInitialFontHeight() const;
         ITF_INLINE  const StringID&   getID               (       ) const             { return m_id; }
         void                    fillContent         (       );
         u32                     getColor() const;
@@ -184,6 +188,9 @@ namespace ITF
 
         bbool                   m_hasTextModeYOverride;
         u32                     m_textModeYOverride;
+
+        bbool                   m_hasInitialFontHeightOverride;
+        f32                     m_initialFontHeightOverride;
     };
 
     class UIComponent_Template : public TemplateActorComponent

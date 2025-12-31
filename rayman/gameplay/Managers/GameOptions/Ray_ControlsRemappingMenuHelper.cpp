@@ -1149,6 +1149,7 @@ namespace ITF
         }
 
         component->setTextModeYOverride(1u);
+        component->setInitialFontHeightOverride(30.0f);
         component->setLineId(kControlsRemappingNewInputLineId);
         component->forceContent("");
     }
@@ -1159,6 +1160,7 @@ namespace ITF
             return;
 
         component->clearTextModeYOverride();
+        component->clearInitialFontHeightOverride();
 
         if (playerIndex < 4)
         {
