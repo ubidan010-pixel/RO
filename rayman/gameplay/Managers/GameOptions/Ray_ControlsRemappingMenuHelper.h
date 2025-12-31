@@ -24,6 +24,7 @@
 
 namespace ITF
 {
+    class Actor;
     class UIComponent;
     class UIListOptionComponent;
 
@@ -80,8 +81,23 @@ namespace ITF
         void showContextIcons() override;
         void applyAndClose();
         void cancelAndClose();
+
+        enum ExitDecision
+        {
+            ExitDecision_None = 0,
+            ExitDecision_Save,
+            ExitDecision_Discard,
+        };
+
+        bbool isPlayerParticipatingForExit(u32 playerIndex) const;
+        void resetExitDecisionsAndStatusUI();
+        void setExitDecisionForPlayer(u32 playerIndex, ExitDecision decision);
+        bbool areAllParticipatingPlayersReadyToExit() const;
+        void applyExitDecisionsAndClose();
+
         void captureRemappingSnapshot();
         void restoreRemappingSnapshot();
+        void restoreRemappingSnapshotForPlayer(u32 playerIndex);
         bbool handleIconAction(const StringID& id, UIComponent* component);
         void startRemappingMode(u32 playerIndex, ZInputManager::EGameAction action, UIComponent* component);
         bbool parseIconId(const StringID& id, u32& outPlayerIndex, ZInputManager::EGameAction& outAction);
@@ -123,6 +139,10 @@ namespace ITF
 
         bbool m_hasCommittedChanges;
         bbool m_hasRestoredOnCancel;
+
+        ExitDecision m_exitDecisionByPlayer[4];
+        Actor* m_readyStatusActorByPlayer[4];
+
         bbool m_hasSnapshot;
         bbool m_hasSnapshotGamepad[4];
         bbool m_hasSnapshotKeyboard[4];

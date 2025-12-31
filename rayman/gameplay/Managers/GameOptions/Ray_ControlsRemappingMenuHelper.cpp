@@ -45,21 +45,6 @@
 
 namespace ITF
 {
-    namespace ControlsRemappingConstants
-    {
-        static const f32 REMAPPING_COOLDOWN = 0.25f;
-        static const f32 POST_REMAP_COOLDOWN = 0.15f;
-    }
-
-    static const LocalisationId kControlsRemappingNewInputLineId = []()
-    {
-        LocalisationId id;
-        id = 7135u;
-        return id;
-    }();
-
-    Ray_ControlsRemappingMenuHelper* Ray_ControlsRemappingMenuHelper::s_activeHelper = nullptr;
-
 #define CONTROLSREMAPPING_ACCEPT_BUTTON  ITF_GET_STRINGID_CRC(accept_button,25226343)
 #define CONTROLSREMAPPING_CANCEL_BUTTON  ITF_GET_STRINGID_CRC(cancel_button,4260770984)
 
@@ -108,34 +93,34 @@ namespace ITF
 
     static const IconMapping s_iconMappings[] =
     {
-        { ICON_PLAYER1_UP,    0, ZInputManager::Action_Up    },
-        { ICON_PLAYER1_DOWN,  0, ZInputManager::Action_Down  },
-        { ICON_PLAYER1_LEFT,  0, ZInputManager::Action_Left  },
-        { ICON_PLAYER1_RIGHT, 0, ZInputManager::Action_Right },
-        { ICON_PLAYER1_RUN,   0, ZInputManager::Action_Run   },
-        { ICON_PLAYER1_JUMP,  0, ZInputManager::Action_Jump  },
-        { ICON_PLAYER1_HIT,   0, ZInputManager::Action_Hit   },
-        { ICON_PLAYER2_UP,    1, ZInputManager::Action_Up    },
-        { ICON_PLAYER2_DOWN,  1, ZInputManager::Action_Down  },
-        { ICON_PLAYER2_LEFT,  1, ZInputManager::Action_Left  },
-        { ICON_PLAYER2_RIGHT, 1, ZInputManager::Action_Right },
-        { ICON_PLAYER2_RUN,   1, ZInputManager::Action_Run   },
-        { ICON_PLAYER2_JUMP,  1, ZInputManager::Action_Jump  },
-        { ICON_PLAYER2_HIT,   1, ZInputManager::Action_Hit   },
-        { ICON_PLAYER3_UP,    2, ZInputManager::Action_Up    },
-        { ICON_PLAYER3_DOWN,  2, ZInputManager::Action_Down  },
-        { ICON_PLAYER3_LEFT,  2, ZInputManager::Action_Left  },
-        { ICON_PLAYER3_RIGHT, 2, ZInputManager::Action_Right },
-        { ICON_PLAYER3_RUN,   2, ZInputManager::Action_Run   },
-        { ICON_PLAYER3_JUMP,  2, ZInputManager::Action_Jump  },
-        { ICON_PLAYER3_HIT,   2, ZInputManager::Action_Hit   },
-        { ICON_PLAYER4_UP,    3, ZInputManager::Action_Up    },
-        { ICON_PLAYER4_DOWN,  3, ZInputManager::Action_Down  },
-        { ICON_PLAYER4_LEFT,  3, ZInputManager::Action_Left  },
-        { ICON_PLAYER4_RIGHT, 3, ZInputManager::Action_Right },
-        { ICON_PLAYER4_RUN,   3, ZInputManager::Action_Run   },
-        { ICON_PLAYER4_JUMP,  3, ZInputManager::Action_Jump  },
-        { ICON_PLAYER4_HIT,   3, ZInputManager::Action_Hit   },
+        {ICON_PLAYER1_UP, 0, ZInputManager::Action_Up},
+        {ICON_PLAYER1_DOWN, 0, ZInputManager::Action_Down},
+        {ICON_PLAYER1_LEFT, 0, ZInputManager::Action_Left},
+        {ICON_PLAYER1_RIGHT, 0, ZInputManager::Action_Right},
+        {ICON_PLAYER1_RUN, 0, ZInputManager::Action_Run},
+        {ICON_PLAYER1_JUMP, 0, ZInputManager::Action_Jump},
+        {ICON_PLAYER1_HIT, 0, ZInputManager::Action_Hit},
+        {ICON_PLAYER2_UP, 1, ZInputManager::Action_Up},
+        {ICON_PLAYER2_DOWN, 1, ZInputManager::Action_Down},
+        {ICON_PLAYER2_LEFT, 1, ZInputManager::Action_Left},
+        {ICON_PLAYER2_RIGHT, 1, ZInputManager::Action_Right},
+        {ICON_PLAYER2_RUN, 1, ZInputManager::Action_Run},
+        {ICON_PLAYER2_JUMP, 1, ZInputManager::Action_Jump},
+        {ICON_PLAYER2_HIT, 1, ZInputManager::Action_Hit},
+        {ICON_PLAYER3_UP, 2, ZInputManager::Action_Up},
+        {ICON_PLAYER3_DOWN, 2, ZInputManager::Action_Down},
+        {ICON_PLAYER3_LEFT, 2, ZInputManager::Action_Left},
+        {ICON_PLAYER3_RIGHT, 2, ZInputManager::Action_Right},
+        {ICON_PLAYER3_RUN, 2, ZInputManager::Action_Run},
+        {ICON_PLAYER3_JUMP, 2, ZInputManager::Action_Jump},
+        {ICON_PLAYER3_HIT, 2, ZInputManager::Action_Hit},
+        {ICON_PLAYER4_UP, 3, ZInputManager::Action_Up},
+        {ICON_PLAYER4_DOWN, 3, ZInputManager::Action_Down},
+        {ICON_PLAYER4_LEFT, 3, ZInputManager::Action_Left},
+        {ICON_PLAYER4_RIGHT, 3, ZInputManager::Action_Right},
+        {ICON_PLAYER4_RUN, 3, ZInputManager::Action_Run},
+        {ICON_PLAYER4_JUMP, 3, ZInputManager::Action_Jump},
+        {ICON_PLAYER4_HIT, 3, ZInputManager::Action_Hit},
     };
 
     static const u32 s_iconMappingsCount = sizeof(s_iconMappings) / sizeof(s_iconMappings[0]);
@@ -170,6 +155,9 @@ namespace ITF
             m_selectedComponentRefByPlayer[i] = ObjectRef::InvalidRef;
             m_hasSelectedComponentByPlayer[i] = bfalse;
 
+            m_exitDecisionByPlayer[i] = ExitDecision_None;
+            m_readyStatusActorByPlayer[i] = nullptr;
+
             m_hasSnapshotGamepad[i] = bfalse;
             m_hasSnapshotKeyboard[i] = bfalse;
 
@@ -185,6 +173,33 @@ namespace ITF
             s_activeHelper = nullptr;
         }
     }
+
+    namespace ControlsRemappingConstants
+    {
+        static const f32 REMAPPING_COOLDOWN = 0.25f;
+        static const f32 POST_REMAP_COOLDOWN = 0.15f;
+    }
+
+    static const char* getReadyStatusActorNameForPlayer(u32 playerIndex)
+    {
+        switch (playerIndex)
+        {
+        case 0: return "p1_ready_status";
+        case 1: return "p2_ready_status";
+        case 2: return "p3_ready_status";
+        case 3: return "p4_ready_status";
+        default: return "";
+        }
+    }
+
+    static const LocalisationId kControlsRemappingNewInputLineId = []()
+    {
+        LocalisationId id;
+        id = 7135u;
+        return id;
+    }();
+
+    Ray_ControlsRemappingMenuHelper* Ray_ControlsRemappingMenuHelper::s_activeHelper = nullptr;
 
     Ray_ControlsRemappingMenuHelper* Ray_ControlsRemappingMenuHelper::getActiveHelper()
     {
@@ -211,6 +226,9 @@ namespace ITF
             m_previousIconLineIdByPlayer[i] = U32_INVALID;
             m_selectedComponentRefByPlayer[i] = ObjectRef::InvalidRef;
             m_hasSelectedComponentByPlayer[i] = bfalse;
+
+            m_exitDecisionByPlayer[i] = ExitDecision_None;
+            m_readyStatusActorByPlayer[i] = nullptr;
         }
 #if defined(ITF_WINDOWS)
         m_isEditingControllerType = bfalse;
@@ -227,6 +245,20 @@ namespace ITF
 
         m_hasCommittedChanges = bfalse;
         m_hasRestoredOnCancel = bfalse;
+
+        for (u32 playerIndex = 0; playerIndex < 4; ++playerIndex)
+        {
+            const char* name = getReadyStatusActorNameForPlayer(playerIndex);
+            Actor* statusActor = (name && name[0] && m_menu)
+                                     ? m_menu->findActorInMenuWorldByUserFriendly(name)
+                                     : nullptr;
+            m_readyStatusActorByPlayer[playerIndex] = statusActor;
+            m_exitDecisionByPlayer[playerIndex] = ExitDecision_None;
+            if (statusActor)
+            {
+                statusActor->disable();
+            }
+        }
 
         for (u32 i = 0; i < 4; ++i)
         {
@@ -336,6 +368,129 @@ namespace ITF
 #endif
 
         showContextIcons();
+    }
+
+    bbool Ray_ControlsRemappingMenuHelper::isPlayerParticipatingForExit(u32 playerIndex) const
+    {
+        if (playerIndex >= 4)
+            return bfalse;
+
+        if (playerIndex == 0)
+            return btrue;
+
+        return (INPUT_ADAPTER && INPUT_ADAPTER->isPadConnected(playerIndex)) ? btrue : bfalse;
+    }
+
+    void Ray_ControlsRemappingMenuHelper::resetExitDecisionsAndStatusUI()
+    {
+        for (u32 i = 0; i < 4; ++i)
+        {
+            m_exitDecisionByPlayer[i] = ExitDecision_None;
+            if (m_readyStatusActorByPlayer[i])
+            {
+                m_readyStatusActorByPlayer[i]->disable();
+            }
+        }
+    }
+
+    void Ray_ControlsRemappingMenuHelper::setExitDecisionForPlayer(u32 playerIndex, ExitDecision decision)
+    {
+        if (playerIndex >= 4)
+            return;
+        if (!isPlayerParticipatingForExit(playerIndex))
+            return;
+
+        m_exitDecisionByPlayer[playerIndex] = decision;
+
+        Actor* actor = m_readyStatusActorByPlayer[playerIndex];
+        if (!actor)
+            return;
+
+        if (decision == ExitDecision_None)
+        {
+            actor->disable();
+            return;
+        }
+
+        actor->enable();
+        if (UIComponent* ui = actor->GetComponent<UIComponent>())
+        {
+            ui->forceContent(String("Ready"));
+            ui->onResourceLoaded();
+        }
+    }
+
+    bbool Ray_ControlsRemappingMenuHelper::areAllParticipatingPlayersReadyToExit() const
+    {
+        for (u32 i = 0; i < 4; ++i)
+        {
+            if (!isPlayerParticipatingForExit(i))
+                continue;
+            if (m_exitDecisionByPlayer[i] == ExitDecision_None)
+                return bfalse;
+        }
+        return btrue;
+    }
+
+    void Ray_ControlsRemappingMenuHelper::restoreRemappingSnapshotForPlayer(u32 playerIndex)
+    {
+        if (!m_hasSnapshot)
+            return;
+        if (playerIndex >= 4)
+            return;
+        if (!GAMEMANAGER || !GAMEMANAGER->getInputManager())
+            return;
+
+        ZInputManager* input = GAMEMANAGER->getInputManager();
+
+        if (m_hasSnapshotGamepad[playerIndex])
+        {
+            input->ApplyRemapping(playerIndex, InputSource_Gamepad, m_snapshotGamepad[playerIndex]);
+        }
+
+#if defined(ITF_WINDOWS)
+        if (m_hasSnapshotKeyboard[playerIndex])
+        {
+            input->ApplyRemapping(playerIndex, InputSource_Keyboard, m_snapshotKeyboard[playerIndex]);
+        }
+#endif
+    }
+
+    void Ray_ControlsRemappingMenuHelper::applyExitDecisionsAndClose()
+    {
+        if (!areAllParticipatingPlayersReadyToExit())
+            return;
+
+        bbool anySave = bfalse;
+        for (u32 playerIndex = 0; playerIndex < 4; ++playerIndex)
+        {
+            if (!isPlayerParticipatingForExit(playerIndex))
+                continue;
+
+            if (m_exitDecisionByPlayer[playerIndex] == ExitDecision_Save)
+            {
+                anySave = btrue;
+            }
+            else if (m_exitDecisionByPlayer[playerIndex] == ExitDecision_Discard)
+            {
+                restoreRemappingSnapshotForPlayer(playerIndex);
+            }
+        }
+
+        if (anySave)
+        {
+            m_hasCommittedChanges = btrue;
+            if (RAY_GAMEMANAGER)
+            {
+                RAY_GAMEMANAGER->saveGameOptions();
+            }
+        }
+        else
+        {
+            m_hasRestoredOnCancel = btrue;
+        }
+
+        closeAndReturn();
     }
 
     void Ray_ControlsRemappingMenuHelper::captureRemappingSnapshot()
@@ -511,6 +666,15 @@ namespace ITF
     {
         if (isSelected && uiComponent)
         {
+            if (UI_MENUMANAGER)
+            {
+                const u32 inputPlayer = UI_MENUMANAGER->getCurrentInputPlayer();
+                if (inputPlayer < 4 && m_exitDecisionByPlayer[inputPlayer] != ExitDecision_None)
+                {
+                    setExitDecisionForPlayer(inputPlayer, ExitDecision_None);
+                }
+            }
+
             u32 playerIndex = U32_INVALID;
             ZInputManager::EGameAction action = ZInputManager::Action_Up;
             if (tryGetIconInfoFromComponent(uiComponent, playerIndex, action) && playerIndex < 4)
@@ -686,13 +850,13 @@ namespace ITF
     {
         switch (action)
         {
-        case ZInputManager::Action_Up:    return 0;
-        case ZInputManager::Action_Down:  return 1;
-        case ZInputManager::Action_Left:  return 2;
+        case ZInputManager::Action_Up: return 0;
+        case ZInputManager::Action_Down: return 1;
+        case ZInputManager::Action_Left: return 2;
         case ZInputManager::Action_Right: return 3;
-        case ZInputManager::Action_Run:   return 4;
-        case ZInputManager::Action_Jump:  return 5;
-        case ZInputManager::Action_Hit:   return 6;
+        case ZInputManager::Action_Run: return 4;
+        case ZInputManager::Action_Jump: return 5;
+        case ZInputManager::Action_Hit: return 6;
         default: return U32_INVALID;
         }
     }
@@ -743,6 +907,14 @@ namespace ITF
 
         const u32 inputPlayer = UI_MENUMANAGER->getCurrentInputPlayer();
         const bbool validInputPlayer = (inputPlayer != U32_INVALID && inputPlayer < 4);
+
+        if (validInputPlayer && m_exitDecisionByPlayer[inputPlayer] != ExitDecision_None)
+        {
+            if (action != input_actionID_DeleteSave && action != input_actionID_Back)
+            {
+                setExitDecisionForPlayer(inputPlayer, ExitDecision_None);
+            }
+        }
 
         bbool anyRemappingOrWaiting = bfalse;
         for (u32 playerIndex = 0; playerIndex < 4; ++playerIndex)
@@ -798,7 +970,14 @@ namespace ITF
 
         if (action == input_actionID_DeleteSave)
         {
-            applyAndClose();
+            if (validInputPlayer)
+            {
+                setExitDecisionForPlayer(inputPlayer, ExitDecision_Save);
+                if (areAllParticipatingPlayersReadyToExit())
+                {
+                    applyExitDecisionsAndClose();
+                }
+            }
             return UI_MENUMANAGER->getMenuPageAction_Nothing();
         }
 
@@ -832,7 +1011,14 @@ namespace ITF
 
         if (action == input_actionID_Back)
         {
-            cancelAndClose();
+            if (validInputPlayer)
+            {
+                setExitDecisionForPlayer(inputPlayer, ExitDecision_Discard);
+                if (areAllParticipatingPlayersReadyToExit())
+                {
+                    applyExitDecisionsAndClose();
+                }
+            }
             return UI_MENUMANAGER->getMenuPageAction_Nothing();
         }
 
@@ -866,6 +1052,11 @@ namespace ITF
             const u32 inputPlayer = UI_MENUMANAGER->getCurrentInputPlayer();
             if (inputPlayer < 4)
             {
+                if (m_exitDecisionByPlayer[inputPlayer] != ExitDecision_None)
+                {
+                    setExitDecisionForPlayer(inputPlayer, ExitDecision_None);
+                }
+
                 if (m_isRemappingModeByPlayer[inputPlayer] || m_isWaitingForReleaseByPlayer[inputPlayer])
                     return;
             }
@@ -957,7 +1148,7 @@ namespace ITF
             m_previousIconLineIdByPlayer[playerIndex] = component->getLineId();
         }
 
-        component->setTextModeYOverride(1u); 
+        component->setTextModeYOverride(1u);
         component->setLineId(kControlsRemappingNewInputLineId);
         component->forceContent("");
     }
@@ -1142,6 +1333,8 @@ namespace ITF
         {
             restoreRemappingSnapshot();
         }
+
+        resetExitDecisionsAndStatusUI();
 
 
         if (s_activeHelper == this)
