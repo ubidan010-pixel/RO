@@ -159,9 +159,9 @@ namespace ITF
 
     void UIFloatOptionComponent::updateDeactivatedVisuals()
     {
-        const bbool isActive = getActive();
+        const bbool isDeactivated = (!getActive() || !getCanBeSelected());
 
-        if (!isActive)
+        if (isDeactivated)
         {
             if (m_sliderBackgroundActor)
                 m_sliderBackgroundActor->disable();
@@ -320,7 +320,7 @@ namespace ITF
     {
         Super::handleSelectionChanged(isSelected);
 
-        if (!getActive())
+        if (!getActive() || !getCanBeSelected())
         {
             updateDeactivatedVisuals();
             return;
@@ -374,12 +374,13 @@ namespace ITF
     void UIFloatOptionComponent::Update(f32 _deltaTime)
     {
         Super::Update(_deltaTime);
+        updateDeactivatedVisuals();
+        updateSliderVisuals();
 
-        if (!getActive())
+        if (!getActive() || !getCanBeSelected())
             return;
 
         updateSliderFromMouse();
-        updateSliderVisuals();
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -406,6 +407,10 @@ namespace ITF
     void UIFloatOptionComponent::onPressed()
     {
         Super::onPressed();
+
+        if (!getActive() || !getCanBeSelected())
+            return;
+
         m_isSliding = btrue;
         m_exitEditAfterRelease = INPUT_ADAPTER->isMousePressed(InputAdapter::MB_Left);
     }
@@ -439,6 +444,9 @@ namespace ITF
     void UIFloatOptionComponent::onAction(const StringID & action)
     {
         Super::onAction(action);
+
+        if (!getActive() || !getCanBeSelected())
+            return;
 
         if (Ray_OptionMenuHelper::handleExternalEditingInput(this, action))
             return;

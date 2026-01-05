@@ -482,7 +482,10 @@ namespace ITF
         }
 
         const bbool shouldBeActive = !deactivated;
-        component->setActive(shouldBeActive);
+        const bbool isFloatOption =
+            (component->DynamicCast<UIFloatOptionComponent>(ITF_GET_STRINGID_CRC(UIFloatOptionComponent, 226609316)) != nullptr);
+
+        component->setActive(isFloatOption ? btrue : shouldBeActive);
         if (deactivated || (isEditing() && component != m_currentEditingComponent))
             component->setCanBeSelected(bfalse);
         else
