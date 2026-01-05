@@ -48,7 +48,6 @@
 
 namespace ITF
 {
-
     IMPLEMENT_OBJECT_RTTI_TEMPLATE(Ray_GameScreen_SplashScreenBase)
 
     IMPLEMENT_OBJECT_RTTI(Ray_GameScreen_Framework)
@@ -56,47 +55,47 @@ namespace ITF
     bbool Ray_GameScreen_SplashScreenBase::m_wasInitialized = bfalse;
 
     Ray_GameScreen_SplashScreenBase::Ray_GameScreen_SplashScreenBase() :
-    m_animComponent(NULL), m_moviePlayerComponent(NULL),
+        m_animComponent(NULL), m_moviePlayerComponent(NULL),
         m_screenState(Idle), m_resetAnimDone(bfalse), m_loaded(bfalse),
         m_japLogoStartedTime(0.0), m_japLogo_Duration(0.0), m_currentJapLogo(Kenko_480)
 #ifdef ITF_PS5
         , m_ps5StartupStartedTime(0.0)
         , m_ps5StartupHidden(bfalse)
 #endif
-    {        
-
-        for(u32 i = 0; i < JapLogo_MAX; i++)
+        , m_skipNoticeScreen(bfalse)
+    {
+        for (u32 i = 0; i < JapLogo_MAX; i++)
             m_japLogoComponent[i] = NULL;
     }
 
     Ray_GameScreen_SplashScreenBase::~Ray_GameScreen_SplashScreenBase()
-    {        
+    {
     }
 
     void Ray_GameScreen_SplashScreenBase::init()
     {
         ObjectRef rWorld = RAY_GAMEMANAGER->createMap();
-        
-        if(!rWorld.isValid())
+
+        if (!rWorld.isValid())
         {
             //do nothing
             m_world = NULL;
         }
         else
-        {       
+        {
             m_world = (World*)GETOBJECT(rWorld);
-            RAY_GAMEMANAGER->loadMap(rWorld, RAY_GAMEMANAGER->getSplashMap(),btrue,btrue, btrue, GameManager::LEVEL_NAME_INITIALISATION_TYPE_EMPTY);
+            RAY_GAMEMANAGER->loadMap(rWorld, RAY_GAMEMANAGER->getSplashMap(), btrue, btrue, btrue, GameManager::LEVEL_NAME_INITIALISATION_TYPE_EMPTY);
         }
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////
     void Ray_GameScreen_SplashScreenBase::onWorldLoaded()
     {
-        Scene * scene = m_world->getRootScene();
-        const PickableList &pickables=scene->getActors();
+        Scene* scene = m_world->getRootScene();
+        const PickableList& pickables = scene->getActors();
 
         u32 count = pickables.size();
-        for (u32 index=0; index<count; index++)
+        for (u32 index = 0; index < count; index++)
         {
 #if ENABLE_UIROBOT_ANIM
             if (AnimLightComponent *animComp = ((Actor*)pickables[index])->GetComponent<AnimLightComponent>())
@@ -105,50 +104,50 @@ namespace ITF
                 continue;
             }
 #endif // 0
-            if (UIComponent *UIComp = ((Actor*)pickables[index])->GetComponent<UIComponent>())
+            if (UIComponent* UIComp = ((Actor*)pickables[index])->GetComponent<UIComponent>())
             {
-                if(UIComp->getID() == ITF_GET_STRINGID_CRC(LOGO_KENKO_480,3615141419))
+                if (UIComp->getID() == ITF_GET_STRINGID_CRC(LOGO_KENKO_480, 3615141419))
                 {
                     m_japLogoComponent[Kenko_480] = UIComp;
-                }                 
-                else if(UIComp->getID() == ITF_GET_STRINGID_CRC(LOGO_KENKO_720,2379300525))
+                }
+                else if (UIComp->getID() == ITF_GET_STRINGID_CRC(LOGO_KENKO_720, 2379300525))
                 {
                     m_japLogoComponent[Kenko_720] = UIComp;
-                } 
-                else if(UIComp->getID() == ITF_GET_STRINGID_CRC(LOGO_KENKO_1080,950615127))
+                }
+                else if (UIComp->getID() == ITF_GET_STRINGID_CRC(LOGO_KENKO_1080, 950615127))
                 {
                     m_japLogoComponent[Kenko_1080] = UIComp;
-                } 
-                else if(UIComp->getID() == ITF_GET_STRINGID_CRC(LOGO_KIDOJI_480,4258925526))
+                }
+                else if (UIComp->getID() == ITF_GET_STRINGID_CRC(LOGO_KIDOJI_480, 4258925526))
                 {
                     m_japLogoComponent[Kidoji_480] = UIComp;
-                } 
-                else if(UIComp->getID() == ITF_GET_STRINGID_CRC(LOGO_KIDOJI_720,1091851443))
+                }
+                else if (UIComp->getID() == ITF_GET_STRINGID_CRC(LOGO_KIDOJI_720, 1091851443))
                 {
                     m_japLogoComponent[Kidoji_720] = UIComp;
-                } 
-                else if(UIComp->getID() == ITF_GET_STRINGID_CRC(LOGO_KIDOJI_1080,4087243262))
+                }
+                else if (UIComp->getID() == ITF_GET_STRINGID_CRC(LOGO_KIDOJI_1080, 4087243262))
                 {
                     m_japLogoComponent[Kidoji_1080] = UIComp;
-                } 
-                else if(UIComp->getID() == ITF_GET_STRINGID_CRC(LOGO_SHIYOJO_480,2539791049))
+                }
+                else if (UIComp->getID() == ITF_GET_STRINGID_CRC(LOGO_SHIYOJO_480, 2539791049))
                 {
                     m_japLogoComponent[Shiyojo_480] = UIComp;
-                } 
-                else if(UIComp->getID() == ITF_GET_STRINGID_CRC(LOGO_SHIYOJO_720,1124236401))
+                }
+                else if (UIComp->getID() == ITF_GET_STRINGID_CRC(LOGO_SHIYOJO_720, 1124236401))
                 {
                     m_japLogoComponent[Shiyojo_720] = UIComp;
-                } 
-                else if(UIComp->getID() == ITF_GET_STRINGID_CRC(LOGO_SHIYOJO_1080,2164412602))
+                }
+                else if (UIComp->getID() == ITF_GET_STRINGID_CRC(LOGO_SHIYOJO_1080, 2164412602))
                 {
                     m_japLogoComponent[Shiyojo_1080] = UIComp;
-                } 
+                }
 
                 UIComp->GetActor()->disable();
                 continue;
             }
 
-            if (MoviePlayerComponent *movieComp = ((Actor*)pickables[index])->GetComponent<MoviePlayerComponent>())
+            if (MoviePlayerComponent* movieComp = ((Actor*)pickables[index])->GetComponent<MoviePlayerComponent>())
             {
                 m_moviePlayerComponent = movieComp;
                 continue;
@@ -161,34 +160,33 @@ namespace ITF
 
     void Ray_GameScreen_SplashScreenBase::update()
     {
-        // If the world is not loaded (not found), just ask for exit 
+        // If the world is not loaded (not found), just ask for exit
         if (!m_world && !m_currentlyExiting)
         {
             changeGameScreen();
         }
 
         // If there is something wrong , leave here !
-        if(m_currentlyExiting || !m_isWorldLoaded) 
+        if (m_currentlyExiting || !m_isWorldLoaded)
             return;
 
         // If the boot is disable, just skip it
 #ifndef ITF_FINAL
-        if(!CONFIG->m_enableBootLogos)
-        {   
+        if (!CONFIG->m_enableBootLogos)
+        {
             changeGameScreen();
             return;
         }
-#endif 
-
+#endif
         bbool requiredLoadingComplete = GAMEMANAGER->isMenusLoaded();
 
 #define USE_PROLOGUE_PRELOAD
 
 #ifdef USE_PROLOGUE_PRELOAD
         static bool preloadStarted = bfalse;
-        if(requiredLoadingComplete)
+        if (requiredLoadingComplete)
         {
-            if(!preloadStarted)
+            if (!preloadStarted)
             {
                 RAY_GAMEMANAGER->preloadPrologue();
                 preloadStarted = btrue;
@@ -197,12 +195,18 @@ namespace ITF
                 requiredLoadingComplete = RAY_GAMEMANAGER->isPreloadedPrologueReady();
         }
 #endif // USE_PROLOGUE_PRELOAD
-
-        switch(m_screenState)
+        //Skip logo movice if skip flag is enabled && not for first boot
+        m_skipNoticeScreen = SYSTEM_ADAPTER->isSkipNoticeScreens() && RAY_GAMEMANAGER->getAuthBootCount() >= 1;
+        if (m_skipNoticeScreen)
         {
-        case Idle:            
+            // Notify bootloader keep loading
+            m_loaded = true;
+        }
+        switch (m_screenState)
+        {
+        case Idle:
             // Wait for TRC opening
-            if(!TRC_ADAPTER || TRC_ADAPTER->canDrawContent())
+            if (!TRC_ADAPTER || TRC_ADAPTER->canDrawContent())
             {
 #ifdef ITF_PS5
                 if (m_ps5StartupStartedTime == 0.0)
@@ -217,18 +221,18 @@ namespace ITF
                     m_japLogo_Duration = 0.0;
                 }
 
-                if ( !SYSTEM_ADAPTER->isHDDMode() )
+                if (!SYSTEM_ADAPTER->isHDDMode())
                 {
                     m_japLogo_Duration = 0.0;
                 }
 
-                if ( m_japLogo_Duration > 0 )  
+                if (m_japLogo_Duration > 0)
                 {
                     changeScreenState(WaitingKIDOJI);
 
-                    if ( GFX_ADAPTER->getScreenHeight() == 480 )
+                    if (GFX_ADAPTER->getScreenHeight() == 480)
                         m_currentJapLogo = Kidoji_480;
-                    else if ( GFX_ADAPTER->getScreenHeight() == 720 )
+                    else if (GFX_ADAPTER->getScreenHeight() == 720)
                         m_currentJapLogo = Kidoji_720;
                     else
                         m_currentJapLogo = Kidoji_1080;
@@ -247,15 +251,31 @@ namespace ITF
 #endif
                 else
                 {
-                    startPlayingVideo();
+                    //SKIP LOGO MOVIE SCREEN
+                    if (m_skipNoticeScreen)
+                    {
+                        if (GAMEMANAGER->isMenusLoaded())
+                        {
+#ifdef ITF_PS5
+                           if (m_ps5StartupHidden)
+#endif
+                           {
+                               changeGameScreen();
+                           }
+                        }
+                    }
+                    else
+                    {
+                        startPlayingVideo();
+                    }
                 }
             }
             break;
         case PlayingMovie:
-            if(!m_moviePlayerComponent || !m_moviePlayerComponent->isPlayingMovie())
-            {   
+            if (!m_moviePlayerComponent || !m_moviePlayerComponent->isPlayingMovie())
+            {
                 changeScreenState(PlayingAnim);
-                if (m_animComponent) 
+                if (m_animComponent)
                 {
                     m_animComponent->setPlayRate(1.0f);
                 }
@@ -268,41 +288,41 @@ namespace ITF
                     m_animComponent->resetCurTime();
                     m_animComponent->setPlayRate(0.0f);
                     m_resetAnimDone = btrue;
-                } 
+                }
             }
             break;
         case PlayingAnim:
-            if ( !m_animComponent || m_animComponent->isSubAnimFinished() )
+            if (!m_animComponent || m_animComponent->isSubAnimFinished())
             {
-                if ( requiredLoadingComplete )
+                if (requiredLoadingComplete)
                     changeGameScreen();
             }
             break;
         case WaitingSHIYOJO:
         case WaitingKIDOJI:
         case WaitingKENKO:
-            if ( SYSTEM_ADAPTER->getTime() - m_japLogoStartedTime >= m_japLogo_Duration )
+            if (SYSTEM_ADAPTER->getTime() - m_japLogoStartedTime >= m_japLogo_Duration)
             {
-                if( m_screenState == WaitingKIDOJI )
+                if (m_screenState == WaitingKIDOJI)
                 {
                     changeScreenState(WaitingKENKO);
 
-                    if ( GFX_ADAPTER->getScreenHeight() == 480 )
+                    if (GFX_ADAPTER->getScreenHeight() == 480)
                         m_currentJapLogo = Kenko_480;
-                    else if ( GFX_ADAPTER->getScreenHeight() == 720 )
+                    else if (GFX_ADAPTER->getScreenHeight() == 720)
                         m_currentJapLogo = Kenko_720;
                     else
                         m_currentJapLogo = Kenko_1080;
 
                     m_japLogoStartedTime = SYSTEM_ADAPTER->getTime();
                 }
-                else if ( m_screenState == WaitingKENKO )
+                else if (m_screenState == WaitingKENKO)
                 {
                     changeScreenState(WaitingSHIYOJO);
 
-                    if ( GFX_ADAPTER->getScreenHeight() == 480 )
+                    if (GFX_ADAPTER->getScreenHeight() == 480)
                         m_currentJapLogo = Shiyojo_480;
-                    else if ( GFX_ADAPTER->getScreenHeight() == 720 )
+                    else if (GFX_ADAPTER->getScreenHeight() == 720)
                         m_currentJapLogo = Shiyojo_720;
                     else
                         m_currentJapLogo = Shiyojo_1080;
@@ -310,27 +330,27 @@ namespace ITF
                     m_japLogoStartedTime = SYSTEM_ADAPTER->getTime();
                 }
                 else
-                    startPlayingVideo();               
-            } 
-            if(m_japLogoComponent[m_currentJapLogo]!=NULL)
+                    startPlayingVideo();
+            }
+            if (m_japLogoComponent[m_currentJapLogo] != NULL)
             {
                 TextureGraphicComponent2D* component2D = m_japLogoComponent[m_currentJapLogo]->GetActor()->GetComponent<TextureGraphicComponent2D>();
-                if ( component2D && component2D->getTexture() && component2D->getTexture()->isPhysicallyLoaded() )
+                if (component2D && component2D->getTexture() && component2D->getTexture()->isPhysicallyLoaded())
                 {
                     Quad2DInfo texInfo;
                     Texture* tex = component2D->getTexture();
                     texInfo.m_angle = 0.f;
-                    texInfo.m_color     = COLOR_WHITE;
-                    texInfo.m_width     = (f32)tex->getSizeX();
-                    texInfo.m_height    = (f32)tex->getSizeY();
-                    texInfo.m_texture   = component2D->getTexture();
-                    texInfo.m_uvStart   = Vec2d::Zero;
-                    texInfo.m_uvEnd     = Vec2d::One;
-                    texInfo.m_pos2D.m_x = GFX_ADAPTER->getScreenWidth() * 0.5f - texInfo.m_width     * 0.5f;
-                    texInfo.m_pos2D.m_y = GFX_ADAPTER->getScreenHeight() * 0.5f - texInfo.m_height     * 0.5f;
+                    texInfo.m_color = COLOR_WHITE;
+                    texInfo.m_width = (f32)tex->getSizeX();
+                    texInfo.m_height = (f32)tex->getSizeY();
+                    texInfo.m_texture = component2D->getTexture();
+                    texInfo.m_uvStart = Vec2d::Zero;
+                    texInfo.m_uvEnd = Vec2d::One;
+                    texInfo.m_pos2D.m_x = GFX_ADAPTER->getScreenWidth() * 0.5f - texInfo.m_width * 0.5f;
+                    texInfo.m_pos2D.m_y = GFX_ADAPTER->getScreenHeight() * 0.5f - texInfo.m_height * 0.5f;
 
                     GFX_ADAPTER->addPrimitive2d(Vec2d::Zero, Vec2d::One, 0, GFX_QUADS, NULL, NULL, &texInfo);
-                }               
+                }
             }
             break;
         }
@@ -358,19 +378,18 @@ namespace ITF
             }
         }
         return m_currentlyExiting;
-
     }
 
     void Ray_GameScreen_SplashScreenBase::startPlayingVideo()
     {
-        changeScreenState(PlayingMovie);                
-        if(m_moviePlayerComponent)
+        changeScreenState(PlayingMovie);
+        if (m_moviePlayerComponent)
             m_moviePlayerComponent->playMovie();
         m_loaded = btrue;
 
-        for(u32 i = 0; i < JapLogo_MAX; i++)
+        for (u32 i = 0; i < JapLogo_MAX; i++)
         {
-            if ( m_japLogoComponent[i] )
+            if (m_japLogoComponent[i])
                 m_japLogoComponent[i]->GetActor()->disable();
         }
     }
@@ -379,7 +398,7 @@ namespace ITF
     ///////////////////////////////////////////////////////////////////////////////////////////
 
 
-    StringID Ray_GameScreen_Framework::getNextScreen() const 
+    StringID Ray_GameScreen_Framework::getNextScreen() const
     {
         return Ray_GameScreen_MainMenu::GetClassCRCStatic();
     }

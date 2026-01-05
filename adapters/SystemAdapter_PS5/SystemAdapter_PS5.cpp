@@ -19,6 +19,7 @@
 
 #include "adapters/InputAdapter_PS5/InputAdapter_PS5.h"
 #include "adapters/GfxAdapter_PS5/GfxAdapter_PS5.h"
+#include "core/Config.h"
 
 namespace ITF
 {
@@ -91,6 +92,13 @@ namespace ITF
         return btrue;
     }
 
+    bbool SystemAdapter_PS5::isSkipNoticeScreens()
+    {
+        bool skipNoticeScreen = false;
+        sceSystemServiceGetNoticeScreenSkipFlag(&skipNoticeScreen);
+        return skipNoticeScreen;
+    }
+
     void SystemAdapter_PS5::initUsers()
     {
         ITF_VERIFY_SCE_CALL(sceUserServiceGetInitialUser(&m_initialUserId));
@@ -134,7 +142,7 @@ namespace ITF
             ITF_ASSERT_SCE_RESULT(videoOutHdl);
         }
         m_hwnd = reinterpret_cast<void*>(videoOutHdl);
-        
+
         if (!gfxadapter->createDevice(videoOutHdl))
                 return bfalse;
 

@@ -101,6 +101,9 @@ private:
     f32 m_contentChangeTimer;
     BubblePrizeContentList m_contentList;
 
+public:
+    bbool isSkullCoin();
+
     const Ray_BubblePrize_Template* m_template;
 };
 

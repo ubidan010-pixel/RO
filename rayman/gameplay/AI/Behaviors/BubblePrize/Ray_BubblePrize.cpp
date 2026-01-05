@@ -275,6 +275,11 @@ void Ray_BubblePrize::changeRewardNumber( const Ray_EventSetBubblePrizeRewardNum
 }
 
 //------------------------------------------------------------------------------
+bbool Ray_BubblePrize::isSkullCoin()
+{
+    return getTemplate()->isSkullCoin();
+}
+//------------------------------------------------------------------------------
 BEGIN_SERIALIZATION(Ray_BubblePrize_Template)
     SERIALIZE_CONTAINER_OBJECT("contentList", m_contentList);
     SERIALIZE_MEMBER("contentChangeDelay", m_contentChangeDelay);

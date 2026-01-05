@@ -1400,6 +1400,8 @@ namespace ITF
         void            disableMurphyAssistForLevel();
         void            setMurphyAssistFollowPlayer();
         void            markMurphyAssistTargetCollected(const ActorRef& _actorRef);
+        bbool           isMurphyAssistFollowingPlayer() const { return m_isMurphyAssistFollowingPlayer; }
+        void            setIsMurphyAssistFollowingPlayer(bbool _isMurphyAssistFollowingPlayer) { m_isMurphyAssistFollowingPlayer = _isMurphyAssistFollowingPlayer; }
 
         // Unlock messages
         void            setWMUnlockMessageActor( ObjectRef _ref ) { m_worldMapUnlockMsgActor = _ref; }
@@ -1934,7 +1936,7 @@ namespace ITF
         bbool       m_allowPlayerCrush;
         bbool       m_allowNpcCrush;
 
-
+        bbool       m_isMurphyAssistFollowingPlayer;
         bbool       m_isTimeAttack;
         bbool       m_isTimeAttackFinished;
         bbool       m_triggerTimeAttackEndSequence;

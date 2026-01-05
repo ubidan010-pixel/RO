@@ -74,7 +74,7 @@ public:
     SystemStatus getSystemStatus() const;
 
     SceUserServiceUserId getInitialUserId() const { return m_initialUserId; }
-
+    bbool isSkipNoticeScreens() override;
 private:
     void initUsers();
     void initTitleId();

@@ -8,6 +8,10 @@
 #include "rayman/gameplay/Components/AI/Ray_MurphyAssistAIComponent.h"
 #endif //_ITF_RAY_MURPHYASSISTAICOMPONENT_H_
 
+#ifndef _ITF_RAY_GAMEMANAGER_H_
+#include "rayman/gameplay/Ray_GameManager.h"
+#endif //_ITF_RAY_GAMEMANAGER_H_
+
 namespace ITF
 {
     IMPLEMENT_OBJECT_RTTI(Ray_MurphyAssistBubbleAIComponent)
@@ -48,6 +52,7 @@ namespace ITF
         if (m_owner != NULL)
         {
             m_owner->setCanFollowPlayer(btrue);
+            RAY_GAMEMANAGER->setIsMurphyAssistFollowingPlayer(btrue);
         }
     }
     //--------------------------------------------------------------------------------------------------------
@@ -60,7 +65,10 @@ namespace ITF
 
         if (PunchStim* stim = _event->DynamicCast<PunchStim>(ITF_GET_STRINGID_CRC(PunchStim, 200533519)))
         {
-            processPunchEvent(stim);
+            if (GAMEMANAGER->isPlayerActor(stim->getSender()))
+            {
+                processPunchEvent(stim);
+            }
         }
     }
     //--------------------------------------------------------------------------------------------------------

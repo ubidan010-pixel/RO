@@ -49,9 +49,13 @@ namespace ITF
     private:
 
         // indicator
-        ActorRef                    m_indicatorRef;
-        SpawneeGenerator            m_indicatorSpawner;
+        ITF_VECTOR<ActorRef>        m_indicatorRefs;
+        ActorRef                    m_activeIndicatorRef;
+        ITF_VECTOR<SpawneeGenerator> m_indicatorSpawners;
+        RandomLCG                   m_random;
+
         void                        enableIndicatorAt(const Vec2d _position, const Vec2d _rotation);
+        void                        disableIndicator();
         void                        updateOffscreenFX();
         bbool                       getScreenAABBCropped(const Margin& _margin, AABB& _screenAABB);
 
@@ -116,7 +120,7 @@ namespace ITF
         ITF_INLINE f32                                  getArriveStopDist() const { return m_arriveStopDist; }
         ITF_INLINE f32                                  getGoBackMaxDeltaX() const { return m_goBackMaxDeltaX; }
         ITF_INLINE LocalisationId                       getMurphyAssistLocId() const { return m_murphyAssistDialogTextId; }
-        ITF_INLINE const Path&                          getIndicatorPath() const { return m_indicatorAct; }
+        ITF_INLINE const ITF_VECTOR<Path>&              getIndicatorPaths() const { return m_indicatorActs; }
         ITF_INLINE f32                                  getIndicatorZOffset() const { return m_indicatorZOffset; }
         ITF_INLINE const Path&                          getToggleBubblePath() const { return m_toggleBubbleAct; }
         ITF_INLINE const Vec3d&                         getToggleSpawnOffset() const { return m_toggleBubbleSpawnOffset; }
@@ -140,7 +144,7 @@ namespace ITF
         f32                         m_arriveStopDist;
         f32                         m_goBackMaxDeltaX;
         LocalisationId              m_murphyAssistDialogTextId;
-        Path                        m_indicatorAct;
+        ITF_VECTOR<Path>            m_indicatorActs;
         f32                         m_indicatorZOffset;
         Path                        m_toggleBubbleAct;
         Vec3d                       m_toggleBubbleSpawnOffset;

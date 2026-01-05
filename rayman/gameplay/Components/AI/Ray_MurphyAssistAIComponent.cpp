@@ -48,6 +48,10 @@
 #include "rayman/gameplay/Components/AI/Ray_MurphyAssistBubbleAIComponent.h"
 #endif //_ITF_RAY_MURPHYASSISTBUBBLEAICOMPONENT_H_
 
+#ifndef _ITF_RAY_AIBUBBLEPRIZEBEHAVIOR_H_
+#include "rayman/gameplay/AI/Behaviors/BubblePrize/Ray_AIBubblePrizeBehavior.h"
+#endif //_ITF_RAY_AIBUBBLEPRIZEBEHAVIOR_H_
+
 namespace ITF
 {
     template<typename T>
@@ -97,22 +101,38 @@ namespace ITF
     void Ray_MurphyAssistAIComponent::onActorLoaded(Pickable::HotReloadType _hotReload)
     {
         m_sentences.clear();
-        m_sentences.push_back(getCustomTemplate()->getMurphyAssistLocId());
+        //m_sentences.push_back(getCustomTemplate()->getMurphyAssistLocId());
 
         Super::onActorLoaded(_hotReload);
 
-        if (!getCustomTemplate()->getIndicatorPath().isEmpty())
-        {
-            SPAWNER->declareNeedsSpawnee(m_actor, &m_indicatorSpawner, getCustomTemplate()->getIndicatorPath());
+        const auto& paths = getCustomTemplate()->getIndicatorPaths();
+        m_indicatorSpawners.resize(paths.size());
+        m_indicatorRefs.resize(paths.size());
 
-            Actor* indicatorActor = m_indicatorSpawner.getSpawnee(m_actor->getScene(), m_actor->getPos(), m_actor->getAngle());
+        for (u32 i = 0; i < paths.size(); ++i)
+        {
+            m_indicatorRefs[i] = ActorRef();
+
+            const Path& p = paths[i];
+            ITF_ASSERT(!p.isEmpty());
+
+            SpawneeGenerator& sp = m_indicatorSpawners[i];
+            SPAWNER->declareNeedsSpawnee(m_actor, &sp, p);
+
+            Actor* indicatorActor = sp.getSpawnee(
+                m_actor->getScene(),
+                m_actor->getPos(),
+                m_actor->getAngle()
+            );
+            ITF_ASSERT(indicatorActor);
 
             if (indicatorActor)
             {
-                m_indicatorRef = indicatorActor->getRef();
+                m_indicatorRefs[i] = indicatorActor->getRef();
                 indicatorActor->disable();
             }
         }
+
         Actor* bubbleActor = m_bubbleRef.getActor();
         if (bubbleActor)
         {
@@ -139,7 +159,8 @@ namespace ITF
                 TextInfo& textInfo = textInfos[0];
                 //textInfo.m_color = getCustomTemplate()->getTextColor().getAsU32();
                 textInfo.m_size = getCustomTemplate()->getInitialFontHeight();
-                textInfo.m_text.setTextFormat("Pop the bubble & I'll help find the remaining treasures: \n[actor:%s]%i/%i [actor:%s]%i/%i", electoonPath.cStr(), brokenHiddenCage, maxHiddenCage, relicPath.cStr(), takenRelic, maxRelic);
+                String textFormat = LOCALISATIONMANAGER->getText(getCustomTemplate()->getMurphyAssistLocId());
+                textInfo.m_text.setTextFormat(textFormat.getCharCopy(), electoonPath.cStr(), brokenHiddenCage, maxHiddenCage, relicPath.cStr(), takenRelic, maxRelic);
 
                 bubble->setSentencesStr(textInfos);
                 //bubble->setAppear();
@@ -147,6 +168,8 @@ namespace ITF
         }
 
         m_actor->setUpdateType(Pickable::UpdateType_OffscreenAllowed);
+
+        RAY_GAMEMANAGER->setMurphyAssist(m_actor->getRef());
 
         EVENTMANAGER_REGISTER_EVENT_LISTENER(ITF_GET_STRINGID_CRC(EventActorActiveChanged, 323621555), this);
     }
@@ -265,68 +288,88 @@ namespace ITF
     void Ray_MurphyAssistAIComponent::considerActorAdd(Actor* a) {
         if (!a || !a->isActive()) return;
 
-        // Cage
-        if (auto* changePage = a->GetComponent<Ray_ChangePageComponent>()) {
-            SafeArray<ObjectRef>* parents = LINKMANAGER->getParents(changePage->GetActor()->getRef());
+        const ObjectRef r = a->getRef();
 
-            u32 count = parents->size();
-            for (u32 i = 0; i < count; i++)
-            {
-                BaseObject* target = (*parents)[i].getObject();
-                if (target)
-                {
-                    Actor* actor = static_cast<Actor*>(target);
-                    if (actor && actor->getObjectType() == BaseObject::eActor)
-                    {
-                        Ray_CageAIComponent* cageComp = actor->GetComponent<Ray_CageAIComponent>();
-                        if (cageComp)
-                        {
-                            const i32 idx = cageComp->getCageIndex();
-                            if (cageLogicOK(idx)) {
-                                ObjectRef r = a->getRef();
-                                const i32 at = findIndexByRef(r);
-                                if (at < 0) {
-                                    m_targets.push_back({ MurphyAssistTarget::Cage, r, idx });
+        auto comps = a->GetAllComponents();
+
+        for (auto comp : comps)
+        {
+            if (!comp) continue;
+
+            // Cage
+            if (comp->IsClassCRC(Ray_ChangePageComponent::GetClassCRCStatic())) {
+                auto* changePage = static_cast<Ray_ChangePageComponent*>(comp);
+                SafeArray<ObjectRef>* parents = LINKMANAGER->getParents(changePage->GetActor()->getRef());
+
+                u32 count = parents->size();
+                for (u32 i = 0; i < count; i++) {
+                    BaseObject* target = (*parents)[i].getObject();
+                    if (target) {
+                        Actor* actor = static_cast<Actor*>(target);
+                        if (actor && actor->getObjectType() == BaseObject::eActor) {
+                            Ray_CageAIComponent* cageComp = actor->GetComponent<Ray_CageAIComponent>();
+                            if (cageComp) {
+                                const i32 idx = cageComp->getCageIndex();
+                                if (cageLogicOK(idx)) {
+                                    ObjectRef r = a->getRef();
+                                    const i32 at = findIndexByRef(r);
+                                    if (at < 0) {
+                                        m_targets.push_back({ MurphyAssistTarget::Cage, r, idx });
+                                    }
+                                    else {
+                                        m_targets[(u32)at].active = btrue;
+                                    }
+                                    m_appearRequested = btrue;
+                                    break;
                                 }
-                                else {
-                                    m_targets[(u32)at].active = btrue;
-                                }
-                                m_appearRequested = btrue;
-                                break;
                             }
                         }
                     }
                 }
             }
-        }
 
-        // Skull coin
-        if (a->GetComponent<Ray_SkullCoinComponent>()) {
-            ObjectRef r = a->getRef();
-            const i32 at = findIndexByRef(r);
-            if (at < 0) {
-                m_targets.push_back({ MurphyAssistTarget::SkullCoin, r, -1 });
+            // Skull coin
+            else if (comp->IsClassCRC(Ray_SkullCoinComponent::GetClassCRCStatic())) {
+                ObjectRef r = a->getRef();
+                const i32 at = findIndexByRef(r);
+                if (at < 0) {
+                    m_targets.push_back({ MurphyAssistTarget::SkullCoin, r, -1 });
+                }
+                else {
+                    m_targets[(u32)at].active = btrue;
+                }
+                m_appearRequested = btrue;
             }
-            else {
-                m_targets[(u32)at].active = btrue;
-            }
-            m_appearRequested = btrue;
-        }
 
-        // Relic
-        if (auto* fixedAI = a->GetComponent<Ray_FixedAIComponent>()) {
-            if (auto* beh = fixedAI->getCurrentBehavior()) {
-                if (auto* relic = beh->DynamicCast<RayVita_AIRelicBehavior>(
-                    ITF_GET_STRINGID_CRC(RayVita_AIRelicBehavior, 267847435))) {
-                    const i32 relicId = relic->getRelicIndex();
-                    if (relicLogicOK(relicId)) {
-                        ObjectRef r = a->getRef();
-                        const i32 at = findIndexByRef(r);
-                        if (at < 0) {
-                            m_targets.push_back({ MurphyAssistTarget::Relic, r, relicId });
+            else if (comp->IsClassCRC(AIComponent::GetClassCRCStatic())) {
+                // Relic
+                auto* ai = static_cast<AIComponent*>(comp);
+                if (auto* beh = ai->getCurrentBehavior()) {
+                    if (auto* relic = beh->DynamicCast<RayVita_AIRelicBehavior>(ITF_GET_STRINGID_CRC(RayVita_AIRelicBehavior, 267847435))) {
+                        const i32 relicId = relic->getRelicIndex();
+                        if (relicLogicOK(relicId)) {
+                            ObjectRef r = a->getRef();
+                            const i32 at = findIndexByRef(r);
+                            if (at < 0) {
+                                m_targets.push_back({ MurphyAssistTarget::Relic, r, relicId });
+                            }
+                            else {
+                                m_targets[(u32)at].active = btrue;
+                            }
                         }
-                        else {
-                            m_targets[(u32)at].active = btrue;
+                    }
+
+                    // Bubble Prize Skull Coin
+                    else if (auto* bub = beh->DynamicCast<Ray_AIBubblePrizeBehavior>(ITF_GET_STRINGID_CRC(Ray_AIBubblePrizeBehavior, 3921876667))) {
+                        if (bub->isSkullCoin()) {
+                            ObjectRef r = a->getRef();
+                            const i32 at = findIndexByRef(r);
+                            if (at < 0) {
+                                m_targets.push_back({ MurphyAssistTarget::SkullCoin, r, -1 });
+                            }
+                            else {
+                                m_targets[(u32)at].active = btrue;
+                            }
                         }
                     }
                 }
@@ -437,7 +480,15 @@ namespace ITF
     {
         if (idx < 0) { enterFollowState(); return; }
         m_assistState = Assist_GoToTarget;
-        m_currentTargetIdx = idx;
+
+        if (m_currentTargetIdx != idx)
+        {
+            m_currentTargetIdx = idx;
+
+            const int index = m_random.RandI() % m_indicatorRefs.size();
+            m_activeIndicatorRef = m_indicatorRefs[index];
+        }
+
         m_smoothSpeed.set(0, 0, 0);
 
         if (m_animatedComponent)
@@ -548,9 +599,9 @@ namespace ITF
     //--------------------------------------------------------------------------------------------------------
     void Ray_MurphyAssistAIComponent::updateOffscreenFX()
     {
-        Actor* spawn = m_actor;
-        if (!spawn)
+        if (m_assistState != Assist_GoToTarget && m_assistState != Assist_Talking)
         {
+            disableIndicator();
             return;
         }
 
@@ -583,7 +634,7 @@ namespace ITF
         //}
 #endif
 
-        const Vec2d pos = spawn->getPos().truncateTo2D();
+        const Vec2d pos = m_actor->getPos().truncateTo2D();
 
         if (!screenAABB.contains(pos))
         {
@@ -594,9 +645,9 @@ namespace ITF
             //DebugDraw::circle(targetPos, m_actor->getDepth(), 0.3f, Color::red(), 0.f, "Murphy");
             enableIndicatorAt(targetPos, Vec2d());
         }
-        else if (m_indicatorRef.getActor())
+        else
         {
-            m_indicatorRef.getActor()->disable();
+            disableIndicator();
         }
     }
     //--------------------------------------------------------------------------------------------------------
@@ -641,13 +692,28 @@ namespace ITF
     //--------------------------------------------------------------------------------------------------------
     void Ray_MurphyAssistAIComponent::enableIndicatorAt(const Vec2d _position, const Vec2d _rotation)
     {
-        Actor* indicator = m_indicatorRef.getActor();
-        if (indicator)
-        {
-            indicator->enable();
-            indicator->setPos(Vec3d(_position.m_x, _position.m_y, getCustomTemplate()->getIndicatorZOffset()));
+        Actor* indicator = m_activeIndicatorRef.getActor();
+        if (!indicator)
+            return;
 
-            //how to set rotation??
+        indicator->enable();
+        indicator->setPos(
+            Vec3d(
+                _position.m_x,
+                _position.m_y,
+                getCustomTemplate()->getIndicatorZOffset()
+            )
+        );
+
+        //indicator->setAngle(_rotation.m_x);
+    }
+
+    //--------------------------------------------------------------------------------------------------------
+    void Ray_MurphyAssistAIComponent::disableIndicator()
+    {
+        if (Actor* indicator = m_activeIndicatorRef.getActor())
+        {
+            indicator->disable();
         }
     }
     //--------------------------------------------------------------------------------------------------------
@@ -769,7 +835,8 @@ namespace ITF
         SERIALIZE_MEMBER("arriveStopDist", m_arriveStopDist);
         SERIALIZE_MEMBER("goBackMaxDeltaX", m_goBackMaxDeltaX);
         SERIALIZE_MEMBER("murphyAssistDialogTextId", m_murphyAssistDialogTextId);
-        SERIALIZE_MEMBER("indicatorPath", m_indicatorAct);
+        SERIALIZE_MEMBER("indicatorPaths", m_indicatorActs);
+        SERIALIZE_MEMBER("indicatorZOffset", m_indicatorZOffset);
         SERIALIZE_MEMBER("toggleBubblePath", m_toggleBubbleAct);
         SERIALIZE_MEMBER("toggleBubbleSpawnOffset", m_toggleBubbleSpawnOffset);
         SERIALIZE_CONTAINER("juiceLineIds", m_juiceLineIds);

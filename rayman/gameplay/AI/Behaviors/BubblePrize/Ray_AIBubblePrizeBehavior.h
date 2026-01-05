@@ -75,6 +75,9 @@ private:
 
     u32 m_waterCheckOffset;
     PlayerDetectorComponent* m_playerDetectorComponent;
+
+public:
+    bbool isSkullCoin() { return m_bubblePrize.isSkullCoin(); };
 };
 
 //------------------------------------------------------------------------------

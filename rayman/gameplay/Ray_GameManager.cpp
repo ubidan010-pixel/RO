@@ -1176,6 +1176,7 @@ namespace ITF
           , m_hideJoinMessage(0)
           , m_changeRoomDoor(ITF_INVALID_OBJREF)
           , m_costumeManager(ITF_INVALID_OBJREF)
+          , m_isMurphyAssistFollowingPlayer(bfalse)
           , m_isTimeAttack(bfalse)
           , m_isTimeAttackFinished(bfalse)
           , m_triggerTimeAttackEndSequence(bfalse)
@@ -3077,7 +3078,20 @@ namespace ITF
     {
         if (RAY_GAMEMANAGER->isLevelCompletedOnce(RAY_GAMEMANAGER->getCurrentLevelName()))
         {
-            setMurphyAssistFollowPlayer();
+            if (isMurphyAssistFollowingPlayer())
+            {
+                Actor* murphyAssistActor = m_murphyAssist.getActor();
+
+                if (murphyAssistActor)
+                {
+                    Ray_MurphyAssistAIComponent* pComp = murphyAssistActor->GetComponent<Ray_MurphyAssistAIComponent>();
+                    setMurphyAssistFollowPlayer();
+                }
+            }
+        }
+        else
+        {
+            disableMurphyAssistForLevel();
         }
     }
 
@@ -4525,6 +4539,7 @@ namespace ITF
         m_friendliesRescued.clear();
         m_totalRescuedFriendlies.clear();
         setIsTimeAttack(bfalse);
+        setIsMurphyAssistFollowingPlayer(bfalse);
     }
 
     void Ray_GameManager::addHitPoints(u32 _playerIndex, i32 _numHP, bbool _evenIfInvincible, bbool _broadcastEvent)

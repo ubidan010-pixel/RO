@@ -2370,8 +2370,8 @@ namespace ITF
                                     param += " \"";
                                     param += timestr;
                                     param += "\"";
-
-                                    SYSTEM_ADAPTER->launchExe("..\\GenAnim\\launchScn.bat", StringConverter(param).getChar(), btrue, bfalse);
+                                    //
+                                    SYSTEM_ADAPTER->launchExe("..\\..\\RO\\engine\\GenAnim\\launchScn.bat", StringConverter(param).getChar(), btrue, bfalse);
                                 }
                             }
                         }

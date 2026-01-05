@@ -211,6 +211,7 @@ public:
     static ITF_LANGUAGE filterSupportedLanguages(ITF_LANGUAGE _language, const ITF_LANGUAGE *_supportedLanguages, u32 _supportedCount, ITF_LANGUAGE _defaultLanguage);
 
     virtual void hideStartupSplashScreen() {}
+    virtual bbool isSkipNoticeScreens()             {return bfalse;}
 #ifdef ITF_WINDOWS
     virtual void    SetRegistryValue(const String& name, const DWORD value) {};
     virtual void    SetRegistryValue(const String& name, const String& value) {};

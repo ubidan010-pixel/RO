@@ -61,6 +61,7 @@ namespace ITF
         AnimLightComponent *m_animComponent;
         bbool m_resetAnimDone;
         MoviePlayerComponent *m_moviePlayerComponent;
+        bbool m_skipNoticeScreen;
 
         enum JapLogo
         {
