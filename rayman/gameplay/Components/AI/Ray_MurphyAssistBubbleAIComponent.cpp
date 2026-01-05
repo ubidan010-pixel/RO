@@ -41,17 +41,24 @@ namespace ITF
         Super::Update(_dt);
     }
     //--------------------------------------------------------------------------------------------------------
-    void Ray_MurphyAssistBubbleAIComponent::processPunchEvent(const PunchStim* const _event)
+    void Ray_MurphyAssistBubbleAIComponent::processPunchEvent(const PunchStim* const _stim)
     {
         m_actor->requestDestruction();
-        broadcastHitEventToOwner();
+		ObjectRef sender = _stim->getSender();
+
+		Player* player = GAMEMANAGER->getPlayerFromActor(sender);
+		if (player)
+		{
+			u32 index = player->getIndex();
+			broadcastHitEventToOwner(index);
+		}
     }
     //--------------------------------------------------------------------------------------------------------
-    void Ray_MurphyAssistBubbleAIComponent::broadcastHitEventToOwner()
+    void Ray_MurphyAssistBubbleAIComponent::broadcastHitEventToOwner(u32 _playerIndex)
     {
         if (m_owner != NULL)
         {
-            m_owner->setCanFollowPlayer(btrue);
+            m_owner->setCanFollowPlayer(btrue, _playerIndex);
             RAY_GAMEMANAGER->setIsMurphyAssistFollowingPlayer(btrue);
         }
     }
@@ -67,7 +74,7 @@ namespace ITF
         {
             if (GAMEMANAGER->isPlayerActor(stim->getSender()))
             {
-                processPunchEvent(stim);
+				processPunchEvent(stim);
             }
         }
     }

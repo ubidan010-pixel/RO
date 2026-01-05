@@ -35,7 +35,8 @@ namespace ITF
         void                onActorLoaded(Pickable::HotReloadType _hotReload);
         void                requestAppear();
         void                forceDisappear();
-        void                setCanFollowPlayer(bbool _follow) { m_canFollowPlayer = _follow; }
+        void                setCanFollowPlayer(bbool _follow, u32 _playerIndex);
+        bbool               canChangeAssistState();
         void                followPlayer();
         void                markTargetCollected(const ActorRef& _actorRef);
         void                onEvent(Event* _event) override;
@@ -47,6 +48,7 @@ namespace ITF
         void                setState(State _state) override;
 
     private:
+        u32                         m_followingPlayerIndex;
 
         // indicator
         ITF_VECTOR<ActorRef>        m_indicatorRefs;

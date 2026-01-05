@@ -34,7 +34,7 @@ namespace ITF
         void                            processPunchEvent(const PunchStim* const _event);
 
         Ray_MurphyAssistAIComponent*    m_owner;
-        void                            broadcastHitEventToOwner();
+        void                            broadcastHitEventToOwner(u32 _playerIndex);
 
         ITF_INLINE const class Ray_MurphyAssistBubbleAIComponent_Template* getTemplate() const;
     };

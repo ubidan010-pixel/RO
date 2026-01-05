@@ -52,6 +52,10 @@
 #include "rayman/gameplay/AI/Behaviors/BubblePrize/Ray_AIBubblePrizeBehavior.h"
 #endif //_ITF_RAY_AIBUBBLEPRIZEBEHAVIOR_H_
 
+#ifndef _ITF_RAY_PLAYERCONTROLLERCOMPONENT_H_
+#include "rayman/gameplay/Components/Player/Ray_PlayerControllerComponent.h"
+#endif //_ITF_RAY_PLAYERCONTROLLERCOMPONENT_H_
+
 namespace ITF
 {
     template<typename T>
@@ -90,6 +94,7 @@ namespace ITF
     , m_talkAccum(0.f)
     , m_stillAccum(0.f)
     , m_lastPlayerX(0.f)
+    , m_followingPlayerIndex(-1)
     {
     }
 
@@ -421,11 +426,16 @@ namespace ITF
         setState(State_Disappear);
     }
     //--------------------------------------------------------------------------------------------------------
+    void Ray_MurphyAssistAIComponent::setCanFollowPlayer(bbool _follow, u32 _playerIndex)
+    {
+        m_canFollowPlayer = _follow;
+        m_followingPlayerIndex = _follow ? _playerIndex : -1;
+    }
+    //--------------------------------------------------------------------------------------------------------
     void Ray_MurphyAssistAIComponent::followPlayer()
     {
         m_canFollowPlayer = btrue;
-        const u32 pIdx = GAMEMANAGER->getMainIndexPlayer();
-        Actor* pAct = GAMEMANAGER->getActivePlayer(pIdx);
+        Actor* pAct = GAMEMANAGER->getActivePlayer(m_followingPlayerIndex);
         m_actor->setPos(pAct->getPos() + getCustomTemplate()->getPlayerFollowOffset().to3d());
         setState(State_Talk);
         enterFollowState();
@@ -507,11 +517,21 @@ namespace ITF
             return;
         }
 
-        Actor* player = GAMEMANAGER->getActivePlayer(GAMEMANAGER->getMainIndexPlayer());
+        if (m_followingPlayerIndex < 0)
+        {
+            return;
+        }
+
+        Actor* player = GAMEMANAGER->getActivePlayer(m_followingPlayerIndex);
         if (!player)
             return;
 
-        const bbool playerStillLong = updatePlayerStillness(player, _dt);
+        bbool playerStillLong = bfalse;
+
+        if (m_assistState == Assist_FollowPlayer || m_assistState == Assist_Talking)
+        {
+            playerStillLong = updatePlayerStillness(player, _dt);
+        }
 
         switch (m_assistState)
         {
@@ -536,7 +556,7 @@ namespace ITF
             }
 
             m_probeAccum += _dt;
-            if (m_probeAccum >= 0.10f) {
+            if (m_probeAccum >= 0.10f && canChangeAssistState()) {
                 m_probeAccum = 0.f;
                 const i32 idx = nearestTargetWithin(m_targets, player->getPos(), getCustomTemplate()->getGoBackMaxDeltaX());
                 if (idx >= 0) enterGoToTargetState(idx);
@@ -545,12 +565,6 @@ namespace ITF
 
         case Assist_GoToTarget:
             stepGoToTarget(_dt);
-
-            if (playerStillLong)
-            {
-                enterTalkState();
-                break;
-            }
 
             m_probeAccum += _dt;
 
@@ -565,7 +579,7 @@ namespace ITF
                 //    enterGoToTargetState(newIdx);
 
                 const f32 dxMurphy = fabsf(m_actor->getPos().m_x - player->getPos().m_x);
-                if (dxMurphy > maxDx)
+                if (dxMurphy > maxDx && canChangeAssistState())
                 {
                     enterFollowState();
                     break;
@@ -591,6 +605,7 @@ namespace ITF
             }
         }
         break;
+
         default: break;
         }
 
@@ -599,7 +614,7 @@ namespace ITF
     //--------------------------------------------------------------------------------------------------------
     void Ray_MurphyAssistAIComponent::updateOffscreenFX()
     {
-        if (m_assistState != Assist_GoToTarget && m_assistState != Assist_Talking)
+        if (m_assistState != Assist_GoToTarget)
         {
             disableIndicator();
             return;
@@ -779,6 +794,19 @@ namespace ITF
         return bfalse;
     }
     //--------------------------------------------------------------------------------------------------------
+    bbool Ray_MurphyAssistAIComponent::canChangeAssistState()
+    {
+        Actor* player = GAMEMANAGER->getActivePlayer(m_followingPlayerIndex);
+        if (player)
+        {
+            Ray_PlayerControllerComponent* controller = player->GetComponent<Ray_PlayerControllerComponent>();
+            if (controller->isSwinging())
+            {
+                return bfalse;
+            }
+        }
+        return btrue;
+    }
     //--------------------------------------------------------------------------------------------------------
     //--------------------------------------------------------------------------------------------------------
     //--------------------------------------------------------------------------------------------------------

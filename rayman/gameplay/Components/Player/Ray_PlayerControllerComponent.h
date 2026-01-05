@@ -264,6 +264,7 @@ public:
     bbool                       isPerformingUTurn() const { return m_performingUTurn != UTURNTYPE_NONE; }
     bbool                       isJumpOnAirTimerAllowed() const { return m_jumpOnAirTimer > 0.f; }
     bbool                       isSwimming() const {return m_stance == STANCE_SWIM; }
+    bbool                       isSwinging() const { return m_swingOnActor != ITF_INVALID_OBJREF; }
     ObjectRef                   getSwingOnActor() const {return m_swingOnActor;}    
     f32                         getSwingOnActorLength() const { return m_swingLength; }
     ObjectRef                   getClimbOnPolyline() const { return m_climbingPolyline;}
