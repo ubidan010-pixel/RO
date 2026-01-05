@@ -45,8 +45,13 @@ namespace ITF
             { m_joyButton_DPadR,      ZPad_Base::DPAD_RIGHT },
             { m_joyButton_A,          ZPad_Base::BUTTON_FACE_SOUTH },
             { m_joyButton_B,          ZPad_Base::BUTTON_FACE_EAST },
+#if defined(ITF_NINTENDO)
+            { m_joyButton_X,          ZPad_Base::BUTTON_FACE_NORTH },
+            { m_joyButton_Y,          ZPad_Base::BUTTON_FACE_WEST },
+#else
             { m_joyButton_X,          ZPad_Base::BUTTON_FACE_WEST },
             { m_joyButton_Y,          ZPad_Base::BUTTON_FACE_NORTH },
+#endif
             { m_joyButton_LB,         ZPad_Base::BUTTON_L_SHOULDER },
             { m_joyButton_RB,         ZPad_Base::BUTTON_R_SHOULDER },
             { m_joyButton_ThumbLeft,  ZPad_Base::BUTTON_L_THUMB },

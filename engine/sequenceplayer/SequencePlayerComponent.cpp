@@ -1101,7 +1101,12 @@ void SequencePlayerComponent::updateSkipInput( f32 _deltaTime )
         }
     }
 
-    bbool isSkipPressed = INPUT_ADAPTER->IsActionPressed(mainPlayerIndex, ZInputManager::Action_Back);
+    auto isPressed = [](InputAdapter::PressStatus status) -> bbool
+    {
+        return status == InputAdapter::Pressed || status == InputAdapter::JustPressed || status == InputAdapter::Double_Press;
+    };
+
+    bbool isSkipPressed = isPressed(buttons[m_joyButton_B]) || INPUT_ADAPTER->isKeyPressed(KEY_BACKSPACE);
 
     if (isSkipPressed)
     {
