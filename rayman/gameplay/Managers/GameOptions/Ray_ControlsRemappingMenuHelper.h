@@ -79,14 +79,11 @@ namespace ITF
 
     private:
         void showContextIcons() override;
-        void applyAndClose();
-        void cancelAndClose();
 
         enum ExitDecision
         {
             ExitDecision_None = 0,
             ExitDecision_Save,
-            ExitDecision_Discard,
         };
 
         bbool isPlayerParticipatingForExit(u32 playerIndex) const;
@@ -138,7 +135,6 @@ namespace ITF
         bbool m_hasSelectedComponentByPlayer[4];
 
         bbool m_hasCommittedChanges;
-        bbool m_hasRestoredOnCancel;
 
         ExitDecision m_exitDecisionByPlayer[4];
         Actor* m_readyStatusActorByPlayer[4];

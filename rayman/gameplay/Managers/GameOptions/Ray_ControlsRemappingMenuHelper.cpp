@@ -128,7 +128,6 @@ namespace ITF
     Ray_ControlsRemappingMenuHelper::Ray_ControlsRemappingMenuHelper()
         : Ray_BaseMenuHelper()
           , m_hasCommittedChanges(bfalse)
-          , m_hasRestoredOnCancel(bfalse)
           , m_hasSnapshot(bfalse)
 #if defined(ITF_WINDOWS)
           , m_hasSnapshotPCControlMode(bfalse)
@@ -244,7 +243,6 @@ namespace ITF
         s_activeHelper = this;
 
         m_hasCommittedChanges = bfalse;
-        m_hasRestoredOnCancel = bfalse;
 
         for (u32 playerIndex = 0; playerIndex < 4; ++playerIndex)
         {
@@ -461,33 +459,10 @@ namespace ITF
         if (!areAllParticipatingPlayersReadyToExit())
             return;
 
-        bbool anySave = bfalse;
-        for (u32 playerIndex = 0; playerIndex < 4; ++playerIndex)
+        m_hasCommittedChanges = btrue;
+        if (RAY_GAMEMANAGER)
         {
-            if (!isPlayerParticipatingForExit(playerIndex))
-                continue;
-
-            if (m_exitDecisionByPlayer[playerIndex] == ExitDecision_Save)
-            {
-                anySave = btrue;
-            }
-            else if (m_exitDecisionByPlayer[playerIndex] == ExitDecision_Discard)
-            {
-                restoreRemappingSnapshotForPlayer(playerIndex);
-            }
-        }
-
-        if (anySave)
-        {
-            m_hasCommittedChanges = btrue;
-            if (RAY_GAMEMANAGER)
-            {
-                RAY_GAMEMANAGER->saveGameOptions();
-            }
-        }
-        else
-        {
-            m_hasRestoredOnCancel = btrue;
+            RAY_GAMEMANAGER->saveGameOptions();
         }
 
         closeAndReturn();
@@ -658,8 +633,7 @@ namespace ITF
                 topRightIcon = ContextIcon_ResetControlToDefault;
             }
         }
-
-        CONTEXTICONSMANAGER->show(ContextIcon_Confirm, ContextIcon_Cancel, ContextIcon_Select, topRightIcon);
+        CONTEXTICONSMANAGER->show(ContextIcon_Invalid, ContextIcon_Cancel, ContextIcon_Select, topRightIcon);
     }
 
     void Ray_ControlsRemappingMenuHelper::UpdateMenuOnSelectionChange(UIComponent* uiComponent, bbool isSelected)
@@ -910,7 +884,7 @@ namespace ITF
 
         if (validInputPlayer && m_exitDecisionByPlayer[inputPlayer] != ExitDecision_None)
         {
-            if (action != input_actionID_DeleteSave && action != input_actionID_Back)
+            if (action != input_actionID_Back)
             {
                 setExitDecisionForPlayer(inputPlayer, ExitDecision_None);
             }
@@ -970,14 +944,6 @@ namespace ITF
 
         if (action == input_actionID_DeleteSave)
         {
-            if (validInputPlayer)
-            {
-                setExitDecisionForPlayer(inputPlayer, ExitDecision_Save);
-                if (areAllParticipatingPlayersReadyToExit())
-                {
-                    applyExitDecisionsAndClose();
-                }
-            }
             return UI_MENUMANAGER->getMenuPageAction_Nothing();
         }
 
@@ -1013,7 +979,7 @@ namespace ITF
         {
             if (validInputPlayer)
             {
-                setExitDecisionForPlayer(inputPlayer, ExitDecision_Discard);
+                setExitDecisionForPlayer(inputPlayer, ExitDecision_Save);
                 if (areAllParticipatingPlayersReadyToExit())
                 {
                     applyExitDecisionsAndClose();
@@ -1023,23 +989,6 @@ namespace ITF
         }
 
         return Ray_BaseMenuHelper::onMenuPageAction(menu, action, defaultAction);
-    }
-
-    void Ray_ControlsRemappingMenuHelper::applyAndClose()
-    {
-        m_hasCommittedChanges = btrue;
-        if (RAY_GAMEMANAGER)
-        {
-            RAY_GAMEMANAGER->saveGameOptions();
-        }
-        closeAndReturn();
-    }
-
-    void Ray_ControlsRemappingMenuHelper::cancelAndClose()
-    {
-        restoreRemappingSnapshot();
-        m_hasRestoredOnCancel = btrue;
-        closeAndReturn();
     }
 
     void Ray_ControlsRemappingMenuHelper::onMenuItemAction(UIComponent* component)
@@ -1330,11 +1279,6 @@ namespace ITF
         exitControllerTypeEditMode();
         m_previousSelectionStates.clear();
 #endif
-
-        if (!m_hasCommittedChanges && !m_hasRestoredOnCancel)
-        {
-            restoreRemappingSnapshot();
-        }
 
         resetExitDecisionsAndStatusUI();
 
