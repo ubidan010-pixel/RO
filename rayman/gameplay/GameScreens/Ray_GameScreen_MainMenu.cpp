@@ -104,10 +104,11 @@
 #include "rayman/gameplay/Managers/GameOptions/Ray_GameOptionNames.h"
 #endif //_ITF_RAY_GAMEOPTIONNAMES_H_
 #define EPILEPSY_SCREEN             "menuEpilepsy"
-#define EPILEPSY_TIME                7
+#define EPILEPSY_TIME               7
 #define FADE_EFFECT_TIME            1.0f
 #define FADE_OUT_ALPHA              0.0f
-#define FADE_IN_ALPHA                1.0f
+#define FADE_IN_ALPHA               1.0f
+#define FADE_ACTOR_NAME             "FadeBackground"
 #define TITLEMENU_FRIENDLY          "menutitlescreen"
 #define MAINMENU_FRIENDLY           "menuPlaywii" //menuPlay
 #ifdef ITF_WINDOWS
@@ -212,7 +213,7 @@ namespace ITF
     {
         if (m_fadeBackGround == nullptr)
         {
-            m_fadeBackGround = (m_world->getRootScene()->getActorFromUserFriendly("FadeBackground")->GetComponent<TextureGraphicComponent2D>());
+            m_fadeBackGround = (m_world->getRootScene()->getActorFromUserFriendly(FADE_ACTOR_NAME)->GetComponent<TextureGraphicComponent2D>());
         }
         if (m_firstLoading)
         {
@@ -225,6 +226,7 @@ namespace ITF
             m_timeStartingToWait = SYSTEM_ADAPTER->getTime();
             m_timeToWaitBeforeStartScreen = TIMETOWAIT_TITLESCREEN;
             m_firstLoading = bfalse;
+
             setState(State_ShowingEpilepsyScreen);
         }
         else
@@ -351,7 +353,7 @@ namespace ITF
     void Ray_GameScreen_MainMenu::enter_EpilepsyScreen()
     {
         m_startEpilepsyScreenTime = SYSTEM_ADAPTER->getTime();
-        UI_MENUMANAGER->showMenuPage(GAMEINTERFACE->getGameMenuPriority(), EPILEPSY_SCREEN, btrue, s_this);
+        UI_MENUMANAGER->showMenuPage(GAMEINTERFACE->getGameMenuPriority(), EPILEPSY_SCREEN, btrue, this);
     }
 
     void Ray_GameScreen_MainMenu::startUIFade(Fade _fade, void (*onComplete)())
